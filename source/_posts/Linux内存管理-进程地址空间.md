@@ -1,6 +1,6 @@
 ---
 title: Linux内核学习——内存管理之进程地址空间
-date: 2018-08-07 22:05:11
+date: 2018-08-13 22:05:11
 categories: Linux
 tags:
 	- linux-kernel
@@ -14,7 +14,7 @@ Linux内存管理非常复杂，从物理内存的分门别类，到内核用户
 内核获取动态内存的方式有3种：
 
 1. 直接调用buddy system接口`__get_free_pages()`或`alloc_pages()`从zone的页框分配器中获取页框。
-2. `kmem_cache_alloc`或`kmalloc`使用slab分配器为专用或通用对象分配块
+2. `kmem_cache_alloc`或`kmalloc`使用slab分配器为专用或通用对象分配块。
 3. `vmalloc()`或`vmalloc_32()`获取非连续内存区。
 
 上面的机制都是内核自身使用的，内核为用户态进程分配内存时，情况就完全不同了。用户态内存请求被认为是不紧迫的，内核总是尽量推迟给用户态进程分配动态内存 ，同时由于用户进程不可信任，所以内核还需要实时捕获用户态进程引起的寻址错误。
@@ -380,7 +380,7 @@ struct vm_operations_struct {
 
 线性区的结构图：
 
-![](/images/ulk/20180807_2.jpg)
+![](/images/20180807_2.jpg)
 
 链表遍历搜索线性区毕竟低效，Linux内核也使用了红黑树来存放进程线性区（红黑树太经典了，不科普了），内存描述符的`mm_rb`字段指向红黑树的根。
 
@@ -1513,3 +1513,925 @@ static void unmap_region(struct mm_struct *mm,
 }
 ```
 
+## 缺页异常处理程序
+
+缺页异常有两种情况：编程错误引发异常；引用进程地址空间但尚未分配物理页框。
+
+![](/images/ulk/20180813_1.jpg)
+
+80x86的缺页异常处理程序非常复杂：
+
+```c
+/*
+ * This routine handles page faults.  It determines the address,
+ * and the problem, and then passes it off to one of the appropriate
+ * routines.
+ *
+ * error_code:
+ *	bit 0 == 0 means no page found, 1 means protection fault
+ *	bit 1 == 0 means read, 1 means write
+ *	bit 2 == 0 means kernel, 1 means user-mode
+ */
+/**
+ * 缺页中断服务程序。
+ * regs-发生异常时寄存器的值
+ * error_code-当异常发生时，控制单元压入栈中的错误代码。
+ *			  当第0位被清0时，则异常是由一个不存在的页所引起的。否则是由无效的访问权限引起的。
+ *			  如果第1位被清0，则异常由读访问或者执行访问所引起，如果被设置，则异常由写访问引起。
+ *			  如果第2位被清0，则异常发生在内核态，否则异常发生在用户态。
+ */
+fastcall void do_page_fault(struct pt_regs *regs, unsigned long error_code)
+{
+	struct task_struct *tsk;
+	struct mm_struct *mm;
+	struct vm_area_struct * vma;
+	unsigned long address;
+	unsigned long page;
+	int write;
+	siginfo_t info;
+
+	/* get the address */
+	/**
+	 * 读取引起异常的线性地址。CPU控制单元把这个值存放在cr2控制寄存器中。
+	 */
+	__asm__("movl %%cr2,%0":"=r" (address));
+
+	if (notify_die(DIE_PAGE_FAULT, "page fault", regs, error_code, 14,
+					SIGSEGV) == NOTIFY_STOP)
+		return;
+	/* It's safe to allow irq's after cr2 has been saved */
+	/**
+	 * 只在保存了cr2就可以打开中断了。
+	 * 如果中断发生前是允许中断的，或者运行在虚拟8086模式，就打开中断。
+	 */
+	if (regs->eflags & (X86_EFLAGS_IF|VM_MASK))
+		local_irq_enable();
+
+	tsk = current;
+
+	info.si_code = SEGV_MAPERR;
+
+	/*
+	 * We fault-in kernel-space virtual memory on-demand. The
+	 * 'reference' page table is init_mm.pgd.
+	 *
+	 * NOTE! We MUST NOT take any locks for this case. We may
+	 * be in an interrupt or a critical region, and should
+	 * only copy the information from the master page table,
+	 * nothing more.
+	 *
+	 * This verifies that the fault happens in kernel space
+	 * (error_code & 4) == 0, and that the fault was not a
+	 * protection error (error_code & 1) == 0.
+	 */
+	/**
+	 * 根据异常地址，判断是访问内核态地址还是用户态地址发生了异常。
+	 * xie.baoyou注：这并不代表异常发生在用户态还是内核态。
+	 */
+	if (unlikely(address >= TASK_SIZE)) { 
+        /*
+         * !(第0位 = 1，由无效的访问权限引起的； 第2位==1，异常发生在用户态。) ==> 内核态访问了一个不存在的页框
+         */
+		if (!(error_code & 5))
+			/**
+			 * 内核态访问了一个不存在的页框，这可能是由于内核态访问非连续内存区而引起的。
+			 * 注:vmalloc可能打乱了内核页表，而进程切换后，并没有随着修改这些页表项。这可能会引起异常，而这种异常其实不是程序逻辑错误。
+			 */
+			goto vmalloc_fault;
+		/* 
+		 * Don't take the mm semaphore here. If we fixup a prefetch
+		 * fault we could otherwise deadlock.
+		 */
+		/*
+		 *  第0位 = 1，由无效的访问权限引起的； 或者 第2位==1，异常发生在用户态。
+         */		 
+		/**
+		 * 否则，第0位或者第2位设置了，可能是没有访问权限或者用户态程序访问了内核态地址。
+		 */
+		goto bad_area_nosemaphore;
+	} 
+
+	mm = tsk->mm;
+
+	/*
+	 * If we're in an interrupt, have no user context or are running in an
+	 * atomic region then we must not take the fault..
+	 */
+	/**
+	 * 内核是否在执行一些关键例程，或者是内核线程出错了。
+	 * in_atomic表示内核现在禁止抢占，一般是中断处理程序、可延迟函数、临界区或内核线程中。
+	 * 一般来说，这些程序不会去访问用户空间地址。因为访问这些地址总是可能造成导致阻塞。
+	 * 而这些地方是不允许阻塞的。
+	 * 总之，问题有点严重。
+	 */
+	if (in_atomic() || !mm)
+		goto bad_area_nosemaphore;
+
+	/* When running in the kernel we expect faults to occur only to
+	 * addresses in user space.  All other faults represent errors in the
+	 * kernel and should generate an OOPS.  Unfortunatly, in the case of an
+	 * erroneous fault occuring in a code path which already holds mmap_sem
+	 * we will deadlock attempting to validate the fault against the
+	 * address space.  Luckily the kernel only validly references user
+	 * space from well defined areas of code, which are listed in the
+	 * exceptions table.
+	 *
+	 * As the vast majority of faults will be valid we will only perform
+	 * the source reference check when there is a possibilty of a deadlock.
+	 * Attempt to lock the address space, if we cannot we then validate the
+	 * source.  If this is invalid we can skip the address space check,
+	 * thus avoiding the deadlock.
+	 */
+	/**
+	 * 缺页没有发生在中断处理程序、可延迟函数、临界区、内核线程中
+	 * 那么，就需要检查进程所拥有的线性区，以决定引起缺页的线性地址是否包含在进程的地址空间中
+	 * 为此，必须获得进程的mmap_sem读写信号量。
+	 */
+
+	/**
+	 * 既然不是内核BUG，也不是硬件故障，那么缺页发生时，当前进程就还没有为写而获得信号量mmap_sem.
+	 * 但是为了稳妥起见，还是调用down_read_trylock确保mmap_sem没有被其他地方占用。
+	 */
+	if (!down_read_trylock(&mm->mmap_sem)) {
+		/**
+		 * 一般不会运行到这里来。
+		 * 运行到这里表示:信号被关闭了。
+		 */
+		if ((error_code & 4) == 0 &&
+		    !search_exception_tables(regs->eip)) /* 第2位被清0，则异常发生在内核态; 且在异常处理表中又没有对应的处理函数。*/
+		    /**
+		     * 内核态异常，在异常处理表中又没有对应的处理函数。
+		     * 转到bad_area_nosemaphore，它会再检查一下：是否是使用作为系统调用参数被传递给内核的线性地址。
+		     * 请回想一下,access_ok只是作了简单的检查，并不确保线性地址空间真的存在（只要是用户态地址就行了）
+		     * 也就是说：用户态程序在调用系统调用的时候，可能传递了一个非法的用户态地址给内核。
+		     * 而内核试图读写这个地址的时候，就出错了
+		     * 的确，这里就会处理这个情况。
+		     */
+			goto bad_area_nosemaphore;
+		/**
+		 * 否则，不是内核异常或者严重的硬件故障。并且信号量被其他线程占用了，等待其他线程释放信号量后继续。
+		 */
+		down_read(&mm->mmap_sem);
+	}
+
+	/**
+	 * 运行到此，就已经获得了mmap_sem信号量。
+	 * 可以放心的操作mm了。
+	 * 现在开始搜索出错地址所在的线性区。
+	 */
+	vma = find_vma(mm, address); /*★*/
+
+	/**
+	 * 如果vma为空，说明在出错地址后面没有线性区了，说明错误的地址肯定是无效的。
+	 */ 
+	if (!vma)
+		goto bad_area;
+	/**
+	 * vma在address后面，并且它的起始地址在address前面，说明线性区包含了这个地址。
+	 * 谢天谢地，这很可能不是真的错误，可能是COW机制起作用了，也可能是需要调页了。
+	 */
+	if (vma->vm_start <= address) /*★*/
+		goto good_area;
+
+	/**
+	 * 运行到此，说明地址并不在线性区中。
+	 * 但是我们还要再判断一下，有可能是push指令引起的异常。和vma==NULL还不太一样。
+	 * 直接转到bad_area是不正确的。
+	 */
+	if (!(vma->vm_flags & VM_GROWSDOWN)) /*★*/
+		goto bad_area;
+	/**
+	 * 运行到此，说明address地址后面的vma有VM_GROWSDOWN标志，表示它是一个堆栈区
+	 * 请注意，如果是内核态访问用户态的堆栈空间，就应该直接扩展堆栈，而不判断if (address + 32 < regs->esp)
+	 * 注意，如果是内核态在访问用户态堆栈空间，没有32的距离限制，都应该expand_stack
+	 */
+	if (error_code & 4) {
+		/*
+		 * accessing the stack below %esp is always a bug.
+		 * The "+ 32" is there due to some instructions (like
+		 * pusha) doing post-decrement on the stack and that
+		 * doesn't show up until later..
+		 */
+		/**
+		 * 虽然下一个线性区是堆栈，可是离非法地址太远了，不可能是操作堆栈引起的错误
+		 * xie.baoyou注：32而不是4是考虑到pusha的存在。
+		 */
+		if (address + 32 < regs->esp) /*★*/
+			goto bad_area;
+	}
+	/**
+	 * 线程堆栈空间不足，就扩展一下，一般会成功的，不会运行到bad_area.
+	 * 注意:如果异常发生在内核态，说明内核正在访问用户态的栈，就直接扩展用户栈。
+	 * 注意这里只是扩展了vma，但是并没有分配新的也
+	 */
+	if (expand_stack(vma, address)) /*★*/
+		goto bad_area;
+/*
+ * Ok, we have a good vm_area for this memory access, so
+ * we can handle it..
+ */
+/**
+ * 处理地址空间内的错误地址。其实可能并不是错误地址。
+ */
+good_area:
+	info.si_code = SEGV_ACCERR;
+	write = 0;
+
+	switch (error_code & 3) {/* 错误是由写访问引起的 */ /*★*/
+		/**
+		 * 无权写？？
+		 */
+		default:	/* 3: write, present */ /*异常是由写访问,无效的访问权限引起的。*/
+#ifdef TEST_VERIFY_AREA
+			if (regs->cs == KERNEL_CS)
+				printk("WP fault at %08lx\n", regs->eip);
+#endif
+			/* fall through */
+		/**
+		 * 写访问出错。
+		 */
+		case 2:		/* write, not present */ /*异常由由一个不存在的页, 写访问引起。*/
+			/**
+			 * 但是线性区不允许写，难道是想写只读数据区或者代码段？？？
+			 * 注意，当errcode==3也会到这里
+			 */
+			if (!(vma->vm_flags & VM_WRITE))
+				goto bad_area;
+			/**
+			 * 线性区可写，但是此时发生了写访问错误。
+			 * 说明可以启动写时复制或请求调页了。将write++其实就是将它置1
+			 */
+			write++; /*★*/
+			break;
+		/**
+		 * 没有读权限？？
+		 * 可能是由于进程试图访问一个有特权的页框。
+		 */
+		case 1:		/* read, present */ /*异常由无效的访问权限, 读访问或者执行访问所引起*/
+			goto bad_area;
+		/**
+		 * 要读的页不存在，检查是否真的可读或者可执行
+		 */
+		case 0:		/* read, not present */ /*异常由一个不存在的页, 读访问或者执行访问所引起*/
+			/**
+			 * 要读的页不存在，也不允许读和执行，那也是一种错误
+			 */
+			if (!(vma->vm_flags & (VM_READ | VM_EXEC)))
+				goto bad_area;
+			/**
+			 * 运行到这里，说明要读的页不存在，但是线性区允许读，说明是需要调页了。
+			 */
+	}
+
+/**
+ * 幸免于难，可能不是真正的错误。
+ * 呵呵，找块毛巾擦擦汗。
+ */
+ survive:
+	/*
+	 * If for any reason at all we couldn't handle the fault,
+	 * make sure we exit gracefully rather than endlessly redo
+	 * the fault.
+	 */
+	/**
+	 * 线性区的访问权限与引起异常的类型相匹配，调用handle_mm_fault分配一个新页框。
+	 * handle_mm_fault中会处理请求调页和写时复制两种机制。
+	 */
+	switch (handle_mm_fault(mm, vma, address, write)) {
+		/**
+		 * VM_FAULT_MINOR表示没有阻塞当前进程，即次缺页。
+		 */
+		case VM_FAULT_MINOR: /*正常*/
+			tsk->min_flt++;
+			break;
+		/**
+		 * VM_FAULT_MAJOR表示阻塞了当前进程，即主缺页。
+		 * 很可能是由于当用磁盘上的数据填充所分配的页框时花费了时间。
+		 */			
+		case VM_FAULT_MAJOR: /*正常*/
+			tsk->maj_flt++;
+			break;
+		/**
+		 * VM_FAULT_SIGBUS表示其他错误。
+		 * do_sigbus会向进程发送SIGBUS信号。
+		 */
+		case VM_FAULT_SIGBUS: /*不正常*/
+			goto do_sigbus;
+		/**
+		 * VM_FAULT_OOM表示没有足够的内存
+		 * 如果不是init进程，就杀死它，否则就调度其他进程运行，等待内存被释放出来。
+		 */
+		case VM_FAULT_OOM: /*不正常*/
+			goto out_of_memory;
+		default:
+			BUG();
+	}
+
+	/*
+	 * Did it hit the DOS screen memory VA from vm86 mode?
+	 */
+	if (regs->eflags & VM_MASK) {
+		unsigned long bit = (address - 0xA0000) >> PAGE_SHIFT;
+		if (bit < 32)
+			tsk->thread.screen_bitmap |= 1 << bit;
+	}
+	up_read(&mm->mmap_sem);
+	return;
+
+/*
+ * Something tried to access memory that isn't in our memory map..
+ * Fix it, but check if it's kernel or user first..
+ */
+/**
+ * 处理地址空间以外的错误地址。
+ * 当要访问的地址不在进程的地址空间内时，执行到此。
+ */
+bad_area:
+	up_read(&mm->mmap_sem);
+
+/**
+ * 用户态程序访问了内核态地址，或者访问了没有权限的页框。
+ * 或者是内核态线程出错了，也或者是当前有很紧要的操作
+ * 总之，运行到这里可不是什么好事。
+ */
+bad_area_nosemaphore:
+	/* User mode accesses just cause a SIGSEGV */
+	/**
+	 * 第2位 == 1, 异常发生在用户态。
+	 * 发生在用户态的错误地址。
+	 * 就发生一个SIGSEGV信号给current进程，并结束函数。
+	 */
+	if (error_code & 4) {
+		/* 
+		 * Valid to do another page fault here because this one came 
+		 * from user space.
+		 */
+		if (is_prefetch(regs, address, error_code))
+			return;
+
+		tsk->thread.cr2 = address;
+		/* Kernel addresses are always protection faults */
+		tsk->thread.error_code = error_code | (address >= TASK_SIZE);
+		tsk->thread.trap_no = 14;
+		info.si_signo = SIGSEGV; /*SIGSEGV信号*/
+		info.si_errno = 0;
+		/* info.si_code has been set above */
+		info.si_addr = (void __user *)address;
+		/**
+		 * force_sig_info确信进程不忽略或阻塞SIGSEGV信号
+		 * SEGV_MAPERR或SEGV_ACCERR已经被设置在info.si_code中。
+		 */
+		force_sig_info(SIGSEGV, &info, tsk); /*★*/
+		return;
+	}
+
+    /*从这里往下，异常发生在内核态*/
+#ifdef CONFIG_X86_F00F_BUG
+	/*
+	 * Pentium F0 0F C7 C8 bug workaround.
+	 */
+	if (boot_cpu_data.f00f_bug) {
+		unsigned long nr;
+		
+		nr = (address - idt_descr.address) >> 3;
+
+		if (nr == 6) {
+			do_invalid_op(regs, 0);
+			return;
+		}
+	}
+#endif
+	/**
+	 * 异常发生在内核态。
+	 */
+no_context:
+	/* Are we prepared to handle this kernel fault?  */
+	/**
+	 * 异常的引起是因为把某个线性地址作为系统调用的参数传递给内核。
+	 * 调用fixup_exception判断这种情况，如果是这样的话，那谢天谢地，还有修复的可能。
+	 * 典型的：fixup_exception可能会向进程发送SIGSEGV信号或者用一个适当的出错码终止系统调用处理程序。
+	 */
+	if (fixup_exception(regs)) /*★*/
+		return;
+
+	/* 
+	 * Valid to do another page fault here, because if this fault
+	 * had been triggered by is_prefetch fixup_exception would have 
+	 * handled it.
+	 */
+ 	if (is_prefetch(regs, address, error_code))
+ 		return;
+
+/*
+ * Oops. The kernel tried to access some bad page. We'll have to
+ * terminate things with extreme prejudice.
+ */
+
+	bust_spinlocks(1);
+
+#ifdef CONFIG_X86_PAE
+	if (error_code & 16) {
+		pte_t *pte = lookup_address(address);
+
+		if (pte && pte_present(*pte) && !pte_exec_kernel(*pte))
+			printk(KERN_CRIT "kernel tried to execute NX-protected page - exploit attempt? (uid: %d)\n", current->uid);
+	}
+#endif
+	/**
+	 * 但愿程序不要运行到这里来，著名的oops出现了^-^
+	 * 不过oops算什么呢，真正的内核高手在等着解决这些错误呢
+	 */
+	if (address < PAGE_SIZE)
+		printk(KERN_ALERT "Unable to handle kernel NULL pointer dereference");
+	else
+		printk(KERN_ALERT "Unable to handle kernel paging request");
+	printk(" at virtual address %08lx\n",address);
+	printk(KERN_ALERT " printing eip:\n");
+	printk("%08lx\n", regs->eip);
+	asm("movl %%cr3,%0":"=r" (page));
+	page = ((unsigned long *) __va(page))[address >> 22];
+	printk(KERN_ALERT "*pde = %08lx\n", page);
+	/*
+	 * We must not directly access the pte in the highpte
+	 * case, the page table might be allocated in highmem.
+	 * And lets rather not kmap-atomic the pte, just in case
+	 * it's allocated already.
+	 */
+#ifndef CONFIG_HIGHPTE
+	if (page & 1) {
+		page &= PAGE_MASK;
+		address &= 0x003ff000;
+		page = ((unsigned long *) __va(page))[address >> PAGE_SHIFT];
+		printk(KERN_ALERT "*pte = %08lx\n", page);
+	}
+#endif
+	die("Oops", regs, error_code); /*★*/
+	bust_spinlocks(0);
+	do_exit(SIGKILL);   /*★*/
+
+/*
+ * We ran out of memory, or some other thing happened to us that made
+ * us unable to handle the page fault gracefully.
+ */
+/**
+ * 缺页了，但是没有内存了，就杀死进程（init除外）
+ */
+out_of_memory:
+	up_read(&mm->mmap_sem);
+	if (tsk->pid == 1) { /*如果是init, 则调度其他进行*/
+		yield(); /*★*/
+		down_read(&mm->mmap_sem);
+		goto survive;
+	}
+	printk("VM: killing process %s\n", tsk->comm);
+	if (error_code & 4) /*★*/ /*如果不是init,就杀死进程*/
+		do_exit(SIGKILL);
+	goto no_context;
+
+/**
+ * 缺页了，但是分配页时出现了错误，就向进程发送SIGBUS信号。
+ */
+do_sigbus:
+	up_read(&mm->mmap_sem);
+
+	/* Kernel mode? Handle exceptions or die */
+	if (!(error_code & 4))
+		goto no_context;
+
+	/* User space => ok to do another page fault */
+	if (is_prefetch(regs, address, error_code))
+		return;
+
+	tsk->thread.cr2 = address;
+	tsk->thread.error_code = error_code;
+	tsk->thread.trap_no = 14;
+	info.si_signo = SIGBUS;
+	info.si_errno = 0;
+	info.si_code = BUS_ADRERR;
+	info.si_addr = (void __user *)address;
+	force_sig_info(SIGBUS, &info, tsk); /*★*/
+	return;
+
+/**
+ * 内核访问了不存在的页框。
+ * 内核在更新非连续内存区对应的页表项时是非常懒惰的。实际上，vmalloc和vfree函数只把自己限制在更新主内核页表（即全局目录和它的子页表）。
+ * 但是，如果内核真的访问到了vmalloc的空间，就需要把页表项补充完整了。
+ */
+vmalloc_fault:
+	{
+		/*
+		 * Synchronize this task's top level page-table
+		 * with the 'reference' page table.
+		 *
+		 * Do _not_ use "tsk" here. We might be inside
+		 * an interrupt in the middle of a task switch..
+		 */
+		int index = pgd_index(address);
+		unsigned long pgd_paddr;
+		pgd_t *pgd, *pgd_k;
+		pud_t *pud, *pud_k;
+		pmd_t *pmd, *pmd_k;
+		pte_t *pte_k;
+
+		/**
+		 * 把cr3中当前进程页全局目录的物理地址赋给局部变量pgd_paddr。
+		 * 注：内核不使用current->mm->pgd导出当前进程的页全局目录地址。因为这种缺页可能在任何时刻发生，甚至在进程切换期间发生。
+		 */
+		asm("movl %%cr3,%0":"=r" (pgd_paddr));
+		pgd = index + (pgd_t *)__va(pgd_paddr);
+		/**
+		 * 把主内核页全局目录的线性地址赋给pgd_k
+		 */
+		pgd_k = init_mm.pgd + index;
+
+		/**
+		 * pgd_k对应的主内核页全局目录项为空。说明不是非连续内存区产生的错误。
+		 * 因为非连续内存区产生的缺页仅仅是没有页表项，而不会缺少目录项。
+		 */
+		if (!pgd_present(*pgd_k))
+			goto no_context;
+
+		/*
+		 * set_pgd(pgd, *pgd_k); here would be useless on PAE
+		 * and redundant with the set_pmd() on non-PAE. As would
+		 * set_pud.
+		 */
+
+		/**
+		 * 检查了全局目录项，还必须检查主内核页上级目录项和中间目录项。
+		 * 如果它们中有一个为空，也转到no_context
+		 */
+		pud = pud_offset(pgd, address); /*直接用，没有分配，因为共享了内核主页表的PUD*/
+		pud_k = pud_offset(pgd_k, address);
+		if (!pud_present(*pud_k))
+			goto no_context;
+		
+		pmd = pmd_offset(pud, address); /*直接用，没有分配，因为共享了内核主页表的PMD*/
+		pmd_k = pmd_offset(pud_k, address);
+		if (!pmd_present(*pmd_k))
+			goto no_context;
+		/**
+		 * 目录项不为空，说明真的是在访问非连续内存区。就把主目录项复制到进程页中间目录的相应项中。
+		 */
+		set_pmd(pmd, *pmd_k); /*这里共享了内核主页表的PT，因为PMD,PUD都是共享的，所以vmalloc只可能是因为pgd中的present没有置位引发的*/
+
+		pte_k = pte_offset_kernel(pmd_k, address);
+		if (!pte_present(*pte_k))
+			goto no_context;
+		return;
+	}
+}
+
+/*
+ * By the time we get here, we already hold the mm semaphore
+ */
+/**
+ * 当程序缺页时，调用此过程分配新的页框。
+ * mm-异常发生时，正在CPU上运行的进程的内存描述符
+ * vma-指向引起异常的线性地址所在线性区的描述符。
+ * address-引起异常的地址。
+ * write_access-如果tsk试图向address写，则为1，否则为0。为1时候，表示COW
+ */
+int handle_mm_fault(struct mm_struct *mm, struct vm_area_struct * vma,
+		unsigned long address, int write_access)
+{
+	pgd_t *pgd;
+	pud_t *pud;
+	pmd_t *pmd;
+	pte_t *pte;
+
+	__set_current_state(TASK_RUNNING);
+
+	inc_page_state(pgfault);
+
+	if (is_vm_hugetlb_page(vma))
+		return VM_FAULT_SIGBUS;	/* mapping truncation does this. */
+
+	/*
+	 * We need the page table lock to synchronize with kswapd
+	 * and the SMP-safe atomic PTE updates.
+	 */
+	/**
+	 * pgd_offset和pud_alloc检查映射address的页中间目录和页表是否存在。
+	 */
+	pgd = pgd_offset(mm, address);
+	spin_lock(&mm->page_table_lock);
+
+	pud = pud_alloc(mm, pgd, address);
+	if (!pud)
+		goto oom;
+
+	pmd = pmd_alloc(mm, pud, address);
+	if (!pmd)
+		goto oom;
+
+	pte = pte_alloc_map(mm, pmd, address); 
+	if (!pte)
+		goto oom;
+
+    /*
+     * 至此，从pgd到pte的页表已经建立好了，就差新分配一个页面并填写到pte中了
+     */
+
+	/**
+	 * handle_pte_fault函数检查address地址所对应的页表项。并决定如何为进程分配一个新页框。
+	 */
+	return handle_pte_fault(mm, vma, address, write_access, pte, pmd);
+
+ oom:
+	spin_unlock(&mm->page_table_lock);
+	return VM_FAULT_OOM;
+}
+```
+
+如果被访问的页不存在，内核分配一个新的页框并适当初始化，这种技术叫请求调页。而如果被访问的页存在但是只读，那么内核分配一个新的页框并把旧页框数据拷贝到新页框来初始化它的内容，这叫写时复制COW。
+
+### 请求调页
+
+本质上是一种推迟，直到第一次访问页时才借助缺页异常在RAM中分配。这种推迟很有意义，因为进程开始运行时并不会访问全部地址。这种策略节省了RAM开销但也增加了CPU开销（局部性原理使得缺页异常注定稀有）。
+
+被访问的页不在ram中，有几种可能：要么进程从未访问过该页，要么该页对应页框被内核回收了。此时就需要分配新页框，如何初始化取决于是哪一种页，以前是否被进程访问过。
+
+几种特殊情况：
+
+1. 这个页从未被进程访问且没有映射磁盘文件，或者页映射了磁盘文件。内核可以识别这种情况，因为页表相应的表项被填充为0，`pte_none`会返回1。
+2. 页属于非线性磁盘文件的映射。内核通过Present标志为0且Dirty标志为1来识别。`pte_file`返回1。
+3. 进程已经访问过这个页，但是内容被临时保存在磁盘上。内核能够识别这种情况，这是因为相应表项没被填充为0，但是Present和Dirty标志被清0。
+
+这三种情况的鉴别在上面的`handle_pte_fault`中皆已看到。
+
+对第二种和第三种来说，会牵扯到文件映射和页高速磁盘缓存的内容，这些又自成话题了，暂时不做探索。我们关心`do_no_page()->do_anonymous_page()`这一脉：
+
+```c
+/*
+ * do_no_page() tries to create a new page mapping. It aggressively
+ * tries to share with existing pages, but makes a separate copy if
+ * the "write_access" parameter is true in order to avoid the next
+ * page fault.
+ *
+ * As this is called only for pages that do not currently exist, we
+ * do not need to flush old virtual caches or the TLB.
+ *
+ * This is called with the MM semaphore held and the page table
+ * spinlock held. Exit with the spinlock released.
+ */
+/**
+ * 当被访问的页不在主存中时，如果页从没有访问过，或者映射了磁盘文件
+ * 那么pte_none宏会返回1，handle_pte_fault函数会调用本函数装入所缺的页。
+ * 也就是还从来没有使用过这个页面
+ * 执行对请求调页的所有类型都通用的操作。
+ */
+static int
+do_no_page(struct mm_struct *mm, struct vm_area_struct *vma,
+	unsigned long address, int write_access, pte_t *page_table, pmd_t *pmd)
+{
+	struct page * new_page;
+	struct address_space *mapping = NULL;
+	pte_t entry;
+	unsigned int sequence = 0;
+	int ret = VM_FAULT_MINOR;
+	int anon = 0;
+
+	/**
+	 * vma->vm_ops || !vma->vm_ops->nopage,这是判断线性区是否映射了一个磁盘文件。
+	 * 这两个值只要某一个为空，说明没有映射磁盘文件。也就是说：它是一个匿名映射。
+	 * nopage指向装入页的函数。
+	 * 当没有映射时，就调用do_anonymous_page获得一个新的页框。
+	 */
+	if (!vma->vm_ops || !vma->vm_ops->nopage)
+		/**
+		 * do_anonymous_page获得一个新的页框。分别处理写请求和读讨还。
+		 */
+		return do_anonymous_page(mm, vma, page_table,
+					pmd, write_access, address); /*★*/
+	/**
+	 * 否则，就是一个文件映射。进行请求调页处理。
+	 */
+	pte_unmap(page_table);
+	spin_unlock(&mm->page_table_lock);
+
+	if (vma->vm_file) {
+		mapping = vma->vm_file->f_mapping;
+		sequence = mapping->truncate_count;
+		smp_rmb(); /* serializes i_size against truncate_count */
+	}
+retry:
+	cond_resched();
+	/**
+	 * 线性区定义了nopage方法，则回调此方法以返回所请求页的页框的地址。
+	 * 调用filemap_nopage
+	 */
+	new_page = vma->vm_ops->nopage(vma, address & PAGE_MASK, &ret); /*★*/
+	/*
+	 * No smp_rmb is needed here as long as there's a full
+	 * spin_lock/unlock sequence inside the ->nopage callback
+	 * (for the pagecache lookup) that acts as an implicit
+	 * smp_mb() and prevents the i_size read to happen
+	 * after the next truncate_count read.
+	 */
+
+	/* no page was available -- either SIGBUS or OOM */
+	if (new_page == NOPAGE_SIGBUS)
+		return VM_FAULT_SIGBUS;
+	if (new_page == NOPAGE_OOM)
+		return VM_FAULT_OOM;
+
+	/*
+	 * Should we do an early C-O-W break?
+	 */
+	/**
+	 * 进程试图对页进行写入，而该内存映射是私有的，需要取消内存映射。
+	 */
+	// TODO: 这是什么情况?
+	if (write_access && !(vma->vm_flags & VM_SHARED)) {
+		struct page *page;
+
+		if (unlikely(anon_vma_prepare(vma)))
+			goto oom;
+		/**
+		 * 分配一个新页。并将读取的页拷贝一份到新页中。。
+		 */
+		page = alloc_page_vma(GFP_HIGHUSER, vma, address); /*★*/
+		if (!page)
+			goto oom;
+		copy_user_highpage(page, new_page, address); /*★*/
+		page_cache_release(new_page); /*★*/
+		/**
+		 * 在后面的步骤中，使用新页而不是nopage方法返回的页，这样，后者就不会被用户态进程修改。
+		 */
+		new_page = page; /*★*/
+		anon = 1;
+	}
+
+	spin_lock(&mm->page_table_lock);
+	/*
+	 * For a file-backed vma, someone could have truncated or otherwise
+	 * invalidated this page.  If unmap_mapping_range got called,
+	 * retry getting the page.
+	 */
+	/**
+	 * 如果某个其他进程删改或者作废了该页(truncate_count用于此种检查),则跳转回去，尝试再次获得该页。
+	 */
+	if (mapping && unlikely(sequence != mapping->truncate_count)) {
+		sequence = mapping->truncate_count;
+		spin_unlock(&mm->page_table_lock);
+		page_cache_release(new_page);
+		goto retry;
+	}
+    /*返回address对应的页表项pte*/
+	page_table = pte_offset_map(pmd, address);
+
+	/*
+	 * This silly early PAGE_DIRTY setting removes a race
+	 * due to the bad i386 page protection. But it's valid
+	 * for other architectures too.
+	 *
+	 * Note that if write_access is true, we either now have
+	 * an exclusive copy of the page, or this is a shared mapping,
+	 * so we can make it writable and dirty to avoid having to
+	 * handle that later.
+	 */
+	/* Only go through if we didn't race with anybody else... */
+	if (pte_none(*page_table)) {
+		if (!PageReserved(new_page))
+			++mm->rss;/* 增加进程的rss字段，以表示一个新页框已经分配给进程。 */
+		acct_update_integrals();
+		update_mem_hiwater();
+
+		flush_icache_page(vma, new_page);
+		/**
+		 * 用新页框 的地址以及线性区的vm_page_prot字段中所包含的页访问权来设置缺页所在的地址对应的页表项。
+		 */
+		entry = mk_pte(new_page, vma->vm_page_prot);
+		/**
+		 * 如果进程试图对这个页进行写入，则把页表项的read/write和dirty设置为1.
+		 */
+		if (write_access)
+			entry = maybe_mkwrite(pte_mkdirty(entry), vma);
+        /*设定pte*/
+		set_pte(page_table, entry); /*★*/
+		if (anon) {
+			lru_cache_add_active(new_page);
+			page_add_anon_rmap(new_page, vma, address);
+		} else
+			page_add_file_rmap(new_page);
+		pte_unmap(page_table);
+	} else {
+		/* One of our sibling threads was faster, back out. */
+		pte_unmap(page_table);
+		page_cache_release(new_page);
+		spin_unlock(&mm->page_table_lock);
+		goto out;
+	}
+
+	/* no need to invalidate: a not-present page shouldn't be cached */
+	update_mmu_cache(vma, address, entry);
+	spin_unlock(&mm->page_table_lock);
+out:
+	return ret;
+oom:
+	page_cache_release(new_page);
+	ret = VM_FAULT_OOM;
+	goto out;
+}
+
+/*
+ * We are called with the MM semaphore and page_table_lock
+ * spinlock held to protect against concurrent faults in
+ * multithreaded programs. 
+ */
+/**
+ * 获得一个新的页框。
+ */
+static int
+do_anonymous_page(struct mm_struct *mm, struct vm_area_struct *vma,
+		pte_t *page_table, pmd_t *pmd, int write_access,
+		unsigned long addr)
+{
+	pte_t entry;
+	struct page * page = ZERO_PAGE(addr); /*★*/
+
+	/* Read-only mapping of ZERO_PAGE. */
+	/**
+	 * 对读访问时，页的内容是无关紧要的。
+	 * 但是，第一次分给进程的页，最好还是填上0。以免旧页的信息被黑客利用。
+	 * 没有必要立即分配这样的页框。只需要把empty_zero_page页映射给进程就行了。
+	 * 并且将页标记为只读，当进程试图写这个页时，再启动写时复制机制。
+	 */
+	entry = pte_wrprotect(mk_pte(ZERO_PAGE(addr), vma->vm_page_prot)); /*★*/
+
+	/* ..except if it's a write access */
+	if (write_access) {
+		/* Allocate our own private page. */
+		/**
+		 * 释放临时内核映射。
+		 * 在调用handle_pte_fault函数之前，由pte_offset_map所建立页表项的高端内存物理地址。
+		 * pte_offset_map宏是和pte_unmap配对使用的。
+		 * pte_unmap必须在alloc_page前释放。因为alloc_page可能阻塞当前进程？？
+		 * 答: 在alloc_zeroed_user_highpage时(可能睡眠)，其他线程可能更新的执行分配页面和设定页表，所指这里需要先unmap，防止阻塞其他线程
+		 */
+		pte_unmap(page_table);
+		spin_unlock(&mm->page_table_lock);
+
+		if (unlikely(anon_vma_prepare(vma)))
+			goto no_mem;
+		page = alloc_zeroed_user_highpage(vma, addr); /*★*/
+		if (!page)
+			goto no_mem;
+
+		spin_lock(&mm->page_table_lock);
+		page_table = pte_offset_map(pmd, addr);
+
+		if (!pte_none(*page_table)) {
+			pte_unmap(page_table);
+			page_cache_release(page);
+			spin_unlock(&mm->page_table_lock);
+			goto out;
+		}
+		/**
+		 * 递增rss字段，它记录了分配给进程的页框总数。
+		 */
+		mm->rss++;
+		acct_update_integrals();
+		update_mem_hiwater();
+		/**
+		 * 标记页框为既脏又可写。
+		 * 如果调试程序试图往被跟踪进程只读线性区中的页中写数据。内核不会设置相关标志。
+		 * maybe_mkwrite会处理这种特殊情况。
+		 */
+		entry = maybe_mkwrite(pte_mkdirty(mk_pte(page,
+							 vma->vm_page_prot)),
+				      vma);
+		/**
+		 * lru_cache_add_active把新页框插入与交换相关的数据结构中。
+		 */
+		lru_cache_add_active(page);
+		SetPageReferenced(page);
+		page_add_anon_rmap(page, vma, addr);
+	}
+
+    /*设定页表项*/
+	set_pte(page_table, entry); /*★*/
+	pte_unmap(page_table);
+
+	/* No need to invalidate - it was non-present before */
+	update_mmu_cache(vma, addr, entry);
+	spin_unlock(&mm->page_table_lock);
+out:
+	return VM_FAULT_MINOR;
+no_mem:
+	return VM_FAULT_OOM;
+}
+```
+
+### COW
+
+傻老帽的fork方式：
+
+- 为子进程的页表和页分配页框
+- 初始化子进程页表
+- 把父进程的页复制到子进程相应的页中
+
+笨重至极！
+
+现代Linux采用COW，父进程和子进程一开始共享页框不进行复制。一旦开始共享，那么二者都不能去修改，一旦父进程或子进程其中一个想要写共享页框，就产生异常。内核此时才会进行复制，独立出一个可写的页框给他。这也是`handle_pte_fault()`完成的（这函数非单一职责，当然复杂得很）。
