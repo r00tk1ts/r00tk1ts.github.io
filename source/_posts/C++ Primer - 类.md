@@ -13,8 +13,6 @@ tags:
 
 <!--more-->
 
-# 
-
 # C++ Primer - 类
 
 类的基本思想是数据抽象（data abstraction）和封装（encapsulation）。数据抽象是一种依赖于接口（interface）和实现（implementation）分离的编程及设计技术。类的接口包括用户所能执行的操作；类的实现包括类的数据成员、负责接口实现的函数体以及其他私有函数。
