@@ -1,6 +1,6 @@
 ---
-title: C++ Primer - 泛型算法
-date: 2018-11-26 19:50:11
+title: C++ Primer - 动态内存
+date: 2018-11-26 22:59:11
 categories: programming-language
 tags:
 	- cpp
