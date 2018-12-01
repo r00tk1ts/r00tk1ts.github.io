@@ -1,0 +1,51 @@
+---
+title: Daily diary
+date: 8102-11-11 11:11:11
+categories: diary
+tags:
+	- diary
+
+---
+
+上了年纪以后，每日总想着摸鱼划水。看了樱花师傅的履历，自惭形秽。为了早日爬出青铜坑，我也开个daily diary，记录日常，鞭策警醒，三省吾身。
+
+<!--more-->
+
+# 2018-11-30
+
+嵌入式设备的samba要从3.0.14a这个老古董升级到较新的4.6.6。
+
+4.0.0开始使用了一个python编写的waf开源编译框架。简单的了解了一下这套编译框架，相比较传统的configure+make来说，结构更为清晰，编译过程呈现树形结构，中间生成物体积大大减少，更容易定位编译错误，增强了友好性。
+
+移植过程中，继承了前人调校的CONFIGURE_VARS，采用了非官方的patch --disable-python。
+
+中间会先编译生成一个compiler，再用该compiler去编译其他code，但对交叉编译来说，这就意味着该compiler需要编译成host指令集二进制(80386)，而该compiler要生成嵌入式设备的指令集二进制(mips)。即使正确的传入了hostcc参数，在遍历python脚本时，这个参数实际上仅仅传入而没有落实。
+
+要改waf无疑是个大活，所以只好取巧，先预生成host的二进制，然后hack两处编译脚本(一处在python的wscript_build，一处在compile_et的sh脚本)，直接使用这两个二进制，而不用编译过程中生成的。
+
+samba是个庞然大物，平时虽然用的多，却对协议细节没什么了解。可能唯一的印象就是当时调external blue时涉及的相关知识点吧。逃:)
+
+---
+
+mbp买了好久也没怎么用，基本操作都跟不上。为了省事直接装了xcode。了解了一下clang和llvm的关系，以及与GNU的纠纷。我还挺乐意八卦这些历史的。
+
+clang编译C++11特性，要传递编译参数：
+
+```bash
+clang++ -Wall -g -std=c++11 -stdlib=libc++ test.cpp -o test
+```
+
+-Wall和-g是老生常谈了，和C++11没什么关系，std指编译的标准。
+
+以前windows上看C/C++大型project都是用Source Insight，macos用vmvare fusion搭了个win10以后懒得弄wine了，于是要找替代品。一路从sublime->atom->vscode。目前来看，vscode确实好用。
+
+---
+
+最近谋划着手写一个STL库，出于几点目的：
+
+- 锻炼学习的C++11特性，所谓：一入C++深似海，从此踩坑是日常。我这人头铁，又臭又硬才对我的脾气。
+- 对数据结构与算法的康复训练，此前做了做leetcode，明显难度不如acm oj，但困难标签的题竟然有些吃力，我好菜啊。
+- 时隔几年，再看侯捷的《STL源码剖析》，能看到的内容更丰富了。不过瘾，纸上得来终觉浅，而且SGI STL v3.3有点老。
+
+为此重温了C++ Primer 5th，两周看了14章，还剩5章，下周看完。读书笔记已push到了博客。
+
