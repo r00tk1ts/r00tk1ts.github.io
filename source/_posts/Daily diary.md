@@ -35,7 +35,7 @@ clang编译C++11特性，要传递编译参数：
 clang++ -Wall -g -std=c++11 -stdlib=libc++ test.cpp -o test
 ```
 
--Wall和-g是老生常谈了，和C++11没什么关系，std指编译的标准。
+-Wall和-g是老生长谈了，和C++11没什么关系，std指编译的标准。
 
 以前windows上看C/C++大型project都是用Source Insight，macos用vmvare fusion搭了个win10以后懒得弄wine了，于是要找替代品。一路从sublime->atom->vscode。目前来看，vscode确实好用。
 
@@ -61,7 +61,21 @@ clang++ -Wall -g -std=c++11 -stdlib=libc++ test.cpp -o test
 
 # 2018-12-02
 
-周日惯例休息，没什么特别的事。
+周日惯例休息。
+
+中午知乎上看到了个问题：
+
+> 在如今的Linux编程中，还有必要使用vfork()吗？
+>
+> Linux的Man Page似乎不建议使用vfork()。
+>
+> 然而，fork()会创建新的地址空间（struct mm_struct）。那么当fork()后立即	调用exec()时，exec()也会创建新的地址空间。这时fork()创建的新的地址空间是不是白白浪费掉了？Linux对这种情况是否有特殊的处理来避免浪费？vfork()是否可以避免以上情况的地址空间的创建浪费？
+>
+> 在这种情况下，vfork()相对于fork()有优势吗？
+
+https://www.zhihu.com/question/304323673/answer/543471196
+
+正好我前段时间深入研究过，详细的写了一下答案.
 
 # 2018-12-03
 
