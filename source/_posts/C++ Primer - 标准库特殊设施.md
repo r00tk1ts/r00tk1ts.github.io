@@ -424,4 +424,154 @@ cout << u(e);
 
 ## IO库再探
 
-待续。。。
+### 格式化输入和输出
+
+除了条件状态外，每个iostream对象还维护着一个格式状态来控制IO格式化细节。
+
+标准库定义了一组操纵符来修改流的格式状态。操纵符是一个函数或对象，会影响流的状态，并能作为输入和输出运算符的运算对象。类似输入和输出运算符，操纵符也返回它所处理的流对象，因此我们可以在一条语句中组合操纵符和数据。
+
+> endl就是一种操纵符，写到输出流意味着换行并刷新缓冲区的操作。
+
+操纵符用于两大类输出控制：控制数值的输出格式，控制补白的数量和位置。大多数改变格式状态的操纵符都是设置/复原成对的，一个操纵符用于设置新格式，另一个用于恢复正常格式。
+
+当操纵符改变流的格式状态时，通常改变后的状态对所有后续IO都生效。
+
+#### 控制布尔值格式
+
+bool值默认打印0或1，可以对流使用boolalpha来操纵覆盖这种格式：
+
+```cpp
+cout << "default bool values: " << true << " " << false
+  	<< "\nalpha bool values: " << boolalpha
+  	<< true << " " << false << endl;
+```
+
+前者输出1和0，后者输出字符串true和false。
+
+取消cout格式的改变，可以用noboolalpha：
+
+```cpp
+bool bool_val = get_status();
+cout << boolalpha << bool_val << noboolalpha;
+```
+
+#### 指定整型值的进制
+
+默认输出十进制，可以用hex、oct和dec改为十六进制、八进制和十进制。(只影响整型)
+
+```cpp
+cout << "default: " << 20 << " " << 1024 << endl;
+cout << "octal: " << oct << 20 << " " << 1024 << endl;
+cout << "hex: " << hex << 20 << " " << 1024 << endl;
+cout << "decimal: " << dec << 20 << " " << 1024 << endl;
+```
+
+#### 输出中指出进制
+
+用showbase操纵符可以指示输出的整型数显示是何种进制，其中0x前导表示十六进制，0前导表示八进制，无前导表示十进制。
+
+操纵符noshowbase恢复。
+
+#### 控制浮点数格式
+
+浮点数的输出格式涉及三个方面：
+
+- 输出精度（即输出多少个数字）。
+- 十六进制、定点十进制或者科学记数法形式输出。
+- 没有小数部分的浮点值是否输出小数点。
+
+默认情况下，浮点值按六位数字精度输出；如果浮点值没有小数部分，则不输出小数点；根据浮点数的值选择输出为定点十进制或科学计数法形式：非常大或非常小的值输出为科学记数法形式，其他值输出为定点十进制形式。
+
+默认情况下，精度控制输出的数字总位数。输出时，浮点值按照当前精度四舍五入而非截断。
+
+调用IO对象的`precision`成员或者使用`setprecision`操纵符可以改变精度。
+
+- precision成员是重载的。一个版本接受一个int值，将精度设置为此值，并返回旧精度值。另一个版本不接受参数，直接返回当前精度值。
+- setprecision操纵符接受一个参数来设置精度。
+
+setprecision操纵符和其他接受参数的操纵符都定义在头文件*iomanip*中。
+
+```cpp
+// cout.precision返回当前精度值
+cout << "Precision: " << cout.precision()
+    << ", Value: " << sqrt(2.0) << endl;
+// cout.precision(12)将打印精度设置为12位数字
+cout.precision(12);
+cout << "Precision: " << cout.precision()
+    << ", Value: " << sqrt(2.0) << endl;
+// 另一种设置精度的方法是使用setprecision操纵符
+cout << setprecision(3);
+cout << "Precision: " << cout.precision()
+    << ", Value: " << sqrt(2.0) << endl;
+```
+
+| iostream中的操纵符 |                                         |
+| ------------------ | --------------------------------------- |
+| boolalpha          | 将true和false输出为字符串               |
+| noboolalpha        | 将true和false输出为1、0                 |
+| showbase           | 对整型值输出表示进制的前缀              |
+| noshowbase         | 不生成表示进制的前缀                    |
+| showpoint          | 对浮点值总是显示小数点                  |
+| noshowpoint        | 只有当浮点值包含小数部分时才显示小数点  |
+| showpos            | 对非负数显示+                           |
+| noshowpos          | 对非负数不显示+                         |
+| uppercase          | 在十六进制值中打印0X，科学计数法中打印E |
+| nouppercase        | 在十六进制值中打印0x，科学计数法中打印e |
+| dec                | 整型值显示为十进制                      |
+| hex                | 整型值显示为十六进制                    |
+| oct                | 整型值显示为八进制                      |
+| left               | 在值的右侧添加填充字符                  |
+| right              | 在值的左侧添加填充字符                  |
+| internal           | 在符号和值之间添加填充字符              |
+| fixed              | 浮点值显示为定点十进制                  |
+| scientific         | 浮点值显示为科学计数法                  |
+| hexfloat           | 浮点值显示为十六进制                    |
+| defaultfloat       | 重置浮点数格式为十进制                  |
+| unitbuf            | 每次输出操作后都刷新缓冲区              |
+| nounitbuf          | 恢复正常的缓冲区刷新方式                |
+| skipws             | 输入运算符跳过空白符                    |
+| noskipws           | 输入运算符不跳过空白符                  |
+| flush              | 刷新ostream缓冲区                       |
+| ends               | 插入空字符，然后刷新ostream缓冲区       |
+| endl               | 插入换行，然后刷新ostream缓冲区         |
+
+| 定义在iomanip中的操纵符 |                       |
+| ----------------------- | --------------------- |
+| setfill(ch)             | 用ch填充空白          |
+| setprecision(n)         | 浮点精度设置为n       |
+| setw(w)                 | 读写值的宽度为w个字符 |
+| setbase(b)              | 将整数输出为b进制     |
+
+### 未格式化的IO操作
+
+标准库还提供了一组低层操作，支持未格式化IO。允许将一个流作一个无解释的字节序列来处理。
+
+操作分两类，单字节操作和多字节操作。
+
+| 单字节低层IO操作 |                                                |
+| ---------------- | ---------------------------------------------- |
+| is.get(ch)       | 从istream is读取下一个字节存入字符ch中。返回is |
+| os.put(ch)       | 将字符ch输出到ostream os。返回os               |
+| is.get()         | 将is的下一个字节作为int返回                    |
+| is.putback(ch)   | 将字符ch放回is。返回is                         |
+| is.unget()       | 将is向后移动一个字节。返回is                   |
+| is.peek()        | 将下一个字节作为int返回，但不从流中删除它      |
+
+| 多字节低层IO操作            |                                                              |
+| --------------------------- | ------------------------------------------------------------ |
+| is.get(sink, size, delim)   | 从is中读取最多size个字节，并保存在字符数组中，字符数组的起始地址由sink给出。读取过程直至遇到字符delim或读取了size个字节或遇到文件尾时停止。如果遇到了delim，则将其留在输入流中，不读取出来存入sink |
+| is.getline(sink,size,delim) | 与接受三个参数的get版本莱斯，但会读取并丢弃delim             |
+| is.read(sink, size)         | 读取最多size个字节，存入字符数组sink中。返回is               |
+| is.gcount()                 | 返回上一个未格式化读取操作从is读取的字节数                   |
+| os.write(source, size)      | 将字符数组source中的size个字节写入os。返回os                 |
+| is.ignore(size, delim)      | 读取并忽略最多size个字符，包括delim。与其他未格式化函数不同，ignore有默认参数：size默认值为1，delim默认值为文件尾 |
+
+### 流随机访问
+
+各种流类型通常都支持对流中数据的随机访问。我们可以重定位流，使之跳过一些数据。
+
+| seek和tell                             |                                                              |
+| -------------------------------------- | ------------------------------------------------------------ |
+| tellg()<br />tellp()                   | 返回一个输入流中(tellg)或输出流(tellp)中标记的当前位置       |
+| seekg(pos)<br/>seekp(pos)              | 在一个输入流或输出流中将标记重定位到给定的绝对地址。pos通常是前一个tellg或tellp的返回值 |
+| seekp(off, from)<br />seekg(off, from) | 在一个输入流或输出流中将标记定位到from之前或之后off个字符，from可以是下列值之一: beg，偏移量相对于流开始位置；cur，偏移量相对于流当前位置；end，偏移量相对于流结尾位置 |
