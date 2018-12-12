@@ -364,4 +364,320 @@ delete[] pal;	//OK
 
 由于C++标准要求可以delete空指针，所以写析构函数就不用畏首畏尾，干净利落的对指针成员进行delete即可（当然，悬垂指针处理不了）。
 
-## 待续。。。
+## 条款7：预先准备好内存不够的情况
+
+头文件`<new>`里提供了new-handler函数机制，当operator new不能满足请求时，会在抛出异常之前调用程序员指定的出错处理函数。
+
+```cpp
+typedef void (*new_handler)();
+new_handler set_new_handler(new_handler p) throw();
+```
+
+set_new_handler用来设置new_handler类型的函数。
+
+operator new不能满足内存分配请求时，new-handler函数不只调用一次，而是不断重复，直至找到足够的内存。一个设计得好的new-handler函数必须实现下面功能中的一种。
+
+- 产生更多的可用内存。这将使operator 
+  new下一次分配内存的尝试有可能获得成功。实施这一策略的一个方法是：在程序启动时分配一个大的内存块，然后在第一次调用new-handler时释放。释放时伴随着一些对用户的警告信息，如内存数量太少，下次请求可能会失败，除非又有更多的可用空间。
+- 安装另一个不同的new-handler函数。如果当前的new-handler函数不能产生更多的可用内存，可能它会知道另一个new-handler函数可以提供更多的资源。这样的话，当前的new-handler可以安装另一个new-handler来取代它(通过调用set_new_handler)。下一次operator 
+  new调用new-handler时，会使用最近安装的那个。(这一策略的另一个变通办法是让new-handler可以改变它自己的运行行为，那么下次调用时，它将做不同的事。方法是使new-handler可以修改那些影响它自身行为的静态或全局数据。)
+- 卸除new-handler。也就是传递空指针给set_new_handler。没有安装new-handler，operator 
+  new分配内存不成功时就会抛出一个标准的std::bad_alloc类型的异常。
+- 抛出std::bad_alloc或从std::bad_alloc继承的其他类型的异常。这样的异常不会被operator 
+  new捕捉，所以它们会被送到最初进行内存请求的地方。(抛出别的不同类型的异常会违反operator 
+  new异常规范。规范中的缺省行为是调用abort，所以new-handler要抛出一个异常时，一定要确信它是从std::bad_alloc继承来的)。
+- 没有返回。典型做法是调用abort或exit。
+
+用类模板实现每个继承的特定类都实现自己的operator new：
+
+```cpp
+template<class t>	// 提供类set_new_handler支持的
+class newhandlersupport {	// 混合风格”的基类
+public:
+	static new_handler set_new_handler(new_handler p);
+	static void * operator new(size_t size);
+
+private:
+	static new_handler currenthandler;
+};
+
+template<class t>
+new_handler newhandlersupport<t>::set_new_handler(new_handler p)
+{
+	new_handler oldhandler = currenthandler;
+	currenthandler = p;
+	return oldhandler;
+}
+
+template<class t>
+void * newhandlersupport<t>::operator new(size_t size)
+{
+	new_handler globalhandler =
+		std::set_new_handler(currenthandler);
+	void *memory;
+	try {
+		memory = ::operator new(size);
+	}
+	catch (std::bad_alloc&) {
+		std::set_new_handler(globalhandler);
+		throw;
+	}
+	
+	std::set_new_handler(globalhandler);
+	return memory;
+}
+// this sets each currenthandler to 0
+
+template<class t>
+new_handler newhandlersupport<t>::currenthandler;
+```
+
+定义自己的类，可以直接继承：
+
+```cpp
+// note inheritance from mixin base class template. (see
+// my article on counting objects for information on why
+// private inheritance might be preferable here.)
+class x: public newhandlersupport<x> {
+
+...		// as before, but no declarations for
+};		// set_new_handler or operator new
+```
+
+远古C++要求内存分配失败时operator new返回0而不是抛出std::bad_alloc异常。为了向下兼容，C++的语法可以用placement new替代：
+
+```cpp
+class widget { ... };
+
+widget *pw1 = new widget;// 分配失败抛出std::bad_alloc if
+
+if (pw1 == 0) ...	// 这个检查一定失败
+
+widget *pw2 = new (nothrow) widget; 	// 若分配失败返回0
+	
+if (pw2 == 0) ...	// 这个检查可能会成功
+
+```
+
+这种形式称为“nothrow”，与“Regular”形式的new作以区分。无论采用哪种形式，关键点都在于要为内存分配失败做好准备。
+
+## 条款8：写operator new和operator delete时要遵循常规
+
+重写operator new时要保证其行为和系统缺省的operator new一致。
+
+非类成员形式的operator new伪代码类似如下：
+
+```cpp
+void * operator new(size_t size)        // operator new还可能有其它参数
+{                                       
+
+  if (size == 0) {                      // 处理0字节请求时，
+    size = 1;                           // 把它当作1个字节请求来处理
+  }                                     
+  while (1) {
+    分配size字节内存;
+
+    if (分配成功)
+      return (指向内存的指针);
+
+    // 分配不成功，找出当前出错处理函数
+    new_handler globalhandler = set_new_handler(0);
+    set_new_handler(globalhandler);
+
+    if (globalhandler) (*globalhandler)();
+    else throw std::bad_alloc();
+  }
+}
+```
+
+因此，跳出循环的唯一办法是分配成功，或者globalhandler完成了条款7描述的事件中的一种：得到了更多的可用内存；安装了一个新的new-handler(出错处理函数)；卸除了new-handler；抛出了一个std::bad_alloc或其派生类型的异常；或者返回失败。
+
+## 条款9：避免隐藏标准形式的new
+
+如果类里增加了一个带多个参数的operator new函数，那么就会导致标准形式的new被隐藏。
+
+```cpp
+class x {
+public:
+  void f();
+
+  // operator new的参数指定一个
+  // new-hander(new的出错处理)函数
+  static void * operator new(size_t size, new_handler p);
+};
+
+void specialerrorhandler();          // 定义在别的地方
+
+x *px1 =
+  new (specialerrorhandler) x;       // 调用x::operator new
+x *px2 = new x;                      // 错误!
+```
+
+解决的办法有两种，第一种是在类里增加对单参数operator new的定义：
+
+```cpp
+class x {
+public:
+  void f();
+
+  static void * operator new(size_t size, new_handler p);
+
+  static void * operator new(size_t size)
+  { return ::operator new(size); }
+};
+
+x *px1 =
+  new (specialerrorhandler) x;      // 调用 x::operator
+                                    // new(size_t, new_handler)
+x* px2 = new x;                     // 调用 x::operator
+                                    // new(size_t)
+```
+
+第二种办法是为每一个增加到operator new的参数提供缺省值：
+
+```cpp
+class x {
+public:
+  void f();
+
+  static
+    void * operator new(size_t size,                // p缺省值为0
+                        new_handler p = 0);         // 
+};
+
+x *px1 = new (specialerrorhandler) x;               // 正确
+x* px2 = new x;                                     // 也正确
+```
+
+无论哪种，只要保证不隐藏掉标准形式的new即可。
+
+## 条款10：如果写了operator new就要同时写operator delete
+
+自定义的内存管理程序可以很好地改善程序的性能，operator new和operator delete需要同时工作，那么你写了operator new，就也一定要写operator delete。否则可能会引起多种情景下的内存泄露。
+
+## 条款11：为需要动态分配内存的类声明一个拷贝构造函数和一个赋值操作符
+
+这个其实很好理解，因为合成的拷贝控制成员是值拷贝，因此对于动态分配内存的类来说，不应该拷贝指针的值（浅拷贝），而应该自己完成深拷贝。
+
+用VS13写个例子：
+
+```cpp
+#include <iostream>
+
+using namespace std;
+
+namespace r00tk1t
+{
+	class string
+	{
+	public:
+		string(const char *value);
+		~string();
+		void print();
+	private:
+		char *data;	//指针成员
+	};
+
+	string::string(const char *value)
+	{ 
+		if (value)
+		{
+			data = new char[strlen(value) + 1];
+			strcpy_s(data, strlen(value)+1, value);
+		}
+		else
+		{
+			data = new char[1];
+			*data = '\0';
+		}
+	}
+
+	inline string::~string(){ delete[] data; }
+	
+	void string::print()
+	{
+		printf("data:%s, address:%x\n", data, data);
+	}
+}
+
+int main()
+{
+	r00tk1t::string a("hello"), b("world");
+	a.print();	//data:hello, address:9b65b0
+ 	b.print();	//data:world, address:9b8dc8
+
+	b = a;		//这会调用合成的拷贝赋值运算符函数
+	b.print();	//data:hello, address:9b65b0
+
+	return 0;
+}
+```
+
+可以看到浅拷贝了指针的值，这还不是最致命的。这段程序会崩溃，因为当a和b析构的时候会调用到类string的析构函数，而二者delete[]的是同一块内存，第二次的delete[]会导致程序崩溃（标准对二次释放的情形是未定义的，取决于编译器实现）。另外，b=a的时候也会导致b原本申请的动态内存丢失，导致经典的内存泄露。
+
+对于拷贝构造函数来说也是一样的，在调用函数传值、函数返回值类型、拷贝初始化的场合都会出现相同的情景，不一一编码尝试了。
+
+所以，拷贝控制成员必须要自定义，修改一下上面的类：
+
+```cpp
+namespace r00tk1t
+{
+	class string
+	{
+	public:
+		string(const char *value);
+		string(const string &rhs);
+		string& operator=(const string &rhs);
+		~string();
+		void print();
+	private:
+		char *data;	//指针成员
+	};
+
+	string::string(const char *value)
+	{ 
+		if (value)
+		{
+			data = new char[strlen(value) + 1];
+			strcpy_s(data, strlen(value)+1, value);
+		}
+		else
+		{
+			data = new char[1];
+			*data = '\0';
+		}
+	}
+
+	string::string(const string &rhs)
+	{ 
+		*this = rhs;
+	}
+
+	string& string::operator=(const string &rhs)
+	{
+		delete[] data;
+		if (rhs.data)
+		{
+			data = new char[strlen(rhs.data) + 1];
+			strcpy_s(data, strlen(rhs.data) + 1, rhs.data);
+		}
+		else
+		{
+			data = new char[1];
+			*data = '\0';
+		}
+
+		return *this;
+	}
+
+	inline string::~string(){ delete[] data; }
+	
+	void string::print()
+	{
+		printf("data:%s, address:%x\n", data, data);
+	}
+}
+```
+
+## 待续。。
+
