@@ -285,9 +285,255 @@ action(myScreen, get);			//使用我们之前定义的变量get
 action(myScreen, &Screen::get);	//显式地传入地址
 ```
 
+成员函数可以用作可调用对象，此时需要借助成员函数指针来传递。首先利用`.*`或`->*`将指针绑定到特定的对象上，因此，成员函数指针不同于普通函数指针，它不是一个可调用对象，不支持函数调用运算符。
+
+因为成员指针不是可调用对象，所以不能直接将指向成员函数的指针传递给算法：
+
+```cpp
+auto fp = &string::empty;	//fp指向string的empty函数
+//错误，必须使用.*或->*调用成员指针
+find_if(svec.begin(), svec.end(), fp);
+//find_if内部会试图调用fp(*it)，但fp不支持调用运算符
+```
+
+因此，我们需要对fp进行适配。有三种方法：
+
+- 使用function生成可调用对象
+
+  ```cpp
+  function<bool (const string&)> fcn = &string::empty;
+  find_if(svec.begin(),svec.end(),fcn);
+  ```
+
+  告知模板function：empty是接受string参数并返回bool值的函数。functino内部会在`fcn(*it)`时展开为`((*it).*p)()`，p为fcn内部的指向成员函数的指针。
+
+  当定义function对象时，必须指定该对象所能表示的函数类型，即可调用对象的形式。如果可调用对象是一个成员函数，则第一个形参必须表示该成员是在哪个对象上执行的。同时，传递给function的形式中还必须指明对象是否是以指针或引用的形式传入的。
+
+  对于上例，我们在string对象的序列上调用find_if，因此我们要求function生成一个接受string对象的可调用对象。又因为我们的vector保存的是string的指针，所以必须指定function接受指针：
+
+  ```cpp
+  vector<string*> pvec;
+  function<bool (const string*)> fp = &string::empty;
+  //fp接受一个指向string的指针，然后使用->*调用empty
+  find_if(pvec.begin(), pvec.end(), fp);
+  ```
+
+- 使用mem_fn生成可调用对象
+
+  标准库功能mem_fn可以让编译器负责推断成员的类型。它可以从成员指针生成一个可调用对象，无需向function那样显式指定可调用对象的类型：
+
+  ```cpp
+  find_if(svec.begin, svec.end(), mem_fn(&string::empty));
+  
+  auto f = mem_fn(&string::empty);	//f接受一个string或者一个string*
+  f(*svec.begin());	//正确：传入一个string对象，f使用.*调用empty
+  f(&svec[0]);	//正确，传入一个string指针，f使用->*调用empty
+  ```
+
+- 使用bind生成一个可调用对象
+
+  也可以用bind从成员函数生成一个可调用对象：
+
+  ```cpp
+  //选择范围中的每个string，并将其bind到empty的第一个隐式实参上
+  auto it = find_if(svec.begin(), svec.end(), bind(&string::empty, _1));
+  
+  auto f = bind(&string::empty, _1);
+  f(*svec.begin());	//正确：实参是string，f使用.*调用empty
+  f(&svec[0]);	//正确：实参是string指针，f使用->*调用empty
+  ```
+
+  类似function，使用bind必须把执行对象的隐式形参转换成显式的。也类似mem_fn，bind生成的可调用对象的第一个实参既可以是string指针，也可以是string的引用。
+
 ## 嵌套类
 
+类可以定义在另一个类的内部，称为嵌套类。嵌套类是独立的类，与外层类基本没什么关系。外层类的对象和嵌套类的对象是相互独立的。
 
+嵌套类的名字在外层类作用域中是可见的，在外层类作用域之外不可见。
 
+与普通的类定义没什么差别，只是在必要的时候增加嵌套类所在类的作用域符来修饰。
 
+## union：一种节省空间的类
 
+union在C中就有了，union意在节省空间，他可以有多个数据成员，但任意时刻却只有一个数据成员可以有值（或者说有意义）。给union的某个成员赋值后，其他的就是未定义的状态。分配给union的空间要足够容纳最大成员。
+
+union不能有引用类型的成员（很正常，因为引用天生是“const”的，必须得在初始化时绑定）。C++11以后，含有构造函数和析构函数的类类型也可以作为union的成员类型。union也可以为成员指定public、protected或private权限。默认情况下是public，与struct相同。
+
+union可以定义包括构造函数和析构函数在内的成员函数。但由于union不能继承自其它类，也不能作为基类使用，所以union不能有虚函数。
+
+```cpp
+union Token{
+    char cval;
+    int ival;
+    double dval;
+};
+
+Token first_token = {'a'};	//初始化cval成员
+Token last_token;		//未初始化Token对象
+Token *pt = new Token;	//指向未初始化的Token对象指针
+
+last_token.cval = 'z';	//初始化或赋值都会令其他数据成员变成未定义状态
+pt->ival = 42；
+```
+
+> 标准的未定义就意味着访问的结果是不确定的。
+
+union可以匿名：
+
+```cpp
+union {
+    char cval;
+    int ival;
+    double dval;
+};
+//一旦定义了匿名union，编译器会自动为该union创建一个未命名的对象
+cval = 'c';	//为刚刚定义的未命名的匿名union对象赋新值
+ival = 42;	//该对象当前保存的值是42
+```
+
+匿名union的定义所在的作用域内可以对该union对象的成员进行直接访问。
+
+**匿名union不能包含受保护的成员或私有成员，也不能定义成员函数。**
+
+## 局部类
+
+定义在某个函数内部的类称为局部类。局部类定义的类型只在作用域内可见。
+
+局部类的所有成员必须完整定义在类的内部。比起嵌套类它所受限制非常大。
+
+```cpp
+int a, val;
+void foo(int val)
+{
+ 	static int si;
+    enum Loc {a = 1024, b};
+    //Bar是foo的局部类
+    struct Bar{
+        Loc locVal;	//OK: 使用局部类型名
+        int barVal;
+        
+        void fooBar(Loc l = a)	//正确：默认实参是Lock::a
+        {
+            barVal = val;	//错误：val是foo的局部变量
+            barVal = ::val;	//正确：使用一个全局对象
+            barVal = si;	//正确：使用一个静态局部对象
+            locVal = b;		//正确：使用一个枚举成员
+        }
+    };
+   // ...
+}
+```
+
+## 固有的不可移植的特性
+
+为了支持低层编程，C++定义了一些固有的不可移植的特性。所谓不可移植的特性是值因机器而异的特性（比如算术类型的大小在不同机器上不同）。
+
+C++从C继承了两种不可移植特性：位域和volatile限定符。C++本身还有个链接指示。
+
+### 位域
+
+类可以将非静态数据成员定义成位域，在一个位域中含有一定数量的二进制位。当出现需要向其他程序或硬件设备传递二进制数据时，通常会用到位域。
+
+```cpp
+typedef unsigned int Bit;
+class File{
+    Bit mode: 2;	//mode占2位
+    Bit modified: 1;	//modified占1位
+    Bit prot_owner: 3;	//prot_owner占3位
+    Bit prot_group: 3;	//prot_group占3位
+    Bit prot_world: 3;	//prot_world占3位
+    //File的操作和数据成员
+public:
+    //文件类型以八进制的形式表示
+    enum modes { READ=01, WRITE=02, EXECUTE=03};
+    File &open(modes);
+    void close();
+    void write();
+    bool isRead() const;
+    void setWrite();
+};
+```
+
+五个位域可能会存储在同一个unsigned int中，能否压缩到一个unsigned int以及如何压缩与机器相关。
+
+不能对位域应用取地址运算符&，因此任何指针都无法指向类的位域。
+
+位域的使用和正常的类成员使用差不多。
+
+### volatile限定符
+
+volatile的确切含义与机器有关，只能通过阅读编译器文档来理解。
+
+volatile和const用法相似，二者互相没有影响。
+
+合成的拷贝对volatile对象无效。我们不能使用合成的拷贝、移动构造函数和赋值运算符初始化volatile对象或从volatile对象赋值。合成的成员接受的形参类型是（非volatile）常量引用，显然不能把一个非volatile引用绑定到一个volatile对象上。
+
+如果希望拷贝、移动或赋值类的volatile对象，就必须自定义。
+
+```cpp
+class Foo{
+public:
+    Foo(const volatile Foo&);	//从volatile对象进行拷贝
+    //将一个volatile对象赋值给一个非volatile对象
+    Foo& operator=(volatile const Foo&);
+    //将一个volatile对象赋值给一个volatile对象
+    Foo& operator=(volatile const Foo&) volatile;
+    // Foo类的剩余部分
+};
+```
+
+### 链接指示: extern "C"
+
+C++有时要调用其他语言编写的函数，比如C的函数。其他语言的函数名字也必须在C++中进行声明，该声明必须指定返回类型和形参列表。C++使用链接指示来指出任意非C++函数所用的语言。
+
+```cpp
+//可能出现在C++头文件<cstring>中的链接指示
+//单语句链接指示
+extern "C" size_t strlen(const char *);
+//复合语句链接指示
+extern "C"{
+    int strcmp(const char*, const char*);
+    char *strcat(char*, const char*);
+}
+```
+
+编译器可能也支持其他语言的链接指示，比如extern "FORTRAN"等。
+
+```cpp
+//复合语句链接指示
+extern "C"{
+    #include <string.h>	//操作C风格字符串的C函数
+}
+```
+
+这种用法可以把头文件声明的普通函数都声明为链接指示的语言所编写。链接指示可以嵌套，所以如果此头文件中包含自带链接指示的函数，则该函数不受本次影响。
+
+可以应用于函数指针：
+
+```cpp
+//pf指向一个c函数，该函数接受一个int返回void
+extern "C" void (*pf)(int);
+
+void (*pf1)(int);	//指向一个C++函数
+extern "C" void (*pf2)(int);	//指向C函数
+pf1 = pf2;	//错误：pf1和pf2型别不同
+```
+
+由于C不支持重载函数，所以：
+
+```cpp
+extern "C" void print(const char*);
+extern "C" void print(int);	//错误，重复定义
+```
+
+但如果一组重载函数有一个是C函数，其他都是C++函数：
+
+```cpp
+class SmallInt {/*...*/};
+class BigNum {/*...*/};
+//C函数可以在C或C++程序中调用
+//C++函数重载了该函数，可以在C++中调用
+extern "C" double calc(double);
+extern SmallInt calc(const SmallInt&);
+extern BigNum calc(const BigNum&);
+```
