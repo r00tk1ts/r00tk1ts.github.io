@@ -1,6 +1,6 @@
 ---
 title: 深入探索禁忌目录之Effective C++篇
-date: 2018-12-06 20:33:11
+date: 2018-12-16 14:02:11
 categories: programming-language
 tags:
 	- cpp
@@ -679,5 +679,277 @@ namespace r00tk1t
 }
 ```
 
-## 待续。。
+## 条款12：尽量使用初始化而不要在构造函数里赋值
 
+初始化列表的好处在于，有些情况必须得用初始化，无法在构造函数体内进行赋值，比如const成员和引用成员。
+
+对象的构造分两步：数据成员初始化 + 执行被调用的构造函数体内的动作。
+
+初始化列表可以为第一步提供成员初始化信息。
+
+当然初始化也不是在任何情况下都比构造函数体内赋值要优越，对于冗余的固定类型数据成员的初始化往往非常啰嗦（比如类有若干个基础类型int成员），此时使用赋值未尝不可。
+
+静态类成员有自己的初始化方式，与本条款无缘。
+
+## 条款13：初始化列表中成员列出的顺序和它们在类中声明的顺序相同
+
+这是C++语法的一个坑，程序员编写的初始化列表的顺序并不是真正的初始化顺序，真正的初始化顺序只受类中数据成员声明的顺序所影响。
+
+用一个例子来踩坑：
+
+```cpp
+#include <iostream>
+#include <vector>
+
+using namespace std;
+
+namespace r00tk1t
+{
+	template<typename T>
+	class array
+	{
+	public:
+		array(int lowbound, int highbound);
+		vector<T>& getData(){ return data; }
+	private:
+		vector<T> data;
+		size_t size;
+		int lbound, hbound;
+	};
+
+	template<typename T>
+	array<T>::array(int lowbound, int highbound) : 
+		size(highbound - lowbound + 1), lbound(lowbound), hbound(highbound), data(size)
+	{ }
+}
+
+int main()
+{
+	r00tk1t::array<int> arr(0, 10);
+	vector<int> v = arr.getData();
+	cout << v.size() << endl;	//输出0
+
+	return 0;
+}
+```
+
+因为声明顺序的原因，尽管初始化列表把size放在了前面，但实际上先初始化的还是data。至于输出0的问题，我不确定是标准的要求还是编译器自己的处理，反汇编了VS生成的code：
+
+```assembly
+r00tk1t::array<int> arr(0, 10);
+012397E0 6A 1C                push        1Ch  
+012397E2 8D 4D D0             lea         ecx,[arr]  
+012397E5 E8 9D 7D FF FF       call        r00tk1t::array<int>::__autoclassinit2 (01231587h)  
+012397EA 6A 0A                push        0Ah  
+012397EC 6A 00                push        0  
+012397EE 8D 4D D0             lea         ecx,[arr]  
+	r00tk1t::array<int> arr(0, 10);
+012397F1 E8 31 7E FF FF       call        r00tk1t::array<int>::array<int> (01231627h)  
+012397F6 C7 45 FC 00 00 00 00 mov         dword ptr [ebp-4],0  
+```
+
+经过了`r00tk1t::array<int>::__autoclassinit2`之后，栈空间上原本的0xCC都被擦除了。在构造函数体内：
+
+```assembly
+01233060 55                   push        ebp  
+01233061 8B EC                mov         ebp,esp  
+01233063 81 EC CC 00 00 00    sub         esp,0CCh  
+01233069 53                   push        ebx  
+0123306A 56                   push        esi  
+0123306B 57                   push        edi  
+	private:
+		vector<T> data;
+		size_t size;
+		int lbound, hbound;
+	};
+
+	template<typename T>
+	array<T>::array(int lowbound, int highbound) : 
+		size(highbound - lowbound + 1), lbound(lowbound), hbound(highbound), data(size)
+	{ }
+0123306C 51                   push        ecx  
+0123306D 8D BD 34 FF FF FF    lea         edi,[ebp-0CCh]  
+01233073 B9 33 00 00 00       mov         ecx,33h  
+01233078 B8 CC CC CC CC       mov         eax,0CCCCCCCCh  
+0123307D F3 AB                rep stos    dword ptr es:[edi]  
+0123307F 59                   pop         ecx  
+01233080 89 4D F8             mov         dword ptr [this],ecx  
+01233083 8B 45 F8             mov         eax,dword ptr [this]  
+01233086 8B 48 10             mov         ecx,dword ptr [eax+10h]  
+01233089 51                   push        ecx  
+0123308A 8B 4D F8             mov         ecx,dword ptr [this]  
+0123308D E8 18 E5 FF FF       call        std::vector<int,std::allocator<int> >::vector<int,std::allocator<int> > (012315AAh)  
+01233092 8B 45 0C             mov         eax,dword ptr [highbound]  
+01233095 2B 45 08             sub         eax,dword ptr [lowbound]  
+01233098 83 C0 01             add         eax,1  
+0123309B 8B 4D F8             mov         ecx,dword ptr [this]  
+0123309E 89 41 10             mov         dword ptr [ecx+10h],eax  
+012330A1 8B 45 F8             mov         eax,dword ptr [this]  
+012330A4 8B 4D 08             mov         ecx,dword ptr [lowbound]  
+012330A7 89 48 14             mov         dword ptr [eax+14h],ecx  
+012330AA 8B 45 F8             mov         eax,dword ptr [this]  
+012330AD 8B 4D 0C             mov         ecx,dword ptr [highbound]  
+012330B0 89 48 18             mov         dword ptr [eax+18h],ecx  
+012330B3 8B 45 F8             mov         eax,dword ptr [this]  
+012330B6 5F                   pop         edi  
+012330B7 5E                   pop         esi  
+012330B8 5B                   pop         ebx  
+012330B9 81 C4 CC 00 00 00    add         esp,0CCh  
+012330BF 3B EC                cmp         ebp,esp  
+012330C1 E8 8C E2 FF FF       call        __RTC_CheckEsp (01231352h)  
+012330C6 8B E5                mov         esp,ebp  
+012330C8 5D                   pop         ebp  
+012330C9 C2 08 00             ret         8  
+```
+
+由于初始化顺序的问题，在`call        std::vector<int,std::allocator<int> >::vector<int,std::allocator<int> > (012315AAh)`时传入的参数是0，最终传到：
+
+```assembly
+explicit vector(size_type _Count)
+		: _Mybase()
+		{	// construct from _Count * value_type()
+01239230 55                   push        ebp  
+01239231 8B EC                mov         ebp,esp  
+01239233 6A FF                push        0FFFFFFFFh  
+01239235 68 F8 A3 23 01       push        123A3F8h  
+0123923A 64 A1 00 00 00 00    mov         eax,dword ptr fs:[00000000h]  
+01239240 50                   push        eax  
+```
+
+传入的_Count是size所在的位置，因为之前init的关系它已经是0了。
+
+关于这个初始化内存空间的举措我不清楚是标准所要求还是编译器自己所处理的。
+
+因为初始化有着依赖关系，所以我们调换一下次序：
+
+```cpp
+template<typename T>
+	class array
+	{
+	public:
+		array(int lowbound, int highbound);
+		vector<T>& getData(){ return data; }
+	private:
+		size_t size;
+		int lbound, hbound;
+		vector<T> data;
+	};
+
+	template<typename T>
+	array<T>::array(int lowbound, int highbound) : 
+		size(highbound - lowbound + 1), lbound(lowbound), hbound(highbound), data(size)
+	{ }
+```
+
+再次输出的尺寸就是正确的11了。
+
+**既然如此，就有一个疑惑了，为什么语法非要要求按声明次序初始化，而不是初始化列表次序呢？**
+
+这是因为对于对象的成员来说，析构函数被调用的顺序是和构造函数里被创建的顺序相反的，如果支持某一个构造函数按初始化列表次序初始化，那么可能各种构造函数的初始化次序各不相同，这时每个对象析构时其对象的析构顺序也就各不相同，编译器就得为每个对象而不是每类对象去维护析构顺序。
+
+但如果忽略初始化顺序，无论何种构造，都要按成员声明顺序构建，那这一类对象析构的顺序也就是固定的。
+
+与条款12一样，静态数据成员有自己的机制，不受该条款影响。
+
+## 条款14：确定基类有虚析构函数
+
+这个就人尽皆知了，因为多态的使用本身会出现对指向派生类的基类指针进行delete的操作。如果基类析构是非虚的，那么delete的结果就是不确定的（C++标准的阐述）。
+
+另一方面，如果类不作为基类使用，那么析构函数不应该被设置为虚函数。虚函数的存在会为对象引入vptr，对每个对象来说体积都会增加4字节(32位)。
+
+很多人总结：当且仅当类里包含至少一个虚函数的时候才去声明虚析构函数。其实这种说法并不完全正确。对于类模板来说，可能没有虚函数，但类模板会被继承下去，这种情况虚析构也是需要的。因此，本质上来讲，只要类作为基类使用且有析构函数，就要定义成虚析构。
+
+## 条款15：让operator=返回*this的引用
+
+既不要返回void，也不要返回const对象的引用，前者虽然合理但妨碍了链式赋值，后者则会导致链式赋值的失败（无法为返回的常量赋值）。
+
+本质上来说，C++语言提供运算符重载的初衷就是希望程序员可以像使用基础类型那样使用自定义的类类型。因此，对operator=保持基础类型的语义就很自然而然了。
+
+类中重载的赋值运算符函数，总是要返回`*this`，因为this是隐式传递进来的=号左侧的对象指针。
+
+## 条款16：在operator=中对所有数据成员赋值
+
+因为如果不定义operator=，编译器会自动合成一个，但一旦自己定义了，那么就要接管所有的数据成员赋值，不要妄想我只赋值个别想要特别处理的成员，其他的成员还可以让编译器去默认处理。
+
+添加类数据成员要记得更新operator=。
+
+对继承体系来说，派生类的赋值运算符也必须处理它的基类成员的赋值。
+
+踩踩坑：
+
+```cpp
+class base {
+public:
+	base(int initialvalue = 0) : x(initialvalue) {}
+
+private:
+	int x;
+};
+
+class derived : public base {
+public:
+	derived(int initialvalue)
+		: base(initialvalue), y(initialvalue) {}
+
+	derived& operator=(const derived& rhs);
+
+private:
+	int y;
+};
+
+// erroneous assignment operator
+derived& derived::operator=(const derived& rhs)
+{
+	if (this == &rhs) return *this;    
+
+	y = rhs.y;             
+
+	return *this;                      
+}
+
+
+int main()
+{
+	derived d1(0), d2(1);
+
+	d1 = d2;	//d1.x=0, d1.y=1!
+	return 0;
+}
+```
+
+因为派生类自定义的operator=只接管了自己的数据成员，基类的成员没有管。
+
+如果溢出derived的operator=的自定义，会发现编译器默认合成的版本会类似构造器一样，递归的先调用基类base的operator=，这里base的operator=也是默认合成的（此时d1里的x和y都变成了1）。
+
+那么当我们接管了operator=时，也应该去在派生类中显式的调用基类的operator=（我们没法直接为x赋值，因为是基类的private，就算是public或protected，也不要这样处理，基类的成员交给基类自己去处理）。
+
+```cpp
+// erroneous assignment operator
+derived& derived::operator=(const derived& rhs)
+{
+	if (this == &rhs) return *this;    
+
+	base::operator=(rhs);
+  	// 这种写法比较怪异，用于适配那些拒绝对基类赋值运算符调用的编译器
+  	// static_cast<base&>(*this) = rhs;
+	y = rhs.y;             
+
+	return *this;                      
+}
+```
+
+operator=的这一点对于拷贝构造来说也是一样的，派生类不要忘记在拷贝构造时，在初始化列表中调用基类的拷贝构造。
+
+```cpp
+derived(const derived& rhs): base(rhs), y(rhs.y) {}
+```
+
+## 条款17：在operator=中检查给自己赋值的情况
+
+这一点非常容易忽略，因为自己赋值给自己在语法上是正确的，所以对这种情况来说，operator=如果不检查自赋值的情况，那么就会浪费感情。
+
+另外，检查自赋值还可以保证赋值的正确性，对指针成员来说，赋值运算符可能会先释放一个对象的资源，再分配新的资源（这一点在C++ Primer中被重点敲黑板了，要先分配再释放，保证自赋值的语义正确性）。如果自赋值那就导致在拷贝的时候资源已经被第一步释放掉了。
+
+这个坑就不再踩了，学C++ Primer的时候已经踩过一次了。
+
+## 待续。。
