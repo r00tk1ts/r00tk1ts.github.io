@@ -952,4 +952,188 @@ derived(const derived& rhs): base(rhs), y(rhs.y) {}
 
 这个坑就不再踩了，学C++ Primer的时候已经踩过一次了。
 
-## 待续。。
+## 中间的玩丢了，难受啊马飞。。回头再补吧。
+
+## 条款24: 在函数重载和设定参数缺省值间慎重选择
+
+允许一个函数以多种方式被调用有两种手段：重载和默认形参。
+
+选择哪一个要根据具体的情景，一般来说缺省值会对函数体产生一定程度的限制，而重载则会代码膨胀。
+
+关于这一点其实没什么好说的，按经验判断即可。
+
+## 条款25: 避免对指针和数字类型重载
+
+因为C++11以前是没有独立出nullptr的，旧式C风格的NULL本质上是个宏，可能定义成`#define NULL 0`或者是`#define NULL ((void*)0)`等。
+
+那么如果重载接受一个int或某类型指针参数的函数时，就会导致在传0值时0的二义性，是应该匹配int版本还是指针版本呢？当然可以用`static_cast<t*>`来避免二义性。
+
+尽管在大部分情况下推导的函数是确定的，不会出现编译错误，但这种设计无疑是自掘坟墓。所以，作为重载函数的设计者，归根结底最基本的一条是，只要有可能，就要避免对一个数字和一个指针类型重载。
+
+## 条款26: 当心潜在的二义性
+
+坑1：
+
+```cpp
+class 
+B;		// 对类B提前声明
+		// 
+class A {
+public:
+ A(const B&);	// 可以从B构造而来的类A
+};
+
+class B {
+public:
+ operator A() const;	// 可以从A转换而来的类B
+};
+
+void f(const A&);
+B b;
+f(b);			// 错误!——二义
+```
+
+上例中，f的调用需要传入一个A的对象，但上面的定义却有两种可行性，第一种是通过A的构造函数来生成，另一种是通过B的类型转换运算符来生成，于是编译器懵逼了。
+
+这种定义虽然合法，而且在未使用到二义性的语句时也不会出问题，但总归是挖了坑。
+
+坑2：
+
+```cpp
+void f(int);
+void f(char);
+
+double d = 6.02;
+f(d);			// 错误!——二义
+```
+
+因为两种隐式转换都可以，所以编译器还是懵逼。尽管可以通过`static_cast<>`来转型，但依然不舒服。
+
+坑3：
+
+```cpp
+class Base1 {
+public:
+ int doIt();
+};
+
+class Base2 
+{
+public:
+ void doIt();
+};
+
+class Derived: public Base1	// Derived没有声明
+		public Base2 {	// 一个叫做doIt的函数
+...
+};
+
+Derived d;
+d.doIt();		// 错误!——二义
+```
+
+这个就是非常常见的坑了，多重继承引起的基类成员同名的二义性。
+
+消除的手法可以用`d.Base1::doIt()`来调用，但语法上就啰嗦多了。
+
+## 条款27: 如果不想使用隐式生成的函数就要显式地禁止它
+
+C++11以前不支持对合成的构造、复制构造和赋值运算符函数进行=default/=delete的操作，因此对于需要显式禁止的场合，是通过一种编程技巧来实现的。
+
+通过将不希望默认合成的函数显式地声明为private成员而不去定义，就可以实现=delete的效果。
+
+## 条款28: 划分全局名字空间
+
+全局空间最大的问题在于它本身仅有一个。在大的软件项目中，经常会有不少人把他们定义的名字都放在这个单一的空间中，从而不可避免地导致名字冲突。
+
+所以我们自己写代码尤其是希望作为第三方库使用时，将代码分离在一个甚至多个独立的命名空间中很有必要。
+
+使用时，只需要通过using引入或者直接通过`namespace::`访问即可。
+
+## 条款29: 避免返回内部数据的句柄
+
+返回内部数据的指针或引用往往会引起其失效问题，容易导致悬垂句柄。
+
+对于const成员函数来说，返回句柄是不明智的，因为它会破坏数据抽象。对于非const成员函数来说，返回句柄会带来麻烦，特别是涉及到临时对象时。
+
+当然，只能说要尽量避免，并不绝对化。
+
+## 条款30: 避免这样的成员函数：其返回值是指向成员的非const指针或引用，但成员的访问级比这个函数要低
+
+踩踩坑：
+
+```cpp
+#include <iostream>
+#include <vector>
+#include <string>
+
+using namespace std;
+
+class person{
+public:
+	person(const string& addr) :address(addr) { }
+	string& getAddress(){ return address; }//注意返回的是引用
+private:
+	string address;
+};
+
+int main()
+{
+	person p("China");
+	string &address = p.getAddress();
+	cout << address << endl;		//China
+	address = "America";
+	cout << p.getAddress() << endl;	//America
+	return 0;
+}
+```
+
+如果getAddress返回的是引用，就破坏了设定为private的初衷。外部可以绕过private访问修改对象的address成员。
+
+同样的：
+
+```cpp
+class person{
+public:
+	person(const string& addr) :address(addr) { }
+	string* getAddress(){ return &address; }//返回指针
+private:
+	string address;
+};
+
+int main()
+{
+	person p("China");
+	string *address = p.getAddress();
+	cout << *address << endl;		//China
+	*address = "America";
+	cout << *p.getAddress() << endl;	//America
+	return 0;
+}
+```
+
+返回指针也具有相同的问题。
+
+所以，如果想对private成员提供只读接口，那么应该使用值返回。
+
+## 条款31: 千万不要返回局部对象的引用，也不要返回函数内部用new初始化的指针的引用
+
+局部对象是在被定义时创建，在离开生命空间时被销毁的。返回一个局部对象的引用当然是错误的。
+
+函数内部的指针本质上也是局部对象，所以也不能返回它的引用，虽然函数内部用指针去new一个对象，然后返回该指针的引用看起来好像中规中矩：new出的对象没有被释放啊！但指针本身这个对象会随着离开生命空间而被销毁，好嘛，还引起了内存泄露。
+
+这个议题在C语言中就是新手阶段常见的大坑，对引入了引用概念的C++来说更是不遑多让。
+
+## 条款32: 尽可能地推迟变量的定义
+
+这个没啥好说的，因为更容易控制和确定变量的生命周期。其实C99已经有了，要求所有变量都只能定义在头部的说法是C89的legacy。
+
+## 条款33: 明智地使用内联
+
+都8102年了，这个放现在来看已经意义不大了，毕竟不再有“我比编译器聪明系列”。
+
+## 条款34: 将文件间的编译依赖性降至最低
+
+为了提高编译效率，防止未修改文件的重新编译。这也算是C时代的legacy了。
+
+## 待续。。。
