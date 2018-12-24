@@ -952,7 +952,138 @@ derived(const derived& rhs): base(rhs), y(rhs.y) {}
 
 这个坑就不再踩了，学C++ Primer的时候已经踩过一次了。
 
-## 中间的玩丢了，难受啊马飞。。回头再补吧。
+## 条款18: 争取使类的接口完整并且最小
+
+设计类接口的目标：完整且最小。
+
+所谓完整就是指提供所有合理的接口，不能因为接口残疾而让用户完不成应该完成的任务。最小则是指提供的接口要尽量少，不用互相牵扯混淆。
+
+这是个设计上的问题，不是语法上的坑。
+
+## 条款19: 分清成员函数，非成员函数和友元函数
+
+如果需要动态绑定，那只能选用成员函数的设计，因为成员函数才可以是虚函数。
+
+如果不需要动态绑定，就需要根据实际的语义进行区分。这其实也是一个经验性的问题，甚至可以说是潜规则。某些函数的语义设计成成员函数更佳，而另一部分设计成非成员函数更好。对于运算符重载函数亦是如此。C++语法上对运算符做了限制，使得某些运算符只能重载成成员函数(自增自减)，某些则是非成员函数(operator<<)，还有一些是二者均可，但往往也会因为语义而沿用其他类似的设计。
+
+非成员函数如果需要访问类的非public成员，就要记得在类的设计中增加友元函数的设定。
+
+## 条款20: 避免public接口出现数据成员
+
+public和private最开始设计出来就是为了功能分离（抽离接口和隐藏数据），如果数据成员以public出现，那么外部就可以肆无忌惮的乱搞。
+
+在public接口里放上数据成员无异于自找麻烦，所以要把数据成员安全地隐藏在与功能分离的高墙后。
+
+> 仅仅打包一团数据，用struct关键字更有辨识度，虽然struct和class在C++语法上只是默认访问权限不同。这里所谓的功能分离不适配于这种情况。
+
+## 条款21: 尽可能使用const
+
+const在C++中的使用非常宽泛，在类的外面，可以用于全局或名字空间常量，以及静态对象。类内则可以用于静态和非静态成员。对指针来说，可以指定指针本身为const，也可以指定所指数据为const，或二者兼具（顶层const和底层const）。
+
+const的坑太多了，不是三言两语就可能穷尽的。但无论是何种坑，只要对const的具体使用情景有深刻的理解，就能跳出来。
+
+C++11以后，还要考虑const与auto、decltype等相互作用。
+
+## 条款22: 尽量用“传引用”而不用“传值”
+
+C只能传值，尽管传递指针看起来和引用功能一样，但却决然不同。指针本身也是一个变量，它的值是存储指向对象的地址。传递指针只是把实参的地址值拷贝给了形参，所以本质上还是值传递。
+
+而C++的引用本身不是一个对象，它只是一个其他对象的别名。因此传引用是C++引入的概念，C是不支持的。
+
+> 这里的传引用是值左值引用。C++11以后为了移动语义，还有右值引用。
+
+传引用不会引起对象的拷贝（传对象的指针也可以避免对象的拷贝），传递引用也避免了语法的繁琐（C玩家饱受嵌套指针做参数的折磨）。
+
+某些情境下不能传递引用。对基本类型来说，传值比传引用效果更好。
+
+## 条款23: 必须返回一个对象时不要试图返回一个引用
+
+某些语义是应该返回对象的，不能返回一个引用。返回局部对象的引用是错误的（后面有条款专述），返回参数引用在语义上也不符。
+
+比如：
+
+```cpp
+class rational {
+public:
+  rational(int numerator = 0, int denominator = 1);
+
+  ...
+
+private:
+  int n, d;              // 分子和分母
+
+friend
+  const rational                      // 参见条款21：为什么
+    operator*(const rational& lhs,    // 返回值是const
+              const rational& rhs)     
+};
+
+inline const rational operator*(const rational& lhs,
+                                const rational& rhs)
+{
+  return rational(lhs.n * rhs.n, lhs.d * rhs.d);
+}
+
+```
+
+`operator*`返回的是对象，而不是对象引用，但这并没有未被尽量传引用而不传值的准则（返回值本身也有值传递和引用传递，与参数传递如出一辙）。
+
+这是因为`operator*`语义上应该返回一个新的对象，而不是原本已有的对象。
+
+假设这样改写：
+
+```cpp
+inline const rational& operator*(const rational& lhs,
+                                 const rational& rhs)
+{
+  rational result(lhs.n * rhs.n, lhs.d * rhs.d);
+  return result;
+}
+```
+
+返回了局部对象是严重的错误，因为局部对象在栈空间，随着函数的返回而被自动析构，返回的引用的对象已无“生命体征”，显然有问题。这点以后还会讨论。
+
+那如果改用堆空间呢？
+
+```cpp
+inline const rational& operator*(const rational& lhs,
+                                 const rational& rhs)
+{
+  rational *result =
+    new rational(lhs.n * rhs.n, lhs.d * rhs.d);
+  return *result;
+}
+```
+
+看起来好像没什么问题，但带来的隐患却是巨大的。在`operator*`中new，那在哪里delete呢？该由谁负责delete呢？而且，每次`operator*`以后都要记得delete对开发者来说不太现实，一次处理不当，就导致了内存泄露的问题。毕竟，从语义上来说，开发者不大能接受`operator*`内部new的对象还要自己去控制的规则。
+
+```cpp
+rational w, x, y, z;
+w = x * y * z;
+```
+
+按上面的写法，内存泄露就已经发生了，oops!
+
+还有第三种坑：
+
+```cpp
+inline const rational& operator*(const rational& lhs,
+                                 const rational& rhs)
+{
+  static rational result;      // 将要作为引用返回的
+                               // 静态对象
+
+  lhs和rhs 相乘，结果放进result；
+
+  return result;
+}
+```
+
+纯粹是自作聪明，这种设计的思想是：既然局部对象不行，那就弄个伪局部？
+
+这种设计就是没有搞清楚局部static变量的意义，实际上局部static只是限制了语义为局部，本质上可以看做一个全局对象，每次`operator*`的调用都会修改局部static的result对象，这就意味着`operator*`的后一次调用会影响前一次调用的结果值（因为后一次修改了result对象，而前一次返回的却是这个被修改的对象的引用，当然受了影响）。
+
+所以，别折腾了，该返回值的时候就要返回值，不能省。
 
 ## 条款24: 在函数重载和设定参数缺省值间慎重选择
 
@@ -1136,4 +1267,462 @@ int main()
 
 为了提高编译效率，防止未修改文件的重新编译。这也算是C时代的legacy了。
 
-## 待续。。。
+## 条款35: 使公有继承体现 "是一个" 的含义
+
+类D公有继承类B，意味着每个D的对象也是一个B的对象，但每个B的对象不一定是D的对象。B比D更为宽泛，D比B更为特化。
+
+公有继承应该体现出D“是一个”B这样的语义，所以设计上就要慎重考虑，当符合D是一个B时，应该采用公有继承。
+
+## 条款36: 区分接口继承和实现继承
+
+纯粹的接口继承就是基类中定义的纯虚函数，而纯粹的实现继承则是非虚函数，在二者之间还有一个虚函数，可以由派生类决定沿用父类的实现还是自己重新diy。
+
+设计一个类时，要根据需求，确定基类成员应该提供哪一种继承方式。
+
+## 条款37: 决不要重新定义继承而来的非虚函数
+
+这是C++老生长谈的话题，对子类重新定义父类的非虚函数，会导致父类的实现继承被覆盖。
+
+踩坑：
+
+```cpp
+class Base{
+public:
+	void print(){ cout << "Base" << endl; }
+};
+
+class Derived : public Base{
+public:
+	void print(){ cout << "Derived" << endl; }
+};
+
+int main()
+{
+	Derived d;
+	d.print();	//Derived
+
+	Base *b = new Derived();
+	b->print();	//Base
+	return 0;
+}
+```
+
+基类的print被覆盖，而更好的设计应该是定义成虚函数。
+
+为什么说这种定义不好呢？因为虚函数才能实现多态，上面的指针b就是个例子。
+
+而且这种隐藏也不彻底，依然可以通过d来调用Base的print实现：
+
+```cpp
+d.Base::print();	//Base
+(static_cast<Derived*>(b))->print();//Derived
+```
+
+都是奇奇怪怪的写法，坑自己。
+
+改成virtual就无需这种坑自己的写法了。
+
+当然，改为virtual后，想要调用Base的print也是可以的：
+
+```cpp
+Derived d;
+d.Base::print();
+
+Base *b = new Derived();
+b->Base::print();
+```
+
+视具体情况而用。
+
+## 条款38: 决不要重新定义继承而来的缺省参数值
+
+根据条款37的规则，这里值得考虑的就是“继承一个有缺省参数值的虚函数”。
+
+基于的理由非常明显：虚函数是动态绑定而缺省参数值是静态绑定的。
+
+踩踩坑：
+
+```cpp
+enum ShapeColor { RED, GREEN, BLUE };
+// 一个表示几何形状的类
+class Shape {
+public:
+	// 所有的形状都要提供一个函数绘制它们本身
+	virtual void draw(ShapeColor color = RED) const = 0;
+};
+
+class Rectangle : public Shape {
+public:
+	// 注意：定义了不同的缺省参数值 ---- 不好!
+	virtual void draw(ShapeColor color = GREEN) const{ cout << color << endl; };
+};
+
+class Circle : public Shape {
+public:
+	virtual void draw(ShapeColor color) const{ cout << color << endl; };
+};
+
+
+
+int main()
+{
+	Shape *ps;
+	Shape *pc = new Circle;
+	Shape *pr = new Rectangle;
+
+	pc->draw();	//0
+	pr->draw();	//0
+
+	return 0;
+}
+```
+
+两次输出都是0！尽管Rectangle覆盖了虚函数，将默认传参改为GREEN，但实际上通过动态绑定调用时，依然是基类的参数。
+
+但如果不利用多态，直接定义派生类型，则默认传参确实是GREEN：
+
+```cpp
+Rectangle *pr2 = new Rectangle;
+pr2->draw(); //1
+```
+
+因此，这就是标准的自掘坟墓，变着法子坑自己。
+
+## 条款39: 避免 "向下转换" 继承层次
+
+如果不借用动态绑定，那么如果用父类指针或引用指向子类对象，编译器是一无所知的，此时，我们就需要自己去通过static_cast进行“向下转换”。
+
+在某些特定场景下这可能很有用，但对于大部分成熟的设计来说，应该转而使用虚函数来支持动态绑定。毕竟，派生类只有1个的时候，static_cast是很好用的，但一旦有多个派生类，那么当程序员把它们的基类指针混杂在一起之后，就彻底分不清谁究竟是哪个派生类对象了。
+
+这个坑没什么好踩的，归根结底是设计的思维，总之，在使用到static_cast的时候多想想是不是自己设计得有问题，是不是有其他的方式来代替？
+
+## 条款40: 通过分层来体现 "有一个" 或 "用...来实现"
+
+所谓分层，就是指某个类的对象称为另一个类的数据成员。
+
+公有继承提供的语义是Derived对象“是一个”Base对象，而分层提供的语义是“A有一个B”，或者是“A用B来实现”。
+
+实际设计中，要根据需求考虑是采用分层来提供“A用B来实现”的语义，还是提供“A是一个B”的语义。对于后者来说，谨遵条款35，应该符合对B成立的条件对A应该也都成立这一事实，如果不符合，就要考虑“A用B来实现”的语义。
+
+## 条款41: 区分继承和模板
+
+何时使用类模板，何时使用继承？
+
+最本质的要点在于要判断：类型T是否影响类的行为。如果不影响就可以使用模板（因为代码对各种可能的类型是common的），如果影响那就只能用虚函数（这个说得比较绝对，其实模板也可以通过特化来解决个别的不兼容问题），从而要使用继承。
+
+## 条款42: 明智地使用私有继承
+
+公有继承意味着派生类“是一个”基类，分层则意味着A“有一个”B或“A用B来实现...”，那么私有继承意味着什么呢？
+
+先明确私有继承的两个特征：
+
+- 如果两个类之间的继承关系为私有，编译器一般不会将派生类对象转换成基类对象。
+- 私有继承二来的成员都成为了派生类的私有成员，无论在基类中是保护或公有成员。
+
+私有继承意味着 "用...来实现"。如果使类D私有继承于类B，这样做是因为你想利用类B中已经存在的某些代码，而不是因为类型B的对象和类型D的对象之间有什么概念上的关系。因而，私有继承纯粹是一种实现技术。
+
+私有继承意味着只是继承实现，接口会被忽略。如果D私有继承于B，就是说D对象在实现中用到了B对象，仅此而已。私有继承在软件 "设计" 过程中毫无意义，只是在软件 "实现" 时才有用。
+
+“用...来实现”与分层的用途有所混淆（分层也有这一层意思），那么二者应该如何抉择？答案很简单：尽可能地使用分层，必须时才使用私有继承。什么时候必须呢？这往往是指有保护成员和/或虚函数介入的时候。
+
+换句话说，当需要权限控制和虚函数参于到“用...来实现”这一设计的时候，分层是达不到效果的，这时只能用也必须用私有继承。
+
+书中给出的一个例子：
+
+```cpp
+class GenericStack {
+protected:
+  GenericStack();
+  ~GenericStack();
+
+  void push(void *object);
+  void * pop();
+
+  bool empty() const;
+
+private:
+  struct StackNode {
+    void *data;                    // 节点数据
+    StackNode *next;               // 下一节点
+
+    StackNode(void *newData, StackNode *nextNode)
+    : data(newData), next(nextNode) {}
+  };
+
+  StackNode *top;                          // 栈顶
+
+  GenericStack(const GenericStack& rhs);   // 防止拷贝和
+  GenericStack&                            // 赋值(参见
+    operator=(const GenericStack& rhs);    // 条款27)
+};
+
+GenericStack s;                   // 错误! 构造函数被保护
+```
+
+GenericStack没有public成员，这意味着该类不是暴露给用户使用的直接类，这种设计是因为考虑到GenericStack是不安全的通用类，不希望被直接使用，而是被具体类继承使用：
+
+```cpp
+class IntStack: private GenericStack {
+public:
+  void push(int *intPtr) { GenericStack::push(intPtr); }
+  int * pop() { return static_cast<int*>(GenericStack::pop()); }
+  bool empty() const { return GenericStack::empty(); }
+};
+
+class CatStack: private GenericStack {
+public:
+  void push(Cat *catPtr) { GenericStack::push(catPtr); }
+  Cat * pop() { return static_cast<Cat*>(GenericStack::pop()); }
+  bool empty() const { return GenericStack::empty(); }
+};
+
+IntStack is;                     // 正确
+CatStack cs;                     // 也正确
+```
+
+当私有继承之后，GenericStack的protected成员被继承过来，且权限变为private。这一权限的控制是分层所做不到的（分层的话即使IntStack包含GenericStack对象，GenericStack对象的protected成员是无法被访问的，除非设置友元，这会导致关系混乱，或者protected成员定义成public，但定义成public意味着直接暴露了GenericStack给用户）。
+
+私有继承可以访问到基类的protected成员，同时又阻止了基类的暴露。
+
+进一步可以用模板来优化：
+
+```cpp
+template<class T>
+class Stack: private GenericStack {
+public:
+  void push(T *objectPtr) { GenericStack::push(objectPtr); }
+  T * pop() { return static_cast<T*>(GenericStack::pop()); }
+  bool empty() const { return GenericStack::empty(); }
+};
+```
+
+编译器将根据需要自动生成所有的接口类。
+
+## 条款43: 明智地使用多继承
+
+MI带来了单继承所没有的复杂性。比如，经典的基类成员重名的二义性。
+
+踩坑：
+
+```cpp
+#include <iostream>
+
+using namespace std;
+
+class Lottery {
+public:
+	virtual void draw(){ cout << "Lottery draw!" << endl; }
+};
+
+class GraphicalObject {
+public:
+	virtual void draw() { cout << "GraphicalObject draw!" << endl; }
+};
+
+class LotterySimulation : public Lottery, public GraphicalObject {
+
+	// 没有声明draw
+};
+
+
+int main()
+{
+	LotterySimulation *pls = new LotterySimulation;
+
+	pls->draw();                   // 错误! ---- 二义
+	pls->Lottery::draw();          // 正确
+	pls->GraphicalObject::draw();  // 正确
+
+
+	return 0;
+}
+```
+
+这里的二义性是显而易见的，然而隐藏比较深的坑在这里：
+
+```cpp
+class GraphicalObject {
+private:
+	virtual void draw() { cout << "GraphicalObject draw!" << endl; }
+};
+```
+
+即使修改了GraphicalObject的draw为private权限，二义性一样存在，即便客观上看起来只能访问得到Lottery的draw，但语法上依然存在错误。
+
+此时，如果为LotterySimulation也定义一个draw：
+
+```cpp
+class LotterySimulation : public Lottery, public GraphicalObject {
+public:
+	virtual void draw() { cout << "LotterySimulation draw!" << endl; }
+};
+```
+
+那么对于该调用：
+
+```cpp
+LotterySimulation *pls = new LotterySimulation;
+
+pls->draw();                   // 正确
+pls->Lottery::draw();          // 正确
+pls->GraphicalObject::draw();  // 正确
+```
+
+就是正确的。
+
+但对多继承来说，动态绑定不是那么好用：
+
+```cpp
+Lottery *pls = new LotterySimulation;
+
+	pls->draw();                   // 正确，调用LotterySimulation
+	pls->Lottery::draw();          // 正确
+	pls->GraphicalObject::draw();  // 错误
+```
+
+此时pls是找不到GraphicalObject对象的，它不在同一条继承链上，无法动态绑定过去。
+
+------
+
+以上都是些小问题，如果用户想要在派生类中同时重写两个父类的draw要如何呢？
+
+有一种技巧可以办到：
+
+```cpp
+class AuxLottery: public Lottery {
+public:
+  virtual int lotteryDraw() = 0;
+
+  virtual int draw() { return lotteryDraw(); }
+};
+
+class AuxGraphicalObject: public GraphicalObject {
+public:
+  virtual int graphicalObjectDraw() = 0;
+
+  virtual int draw() { return graphicalObjectDraw(); }
+};
+
+
+class LotterySimulation: public AuxLottery,
+                         public AuxGraphicalObject {
+public:
+  virtual int lotteryDraw();
+  virtual int graphicalObjectDraw();
+};
+```
+
+通过两个中间类的周转，就可以在最后的派生类中同时重写两个draw，而使用时就可以根据各自链上的动态绑定利用指针型别的变换来访问：
+
+```cpp
+LotterySimulation *pls = new LotterySimulation;
+
+Lottery *pl = pls;
+GraphicalObject *pgo = pls;
+
+// 调用LotterySimulation::lotteryDraw
+pl->draw();
+
+// 调用LotterySimulation::graphicalObjectDraw
+pgo->draw();
+```
+
+**这是一个集纯虚函数，简单虚函数和内联函数综合应用之大成的方法，值得牢记在心。**
+
+以上就是二义性引来的坑以及解决问题的手段。
+
+------
+
+现在开始谈谈多重继承中的菱形继承（虚继承）。
+
+B和C派生自类A，D多重继承B和C，那么此时就要判断是否是虚继承。
+
+当A是一个虚基类时，D就是虚继承，形成菱形结构；而A不是虚基类时，D中有两个A祖父类对象，这会导致D复杂得多。
+
+大部分情况，设计上都会选择虚继承：
+
+```cpp
+class A { ... };
+class B : virtual public A { ... };
+class C : virtual public A { ... };
+class D: public B, public C { ... };
+```
+
+A是非虚基类时，D的对象内存布局：
+
+```
+A部分+ B部分+ A部分 + C部分 + D部分
+```
+
+A是虚基类时，D的对象内存布局可能是（取决于编译器实现）：
+
+```
+        -----------------------------
+        |                           |
+        |                          \|/  
+B部分 + 指针 + C部分 + 指针 + D部分 + A部分
+                      |            /|\
+                      |             |
+                      ---------------
+```
+
+虚继承因为指针的存在，会带来额外的空间消耗。
+
+多重继承的议题太多了，也太过于复杂，我现阶段的理解过于浅薄了，以后再述。
+
+## 条款44: 说你想说的；理解你所说的
+
+设计思想的对应关系：
+
+- 共同的基类意味着共同的特性。如果类D1和类D2都把类B声明为基类，D1和D2将从B继承共同的数据成员和/或共同的成员函数。见条款43。
+- 公有继承意味着 "是一个"。如果类D公有继承于类B，类型D的每一个对象也是一个类型B的对象，但反过来不成立。见条款35。
+- 私有继承意味着 "用...来实现"。如果类D私有继承于类B，类型D的对象只不过是用类型B的对象来实现而已；类型B和类型D的对象之间不存在概念上的关系。见条款42。
+- 分层意味着 "有一个" 或 "用...来实现"。如果类A包含一个类型B的数据成员，类型A的对象要么具有一个类型为B的部件，要么在实现中使用了类型B的对象。见条款40。
+
+只适用于公有继承的情况：
+
+- 纯虚函数意味着仅仅继承函数的接口。如果类C声明了一个纯虚函数mf，C的子类必须继承mf的接口，C的具体子类必须为之提供它们自己的实现。见条款36。
+- 简单虚函数意味着继承函数的接口加上一个缺省实现。如果类C声明了一个简单（非纯）虚函数mf，C的子类必须继承mf的接口；如果需要的话，还可以继承一个缺省实现。见条款36。
+- 非虚函数意味着继承函数的接口加上一个强制实现。如果类C声明了一个非虚函数mf，C的子类必须同时继承mf的接口和实现。实际上，mf定义了C的 "特殊性上的不变性"。见条款36。
+
+## 条款45: 弄清C++在幕后为你所写、所调用的函数
+
+永远要搞清楚编译器何时会自动合成构造器、拷贝控制成员等成员函数，何时不会生成，C++11还引入了移动控制成员。
+
+## 条款46: 宁可编译和链接时出错，也不要运行时出错
+
+只要有可能，就要让出错检查（除了异常）从运行时退回到链接时，或者，最理想的是，编译时。
+
+这种方法带来的好处不仅仅在于程序的大小和速度，还有可靠性。如果程序通过了编译和链接而没有产生错误信息，你就可以确信程序中没有编译器和链接器能检查得到的任何错误，仅此而已。
+
+运行时错误非常难调，所以写C++要足够谨慎。
+
+## 条款47: 确保非局部静态对象在使用前被初始化
+
+非局部静态对象指的是这样的对象：
+
+- 定义在全局或名字空间范围内
+- 在一个类中被声明为static，或
+- 在一个文件范围被定义为static
+
+第三种还好处理，因为只在一个文件内可用，那么提前初始化比较容易保证。
+
+前两种就比较困难了，如果不是在定义时初始化，那么初始化的时机就很可能搞错，因为工程做大了以后，初始化的顺序很难保证（C++只是说它们在函数调用过程中初次碰到对象的定义时被初始化），而这引起的未初始化使用问题也很难调试。
+
+**设计模式有种单例模式，可以在C++中如下应用：把每个非局部静态对象转移到函数中，声明它为static。其次，让函数返回这个对象的引用。这样，用户将通过函数调用来指明对象。换句话说，用函数内部的static对象取代了非局部静态对象。**
+
+这种应用就保证了使用前一定会被初始化。另外，还带来另一个好处：如果这个模拟非局部静态对象的函数从没有被调用，也就永远不会带来对象构造和销毁的开销。
+
+## 条款48: 重视编译器警告
+
+早期C不重视warning，结果运行时错误一大坨，调试何等费时，渐渐发现很多问题其实warning都有暗示，但却因自信忽略而自讨没趣。
+
+C++的warning就更重要了，毕竟C++的坑要多得多。
+
+## 条款49: 熟悉标准库
+
+C++11以后，标准库越来越变态了，源码之前，了无秘密（只要你看得懂）。
+
+## 条款50: 提高对C++的认识
+
+形而上学。致力于把各种语言特性和设计目标穿针引线、融会贯通。吾将上下而求索。
