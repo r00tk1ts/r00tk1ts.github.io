@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>C++ Primer - 函数 | r00tk1t&#39;s blog</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="《C++ Primer》第五版引入了11标准相关内容，我早年在初学C++时还只有第四版，近来想对C++做一个整体的复习+版本升级，借此机会过一遍第五版。本文是阅读第六章“函数”时所做的笔记。">
+<meta name="keywords" content="cpp,cpp-primer">
+<meta property="og:type" content="article">
+<meta property="og:title" content="C++ Primer - 函数">
+<meta property="og:url" content="https://r00tk1ts.github.io/2018/11/20/C++ Primer - 函数/index.html">
+<meta property="og:site_name" content="r00tk1t&#39;s blog">
+<meta property="og:description" content="《C++ Primer》第五版引入了11标准相关内容，我早年在初学C++时还只有第四版，近来想对C++做一个整体的复习+版本升级，借此机会过一遍第五版。本文是阅读第六章“函数”时所做的笔记。">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:updated_time" content="2020-10-20T13:01:02.342Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="C++ Primer - 函数">
+<meta name="twitter:description" content="《C++ Primer》第五版引入了11标准相关内容，我早年在初学C++时还只有第四版，近来想对C++做一个整体的复习+版本升级，借此机会过一遍第五版。本文是阅读第六章“函数”时所做的笔记。">
+  
+    <link rel="alternative" href="/atom.xml" title="r00tk1t&#39;s blog" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/img/favicon.png">
+  
+  
+      <link rel="stylesheet" href="//cdn.bootcss.com/animate.css/3.5.0/animate.min.css">
+  
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/font-awesome/css/font-awesome.min.css">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  
+  
+      <link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+  
+  <!-- 加载特效 -->
+    <script src="/js/pace.js"></script>
+    <link href="/css/pace/pace-theme-flash.css" rel="stylesheet" />
+  <script>
+      var yiliaConfig = {
+          rootUrl: '/',
+          fancybox: true,
+          animate: true,
+          isHome: false,
+          isPost: true,
+          isArchive: false,
+          isTag: false,
+          isCategory: false,
+          open_in_new: false
+      }
+  </script>
+</head>
+<body>
+  <div id="container">
+    <div class="left-col">
+    <div class="overlay"></div>
+<div class="intrude-less">
+    <header id="header" class="inner">
+        <a href="/" class="profilepic">
+            
+            <img lazy-src="/img/head.jpg" class="js-avatar">
+            
+        </a>
+
+        <hgroup>
+          <h1 class="header-author"><a href="/" title="Hi Mate">r00tk1t</a></h1>
+        </hgroup>
+
+        
+        <p class="header-subtitle">二进制安全 | Web安全 | 伪装成程序员的菜鸡</p>
+        
+        
+        
+            <div id="switch-btn" class="switch-btn">
+                <div class="icon">
+                    <div class="icon-ctn">
+                        <div class="icon-wrap icon-house" data-idx="0">
+                            <div class="birdhouse"></div>
+                            <div class="birdhouse_holes"></div>
+                        </div>
+                        <div class="icon-wrap icon-ribbon hide" data-idx="1">
+                            <div class="ribbon"></div>
+                        </div>
+                        
+                        <div class="icon-wrap icon-link hide" data-idx="2">
+                            <div class="loopback_l"></div>
+                            <div class="loopback_r"></div>
+                        </div>
+                        
+                        
+                        <div class="icon-wrap icon-me hide" data-idx="3">
+                            <div class="user"></div>
+                            <div class="shoulder"></div>
+                        </div>
+                        
+                    </div>
+                    
+                </div>
+                <div class="tips-box hide">
+                    <div class="tips-arrow"></div>
+                    <ul class="tips-inner">
+                        <li>菜单</li>
+                        <li>标签</li>
+                        
+                        <li>友情链接</li>
+                        
+                        
+                        <li>关于我</li>
+                        
+                    </ul>
+                </div>
+            </div>
+        
+
+        <div id="switch-area" class="switch-area">
+            <div class="switch-wrap">
+                <section class="switch-part switch-part1">
+                    <nav class="header-menu">
+                        <ul>
+                        
+                            <li><a href="/">博客首页</a></li>
+                        
+                            <li><a href="/archives">所有文章</a></li>
+                        
+                            <li><a href="/tags">标签</a></li>
+                        
+                        </ul>
+                    </nav>
+                    <nav class="header-nav">
+                        <ul class="social">
+                            
+                                <a class="fl mail" target="_blank" href="mailto: 1903442252@qq.com" title="mail">mail</a>
+                            
+                                <a class="fl github" target="_blank" href="https://github.com/r00tk1ts" title="github">github</a>
+                            
+                                <a class="fl zhihu" target="_blank" href="https://www.zhihu.com/people/r00tk1t-5" title="zhihu">zhihu</a>
+                            
+                                <a class="fl weibo" target="_blank" href="http://weibo.com/2698344533" title="weibo">weibo</a>
+                            
+                                <a class="fl QQ" target="_blank" href="https://user.qzone.qq.com/1903442252" title="QQ">QQ</a>
+                            
+                        </ul>
+                    </nav>
+                </section>
+                
+                
+                <section class="switch-part switch-part2">
+                    <div class="widget tagcloud" id="js-tagcloud">
+                        <a href="/tags/SEH-overwrite/" style="font-size: 10px;">SEH overwrite</a> <a href="/tags/algorithm/" style="font-size: 11.67px;">algorithm</a> <a href="/tags/browser/" style="font-size: 10px;">browser</a> <a href="/tags/chrome/" style="font-size: 16.67px;">chrome</a> <a href="/tags/chrome-sandbox/" style="font-size: 16.67px;">chrome-sandbox</a> <a href="/tags/cpp/" style="font-size: 20px;">cpp</a> <a href="/tags/cpp-primer/" style="font-size: 18.33px;">cpp-primer</a> <a href="/tags/cpp-templates/" style="font-size: 11.67px;">cpp-templates</a> <a href="/tags/dll-hooking/" style="font-size: 10px;">dll hooking</a> <a href="/tags/exploit/" style="font-size: 12.5px;">exploit</a> <a href="/tags/glibc/" style="font-size: 10px;">glibc</a> <a href="/tags/glibc-heap/" style="font-size: 13.33px;">glibc-heap</a> <a href="/tags/linux/" style="font-size: 10.83px;">linux</a> <a href="/tags/linux-kernel/" style="font-size: 14.17px;">linux-kernel</a> <a href="/tags/mmap/" style="font-size: 10px;">mmap</a> <a href="/tags/novice/" style="font-size: 17.5px;">novice</a> <a href="/tags/php/" style="font-size: 10.83px;">php</a> <a href="/tags/pool/" style="font-size: 10px;">pool</a> <a href="/tags/pwn/" style="font-size: 19.17px;">pwn</a> <a href="/tags/pwnable-kr/" style="font-size: 15px;">pwnable.kr</a> <a href="/tags/resources/" style="font-size: 10px;">resources</a> <a href="/tags/stack-overrun/" style="font-size: 11.67px;">stack-overrun</a> <a href="/tags/tutorial/" style="font-size: 10px;">tutorial</a> <a href="/tags/ulk/" style="font-size: 14.17px;">ulk</a> <a href="/tags/web/" style="font-size: 10.83px;">web</a> <a href="/tags/windows/" style="font-size: 15.83px;">windows</a> <a href="/tags/windows-kernel/" style="font-size: 14.17px;">windows-kernel</a> <a href="/tags/writeup/" style="font-size: 10px;">writeup</a> <a href="/tags/wrk/" style="font-size: 12.5px;">wrk</a>
+                    </div>
+                </section>
+                
+                
+                
+                <section class="switch-part switch-part3">
+                    <div id="js-friends">
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://eternalsakura13.com">樱花师傅</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="https://chybeta.github.io/">Chybeta</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://whereisk0shl.top/">k0shl</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://o0xmuhe.github.io/">o0xmuhe</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://bestwing.me/">swing</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://yixuankeer.win/">joker</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://www.hackersb.cn/">王松_Striker</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="https://www.hackfun.org/">4ido10n</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://www.cnblogs.com/iamstudy/">l3m0n</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://www.cnblogs.com/Ox9A82/">Ox9A82</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://mxny.org/">麦香浓郁</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://0x48.pw/">Hcamael</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="https://blog.nuptzj.cn/">画船听雨</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="https://www.bodkin.ren/">老锥</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://www.zerokeeper.com/">ZeroKeeper</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="https://www.ycjcl.cc/">信鑫</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://www.wowotech.net/">wowotech</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://fuzzysecurity.com/">fuzzySecurity</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="https://rootkits.xyz/">rootkits.xyz</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://www.pentestingexperts.com/">pentestingexperts</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="https://blog.skylined.nl/">skylined</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="https://systemk1t.github.io/">systemk1t</a>
+                    
+                    </div>
+                </section>
+                
+
+                
+                
+                <section class="switch-part switch-part4">
+                
+                    <div id="js-aboutme">二进制狗一枚，懂点Web安全，一个伪装成程序员混迹在某公司的菜鸡。</div>
+                </section>
+                
+            </div>
+        </div>
+    </header>                
+</div>
+    </div>
+    <div class="mid-col">
+      <nav id="mobile-nav">
+      <div class="overlay">
+          <div class="slider-trigger"></div>
+          <h1 class="header-author js-mobile-header hide"><a href="/" title="Me">r00tk1t</a></h1>
+      </div>
+    <div class="intrude-less">
+        <header id="header" class="inner">
+            <a href="/" class="profilepic">
+                
+                    <img lazy-src="/img/head.jpg" class="js-avatar">
+                
+            </a>
+            <hgroup>
+              <h1 class="header-author"><a href="/" title="Me">r00tk1t</a></h1>
+            </hgroup>
+            
+            <p class="header-subtitle">二进制安全 | Web安全 | 伪装成程序员的菜鸡</p>
+            
+            <nav class="header-menu">
+                <ul>
+                
+                    <li><a href="/">博客首页</a></li>
+                
+                    <li><a href="/archives">所有文章</a></li>
+                
+                    <li><a href="/tags">标签</a></li>
+                
+                <div class="clearfix"></div>
+                </ul>
+            </nav>
+            <nav class="header-nav">
+                <div class="social">
+                    
+                        <a class="mail" target="_blank" href="mailto: 1903442252@qq.com" title="mail">mail</a>
+                    
+                        <a class="github" target="_blank" href="https://github.com/r00tk1ts" title="github">github</a>
+                    
+                        <a class="zhihu" target="_blank" href="https://www.zhihu.com/people/r00tk1t-5" title="zhihu">zhihu</a>
+                    
+                        <a class="weibo" target="_blank" href="http://weibo.com/2698344533" title="weibo">weibo</a>
+                    
+                        <a class="QQ" target="_blank" href="https://user.qzone.qq.com/1903442252" title="QQ">QQ</a>
+                    
+                </div>
+            </nav>
+        </header>                
+    </div>
+</nav>
+      <div class="body-wrap"><article id="post-C++ Primer - 函数" class="article article-type-post" itemscope itemprop="blogPost">
+  
+    <div class="article-meta">
+      <a href="/2018/11/20/C++ Primer - 函数/" class="article-date">
+      <time datetime="2018-11-20T13:10:11.000Z" itemprop="datePublished">2018-11-20</time>
+</a>
+    </div>
+  
+  <div class="article-inner">
+    
+      <input type="hidden" class="isFancy" />
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      C++ Primer - 函数
+    </h1>
+  
+
+      </header>
+      
+      <div class="article-info article-info-post">
+        
+    <div class="article-category tagcloud">
+    <a class="article-category-link" href="/categories/programming-language/">programming-language</a>
+    </div>
+
+
+        
+    <div class="article-tag tagcloud">
+        <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/cpp/">cpp</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/cpp-primer/">cpp-primer</a></li></ul>
+    </div>
+
+        <div class="clearfix"></div>
+      </div>
+      
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+          
+        <p>《C++ Primer》第五版引入了11标准相关内容，我早年在初学C++时还只有第四版，近来想对C++做一个整体的复习+版本升级，借此机会过一遍第五版。本文是阅读第六章“函数”时所做的笔记。</p>
+<a id="more"></a>
+<h1 id="C-Primer-函数"><a href="#C-Primer-函数" class="headerlink" title="C++ Primer - 函数"></a>C++ Primer - 函数</h1><h2 id="函数基础"><a href="#函数基础" class="headerlink" title="函数基础"></a>函数基础</h2><p>一个典型的函数定义包括返回类型（return type）、函数名字、由0个或多个形式参数（parameter，简称形参）组成的列表和函数体（function body）。</p>
+<p>这些都是继承自C的概念。</p>
+<p>但在C++中，函数调用本身被视为调用运算符，用以执行函数。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">fact</span><span class="params">(<span class="keyword">int</span> val)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">int</span> ret = <span class="number">1</span>;    </span><br><span class="line">    <span class="keyword">while</span> (val &gt; <span class="number">1</span>)</span><br><span class="line">    ret *= val--;   </span><br><span class="line">    <span class="keyword">return</span> ret;     </span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;  </span><br><span class="line"> 	<span class="keyword">int</span> j = fact(<span class="number">5</span>);</span><br><span class="line">  	<span class="built_in">cout</span> &lt;&lt; <span class="string">"5! is "</span> &lt;&lt; j &lt;&lt; <span class="built_in">endl</span>;</span><br><span class="line">  	<span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>函数调用完成两项工作：</p>
+<ul>
+<li>用实参初始化对应的形参。</li>
+<li>将控制权从主调函数转移给被调函数。此时，主调函数（calling function）的执行被暂时中断，被调函数（called function）开始执行。</li>
+</ul>
+<p><code>return</code>语句结束函数的执行过程，完成两项工作：</p>
+<ul>
+<li>返回return语句中的值（可能没有值）。</li>
+<li>将控制权从被调函数转移回主调函数，函数的返回值用于初始化调用表达式的结果。</li>
+</ul>
+<blockquote>
+<p>void类型返回值的函数可能没有显式的return。void类型不返回任何值。</p>
+</blockquote>
+<h3 id="实参和形参"><a href="#实参和形参" class="headerlink" title="实参和形参"></a>实参和形参</h3><p>初学者懵逼的一大议题，掌握了C，对此一定已是了如指掌。</p>
+<p>实参是形参的初始值，实参的类型必须与对应的形参类型匹配，函数调用规定实参数量应该与形参一致，所以形参一定会被初始化。</p>
+<h3 id="局部对象"><a href="#局部对象" class="headerlink" title="局部对象"></a>局部对象</h3><p>形参和函数体内定义的变量统称为局部变量。</p>
+<p>局部变量本身没什么好说的，栈空间上的自生自灭。但静态局部对象大相径庭，可以把它理解成一种特殊的全局变量，它只在函数内部可用，且有状态（即上一次的值变更会驻留到下一次调用）。</p>
+<blockquote>
+<p>static这个关键字在C中是个很好的考点，不同的地方使用static有着不同的意义。</p>
+</blockquote>
+<h3 id="声明"><a href="#声明" class="headerlink" title="声明"></a>声明</h3><p>和变量本质上是一样的，一次定义，到处声明。函数声明也叫做函数原型（function prototype）。</p>
+<p>函数应该在头文件中声明，在源文件中定义。定义函数的源文件应该包含含有函数声明的头文件。</p>
+<h2 id="传参"><a href="#传参" class="headerlink" title="传参"></a>传参</h2><p>形参初始化的机理与变量初始化一样。</p>
+<p>形参的类型决定了形参和实参交互的方式：</p>
+<ul>
+<li>当形参是引用类型时，它对应的实参被引用传递（passed by reference），函数被传引用调用（called by reference）。引用形参是它对应实参的别名。</li>
+<li>当形参不是引用类型时，形参和实参是两个相互独立的对象，实参的值会被拷贝给形参（值传递，passed by value），函数被传值调用（called by value）。</li>
+</ul>
+<blockquote>
+<p>C++中的传引用解决了C“庸人自扰”的困境，C中常言传值还是传址，实际上传址即通过指针传递本身还是值传递，只不过拷贝给形参的值是一个地址值。而C++的传引用则是它本身语法引入的一种新机制。</p>
+</blockquote>
+<h3 id="传值"><a href="#传值" class="headerlink" title="传值"></a>传值</h3><p>如果形参不是引用类型，则函数对形参做的所有操作都不会影响实参。</p>
+<p>受旧式C风格影响，使用指针类型的形参可以访问或修改函数外部的对象。</p>
+<p>C++推荐使用引用形参代替指针形参。</p>
+<h3 id="传引用"><a href="#传引用" class="headerlink" title="传引用"></a>传引用</h3><p>通过引用形参，函数可以改变实参的值。</p>
+<p>引用形参可以避免拷贝操作，尤其是对类类型对象来说这意味着拷贝构造的消耗，且不谈某些类根本不支持拷贝构造。涉及到类类型的议题，在后续会相继详谈。</p>
+<p><strong>除了内置类型、函数对象和标准库迭代器外，其他类型的参数建议以引用方式传递。</strong></p>
+<p>如果函数无须改变引用形参的值，最好将其声明为常量引用。</p>
+<h3 id="const形参和实参"><a href="#const形参和实参" class="headerlink" title="const形参和实参"></a>const形参和实参</h3><p>当形参有顶层const时，传递给它常量对象或非常量对象都是可以的。</p>
+<p>可以使用非常量对象初始化一个底层const形参，反之则不行（因为不可变更）。</p>
+<p>把函数不会改变的形参定义成普通引用会极大地限制函数所能接受的实参类型，同时也会给别人一种误导，即函数可以修改实参的值。</p>
+<h3 id="数组形参"><a href="#数组形参" class="headerlink" title="数组形参"></a>数组形参</h3><p>又是个游离于三界之外的小东西。继承了C风格。形参虽然可以写成数组的形式，但实际上传递的是指向数组首元素的指针。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 尽管形式不同，但这3个print等价</span></span><br><span class="line"><span class="comment">// 每个函数都有一个const int *类型的形参</span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">print</span><span class="params">(<span class="keyword">const</span> <span class="keyword">int</span>*)</span></span>;</span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">print</span><span class="params">(<span class="keyword">const</span> <span class="keyword">int</span>[])</span></span>;    </span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">print</span><span class="params">(<span class="keyword">const</span> <span class="keyword">int</span>[<span class="number">10</span>])</span></span>;</span><br></pre></td></tr></table></figure>
+<p>以数组作为形参的函数必须确保使用数组时不会越界。</p>
+<p>如果函数不需要对数组元素执行写操作，应该把数组形参定义成指向常量的指针。</p>
+<h3 id="数组引用形参"><a href="#数组引用形参" class="headerlink" title="数组引用形参"></a>数组引用形参</h3><p>数组也可以传引用：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">void print(int (&amp;arr)[10])</span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">for</span>(<span class="keyword">auto</span> elem : arr)</span><br><span class="line">      <span class="built_in">cout</span> &lt;&lt; elem &lt;&lt; <span class="built_in">endl</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>(&amp;arr)的括号必须要有，因为优先级的关系，必然变成了XX引用类型的数组，和指针数组、数组指针一个道理。</p>
+</blockquote>
+<p>另外，形式上传递多维数组时，要指定低维度的具体尺寸。</p>
+<p>###含有可变形参的函数</p>
+<p>C++11新标准提供了两种主要方法处理实参数量不定的函数。</p>
+<ul>
+<li><p>如果实参类型相同，可以使用<code>initializer_list</code>标准库类型。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">oid <span class="title">error_msg</span><span class="params">(<span class="built_in">initializer_list</span>&lt;<span class="built_in">string</span>&gt; il)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">auto</span> beg = il.begin(); beg != il.end(); ++beg)</span><br><span class="line">    <span class="built_in">cout</span> &lt;&lt; *beg &lt;&lt; <span class="string">" "</span> ;</span><br><span class="line">    <span class="built_in">cout</span> &lt;&lt; <span class="built_in">endl</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>如果实参类型不同，可以定义可变参数模板（这个以后再说）。</p>
+</li>
+</ul>
+<blockquote>
+<p>C++还可以使用省略符形参传递可变数量的实参，但这种功能一般只用在与C函数交换的接口程序中。这些代码使用了名为varargs的C标准库功能。</p>
+</blockquote>
+<blockquote>
+<p>省略符形参仅仅用于C和C++通用的类型，大多数类类型的对象传递给省略符形参时无法正确拷贝。</p>
+</blockquote>
+<h2 id="返回类型和return语句"><a href="#返回类型和return语句" class="headerlink" title="返回类型和return语句"></a>返回类型和return语句</h2><p>分为无返回值和有返回值，与C没有什么区别。</p>
+<p>函数返回一个值的方式和初始化一个变量或形参的方式完全一样：返回的值用于初始化调用点的一个临时量，该临时量就是函数调用的结果。如果函数返回引用类型，则该引用仅仅是它所引用对象的一个别名。</p>
+<p><strong>调用一个返回引用的函数会得到左值，其他返回类型得到右值。</strong></p>
+<p>C++11规定，函数可以返回用花括号包围的值的列表。同其他返回类型一样，列表也用于初始化表示函数调用结果的临时量。如果列表为空，临时量执行值初始化；否则返回的值由函数的返回类型决定。</p>
+<ul>
+<li><p>如果函数返回内置类型，则列表内最多包含一个值，且该值所占空间不应该大于目标类型的空间。</p>
+</li>
+<li><p>如果函数返回类类型，由类本身定义初始值如何使用。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">vector</span>&lt;<span class="built_in">string</span>&gt; process()</span><br><span class="line">&#123;</span><br><span class="line">    <span class="comment">// . . .</span></span><br><span class="line">    <span class="comment">// expected and actual are strings</span></span><br><span class="line">    <span class="keyword">if</span> (expected.empty())</span><br><span class="line">        <span class="keyword">return</span> &#123;&#125;;  <span class="comment">// return an empty vector</span></span><br><span class="line">    <span class="keyword">else</span> <span class="keyword">if</span> (expected == actual)</span><br><span class="line">        <span class="keyword">return</span> &#123;<span class="string">"functionX"</span>, <span class="string">"okay"</span>&#125;;  <span class="comment">// return list-initialized vector</span></span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">        <span class="keyword">return</span> &#123;<span class="string">"functionX"</span>, expected, actual&#125;;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+<h3 id="返回数组指针"><a href="#返回数组指针" class="headerlink" title="返回数组指针"></a>返回数组指针</h3><p>因为数组不能被拷贝，所以函数不能返回数组，但可以返回数组的指针或引用。</p>
+<h4 id="尾置返回类型"><a href="#尾置返回类型" class="headerlink" title="尾置返回类型"></a>尾置返回类型</h4><p>C++11允许使用尾置返回类型（trailing return type）简化复杂函数声明。尾置返回类型跟在形参列表后面，并以一个<code>-&gt;</code>符号开头。为了表示函数真正的返回类型在形参列表之后，需要在本应出现返回类型的地方添加auto关键字。</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// func接受一个int类型的实参，返回一个指针，该指针指向含有10个整数的数组</span></span><br><span class="line">auto func(int i) -&gt; int(*)[10];</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>尾置返回类型在模板元编程中非常常见。</p>
+</blockquote>
+<h4 id="使用decltype"><a href="#使用decltype" class="headerlink" title="使用decltype"></a>使用decltype</h4><p>如果我们知道函数返回的指针将指向哪个数组，就可以使用decltype关键字声明返回类型。但decltype并不会把数组类型转换成指针类型，所以还要在函数声明中添加一个<code>*</code>符号。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">int</span> odd[] = &#123;<span class="number">1</span>,<span class="number">3</span>,<span class="number">5</span>,<span class="number">7</span>,<span class="number">9</span>&#125;;</span><br><span class="line"><span class="keyword">int</span> even[] = &#123;<span class="number">0</span>,<span class="number">2</span>,<span class="number">4</span>,<span class="number">6</span>,<span class="number">8</span>&#125;;</span><br><span class="line"><span class="comment">// 返回一个指针，该指针指向含有5个整数的数组</span></span><br><span class="line"><span class="keyword">decltype</span>(odd) *arrPtr(<span class="keyword">int</span> i)</span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">return</span> (i % <span class="number">2</span>) ? &amp;odd : &amp;even;  <span class="comment">// 返回一个指向数组的指针</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="函数重载"><a href="#函数重载" class="headerlink" title="函数重载"></a>函数重载</h2><p>C++允许函数名字相同但形参列表不同，这就是函数重载。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">print</span><span class="params">(<span class="keyword">const</span> <span class="keyword">char</span> *cp)</span></span>;</span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">print</span><span class="params">(<span class="keyword">const</span> <span class="keyword">int</span> *beg, <span class="keyword">const</span> <span class="keyword">int</span> *end)</span></span>;</span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">print</span><span class="params">(<span class="keyword">const</span> <span class="keyword">int</span> ia[], <span class="keyword">size_t</span> size)</span></span>;</span><br></pre></td></tr></table></figure>
+<p>一般来说定义重载函数都是基于参数不同但每个函数执行的操作大抵相似。编译器会根据实参类型来推断出使用的重载函数。</p>
+<blockquote>
+<p>main不能重载。</p>
+</blockquote>
+<p>返回类型不同但形参列表完全相同会导致语法错误，这不是有效的重载，毕竟编译器推断是基于参数列表。</p>
+<h3 id="重载和const形参"><a href="#重载和const形参" class="headerlink" title="重载和const形参"></a>重载和const形参</h3><p>顶层const不影响传入函数的对象。拥有顶层const的形参无法和另一个没有顶层const的形参区分开来：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">Record <span class="title">lookup</span><span class="params">(Phone)</span></span>;</span><br><span class="line"><span class="function">Record <span class="title">lookup</span><span class="params">(<span class="keyword">const</span> Phone)</span></span>;	<span class="comment">//重复声明了Record lookup(Phone)</span></span><br><span class="line"></span><br><span class="line"><span class="function">Record <span class="title">lookup</span><span class="params">(Phone*)</span></span>;</span><br><span class="line"><span class="function">Record <span class="title">lookup</span><span class="params">(Phone* <span class="keyword">const</span>)</span></span>;<span class="comment">//重复声明了Record lookup(Phone*)</span></span><br></pre></td></tr></table></figure>
+<p>而如果形参是某种类型的指针或引用，则通过区分其指向的是常量对象还是非常量对象可以实现函数重载，此时const是底层的：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//对于接受引用或指针的函数来说，对象是常量还是非常量对应的形参不同</span></span><br><span class="line"><span class="comment">//定义了4个独立的重载函数</span></span><br><span class="line"><span class="function">Record <span class="title">lookup</span><span class="params">(Account &amp;)</span></span>;		<span class="comment">//作用于Account的引用</span></span><br><span class="line"><span class="function">Record <span class="title">lookup</span><span class="params">(<span class="keyword">const</span> Account &amp;)</span></span>;	<span class="comment">//作用于常量引用</span></span><br><span class="line"></span><br><span class="line"><span class="function">Record <span class="title">lookup</span><span class="params">(Account *)</span></span>;		<span class="comment">//作用于指向Account的指针</span></span><br><span class="line"><span class="function">Record <span class="title">lookup</span><span class="params">(<span class="keyword">const</span> Account*)</span></span>;	<span class="comment">//作用于指向常量的指针</span></span><br></pre></td></tr></table></figure>
+<p>编译器可以通过实参是否是常量来推断应该调用哪个函数。因为const不能转换成其他类型，所以我们只能把const对象(或指向const的指针)传递给const形参。相反的，因为非常量可以转换成const，所以上面的4个函数都能作用于非常量对象或者指向非常量对象的指针。</p>
+<p>当传递一个非常量对象或者非常量对象的指针时，编译器会优选非常量版本的函数。</p>
+<h3 id="const-cast"><a href="#const-cast" class="headerlink" title="const_cast"></a>const_cast</h3><p>const_cast常常应用于重载函数。</p>
+<p>假设有：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">const</span> <span class="built_in">string</span> &amp;<span class="title">shorterString</span><span class="params">(<span class="keyword">const</span> <span class="built_in">string</span> &amp;s1, <span class="keyword">const</span> <span class="built_in">string</span> &amp;s2)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">return</span> s1.size() &lt;= s2.size() ? s1 : s2;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>参数和返回类型都是const string引用，但这个函数可以传入两个非常量的string实参，但是尽管如此，结果依然是const string引用，如果我们想要一版返回string引用的函数，那么就可以通过const_cast来简单的完成重载：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="built_in">string</span> &amp;<span class="title">shorterString</span><span class="params">(<span class="built_in">string</span> &amp;s1, <span class="built_in">string</span> &amp;s2)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">auto</span> &amp;r = shorterString(<span class="keyword">const_cast</span>&lt;<span class="keyword">const</span> <span class="built_in">string</span>&amp;&gt;(s1),</span><br><span class="line">                           <span class="keyword">const_cast</span>&lt;<span class="keyword">const</span> <span class="built_in">string</span>&amp;&gt;(s2));</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">const_cast</span>&lt;<span class="built_in">string</span>&amp;&gt;(r);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>如你所见，尽管const_cast很危险，但这种使用情境下我们是知晓这种转换不会带来副作用的。</p>
+<h2 id="特殊用途语言特性"><a href="#特殊用途语言特性" class="headerlink" title="特殊用途语言特性"></a>特殊用途语言特性</h2><p>默认实参、内联函数和constexpr函数。</p>
+<h3 id="默认实参"><a href="#默认实参" class="headerlink" title="默认实参"></a>默认实参</h3><p>C中很不方便的就是没有默认实参，懒人科技。</p>
+<p>默认实参作为形参的初始值出现在形参列表中。可以为一到多个形参定义默认值，但一旦某个形参被赋予了默认值，它后面的所有形参都得有默认值。所以一般把那些具有默认值的参数放到最后（当然要如此，否则传参时鬼知道哪个参数被省略了）。</p>
+<p>函数传参时如果不传递实参，则使用默认实参初始化。</p>
+<h3 id="内联函数和constexpr函数"><a href="#内联函数和constexpr函数" class="headerlink" title="内联函数和constexpr函数"></a>内联函数和constexpr函数</h3><p>内联函数可以避免函数调用的开销，所谓内联，就是在调用点“内联地”展开。类似C中宏的概念。</p>
+<p>在函数的返回类型前加上inline关键字，就可以声明为内联函数。</p>
+<p>但实际上内联inline标志只是向编译器发起一个请求，编译器会根据实际情况选择忽略还是采用。</p>
+<blockquote>
+<p>实际上，现代编译器都会自己处理哪些要内联，早就不是我比编译器聪明系列了。</p>
+</blockquote>
+<p>constexpr函数是指能用于常量表达式的函数。定义constexpr函数的方法和其他函数类似，但要遵守几项约定：函数的返回类型及所有形参的类型都得是字面值类型，且函数体中必须有且只有一条return语句:</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">constexpr</span> <span class="keyword">int</span> <span class="title">new_sz</span><span class="params">()</span></span>&#123;<span class="keyword">return</span> <span class="number">42</span>;&#125;</span><br><span class="line"><span class="keyword">constexpr</span> <span class="keyword">int</span> foo = new_sz();	<span class="comment">//正确，foo一个常量表达式</span></span><br></pre></td></tr></table></figure>
+<p>复杂一点：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">constexpr</span> size_t <span class="title">scale</span><span class="params">(<span class="keyword">size_t</span> cnt)</span></span>&#123;<span class="keyword">return</span> new_sz() * cnt;&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">int</span> arr[scale(<span class="number">2</span>)];	<span class="comment">//正确，scale(2)是常量表达式</span></span><br><span class="line"><span class="keyword">int</span> i = <span class="number">2</span>;			<span class="comment">//i不是常量表达式</span></span><br><span class="line"><span class="keyword">int</span> a2[scale(i)];	<span class="comment">//错误，scale(i)不是常量表达式</span></span><br></pre></td></tr></table></figure>
+<p>所以说，constexpr函数不一定返回常量表达式。</p>
+<p>内联函数和constexpr函数通常放在头文件内，不然就得保证每次的定义都一致，这无异于自找麻烦。</p>
+<h3 id="调试"><a href="#调试" class="headerlink" title="调试"></a>调试</h3><p>C++引入了assert预处理宏。它实际上是一个预处理变量，类似于内联函数。<code>assert(expr);</code>会首先对expr求值，如果表达式为false，则assert输出信息，程序终止执行流，如果是true则什么都不做。</p>
+<p>assert宏位于cassert头文件。预处理名字由预处理器而非编译器管理，所以可以直接使用预处理名字而无需提供using声明。</p>
+<p>assert的行为依赖于一个叫NDEBUG的预处理变量的状态。如果定义了NDEBUG，那么assert什么也不做，默认状态是未定义的，所以直接用assert即可。</p>
+<p>几个预处理器定义的辅助调试的名字：</p>
+<ul>
+<li><code>__FILE__</code>: 存放文件名的字符串字面值</li>
+<li><code>__LINE__</code>: 存放当前行号的整型字面值</li>
+<li><code>__TIME__</code>: 存放文件编译时间的字符串字面值</li>
+<li><code>__DATE__</code>: 存放文件编译日期的字符串字面值</li>
+</ul>
+<h2 id="函数匹配"><a href="#函数匹配" class="headerlink" title="函数匹配"></a>函数匹配</h2><p>大部分情况直接根据实参来完全匹配形参就可以确定该调用哪个重载函数。但很多时候，几个重载函数形参数量相等且某些形参的类型可以由其他类型转换得来时，就比较麻烦了。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">f</span><span class="params">()</span></span>;</span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">f</span><span class="params">(<span class="keyword">int</span>)</span></span>;</span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">f</span><span class="params">(<span class="keyword">int</span>, <span class="keyword">int</span>)</span></span>;</span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">f</span><span class="params">(<span class="keyword">double</span>, <span class="keyword">double</span> = <span class="number">3.14</span>)</span></span>;</span><br><span class="line">f(<span class="number">5.6</span>);	<span class="comment">//调用void f(double, double)</span></span><br></pre></td></tr></table></figure>
+<h3 id="确定候选函数和可行函数"><a href="#确定候选函数和可行函数" class="headerlink" title="确定候选函数和可行函数"></a>确定候选函数和可行函数</h3><p>匹配的第一步是挑出候选函数集。特征：与调用函数同名、其声明在调用点可见。</p>
+<p>上面的例子中有4个候选函数。</p>
+<p>接下来分析实参，挑选能被这组实参调用的函数，这一子集叫可行函数。</p>
+<p>可行函数特征：形参数量与实参相等，每个实参类型与对应的形参类型也相同或是可以转换成形参的类型。</p>
+<p>上例中，可行函数就只有<code>void f(int);</code>和<code>void f(double, double = 3.14);</code>。</p>
+<p>最后，寻找可行函数的最佳匹配，基本思想就是实参类型与形参类型越接近就越好。</p>
+<h3 id="实参类型转换"><a href="#实参类型转换" class="headerlink" title="实参类型转换"></a>实参类型转换</h3><p>为了确定最佳匹配，编译器把实参到形参的转换分成几个等级，排序如下：</p>
+<ol>
+<li>精准匹配，包括：<ol>
+<li>实参类型和形参类型相同。</li>
+<li>实参从数组类型或函数类型转换成对应的指针类型。</li>
+<li>向实参添加顶层const或者从实参中删除顶层const。</li>
+</ol>
+</li>
+<li>通过const转换实现的匹配。</li>
+<li>通过类型提升实现的匹配。</li>
+<li>通过算术类型转换或指针转换实现的匹配。</li>
+<li>通过类类型转换实现的匹配。</li>
+</ol>
+<p>注意算数类型转换如果引起二义性，那么也会报错。当然，这都是程序员给自己挖的坑，正常的程序不会有这种情况。</p>
+<h3 id="函数匹配和const实参"><a href="#函数匹配和const实参" class="headerlink" title="函数匹配和const实参"></a>函数匹配和const实参</h3><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">Record <span class="title">lookup</span><span class="params">(Account &amp;)</span></span>;</span><br><span class="line"><span class="function">Record <span class="title">lookup</span><span class="params">(<span class="keyword">const</span> Account &amp;)</span></span>;</span><br><span class="line"><span class="keyword">const</span> Account a;</span><br><span class="line">Account b;</span><br><span class="line"></span><br><span class="line">lookup(a);	<span class="comment">//匹配Record lookup(const Account &amp;);</span></span><br><span class="line">lookup(b);	<span class="comment">//匹配Record lookup(Account &amp;);</span></span><br></pre></td></tr></table></figure>
+<h2 id="函数指针"><a href="#函数指针" class="headerlink" title="函数指针"></a>函数指针</h2><p>函数指针指向函数而非对象。函数指针指向某种特定类型。函数的类型由返回类型和形参类型共同决定，与函数名无关。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">bool</span> (*pf)(<span class="keyword">const</span> <span class="built_in">string</span> &amp;, <span class="keyword">const</span> <span class="built_in">string</span> &amp;);</span><br></pre></td></tr></table></figure>
+<p>定义了一个指向<code>bool(const string&amp;, const string&amp;)</code>类型的函数指针。</p>
+<blockquote>
+<p>同样的,(*pf)两侧的小括号非常重要。</p>
+</blockquote>
+<p>当把函数名作为值使用时，函数名自动转换成指针。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">pf = lengthCompare;		<span class="comment">//pf指向名为lengthCompare的函数</span></span><br><span class="line">pf = &amp;lengthCompare;	<span class="comment">//等价的赋值语句，取地址符是可选的</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">bool</span> b1 = pf(<span class="string">"hello"</span>, <span class="string">"goodbye"</span>);	<span class="comment">//调用lengthCompare函数</span></span><br><span class="line"><span class="keyword">bool</span> b2 = (*pf)(<span class="string">"hello"</span>, <span class="string">"goodbye"</span>);	<span class="comment">//等价调用</span></span><br><span class="line"><span class="keyword">bool</span> b3 = lengthCompare(<span class="string">"hello"</span>, <span class="string">"goodbye"</span>);	<span class="comment">//等价调用</span></span><br></pre></td></tr></table></figure>
+<p>不同函数类型的指针不可以互相转换，但是可以让函数指针指向nullptr或0值，表示空指针。</p>
+<p>也可以返回函数类型的指针。</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 类型别名的方式</span></span><br><span class="line"><span class="keyword">using</span> F = <span class="keyword">int</span>(<span class="keyword">int</span> *, <span class="keyword">int</span>);	<span class="comment">//F是函数类型，不是指针</span></span><br><span class="line"><span class="keyword">using</span> PF = <span class="keyword">int</span>(*)(<span class="keyword">int</span> *, <span class="keyword">int</span>);	<span class="comment">//PF是指针类型</span></span><br><span class="line"></span><br><span class="line"><span class="function">PF <span class="title">f1</span><span class="params">(<span class="keyword">int</span>)</span></span>;	<span class="comment">//正确：PF是指向函数的指针，f1返回指向函数的指针</span></span><br><span class="line"><span class="function">F <span class="title">f1</span><span class="params">(<span class="keyword">int</span>)</span></span>;	<span class="comment">//错误：F是函数类型，f1不能返回一个函数</span></span><br><span class="line"><span class="function">F*<span class="title">f1</span><span class="params">(<span class="keyword">int</span>)</span></span>;	<span class="comment">//正确：显式地指定返回类型是指向函数的指针</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 原生定义的方式</span></span><br><span class="line"><span class="comment">// 这种也是可以的，由内向外解读，f1是个函数，返回的是个指针</span></span><br><span class="line"><span class="comment">// 而这个指针比较特别，形式上也有参数列表和返回值，所以f1返回的是个函数指针</span></span><br><span class="line"><span class="keyword">int</span> (*f1(<span class="keyword">int</span>))(<span class="keyword">int</span> *, <span class="keyword">int</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 尾置返回类型的方式</span></span><br><span class="line">auto f1(int) -&gt; int(*)(int *, int);</span><br></pre></td></tr></table></figure>
+<p>如果明确知道返回的函数是哪一个，就可以用decltype简化书写函数指针返回类型的过程。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">string</span>::<span class="function">size_type <span class="title">sumLength</span><span class="params">(<span class="keyword">const</span> <span class="built_in">string</span>&amp;, <span class="keyword">const</span> <span class="built_in">string</span>&amp;)</span></span>;</span><br><span class="line"><span class="built_in">string</span>::<span class="function">size_type <span class="title">largerLength</span><span class="params">(<span class="keyword">const</span> <span class="built_in">string</span>&amp;, <span class="keyword">const</span> <span class="built_in">string</span>&amp;)</span></span>;</span><br><span class="line"><span class="comment">//根据形参的取值，getFcn函数返回指向sumLength或largerLength的指针</span></span><br><span class="line"><span class="keyword">decltype</span>(sumLength) * getFcn(<span class="keyword">const</span> <span class="built_in">string</span> &amp;);</span><br><span class="line"><span class="comment">//这里一定要加一个*号，因为decltype本身返回的是函数类型，而非指针类型</span></span><br></pre></td></tr></table></figure>
+      
+      
+    </div>
+    
+  </div>
+  
+    
+    <div class="copyright">
+        <p><span>本文标题:</span><a href="/2018/11/20/C++ Primer - 函数/">C++ Primer - 函数</a></p>
+        <p><span>文章作者:</span><a href="/" title="访问 r00tk1t 的个人博客">r00tk1t</a></p>
+        <p><span>发布时间:</span>2018年11月20日 - 21时10分</p>
+        <p><span>最后更新:</span>2020年10月20日 - 21时01分</p>
+        <p>
+            <span>原始链接:</span><a class="post-url" href="/2018/11/20/C++ Primer - 函数/" title="C++ Primer - 函数">https://r00tk1ts.github.io/2018/11/20/C++ Primer - 函数/</a>
+            <span class="copy-path" data-clipboard-text="原文: https://r00tk1ts.github.io/2018/11/20/C++ Primer - 函数/　　作者: r00tk1t" title="点击复制文章链接"><i class="fa fa-clipboard"></i></span>
+            <script src="/js/clipboard.min.js"></script>
+            <script> var clipboard = new Clipboard('.copy-path'); </script>
+        </p>
+        <p>
+            <span>许可协议:</span><i class="fa fa-creative-commons"></i> <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/3.0/cn/" title="中国大陆 (CC BY-NC-SA 3.0 CN)" target = "_blank">"署名-非商用-相同方式共享 3.0"</a> 转载请保留原文链接及作者。
+        </p>
+    </div>
+
+
+
+<nav id="article-nav">
+  
+    <a href="/2018/11/21/C++ Primer - 类/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption"><</strong>
+      <div class="article-nav-title">
+        
+          C++ Primer - 类
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2018/11/20/C++ Primer - 语句/" id="article-nav-older" class="article-nav-link-wrap">
+      <div class="article-nav-title">C++ Primer -语句</div>
+      <strong class="article-nav-caption">></strong>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+    <div id="toc" class="toc-article">
+    <strong class="toc-title">文章目录</strong>
+    <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#C-Primer-函数"><span class="toc-number">1.</span> <span class="toc-text">C++ Primer - 函数</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#函数基础"><span class="toc-number">1.1.</span> <span class="toc-text">函数基础</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#实参和形参"><span class="toc-number">1.1.1.</span> <span class="toc-text">实参和形参</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#局部对象"><span class="toc-number">1.1.2.</span> <span class="toc-text">局部对象</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#声明"><span class="toc-number">1.1.3.</span> <span class="toc-text">声明</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#传参"><span class="toc-number">1.2.</span> <span class="toc-text">传参</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#传值"><span class="toc-number">1.2.1.</span> <span class="toc-text">传值</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#传引用"><span class="toc-number">1.2.2.</span> <span class="toc-text">传引用</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#const形参和实参"><span class="toc-number">1.2.3.</span> <span class="toc-text">const形参和实参</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#数组形参"><span class="toc-number">1.2.4.</span> <span class="toc-text">数组形参</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#数组引用形参"><span class="toc-number">1.2.5.</span> <span class="toc-text">数组引用形参</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#返回类型和return语句"><span class="toc-number">1.3.</span> <span class="toc-text">返回类型和return语句</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#返回数组指针"><span class="toc-number">1.3.1.</span> <span class="toc-text">返回数组指针</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#尾置返回类型"><span class="toc-number">1.3.1.1.</span> <span class="toc-text">尾置返回类型</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#使用decltype"><span class="toc-number">1.3.1.2.</span> <span class="toc-text">使用decltype</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#函数重载"><span class="toc-number">1.4.</span> <span class="toc-text">函数重载</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#重载和const形参"><span class="toc-number">1.4.1.</span> <span class="toc-text">重载和const形参</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#const-cast"><span class="toc-number">1.4.2.</span> <span class="toc-text">const_cast</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#特殊用途语言特性"><span class="toc-number">1.5.</span> <span class="toc-text">特殊用途语言特性</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#默认实参"><span class="toc-number">1.5.1.</span> <span class="toc-text">默认实参</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#内联函数和constexpr函数"><span class="toc-number">1.5.2.</span> <span class="toc-text">内联函数和constexpr函数</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#调试"><span class="toc-number">1.5.3.</span> <span class="toc-text">调试</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#函数匹配"><span class="toc-number">1.6.</span> <span class="toc-text">函数匹配</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#确定候选函数和可行函数"><span class="toc-number">1.6.1.</span> <span class="toc-text">确定候选函数和可行函数</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#实参类型转换"><span class="toc-number">1.6.2.</span> <span class="toc-text">实参类型转换</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#函数匹配和const实参"><span class="toc-number">1.6.3.</span> <span class="toc-text">函数匹配和const实参</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#函数指针"><span class="toc-number">1.7.</span> <span class="toc-text">函数指针</span></a></li></ol></li></ol>
+</div>
+<input type="button" id="tocButton" value="隐藏目录"  title="点击按钮隐藏或者显示文章目录">
+
+<script src="https://7.url.cn/edu/jslib/comb/require-2.1.6,jquery-1.9.1.min.js"></script>
+<script>
+    var valueHide = "隐藏目录";
+    var valueShow = "显示目录";
+
+    if ($(".left-col").is(":hidden")) {
+        $("#tocButton").attr("value", valueShow);
+    }
+    $("#tocButton").click(function() {
+        if ($("#toc").is(":hidden")) {
+            $("#tocButton").attr("value", valueHide);
+            $("#toc").slideDown(320);
+        }
+        else {
+            $("#tocButton").attr("value", valueShow);
+            $("#toc").slideUp(350);
+        }
+    })
+    if ($(".toc").length < 1) {
+        $("#toc, #tocButton").hide();
+    }
+</script>
+
+
+
+
+
+
+
+    
+
+
+
+    <div class="scroll" id="post-nav-button">
+        
+            <a href="/2018/11/21/C++ Primer - 类/" title="上一篇: C++ Primer - 类">
+                <i class="fa fa-angle-left"></i>
+            </a>
+        
+        <a title="文章列表"><i class="fa fa-bars"></i><i class="fa fa-times"></i></a>
+        
+            <a href="/2018/11/20/C++ Primer - 语句/" title="下一篇: C++ Primer -语句">
+                <i class="fa fa-angle-right"></i>
+            </a>
+        
+    </div>
+    <ul class="post-list"><li class="post-list-item"><a class="post-list-link" href="/2020/10/22/chromium-base库源码解读之引用计数拆解篇/">chromium-base库源码解读之引用计数拆解篇</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/12/16/深入探索禁忌目录之Effective C++篇/">深入探索禁忌目录之Effective C++篇</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/12/10/C++ Primer - 特殊工具与技术/">C++ Primer - 特殊工具与技术</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/12/08/C++ Primer - 用于大型程序的工具/">C++ Primer - 用于大型程序的工具</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/12/06/C++ Primer - 标准库特殊设施/">C++ Primer - 标准库特殊设施</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/12/03/C++ Primer - 模板与泛型编程/">C++ Primer - 模板与泛型编程</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/12/01/C++ Primer - 面向对象程序设计/">C++ Primer - 面向对象程序设计</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/29/C++ Primer - 重载运算与类型转换/">C++ Primer - 重载运算与类型转换</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/29/C++ Primer - 拷贝控制/">C++ Primer - 拷贝控制</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/26/C++ Primer - 动态内存/">C++ Primer - 动态内存</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/26/C++ Primer - 关联容器/">C++ Primer - 关联容器</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/24/C++ Primer - 泛型算法/">C++ Primer - 泛型算法</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/24/C++ Primer - 顺序容器/">C++ Primer - 顺序容器</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/21/C++ Primer - IO库/">C++ Primer - IO库</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/21/C++ Primer - 类/">C++ Primer - 类</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/20/C++ Primer - 函数/">C++ Primer - 函数</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/20/C++ Primer - 语句/">C++ Primer -语句</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/20/C++ Primer - 表达/">C++ Primer - 表达式</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/10/28/C++ Primer - string, vector & array/">C++ Primer - string, vector, array</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/10/28/C++ Primer - 变量和基本类型/">C++ Primer - 变量和基本类型</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/08/25/C++ Templates Note - 类模板/">C++ Templates Note - 类模板</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/08/25/C++ Templates Note - 函数模板/">C++ Templates Note- 函数模板</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/08/13/Linux内存管理-进程地址空间/">Linux内核学习——内存管理之进程地址空间</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/07/07/一次失败的栈溢出(SEH)之GetGo Download Manager/">一次失败的栈溢出(SEH)之GetGo Download Manager</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/06/28/DNSTracer 1.9栈溢出漏洞[CVE-2017-9430]/">DNSTracer 1.9栈溢出漏洞[CVE-2017-9430]</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/06/24/A Tale of Exploit Easy RM 2 MP3 Converter/">A Tale of Exploit "Easy RM 2 MP3</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/06/03/chromium-sandbox-ThreadProcess-analysis/">Chromium-sandbox-ThreadProcess-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/06/03/chromium-sandbox-Filesystem-analysis/">Chromium-sandbox-Filesystem-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/06/03/chromium-sandbox-LowLevelPolicy-analysis/">Chromium-sandbox-LowLevelPolicy-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/26/chromium-sandbox-PolicyEngine-analysis/">Chromium-sandbox-PolicyEngine-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/26/chromium-sandbox-Resolver-analysis/">Chromium-sandbox-Resolver-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/26/chromium-sandbox-Interception/">Chromium-sandbox-Interception-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/21/chromium-sandbox-HandleCloser-analysis/">Chromium-sandbox-HandleCloser-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/20/chromium-sandbox-SharedMemIPC/">Chromium-sandbox-SharedMemIPC-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/19/chromium-sandbox-Crosscall-analysis/">Chromium-sandbox-crosscall-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/19/chromium-sandbox-AlternateDesktop-analysis/">Chromium-sandbox-AlternateDesktop-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/19/chromium-sandbox-Tokens-analysis/">Chromium-sandbox-Tokens-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/14/chromium-sandbox-Job-analysis/">Chromium-sandbox-Job-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/13/chromium-sandbox-TargetPolicy-analysis/">Chromium-sandbox-TargetPolicy-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/13/chromium-sandbox-TargetProcess-analysis/">Chromium-sandbox-TargetProcess-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/13/chromium-sandbox-TargetServices-analysis/">Chromium-sandbox-TargetServices-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/13/chromium-sandbox-BrokerServices/">Chromium-sandbox-BrokerServices-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/04/05/x41-浏览器安全白皮书笔记/">X41-浏览器安全白皮书读书笔记</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/22/Windows系统机制之同步/">Windows系统机制之同步</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/21/Windows系统机制之对象管理器/">Windows系统机制之对象管理器</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/21/Windows系统机制之陷阱分发/">Windows系统机制之陷阱分发</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/21/Bitmaps轶事：Windows 10纪念版前的GDI对象泄露/">Bitmap轶事：Windows 10纪念版后的GDI对象泄露</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/20/理解池污染三部曲/">理解池污染三部曲</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/19/内核利用程序之Razer rzpnk.sys中的逻辑bug/">Windows exploit系列教程第十九篇：内核利用程序之Razer rzpnk.sys中的逻辑bug</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/19/内核利用程序之RS2 Bitmap巫术/">Windows exploit系列教程第十八篇：内核利用程序之RS2 Bitmap巫术</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/15/内核利用程序之滥用GDI Bitmap/">Windows exploit系列教程第十七部分：内核利用程序之任意位置任意写</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/14/内核利用程序之池溢出/">Windows exploit系列教程第十六部分：内核利用程序之池溢出</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/14/内核利用程序之UAF/">Windows exploit系列教程第十五部分：内核利用程序之UAF</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/10/coin1/">Writeup.pwnable.kr系列之coin1</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/10/shellshock/">Writeup.pwnable.kr系列之shellshock</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/09/mistake/">Writeup.pwnable.kr系列之mistake</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/07/leg/">Writeup.pwnable.kr系列之leg</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/06/input/">Writeup.pwnable.kr系列之input</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/05/random/">Writeup.pwnable.kr系列之random</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/05/passcode/">Writeup.pwnable.kr系列之passcode</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/04/flag/">Writeup.pwnable.kr系列之flag</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/04/bof/">Writeup.pwnable.kr系列之bof</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/03/collision/">Writeup.pwnable.kr系列之collision</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/03/fd/">Writeup.pwnable.kr系列之fd</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/02/26/Binary Security Assembly/">Binary-Security-Assembly</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/02/07/内核利用程序之整数溢出/">Windows exploit系列教程第十四部分：内核利用程序之整数溢出</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/02/06/内核利用程序之未初始化栈变量/">Windows exploit系列教程第十三部分：内核利用程序之未初始化栈变量</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/02/06/内核利用程序之空指针引用/">Windows exploit系列教程第十二部分：内核利用程序之空指针引用</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/02/01/内核利用程序之任意位置任意写/">Windows exploit系列教程第十一部分：内核利用程序之任意位置任意写</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/01/15/ring0层exp原语之滥用GDI/">ring0层exp原语之滥用GDI</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/01/14/Windows x64内核提权/">Windows x64内核提权</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/01/14/关键的Windows内核数据结构一览（下）/">关键的Windows内核数据结构一览（下）</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/01/08/关键的Windows内核数据结构一览（上）/">关键的Windows内核数据结构一览（上）</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/01/06/内核利用程序开发之栈溢出/">Windows exploit系列教程第十部分：内核利用程序之栈溢出</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/01/05/堆喷射[第二章：UAF]/">Windows exploit系列教程第九部分：堆喷射[第二章：UAF]</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/12/30/Kernel Driver mmap Handler Exploitation/">内核驱动mmap Handler利用技术</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/12/28/API Interception via DLL Redirection/">通过DLL重定向实现API劫持</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/12/21/Linux中断内幕/">Linux中断内幕</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/12/19/Windows架构设计/">Windows架构设计</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/10/30/house_of_force.log/">house_of_force log</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/10/25/Linux内存管理-非连续内存区管理/">Linux内核学习——内存管理之非连续内存区管理</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/10/24/Linux内存管理-内存区管理/">Linux内核学习——内存管理之内存区管理</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/10/20/Linux内存管理-页框管理/">Linux内核学习——内存管理之页框管理</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/10/19/first_fit.log/">first_fit log</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/10/19/house_of_einherjar.log/">house_of_einherjar log</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/10/18/fastbin_dup_into_stack.log/">fastbin_dup_into_stack log</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/10/12/fastbin_dup.log/">fastbin_dup log</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/09/23/Windows栈溢出之ret eip/">Windows栈溢出之ret eip</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/09/23/Windows栈溢出概述/">Windows栈溢出概述</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/09/16/DEFCON-2015-r0pbaby/">DEFCON-2015-r0pbaby</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/09/11/PWN选手的自我修养/">PWN选手的自我修养</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/08/27/linearsort/">linear sort</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/08/27/quicksort/">quicksort</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/08/27/heapsort&priority-queue/">heapsort & priority-queue</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/08/27/Linux进程的创建与撤销/">Linux内核学习——Linux进程的创建与撤销</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/08/26/Linux进程切换/">Linux内核学习——Linux进程切换</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/08/24/GNU Hash ELF Sections/">GNU Hash ELF Sections</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/08/22/Linux进程概述/">Linux内核学习——Linux进程概述</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/08/18/Linux内存寻址/">Linux内核学习——内存寻址</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/05/15/PlaySms  1.4代码执行漏洞之import csv/">PlaySms 1.4代码执行漏洞之import csv</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/05/15/PlaySms  1.4代码执行漏洞分析/">PlaySms 1.4代码执行漏洞分析</a></li></ul>
+    <script src="https://7.url.cn/edu/jslib/comb/require-2.1.6,jquery-1.9.1.min.js"></script>
+    <script>
+        $(".post-list").addClass("toc-article");
+        $(".post-list-item a").attr("target","_blank");
+        $("#post-nav-button > a:nth-child(2)").click(function() {
+            $(".fa-bars, .fa-times").toggle();
+            $(".post-list").toggle(300);
+            if ($(".toc").length > 0) {
+                $("#toc, #tocButton").toggle(200, function() {
+                    if ($(".switch-area").is(":visible")) {
+                        $("#tocButton").attr("value", valueHide);
+                        }
+                    })
+            }
+            else {
+            }
+        })
+    </script>
+
+
+
+    <script>
+        
+    </script>
+</div>
+      <footer id="footer">
+    <div class="outer">
+        <div id="footer-info">
+            <div class="footer-left">
+                &copy; 2020 r00tk1t
+            </div>
+            <div class="footer-right">
+                <a href="http://hexo.io/" target="_blank">Hexo</a>  Theme <a href="https://github.com/luuman/hexo-theme-spfk" target="_blank">spfk</a> by luuman
+            </div>
+        </div>
+        
+            <div class="visit">
+                
+                    <span id="busuanzi_container_site_pv" style='display:none'>
+                        <span id="site-visit" >访问数量: 
+                            <span id="busuanzi_value_site_uv"></span>
+                        </span>
+                    </span>
+                
+                
+                    <span>, </span>
+                
+                
+                    <span id="busuanzi_container_page_pv" style='display:none'>
+                        <span id="page-visit">本页阅读量: 
+                            <span id="busuanzi_value_page_pv"></span>
+                        </span>
+                    </span>
+                
+            </div>
+        
+    </div>
+</footer>
+
+    </div>
+    <script src="https://7.url.cn/edu/jslib/comb/require-2.1.6,jquery-1.9.1.min.js"></script>
+<script src="/js/main.js"></script>
+
+    <script>
+        $(document).ready(function() {
+            var backgroundnum = 24;
+            var backgroundimg = "url(/background/bg-x.jpg)".replace(/x/gi, Math.ceil(Math.random() * backgroundnum));
+            $("#mobile-nav").css({"background-image": backgroundimg,"background-size": "cover","background-position": "center"});
+            $(".left-col").css({"background-image": backgroundimg,"background-size": "cover","background-position": "center"});
+        })
+    </script>
+
+
+
+
+
+<div class="scroll" id="scroll">
+    <a href="#"><i class="fa fa-arrow-up"></i></a>
+    <a href="#comments"><i class="fa fa-comments-o"></i></a>
+    <a href="#footer"><i class="fa fa-arrow-down"></i></a>
+</div>
+<script>
+    $(document).ready(function() {
+        if ($("#comments").length < 1) {
+            $("#scroll > a:nth-child(2)").hide();
+        };
+    })
+</script>
+
+<script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js">
+</script>
+
+  <script language="javascript">
+    $(function() {
+        $("a[title]").each(function() {
+            var a = $(this);
+            var title = a.attr('title');
+            if (title == undefined || title == "") return;
+            a.data('title', title).removeAttr('title').hover(
+
+            function() {
+                var offset = a.offset();
+                $("<div id=\"anchortitlecontainer\"></div>").appendTo($("body")).html(title).css({
+                    top: offset.top - a.outerHeight() - 15,
+                    left: offset.left + a.outerWidth()/2 + 1
+                }).fadeIn(function() {
+                    var pop = $(this);
+                    setTimeout(function() {
+                        pop.remove();
+                    }, pop.text().length * 800);
+                });
+            }, function() {
+                $("#anchortitlecontainer").remove();
+            });
+        });
+    });
+</script>
+
+
+  </div>
+</body>
+</html>

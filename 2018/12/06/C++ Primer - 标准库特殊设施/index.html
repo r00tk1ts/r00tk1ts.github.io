@@ -1,0 +1,1344 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>C++ Primer - 标准库特殊设施 | r00tk1t&#39;s blog</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="《C++ Primer》第五版引入了11标准相关内容，我早年在初学C++时还只有第四版，近来想对C++做一个整体的复习+版本升级，借此机会过一遍第五版。本文是阅读第十七章“标准库特殊设施”时所做的笔记。">
+<meta name="keywords" content="cpp,cpp-primer">
+<meta property="og:type" content="article">
+<meta property="og:title" content="C++ Primer - 标准库特殊设施">
+<meta property="og:url" content="https://r00tk1ts.github.io/2018/12/06/C++ Primer - 标准库特殊设施/index.html">
+<meta property="og:site_name" content="r00tk1t&#39;s blog">
+<meta property="og:description" content="《C++ Primer》第五版引入了11标准相关内容，我早年在初学C++时还只有第四版，近来想对C++做一个整体的复习+版本升级，借此机会过一遍第五版。本文是阅读第十七章“标准库特殊设施”时所做的笔记。">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:updated_time" content="2020-10-20T13:01:02.344Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="C++ Primer - 标准库特殊设施">
+<meta name="twitter:description" content="《C++ Primer》第五版引入了11标准相关内容，我早年在初学C++时还只有第四版，近来想对C++做一个整体的复习+版本升级，借此机会过一遍第五版。本文是阅读第十七章“标准库特殊设施”时所做的笔记。">
+  
+    <link rel="alternative" href="/atom.xml" title="r00tk1t&#39;s blog" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/img/favicon.png">
+  
+  
+      <link rel="stylesheet" href="//cdn.bootcss.com/animate.css/3.5.0/animate.min.css">
+  
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/font-awesome/css/font-awesome.min.css">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  
+  
+      <link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+  
+  <!-- 加载特效 -->
+    <script src="/js/pace.js"></script>
+    <link href="/css/pace/pace-theme-flash.css" rel="stylesheet" />
+  <script>
+      var yiliaConfig = {
+          rootUrl: '/',
+          fancybox: true,
+          animate: true,
+          isHome: false,
+          isPost: true,
+          isArchive: false,
+          isTag: false,
+          isCategory: false,
+          open_in_new: false
+      }
+  </script>
+</head>
+<body>
+  <div id="container">
+    <div class="left-col">
+    <div class="overlay"></div>
+<div class="intrude-less">
+    <header id="header" class="inner">
+        <a href="/" class="profilepic">
+            
+            <img lazy-src="/img/head.jpg" class="js-avatar">
+            
+        </a>
+
+        <hgroup>
+          <h1 class="header-author"><a href="/" title="Hi Mate">r00tk1t</a></h1>
+        </hgroup>
+
+        
+        <p class="header-subtitle">二进制安全 | Web安全 | 伪装成程序员的菜鸡</p>
+        
+        
+        
+            <div id="switch-btn" class="switch-btn">
+                <div class="icon">
+                    <div class="icon-ctn">
+                        <div class="icon-wrap icon-house" data-idx="0">
+                            <div class="birdhouse"></div>
+                            <div class="birdhouse_holes"></div>
+                        </div>
+                        <div class="icon-wrap icon-ribbon hide" data-idx="1">
+                            <div class="ribbon"></div>
+                        </div>
+                        
+                        <div class="icon-wrap icon-link hide" data-idx="2">
+                            <div class="loopback_l"></div>
+                            <div class="loopback_r"></div>
+                        </div>
+                        
+                        
+                        <div class="icon-wrap icon-me hide" data-idx="3">
+                            <div class="user"></div>
+                            <div class="shoulder"></div>
+                        </div>
+                        
+                    </div>
+                    
+                </div>
+                <div class="tips-box hide">
+                    <div class="tips-arrow"></div>
+                    <ul class="tips-inner">
+                        <li>菜单</li>
+                        <li>标签</li>
+                        
+                        <li>友情链接</li>
+                        
+                        
+                        <li>关于我</li>
+                        
+                    </ul>
+                </div>
+            </div>
+        
+
+        <div id="switch-area" class="switch-area">
+            <div class="switch-wrap">
+                <section class="switch-part switch-part1">
+                    <nav class="header-menu">
+                        <ul>
+                        
+                            <li><a href="/">博客首页</a></li>
+                        
+                            <li><a href="/archives">所有文章</a></li>
+                        
+                            <li><a href="/tags">标签</a></li>
+                        
+                        </ul>
+                    </nav>
+                    <nav class="header-nav">
+                        <ul class="social">
+                            
+                                <a class="fl mail" target="_blank" href="mailto: 1903442252@qq.com" title="mail">mail</a>
+                            
+                                <a class="fl github" target="_blank" href="https://github.com/r00tk1ts" title="github">github</a>
+                            
+                                <a class="fl zhihu" target="_blank" href="https://www.zhihu.com/people/r00tk1t-5" title="zhihu">zhihu</a>
+                            
+                                <a class="fl weibo" target="_blank" href="http://weibo.com/2698344533" title="weibo">weibo</a>
+                            
+                                <a class="fl QQ" target="_blank" href="https://user.qzone.qq.com/1903442252" title="QQ">QQ</a>
+                            
+                        </ul>
+                    </nav>
+                </section>
+                
+                
+                <section class="switch-part switch-part2">
+                    <div class="widget tagcloud" id="js-tagcloud">
+                        <a href="/tags/SEH-overwrite/" style="font-size: 10px;">SEH overwrite</a> <a href="/tags/algorithm/" style="font-size: 11.67px;">algorithm</a> <a href="/tags/browser/" style="font-size: 10px;">browser</a> <a href="/tags/chrome/" style="font-size: 16.67px;">chrome</a> <a href="/tags/chrome-sandbox/" style="font-size: 16.67px;">chrome-sandbox</a> <a href="/tags/cpp/" style="font-size: 20px;">cpp</a> <a href="/tags/cpp-primer/" style="font-size: 18.33px;">cpp-primer</a> <a href="/tags/cpp-templates/" style="font-size: 11.67px;">cpp-templates</a> <a href="/tags/dll-hooking/" style="font-size: 10px;">dll hooking</a> <a href="/tags/exploit/" style="font-size: 12.5px;">exploit</a> <a href="/tags/glibc/" style="font-size: 10px;">glibc</a> <a href="/tags/glibc-heap/" style="font-size: 13.33px;">glibc-heap</a> <a href="/tags/linux/" style="font-size: 10.83px;">linux</a> <a href="/tags/linux-kernel/" style="font-size: 14.17px;">linux-kernel</a> <a href="/tags/mmap/" style="font-size: 10px;">mmap</a> <a href="/tags/novice/" style="font-size: 17.5px;">novice</a> <a href="/tags/php/" style="font-size: 10.83px;">php</a> <a href="/tags/pool/" style="font-size: 10px;">pool</a> <a href="/tags/pwn/" style="font-size: 19.17px;">pwn</a> <a href="/tags/pwnable-kr/" style="font-size: 15px;">pwnable.kr</a> <a href="/tags/resources/" style="font-size: 10px;">resources</a> <a href="/tags/stack-overrun/" style="font-size: 11.67px;">stack-overrun</a> <a href="/tags/tutorial/" style="font-size: 10px;">tutorial</a> <a href="/tags/ulk/" style="font-size: 14.17px;">ulk</a> <a href="/tags/web/" style="font-size: 10.83px;">web</a> <a href="/tags/windows/" style="font-size: 15.83px;">windows</a> <a href="/tags/windows-kernel/" style="font-size: 14.17px;">windows-kernel</a> <a href="/tags/writeup/" style="font-size: 10px;">writeup</a> <a href="/tags/wrk/" style="font-size: 12.5px;">wrk</a>
+                    </div>
+                </section>
+                
+                
+                
+                <section class="switch-part switch-part3">
+                    <div id="js-friends">
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://eternalsakura13.com">樱花师傅</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="https://chybeta.github.io/">Chybeta</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://whereisk0shl.top/">k0shl</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://o0xmuhe.github.io/">o0xmuhe</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://bestwing.me/">swing</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://yixuankeer.win/">joker</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://www.hackersb.cn/">王松_Striker</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="https://www.hackfun.org/">4ido10n</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://www.cnblogs.com/iamstudy/">l3m0n</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://www.cnblogs.com/Ox9A82/">Ox9A82</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://mxny.org/">麦香浓郁</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://0x48.pw/">Hcamael</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="https://blog.nuptzj.cn/">画船听雨</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="https://www.bodkin.ren/">老锥</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://www.zerokeeper.com/">ZeroKeeper</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="https://www.ycjcl.cc/">信鑫</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://www.wowotech.net/">wowotech</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://fuzzysecurity.com/">fuzzySecurity</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="https://rootkits.xyz/">rootkits.xyz</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://www.pentestingexperts.com/">pentestingexperts</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="https://blog.skylined.nl/">skylined</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="https://systemk1t.github.io/">systemk1t</a>
+                    
+                    </div>
+                </section>
+                
+
+                
+                
+                <section class="switch-part switch-part4">
+                
+                    <div id="js-aboutme">二进制狗一枚，懂点Web安全，一个伪装成程序员混迹在某公司的菜鸡。</div>
+                </section>
+                
+            </div>
+        </div>
+    </header>                
+</div>
+    </div>
+    <div class="mid-col">
+      <nav id="mobile-nav">
+      <div class="overlay">
+          <div class="slider-trigger"></div>
+          <h1 class="header-author js-mobile-header hide"><a href="/" title="Me">r00tk1t</a></h1>
+      </div>
+    <div class="intrude-less">
+        <header id="header" class="inner">
+            <a href="/" class="profilepic">
+                
+                    <img lazy-src="/img/head.jpg" class="js-avatar">
+                
+            </a>
+            <hgroup>
+              <h1 class="header-author"><a href="/" title="Me">r00tk1t</a></h1>
+            </hgroup>
+            
+            <p class="header-subtitle">二进制安全 | Web安全 | 伪装成程序员的菜鸡</p>
+            
+            <nav class="header-menu">
+                <ul>
+                
+                    <li><a href="/">博客首页</a></li>
+                
+                    <li><a href="/archives">所有文章</a></li>
+                
+                    <li><a href="/tags">标签</a></li>
+                
+                <div class="clearfix"></div>
+                </ul>
+            </nav>
+            <nav class="header-nav">
+                <div class="social">
+                    
+                        <a class="mail" target="_blank" href="mailto: 1903442252@qq.com" title="mail">mail</a>
+                    
+                        <a class="github" target="_blank" href="https://github.com/r00tk1ts" title="github">github</a>
+                    
+                        <a class="zhihu" target="_blank" href="https://www.zhihu.com/people/r00tk1t-5" title="zhihu">zhihu</a>
+                    
+                        <a class="weibo" target="_blank" href="http://weibo.com/2698344533" title="weibo">weibo</a>
+                    
+                        <a class="QQ" target="_blank" href="https://user.qzone.qq.com/1903442252" title="QQ">QQ</a>
+                    
+                </div>
+            </nav>
+        </header>                
+    </div>
+</nav>
+      <div class="body-wrap"><article id="post-C++ Primer - 标准库特殊设施" class="article article-type-post" itemscope itemprop="blogPost">
+  
+    <div class="article-meta">
+      <a href="/2018/12/06/C++ Primer - 标准库特殊设施/" class="article-date">
+      <time datetime="2018-12-06T12:22:11.000Z" itemprop="datePublished">2018-12-06</time>
+</a>
+    </div>
+  
+  <div class="article-inner">
+    
+      <input type="hidden" class="isFancy" />
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      C++ Primer - 标准库特殊设施
+    </h1>
+  
+
+      </header>
+      
+      <div class="article-info article-info-post">
+        
+    <div class="article-category tagcloud">
+    <a class="article-category-link" href="/categories/programming-language/">programming-language</a>
+    </div>
+
+
+        
+    <div class="article-tag tagcloud">
+        <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/cpp/">cpp</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/cpp-primer/">cpp-primer</a></li></ul>
+    </div>
+
+        <div class="clearfix"></div>
+      </div>
+      
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+          
+        <p>《C++ Primer》第五版引入了11标准相关内容，我早年在初学C++时还只有第四版，近来想对C++做一个整体的复习+版本升级，借此机会过一遍第五版。本文是阅读第十七章“标准库特殊设施”时所做的笔记。</p>
+<a id="more"></a>
+<h1 id="C-Primer-标准库特殊设施"><a href="#C-Primer-标准库特殊设施" class="headerlink" title="C++ Primer - 标准库特殊设施"></a>C++ Primer - 标准库特殊设施</h1><h2 id="tuple"><a href="#tuple" class="headerlink" title="tuple"></a>tuple</h2><p>tuple类似pair，pair只有两个成员，但tuple可以有任意数量的成员。tuple也是类模板。</p>
+<table>
+<thead>
+<tr>
+<th>tuple支持的操作</th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>tuple&lt;T1, T2, ... ,Tn&gt; t;</code></td>
+<td>t是一个tuple，成员数为n，第i个成员的类型为Ti。所有成员都进行值初始化。</td>
+</tr>
+<tr>
+<td><code>tuple&lt;T1, T2, ..., Tn&gt; t(v1, v2, ..., vn);</code></td>
+<td>t是一个tuple，成员类型为T1..Tn,每个成员用对应的初始值vi进行初始化。此构造函数是explicit的。</td>
+</tr>
+<tr>
+<td>make_tuple(v1, v2, …, vn)</td>
+<td>返回一个用给定初始值初始化的tuple。tuple的类型从初始值的类型推断</td>
+</tr>
+<tr>
+<td>t1 == t2</td>
+<td>当两个tuple具有相同数量的成员且成员对应相等时，两个tuple相等。</td>
+</tr>
+<tr>
+<td>t1 != t2</td>
+<td>这两个操作使用成员的==运算符来完成。一旦某个成员不等，就比接着比下去了。</td>
+</tr>
+<tr>
+<td>t1 relop t2</td>
+<td>tuple的关系运算使用字典序。两个tuple必须具有相同数量的成员。使用&lt;运算符比较t1的成员和t2中的对应成员</td>
+</tr>
+<tr>
+<td><code>get&lt;i&gt;(t)</code></td>
+<td>返回t的第i个数据成员的引用；如果t是一个左值，结果是一个左值引用；否则，结果是一个右值引用。tuple的所有成员都是public的</td>
+</tr>
+<tr>
+<td><code>tuple_size&lt;tupleType&gt;::value</code></td>
+<td>类模板，可以通过一个tuple类型来初始化。value是其public constexpr static数据成员，类型为size_t，表示给定tuple类型中成员的数量</td>
+</tr>
+<tr>
+<td><code>tuple_element&lt;i, tupleType&gt;::type</code></td>
+<td>类模板，可以通过一个整型常量和一个tuple类型来初始化。它有一个名为type的public成员，表示给定tuple类型中指定成员的类型。</td>
+</tr>
+</tbody>
+</table>
+<h3 id="定义初始化tuple"><a href="#定义初始化tuple" class="headerlink" title="定义初始化tuple"></a>定义初始化tuple</h3><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">tuple&lt;<span class="keyword">size_t</span>, <span class="keyword">size_t</span>, <span class="keyword">size_t</span>&gt; threeD;	<span class="comment">//三个成员都被值初始化为0</span></span><br><span class="line">tuple&lt;<span class="built_in">string</span>, <span class="built_in">vector</span>&lt;<span class="keyword">double</span>&gt;, <span class="keyword">int</span>, <span class="built_in">list</span>&lt;<span class="keyword">int</span>&gt;&gt; someVal(<span class="string">"constants"</span>, &#123;<span class="number">3.14</span>, <span class="number">2.718</span>&#125;, <span class="number">42</span>, &#123;<span class="number">0</span>,<span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span>,<span class="number">4</span>,<span class="number">5</span>&#125;);</span><br></pre></td></tr></table></figure>
+<p>因为<code>tuple&lt;T1, T2, ..., Tn&gt; t(v1, v2, ..., vn);</code>是explicit的，所以必须使用直接初始化语法：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">tuple&lt;<span class="keyword">size_t</span>, <span class="keyword">size_t</span>, <span class="keyword">size_t</span>&gt; threeD = &#123;<span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span>&#125;;	<span class="comment">//错误</span></span><br><span class="line">tuple&lt;<span class="keyword">size_t</span>, <span class="keyword">size_t</span>, <span class="keyword">size_t</span>&gt; threeD&#123;<span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span>&#125;;	<span class="comment">//正确</span></span><br></pre></td></tr></table></figure>
+<p>按照惯例，有一个make_tuple：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">auto</span> item = make_tuple(<span class="string">"0-999-78345-X"</span>, <span class="number">3</span>, <span class="number">20.00</span>);</span><br></pre></td></tr></table></figure>
+<p>auto推测出为<code>tuple&lt;const char*, int, double&gt;</code>。</p>
+<p>可以使用<code>get</code>访问tuple的成员。get是一个函数模板，使用时必须指定一个显式模板实参，表示要访问的成员索引。传递给get一个tuple实参后，会返回其指定成员的引用。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">auto</span> book = get&lt;<span class="number">0</span>&gt;(item);	<span class="comment">//返回item的第一个成员</span></span><br><span class="line"><span class="keyword">auto</span> cnt = get&lt;<span class="number">1</span>&gt;(item);	<span class="comment">//返回item的第二个成员</span></span><br><span class="line"><span class="keyword">auto</span> price = get&lt;<span class="number">2</span>&gt;(item);	<span class="comment">//返回item的最后一个成员</span></span><br><span class="line">get&lt;<span class="number">2</span>&gt;(item) *= <span class="number">0.8</span>;		<span class="comment">//打八折</span></span><br></pre></td></tr></table></figure>
+<p>tuple_size和tuple_element可以辅助查询tuple成员的数量和类型。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">typedef</span> <span class="title">decltype</span><span class="params">(item)</span> trans</span>;	<span class="comment">//使用decltype确定对象的类型</span></span><br><span class="line"><span class="keyword">size_t</span> sz = tuple_size&lt;trans&gt;::value;	<span class="comment">//返回3</span></span><br><span class="line">tuple_element&lt;<span class="number">1</span>, trans&gt;::type cnt = get&lt;<span class="number">1</span>&gt;(item);	<span class="comment">//cnt是int类型</span></span><br></pre></td></tr></table></figure>
+<p>由于tuple定义了<code>&lt;</code>和<code>==</code>运算符，因此tuple序列可以被传递给算法，无序容器的关键字也可以使用tuple类型。</p>
+<p>tuple的一个用途是函数一次性返回多个值。</p>
+<h2 id="bitset"><a href="#bitset" class="headerlink" title="bitset"></a>bitset</h2><p>bitset类用于处理位运算，能够处理超过最长整型类型大小的位集合。bitset定义在头文件bitset中。</p>
+<h3 id="定义和初始化bitset"><a href="#定义和初始化bitset" class="headerlink" title="定义和初始化bitset"></a>定义和初始化bitset</h3><table>
+<thead>
+<tr>
+<th>初始化bitset的方法</th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>bitset&lt;n&gt; b;</code></td>
+<td>b有n位；每一位均为0。此构造函数是一个constexpr</td>
+</tr>
+<tr>
+<td><code>bitset&lt;n&gt; b(u);</code></td>
+<td>b是unsigned long long值u的低n位的拷贝。如果n大于unsigned long long的大小，则b中超出unsigned long long的高位被置为0。此构造函数是一个constexpr。</td>
+</tr>
+<tr>
+<td><code>bitset&lt;n&gt; b(s, pos, m, zero, one);</code></td>
+<td>b是string s从位置pos开始m个字符的拷贝。s只能包含字符zero或one；如果s包含任何其他字符，构造函数会抛出invalid_argument异常。字符在b中分别保存为zero和one。pos默认为0，m默认为string::npos，zero默认为’0’，one默认为’1’</td>
+</tr>
+<tr>
+<td><code>bitset&lt;n&gt; b(cp, pos, m, zero, one);</code></td>
+<td>同上，但从cp指向的字符数组中拷贝字符。如果未提供m，则cp必须指向C风格字符串。如提供了m，则从cp开始必须至少有m个zero或one字符。</td>
+</tr>
+</tbody>
+</table>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">bitset</span>&lt;13&gt; bitvec1(<span class="number">0xbeef</span>);	<span class="comment">//二进制位序列为1111011101111</span></span><br><span class="line"><span class="built_in">bitset</span>&lt;20&gt; bitvec2(<span class="number">0xbeef</span>);	<span class="comment">//二进制位序列为00001011111011101111</span></span><br><span class="line"><span class="comment">//x64的long long是64位</span></span><br><span class="line"><span class="built_in">bitset</span>&lt;128&gt; bitvec3(~<span class="number">0U</span>LL);	<span class="comment">//0~63位为1,63~127位为0</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">bitset</span>&lt;32&gt; bitvec4(<span class="string">"1100"</span>);	<span class="comment">//二进制位序列为0...01100</span></span><br><span class="line"><span class="function"><span class="built_in">string</span> <span class="title">str</span><span class="params">(<span class="string">"1111111000000011001101"</span>)</span></span>;</span><br><span class="line"><span class="built_in">bitset</span>&lt;32&gt; bitvec5(str, <span class="number">5</span>, <span class="number">4</span>);           <span class="comment">//str[5]开始的四个二进制位，1100</span></span><br><span class="line"><span class="built_in">bitset</span>&lt;32&gt; bitvec6(str, str.size()<span class="number">-4</span>);   <span class="comment">// 使用最后四个字符</span></span><br></pre></td></tr></table></figure>
+<h3 id="bitset操作"><a href="#bitset操作" class="headerlink" title="bitset操作"></a>bitset操作</h3><table>
+<thead>
+<tr>
+<th>bitset操作</th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>b.any()</td>
+<td>b中是否存在置位的二进制位</td>
+</tr>
+<tr>
+<td>b.all()</td>
+<td>b中所有位都置位了？</td>
+</tr>
+<tr>
+<td>b.none()</td>
+<td>b中不存在置位的二进制？</td>
+</tr>
+<tr>
+<td>b.count()</td>
+<td>b中置位的数量</td>
+</tr>
+<tr>
+<td>b.size()</td>
+<td>constexpr函数，返回b的位数</td>
+</tr>
+<tr>
+<td>b.test(pos)</td>
+<td>若pos位置的位置位，则返回true，否则返回false</td>
+</tr>
+<tr>
+<td>b.set(pos, v)</td>
+<td>将位置pos处的位设置为bool值v。v默认为true。如果未传递实参，则b中所有位置位</td>
+</tr>
+<tr>
+<td>b.reset(pos)</td>
+<td>位置pos处的位复位</td>
+</tr>
+<tr>
+<td>b.reset()</td>
+<td>b中所有位复位</td>
+</tr>
+<tr>
+<td>b.flip(pos)</td>
+<td>改变位置pos处的位状态</td>
+</tr>
+<tr>
+<td>b.flip()</td>
+<td>b中所有位翻转</td>
+</tr>
+<tr>
+<td>b[pos]</td>
+<td>访问b中位置pos处的位；如果b是const的，则当该位置位时b[pos]返回true，否则返回false</td>
+</tr>
+<tr>
+<td>b.to_ulong()<br>b.to_ullong()</td>
+<td>返回一个unsigned long或一个unsigned long long值，其位模式与b相同。如果b中位模式不能放入指定的结果类型，则抛overflow_error异常。</td>
+</tr>
+<tr>
+<td>b.to_string(zero, one)</td>
+<td>返回string，zero和one默认为0和1，表示b中的0和1</td>
+</tr>
+<tr>
+<td>os &lt;&lt; b</td>
+<td>b中二进制位打印为字符1或0，打印到流os</td>
+</tr>
+<tr>
+<td>is &gt;&gt; b</td>
+<td>从is读取字符存入b。下一个字符不是1或0时，或是已经读入b.size()个位时，读取过程停止。</td>
+</tr>
+</tbody>
+</table>
+<p>值得注意的坑：</p>
+<p>bitset的下标运算符对const属性进行了重载。const版本的下标运算符在指定位置置位时返回true，否则返回false。非const版本返回bitset定义的一个特殊类型，用来控制指定位置的值。</p>
+<h2 id="正则表达式"><a href="#正则表达式" class="headerlink" title="正则表达式"></a>正则表达式</h2><p>C++11增加了正则表达式（RE）库，在头文件regex中定义。</p>
+<table>
+<thead>
+<tr>
+<th>RE组件</th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>regex</td>
+<td>表示有一个正则表达式的类</td>
+</tr>
+<tr>
+<td>regex_match</td>
+<td>将一个字符序列与一个正则表达式匹配</td>
+</tr>
+<tr>
+<td>regex_search</td>
+<td>寻找第一个与正则表达式匹配的子序列</td>
+</tr>
+<tr>
+<td>regex_replace</td>
+<td>使用给定格式替换一个正则表达式</td>
+</tr>
+<tr>
+<td>sregex_iterator</td>
+<td>迭代器适配器，调用regex_search来遍历一个string中所有匹配的子串</td>
+</tr>
+<tr>
+<td>smatch</td>
+<td>容器类，保存在string中搜索的结果</td>
+</tr>
+<tr>
+<td>ssub_match</td>
+<td>string中匹配的子表达式的结果</td>
+</tr>
+</tbody>
+</table>
+<p>用例：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//查找不在字符c之后的字符串ei</span></span><br><span class="line"><span class="function"><span class="built_in">string</span> <span class="title">pattern</span><span class="params">(<span class="string">"[^c]ei"</span>)</span></span>;</span><br><span class="line"><span class="comment">//需要包含pattern的整个单词</span></span><br><span class="line">pattern = <span class="string">"[[:alpha:]]*"</span> + pattern + <span class="string">"[[:alpha:]]*"</span>;</span><br><span class="line"><span class="function">regex <span class="title">r</span><span class="params">(pattern)</span></span>;	<span class="comment">//构造一个用于查找模式的regex</span></span><br><span class="line">smatch results;		<span class="comment">//定义一个对象保存搜索结果</span></span><br><span class="line"><span class="comment">//定义一个string保存于模式匹配和不匹配的文本</span></span><br><span class="line"><span class="built_in">string</span> test_str = <span class="string">"receipt freind theif receive"</span>;</span><br><span class="line"><span class="comment">//用r在test_str中查找域pattern匹配的子串</span></span><br><span class="line"><span class="keyword">if</span>(regex_search(test_str, results, r))	<span class="comment">//如果有匹配子串，打印匹配的单词</span></span><br><span class="line">  	<span class="built_in">cout</span> &lt;&lt; results.str() &lt;&lt; <span class="built_in">endl</span>;		<span class="comment">//regex_search匹配第一个之后会停止</span></span><br></pre></td></tr></table></figure>
+<p>regex_search和regex_match的参数格式：</p>
+<ul>
+<li>(seq, m, r, mft)    </li>
+<li>(seq, r, mft)</li>
+</ul>
+<p>字符序列seq中查找regex对象r中的正则表达式。seq可以是string、表示范围的一对迭代器、指向空字符结尾的字符数组的指针。m是一个match对象，用来保存匹配结果的相关细节。m和seq必须具有兼容的类型。mft是可选的<code>regex_constants::match_flag_type</code>的值，它们会影响匹配过程。</p>
+<p>默认情况下，regex使用的正则表达式语言是ECMAScript。定义一个regex或者对一个regex调用assign为其赋新值时，可以指定一些标志来影响regex的操作。<code>ECMAScript</code>、<code>basic</code>、<code>extended</code>、<code>awk</code>、<code>grep</code>和<code>egrep</code>这六个标志指定编写正则表达式时所使用的语言。这六个标志中必须设置其中之一，且只能设置一个。默认设置<code>ECMAScript</code>（使用ECMA-262规范）。</p>
+<table>
+<thead>
+<tr>
+<th>regex(和wregex)选项</th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>regex r(re)<br>regex r(re, f)</td>
+<td>re表示一个正则表达式，可以是string、表示字符范围的一对迭代器、指向空字符结尾的字符数组的指针、字符指针和一个计数器、花括号包围的字符列表。f是指出对象如何处理的标志。f通过下面列出的值来设置。如果未指定f，默认值为ECMAScript</td>
+</tr>
+<tr>
+<td>r1 = re</td>
+<td>将r1中的正则替换为re。</td>
+</tr>
+<tr>
+<td>r1.assign(re, f)</td>
+<td>与使用赋值运算符效果相同。</td>
+</tr>
+<tr>
+<td>r.mark_count()</td>
+<td>r中子表达式的数目</td>
+</tr>
+<tr>
+<td>r.flags()</td>
+<td>返回r的标志集</td>
+</tr>
+</tbody>
+</table>
+<p>构造和赋值可能会抛出regex_error异常。</p>
+<p>定义regex时可指定的标志：定义在<code>regex</code>和<code>regex_constants::syntax_option_type</code>中</p>
+<ul>
+<li><code>icase</code> - 匹配过程中忽略大小写</li>
+<li><code>nosubs</code> - 不保存匹配的子表达式</li>
+<li><code>optimize</code> - 执行速度优先于构造速度</li>
+<li><code>ECMAScript</code> - 使用ECMA-262指定的语法</li>
+<li><code>basic</code> - 使用POSIX基本的正则表达式语法</li>
+<li><code>extended</code> - 使用POSIX扩展的正则表达式语法</li>
+<li><code>awk</code> - 使用POSIX版本的awk语言的语法</li>
+<li><code>grep</code> - 使用POSIX版本的grep语法</li>
+<li><code>egrep</code> - 使用POSIX版本的egrep语法</li>
+</ul>
+<p>正则表达式的语法是否正确是在运行期间解析的。如果正则表达式存在错误，标准库会抛出类型为<code>regex_error</code>的异常。<code>regex_error</code>有一个what操作来描述发生了什么错误。除了what操作外，regex_error还有一个名为<code>code</code>的成员，用来返回错误类型对应的数值编码。code返回的值是由具体实现定义的。RE库能抛出的标准错误如下，code返回对应错误的编号（从0开始）。</p>
+<p>正则表达式错误类型：(定义在<code>regex</code>和<code>regex_constants::error_type</code>中)</p>
+<ul>
+<li><code>error_collate</code> - 无效的元素校对请求</li>
+<li><code>error_ctype</code> - 无效的字符类</li>
+<li><code>error_escape</code> - 无效的转义字符或无效的尾置转义</li>
+<li><code>error_backref</code> - 无效的向后引用</li>
+<li><code>error_brack</code> - 不匹配的方括号</li>
+<li><code>error_paren</code> - 不匹配的小括号</li>
+<li><code>error_brace</code> - 不匹配的花括号</li>
+<li><code>error_badbrace</code> - {}中无效的范围</li>
+<li><code>error_range</code> - 无效的字符范围</li>
+<li><code>error_space</code> - 内存不足，无法处理此RE</li>
+<li><code>error_badrepeat</code> - 重复字符(* ? + {)之前没有有效的RE</li>
+<li><code>error_complexity</code> - 要求的匹配过于复杂</li>
+<li><code>error_stack</code> - 栈空间不足，无法处理匹配</li>
+</ul>
+<blockquote>
+<p> 正则表达式在程序运行时才编译，这是一个非常慢的操作。因此构造一个regex对象或者给一个已经存在的regex赋值是很耗时间的。为了最小化这种开销，应该尽量避免创建不必要的regex。特别是在循环中使用正则表达式时，应该在循环体外部创建regex对象。</p>
+</blockquote>
+<h3 id="正则表达式类与输入序列类型"><a href="#正则表达式类与输入序列类型" class="headerlink" title="正则表达式类与输入序列类型"></a>正则表达式类与输入序列类型</h3><p>RE库为不同的输入序列都定义了对应的类型。使用时RE库类型必须与输入类型匹配。</p>
+<ul>
+<li>regex类保存char类型的正则表达式；<code>wregex</code>保存wchar_t类型的正则表达式。</li>
+<li>smatch表示string类型的输入序列；<code>cmatch</code>表示字符数组类型的输入序列；<code>wsmatch</code>表示wstring类型的输入序列；<code>wcmatch</code>表示宽字符数组类型的输入序列。</li>
+</ul>
+<h3 id="匹配与Regex迭代器类型"><a href="#匹配与Regex迭代器类型" class="headerlink" title="匹配与Regex迭代器类型"></a>匹配与Regex迭代器类型</h3><p>regex迭代器是一种迭代器适配器，它被绑定到一个输入序列和一个regex对象上，每种输入类型都有对应的迭代器类型。</p>
+<table>
+<thead>
+<tr>
+<th>sregex_iterator操作</th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>sregex_iterator it(b,e,r);</td>
+<td>遍历迭代器b和e表示的string。它调用sregex_search(b,e,r)将it定位到输入中第一个匹配的位置</td>
+</tr>
+<tr>
+<td>sregex_iterator end;</td>
+<td>sregex_iterator的尾后迭代器</td>
+</tr>
+<tr>
+<td>*it<br>it-&gt;</td>
+<td>根据最后一个调用regex_search的结果，返回一个smatch对象的引用或一个指向smatch对象的指针</td>
+</tr>
+<tr>
+<td>++it<br>it++</td>
+<td>从输入序列当前匹配位置开始调用regex_search。前置版本返回递增后迭代器，后置版本返回旧值</td>
+</tr>
+<tr>
+<td>it1 == it2<br>it1 != it2</td>
+<td>如果两个sregex_iterator都是尾后迭代器，则它们相等；两个非尾后迭代器是从相同的输入序列和regex对象构造，则它们相等</td>
+</tr>
+</tbody>
+</table>
+<p>用例：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="built_in">string</span> <span class="title">pattern</span><span class="params">(<span class="string">"[^c]ei"</span>)</span></span>;</span><br><span class="line">pattern = <span class="string">"[[:alpha:]]*"</span> + pattern + <span class="string">"[[:alpha:]]*"</span>;</span><br><span class="line"><span class="function">regex <span class="title">r</span><span class="params">(pattern, regex::icase)</span></span>;</span><br><span class="line"><span class="keyword">for</span>(sregex_iterator it(file.begin(), file.end(), r), end_it;it!=end_it;++it)</span><br><span class="line">  	<span class="built_in">cout</span> &lt;&lt; it-&gt;str() &lt;&lt; <span class="built_in">endl</span>;</span><br></pre></td></tr></table></figure>
+<p>利用迭代器就可以处理多个匹配项了。</p>
+<p>输出freind和theif（不会止于freind）。</p>
+<p>匹配类型有两个名为<code>prefix</code>和<code>suffix</code>的成员，分别返回表示输入序列中当前匹配之前和之后部分的<code>ssub_match</code>对象。一个ssub_match对象有两个名为<code>str</code>和<code>length</code>的成员，分别返回匹配的string和该string的长度。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">for</span> (sregex_iterator it(file.begin(), file.end(), r), end_it;</span><br><span class="line">    it != end_it; ++it)</span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">auto</span> pos = it-&gt;prefix().length();    <span class="comment">// 前缀的大小</span></span><br><span class="line">    pos = pos &gt; <span class="number">40</span> ? pos - <span class="number">40</span> : <span class="number">0</span>;       <span class="comment">// 想要最多40个字符</span></span><br><span class="line">    <span class="built_in">cout</span> &lt;&lt; it-&gt;prefix().str().substr(pos)          <span class="comment">// 前缀的最后一部分</span></span><br><span class="line">        &lt;&lt; <span class="string">"\n\t\t&gt;&gt;&gt; "</span> &lt;&lt; it-&gt;str() &lt;&lt; <span class="string">" &lt;&lt;&lt;\n"</span>    <span class="comment">// 匹配的单词</span></span><br><span class="line">        &lt;&lt; it-&gt;suffix().str().substr(<span class="number">0</span>, <span class="number">40</span>)         <span class="comment">// 后缀的第一部分</span></span><br><span class="line">        &lt;&lt; <span class="built_in">endl</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<table>
+<thead>
+<tr>
+<th>smatch操作</th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>m.ready()</td>
+<td>如果已经通过调用regex_search或regex_match设置了m，则返回true；否则返回false。如果ready返回false，则对m进行操作是未定义的</td>
+</tr>
+<tr>
+<td>m.size()</td>
+<td>如果匹配失败，则返回0；否则返回最近一次匹配的正则表达式中子表达式的数目</td>
+</tr>
+<tr>
+<td>m.empty()</td>
+<td>若m.size()为0，则返回true</td>
+</tr>
+<tr>
+<td>m.prefix()</td>
+<td>一个ssub_match对象，表示当前匹配之前的序列</td>
+</tr>
+<tr>
+<td>m.suffix()</td>
+<td>一个ssub_match对象，表示当前匹配之后的部分</td>
+</tr>
+<tr>
+<td>m.format(…)</td>
+<td>…</td>
+</tr>
+<tr>
+<td>m.length(n)</td>
+<td>第n个匹配的子表达式的大小</td>
+</tr>
+<tr>
+<td>m.position(n)</td>
+<td>第n个子表达式距序列开始的距离</td>
+</tr>
+<tr>
+<td>m.str(n)</td>
+<td>第n个子表达式匹配的string</td>
+</tr>
+<tr>
+<td>m[n]</td>
+<td>对应第n个子表达式的ssub_match对象</td>
+</tr>
+<tr>
+<td>m.begin(),m.end()<br>m.cbegin(), m.cend()</td>
+<td>m中sub_match元素范围的迭代器。与往常一样，cbegin和cend返回const_iterator</td>
+</tr>
+</tbody>
+</table>
+<h3 id="使用子表达式"><a href="#使用子表达式" class="headerlink" title="使用子表达式"></a>使用子表达式</h3><p>正则表达式中的模式通常包含一个或多个子表达式。子表达式是模式的一部分，本身也有意义。正则表达式语法通常用括号表示子表达式。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// r有两个子表达式：第一个是点之前表示文件名的部分，第二个表示文件扩展名</span></span><br><span class="line"><span class="function">regex <span class="title">r</span><span class="params">(<span class="string">"([[:alnum:]]+)\\.(cpp|cxx|cc)$"</span>,regex::icase)</span></span>;</span><br></pre></td></tr></table></figure>
+<p>前者匹配一个或多个字符的序列，后者匹配三种文件扩展名。</p>
+<blockquote>
+<p>因为反斜线<code>\</code>是C++中的特殊字符，所以在模式中使用<code>\</code>时，需要一个额外的反斜线进行转义。</p>
+</blockquote>
+<p>匹配对象除了提供匹配整体的相关信息外，还可以用来访问模式中的每个子表达式。子匹配是按位置来访问的，第一个子匹配位置为0，表示整个模式对应的匹配，随后是每个子表达式对应的匹配。</p>
+<p>子表达式的一个常见用途是验证必须匹配特定格式的数据，如电话号码和电子邮箱地址。</p>
+<p>ECMAScript正则表达式语言的一些特性：</p>
+<ul>
+<li>模式<code>[[:alnum:]]</code>匹配任意字母。</li>
+<li>符号<code>+</code>表示匹配一个或多个字符。</li>
+<li>符号<code>*</code>表示匹配零个或多个字符。</li>
+<li><code>\{d}</code>表示单个数字，<code>\{d}{n}</code>表示一个n个数字的序列。</li>
+<li>在方括号中的字符集合表示匹配这些字符中的任意一个。</li>
+<li>后接<code>?</code>的组件是可选的。</li>
+<li>类似C++，ECMAScript使用反斜线进行转义。由于模式包含括号，而括号是ECMAScript中的特殊字符，因此需要用<code>\(</code>和<code>\)</code>来表示括号是模式的一部分。</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>子匹配操作</th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>matched</td>
+<td>一个public bool数据成员，指出此ssub_match是否匹配了</td>
+</tr>
+<tr>
+<td>first<br>second</td>
+<td>public数据成员，指向匹配序列首元素和尾后位置的迭代器。如果未匹配，则first和second相等</td>
+</tr>
+<tr>
+<td>length()</td>
+<td>匹配的大小。如果matched为false，则返回0</td>
+</tr>
+<tr>
+<td>str()</td>
+<td>返回一个包含输入中匹配部分的string。如果matched为false，则返回空string</td>
+</tr>
+<tr>
+<td>s = ssub</td>
+<td>将ssub_match对象ssub转化为string对象s。等价于s = ssub.str()。转换运算符不是explicit的</td>
+</tr>
+</tbody>
+</table>
+<h3 id="regex-replace"><a href="#regex-replace" class="headerlink" title="regex_replace"></a>regex_replace</h3><table>
+<thead>
+<tr>
+<th>RE的替换操作</th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>m.format(dest, fmt, mft)<br>m.format(fmt, mft)</td>
+<td>使用格式字符串fmt生成格式化输出，匹配在m中，可选的match_flag_type标志在mft中。第一个版本写入迭代器dest指向的目的位置并接受fmt参数，第二个版本返回string，保存输出，并接受fmt参数。mft的默认值为format_default</td>
+</tr>
+<tr>
+<td>regex_replace(dest,seq,r,fmt,mft)<br>regex_replace(seq,r,fmt,mft)</td>
+<td>遍历seq，用regex_search查找与regex对象r匹配的子串。使用格式字符串fmt和可选的match_flag_type标志来生成输出。第一个版本将输出写入到迭代器dest指定的位置，并接受一对迭代器seq表示范围；第二个版本返回string保存输出。mft默认值为match_default</td>
+</tr>
+</tbody>
+</table>
+<p>匹配标志：(在<code>regex_constants::match_flag_type</code>中)</p>
+<ul>
+<li>match_default    - 等价于format_default</li>
+<li>match_not_bol - 不将首字符作为行首处理</li>
+<li>match_not_eol - 不将尾字符作为行尾处理</li>
+<li>match_not_bow - 不将首字符作为单词首处理</li>
+<li>match_not_eow - 不将尾字符作为单词尾处理</li>
+<li>match_any - 如果存在多于一个匹配，则可返回任意一个匹配</li>
+<li>match_not_null - 不匹配任何空序列</li>
+<li>match_continuous - 匹配必须从输入的首字符开始</li>
+<li>match_prev_avail - 输入序列包含第一个匹配之前的内容</li>
+<li>format_default - 用ECMAScript规则替换字符串</li>
+<li>format_sed - 用POSIX sed规则替换字符串</li>
+<li>format_no_copy - 不输出输入序列中未匹配的部分</li>
+<li>format_first_only - 只替换子表达式的第一次出现</li>
+</ul>
+<p>默认情况下，<code>regex_replace</code>输出整个输入序列。未与正则表达式匹配的部分会原样输出，匹配的部分按照格式字符串指定的格式输出。使用<code>format_no_copy</code>标志可以只输出匹配部分。</p>
+<h2 id="随机数"><a href="#随机数" class="headerlink" title="随机数"></a>随机数</h2><p>在新标准出现之前，C和C++都依赖于一个简单的C库函数<code>rand</code>来生成随机数。该函数生成均匀分布的伪随机整数，每个随机数的范围在0和一个系统相关的最大值（至少为32767）之间。</p>
+<p>头文件<em>random</em>中的随机数库定义了一组类来解决rand函数的一些问题：随机数引擎类（random-number engines）可以生成unsigned随机数序列；随机数分布类（random-number distribution classes）使用引擎类生成指定类型、范围和概率分布的随机数。</p>
+<p>随机数库的组成:</p>
+<ul>
+<li>引擎 - 类型，生成随机unsigned整数序列</li>
+<li>分布 - 类型，使用引擎返回服从特定概率分布的随机数</li>
+</ul>
+<p>C++程序不应该使用rand函数，而应该使用<code>default_random_engine</code>类和恰当的分布类对象。</p>
+<h3 id="随机数引擎和分布"><a href="#随机数引擎和分布" class="headerlink" title="随机数引擎和分布"></a>随机数引擎和分布</h3><p>随机数引擎是函数对象类，定义了一个不接受参数的调用运算符，返回一个随机unsigned整数。调用一个随机数引擎对象可以生成原始随机数。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">default_random_engine e;	<span class="comment">//生成随机无符号数</span></span><br><span class="line"><span class="keyword">for</span>(<span class="keyword">size_t</span> i=<span class="number">0</span>;i&lt;<span class="number">10</span>;i++)</span><br><span class="line">  	<span class="built_in">cout</span> &lt;&lt; e() &lt;&lt; <span class="string">" "</span>;	<span class="comment">//调用对象e()生成下一个随机数</span></span><br></pre></td></tr></table></figure>
+<table>
+<thead>
+<tr>
+<th>随机数引擎操作</th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Engine e;</td>
+<td>默认构造函数；使用该引擎类型默认的种子</td>
+</tr>
+<tr>
+<td>Engine e(s);</td>
+<td>使用整型值s作为种子</td>
+</tr>
+<tr>
+<td>e.seed(s)</td>
+<td>使用种子s重置引擎状态</td>
+</tr>
+<tr>
+<td>e.min()<br>e.max()</td>
+<td>此引擎可生成的最小最大值</td>
+</tr>
+<tr>
+<td>Engine::result_type</td>
+<td>此引擎生成的unsigned整型类型</td>
+</tr>
+<tr>
+<td>e.discard(u)</td>
+<td>将引擎推进u步，u的类型为unsigned long long</td>
+</tr>
+</tbody>
+</table>
+<p>使用分布类对象可以得到指定范围的随机数。新标准库的<code>uniform_int_distribution&lt;unsigned&gt;</code>类型生成均匀分布的unsigned值。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//生成0到9之间的均匀分布的随机数</span></span><br><span class="line">uniform_int_distribution&lt;<span class="keyword">unsigned</span>&gt; u(<span class="number">0</span>,<span class="number">9</span>);</span><br><span class="line">default_random_engine e;    <span class="comment">// 生成无符号随机整数</span></span><br><span class="line"><span class="keyword">for</span> (<span class="keyword">size_t</span> i = <span class="number">0</span>; i &lt; <span class="number">10</span>; ++i)</span><br><span class="line">    <span class="comment">// u作为随机数源</span></span><br><span class="line">    <span class="comment">// 每个调用返回在指定范围内并服从均匀分布的值</span></span><br><span class="line">    <span class="built_in">cout</span> &lt;&lt; u(e) &lt;&lt; <span class="string">" "</span>;</span><br></pre></td></tr></table></figure>
+<p>分布类型也是函数对象，定义了一个调用运算符，它接受一个随机数引擎作为参数。分布对象用引擎参数生成随机数，并映射到指定的分布。</p>
+<p>通常所说的随机数发生器，是指分布对象和引擎对象的组合。</p>
+<p>rand函数的生成范围在0到<code>RAND_MAX</code>之间，随机数引擎生成的unsigned整数在一个系统定义的范围内。一个引擎类型的范围可以通过调用该类型对象的<code>min</code>和<code>max</code>成员来获得。</p>
+<p>即使随机数发生器生成的数看起来是随机的，但对于一个给定的发生器，每次运行程序时它都会返回相同的数值序列（所谓的伪随机）。</p>
+<p>如果函数需要局部的随机数发生器，应该将其（包括引擎和分布对象）定义为static对象，这样随机数发生器就能在函数调用期间保持状态。否则每次调用函数都会生成相同的序列。</p>
+<p>可以为引擎提供一个seed，让引擎在程序每次运行时生成不同的序列。种子是一个数值，引擎利用它从序列中的一个新位置重新开始生成随机数。</p>
+<p>为引擎设置种子有两种方式：</p>
+<ul>
+<li>在创建对象时提供种子。</li>
+<li>调用引擎的<code>seed</code>成员设置种子。</li>
+</ul>
+<p>选择种子的常用方法是调用系统函数<code>time</code>。该函数定义在头文件<em>ctime</em>中，返回从一个特定时刻到当前经过的秒数。time函数接受单个指针参数，指向用于写入时间的数据结构。如果指针为空，则函数简单地返回时间。</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">default_random_engine eq(time(0));</span><br></pre></td></tr></table></figure>
+<p>由于time函数返回以秒计算的时间，因此用time返回值作为种子的方式只适用于生成种子的间隔为秒级或更长时间的应用。另外如果程序作为一个自动过程的一部分反复运行，这种方式也会无效，可能多次使用的是相同的种子。</p>
+<h3 id="其他随机数分布"><a href="#其他随机数分布" class="headerlink" title="其他随机数分布"></a>其他随机数分布</h3><p>随机数引擎生成的unsigned数，范围内生成的数是均匀分布的。可以通过定义不同分布类型来满足其他分布的要求。</p>
+<table>
+<thead>
+<tr>
+<th>分布类型操作</th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Dist d;</td>
+<td>默认构造；其他构造依赖于Dist的类型，explicit</td>
+</tr>
+<tr>
+<td>d(e)</td>
+<td>用相同的e连续调用d的话，会根据d的分布式类型生成一个随机数序列；e是一个随机数引擎对象</td>
+</tr>
+<tr>
+<td>d.min()<b>d.max()</b></td>
+<td>返回d(e)能生成的最小值和最大值</td>
+</tr>
+<tr>
+<td>d.reset()</td>
+<td>重建d状态，使得随后对d的使用不依赖于d已经生成的值</td>
+</tr>
+</tbody>
+</table>
+<h4 id="随机浮点数"><a href="#随机浮点数" class="headerlink" title="随机浮点数"></a>随机浮点数</h4><p>从rand函数获得随机浮点数的一个常用但不正确的方法是用rand()的结果除以<em>RAND_MAX</em>。但因为随机整数的精度通常低于随机浮点数，所以使用这种方法时，有一些浮点值永远不会被生成。使用新标准库的<code>uniform_real_distribution</code>类型可以获得随机浮点数。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">default_random_engine e;</span><br><span class="line">uniform_real_distribution&lt;<span class="keyword">double</span>&gt; u(<span class="number">0</span>,<span class="number">1</span>);</span><br><span class="line"><span class="comment">//uniform_real_distribution&lt;&gt; u(0,1)也行，因为默认模板形参是double</span></span><br><span class="line"><span class="built_in">cout</span> &lt;&lt; u(e);</span><br></pre></td></tr></table></figure>
+<h4 id="非均匀分布的随机数"><a href="#非均匀分布的随机数" class="headerlink" title="非均匀分布的随机数"></a>非均匀分布的随机数</h4><p>标准库支持20种分布，不一一展开了。</p>
+<h2 id="IO库再探"><a href="#IO库再探" class="headerlink" title="IO库再探"></a>IO库再探</h2><h3 id="格式化输入和输出"><a href="#格式化输入和输出" class="headerlink" title="格式化输入和输出"></a>格式化输入和输出</h3><p>除了条件状态外，每个iostream对象还维护着一个格式状态来控制IO格式化细节。</p>
+<p>标准库定义了一组操纵符来修改流的格式状态。操纵符是一个函数或对象，会影响流的状态，并能作为输入和输出运算符的运算对象。类似输入和输出运算符，操纵符也返回它所处理的流对象，因此我们可以在一条语句中组合操纵符和数据。</p>
+<blockquote>
+<p>endl就是一种操纵符，写到输出流意味着换行并刷新缓冲区的操作。</p>
+</blockquote>
+<p>操纵符用于两大类输出控制：控制数值的输出格式，控制补白的数量和位置。大多数改变格式状态的操纵符都是设置/复原成对的，一个操纵符用于设置新格式，另一个用于恢复正常格式。</p>
+<p>当操纵符改变流的格式状态时，通常改变后的状态对所有后续IO都生效。</p>
+<h4 id="控制布尔值格式"><a href="#控制布尔值格式" class="headerlink" title="控制布尔值格式"></a>控制布尔值格式</h4><p>bool值默认打印0或1，可以对流使用boolalpha来操纵覆盖这种格式：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cout</span> &lt;&lt; <span class="string">"default bool values: "</span> &lt;&lt; <span class="literal">true</span> &lt;&lt; <span class="string">" "</span> &lt;&lt; <span class="literal">false</span></span><br><span class="line">  	&lt;&lt; <span class="string">"\nalpha bool values: "</span> &lt;&lt; boolalpha</span><br><span class="line">  	&lt;&lt; <span class="literal">true</span> &lt;&lt; <span class="string">" "</span> &lt;&lt; <span class="literal">false</span> &lt;&lt; <span class="built_in">endl</span>;</span><br></pre></td></tr></table></figure>
+<p>前者输出1和0，后者输出字符串true和false。</p>
+<p>取消cout格式的改变，可以用noboolalpha：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">bool</span> bool_val = get_status();</span><br><span class="line"><span class="built_in">cout</span> &lt;&lt; boolalpha &lt;&lt; bool_val &lt;&lt; noboolalpha;</span><br></pre></td></tr></table></figure>
+<h4 id="指定整型值的进制"><a href="#指定整型值的进制" class="headerlink" title="指定整型值的进制"></a>指定整型值的进制</h4><p>默认输出十进制，可以用hex、oct和dec改为十六进制、八进制和十进制。(只影响整型)</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cout</span> &lt;&lt; <span class="string">"default: "</span> &lt;&lt; <span class="number">20</span> &lt;&lt; <span class="string">" "</span> &lt;&lt; <span class="number">1024</span> &lt;&lt; <span class="built_in">endl</span>;</span><br><span class="line"><span class="built_in">cout</span> &lt;&lt; <span class="string">"octal: "</span> &lt;&lt; oct &lt;&lt; <span class="number">20</span> &lt;&lt; <span class="string">" "</span> &lt;&lt; <span class="number">1024</span> &lt;&lt; <span class="built_in">endl</span>;</span><br><span class="line"><span class="built_in">cout</span> &lt;&lt; <span class="string">"hex: "</span> &lt;&lt; hex &lt;&lt; <span class="number">20</span> &lt;&lt; <span class="string">" "</span> &lt;&lt; <span class="number">1024</span> &lt;&lt; <span class="built_in">endl</span>;</span><br><span class="line"><span class="built_in">cout</span> &lt;&lt; <span class="string">"decimal: "</span> &lt;&lt; dec &lt;&lt; <span class="number">20</span> &lt;&lt; <span class="string">" "</span> &lt;&lt; <span class="number">1024</span> &lt;&lt; <span class="built_in">endl</span>;</span><br></pre></td></tr></table></figure>
+<h4 id="输出中指出进制"><a href="#输出中指出进制" class="headerlink" title="输出中指出进制"></a>输出中指出进制</h4><p>用showbase操纵符可以指示输出的整型数显示是何种进制，其中0x前导表示十六进制，0前导表示八进制，无前导表示十进制。</p>
+<p>操纵符noshowbase恢复。</p>
+<h4 id="控制浮点数格式"><a href="#控制浮点数格式" class="headerlink" title="控制浮点数格式"></a>控制浮点数格式</h4><p>浮点数的输出格式涉及三个方面：</p>
+<ul>
+<li>输出精度（即输出多少个数字）。</li>
+<li>十六进制、定点十进制或者科学记数法形式输出。</li>
+<li>没有小数部分的浮点值是否输出小数点。</li>
+</ul>
+<p>默认情况下，浮点值按六位数字精度输出；如果浮点值没有小数部分，则不输出小数点；根据浮点数的值选择输出为定点十进制或科学计数法形式：非常大或非常小的值输出为科学记数法形式，其他值输出为定点十进制形式。</p>
+<p>默认情况下，精度控制输出的数字总位数。输出时，浮点值按照当前精度四舍五入而非截断。</p>
+<p>调用IO对象的<code>precision</code>成员或者使用<code>setprecision</code>操纵符可以改变精度。</p>
+<ul>
+<li>precision成员是重载的。一个版本接受一个int值，将精度设置为此值，并返回旧精度值。另一个版本不接受参数，直接返回当前精度值。</li>
+<li>setprecision操纵符接受一个参数来设置精度。</li>
+</ul>
+<p>setprecision操纵符和其他接受参数的操纵符都定义在头文件<em>iomanip</em>中。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// cout.precision返回当前精度值</span></span><br><span class="line"><span class="built_in">cout</span> &lt;&lt; <span class="string">"Precision: "</span> &lt;&lt; <span class="built_in">cout</span>.precision()</span><br><span class="line">    &lt;&lt; <span class="string">", Value: "</span> &lt;&lt; <span class="built_in">sqrt</span>(<span class="number">2.0</span>) &lt;&lt; <span class="built_in">endl</span>;</span><br><span class="line"><span class="comment">// cout.precision(12)将打印精度设置为12位数字</span></span><br><span class="line"><span class="built_in">cout</span>.precision(<span class="number">12</span>);</span><br><span class="line"><span class="built_in">cout</span> &lt;&lt; <span class="string">"Precision: "</span> &lt;&lt; <span class="built_in">cout</span>.precision()</span><br><span class="line">    &lt;&lt; <span class="string">", Value: "</span> &lt;&lt; <span class="built_in">sqrt</span>(<span class="number">2.0</span>) &lt;&lt; <span class="built_in">endl</span>;</span><br><span class="line"><span class="comment">// 另一种设置精度的方法是使用setprecision操纵符</span></span><br><span class="line"><span class="built_in">cout</span> &lt;&lt; setprecision(<span class="number">3</span>);</span><br><span class="line"><span class="built_in">cout</span> &lt;&lt; <span class="string">"Precision: "</span> &lt;&lt; <span class="built_in">cout</span>.precision()</span><br><span class="line">    &lt;&lt; <span class="string">", Value: "</span> &lt;&lt; <span class="built_in">sqrt</span>(<span class="number">2.0</span>) &lt;&lt; <span class="built_in">endl</span>;</span><br></pre></td></tr></table></figure>
+<table>
+<thead>
+<tr>
+<th>iostream中的操纵符</th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>boolalpha</td>
+<td>将true和false输出为字符串</td>
+</tr>
+<tr>
+<td>noboolalpha</td>
+<td>将true和false输出为1、0</td>
+</tr>
+<tr>
+<td>showbase</td>
+<td>对整型值输出表示进制的前缀</td>
+</tr>
+<tr>
+<td>noshowbase</td>
+<td>不生成表示进制的前缀</td>
+</tr>
+<tr>
+<td>showpoint</td>
+<td>对浮点值总是显示小数点</td>
+</tr>
+<tr>
+<td>noshowpoint</td>
+<td>只有当浮点值包含小数部分时才显示小数点</td>
+</tr>
+<tr>
+<td>showpos</td>
+<td>对非负数显示+</td>
+</tr>
+<tr>
+<td>noshowpos</td>
+<td>对非负数不显示+</td>
+</tr>
+<tr>
+<td>uppercase</td>
+<td>在十六进制值中打印0X，科学计数法中打印E</td>
+</tr>
+<tr>
+<td>nouppercase</td>
+<td>在十六进制值中打印0x，科学计数法中打印e</td>
+</tr>
+<tr>
+<td>dec</td>
+<td>整型值显示为十进制</td>
+</tr>
+<tr>
+<td>hex</td>
+<td>整型值显示为十六进制</td>
+</tr>
+<tr>
+<td>oct</td>
+<td>整型值显示为八进制</td>
+</tr>
+<tr>
+<td>left</td>
+<td>在值的右侧添加填充字符</td>
+</tr>
+<tr>
+<td>right</td>
+<td>在值的左侧添加填充字符</td>
+</tr>
+<tr>
+<td>internal</td>
+<td>在符号和值之间添加填充字符</td>
+</tr>
+<tr>
+<td>fixed</td>
+<td>浮点值显示为定点十进制</td>
+</tr>
+<tr>
+<td>scientific</td>
+<td>浮点值显示为科学计数法</td>
+</tr>
+<tr>
+<td>hexfloat</td>
+<td>浮点值显示为十六进制</td>
+</tr>
+<tr>
+<td>defaultfloat</td>
+<td>重置浮点数格式为十进制</td>
+</tr>
+<tr>
+<td>unitbuf</td>
+<td>每次输出操作后都刷新缓冲区</td>
+</tr>
+<tr>
+<td>nounitbuf</td>
+<td>恢复正常的缓冲区刷新方式</td>
+</tr>
+<tr>
+<td>skipws</td>
+<td>输入运算符跳过空白符</td>
+</tr>
+<tr>
+<td>noskipws</td>
+<td>输入运算符不跳过空白符</td>
+</tr>
+<tr>
+<td>flush</td>
+<td>刷新ostream缓冲区</td>
+</tr>
+<tr>
+<td>ends</td>
+<td>插入空字符，然后刷新ostream缓冲区</td>
+</tr>
+<tr>
+<td>endl</td>
+<td>插入换行，然后刷新ostream缓冲区</td>
+</tr>
+</tbody>
+</table>
+<table>
+<thead>
+<tr>
+<th>定义在iomanip中的操纵符</th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>setfill(ch)</td>
+<td>用ch填充空白</td>
+</tr>
+<tr>
+<td>setprecision(n)</td>
+<td>浮点精度设置为n</td>
+</tr>
+<tr>
+<td>setw(w)</td>
+<td>读写值的宽度为w个字符</td>
+</tr>
+<tr>
+<td>setbase(b)</td>
+<td>将整数输出为b进制</td>
+</tr>
+</tbody>
+</table>
+<h3 id="未格式化的IO操作"><a href="#未格式化的IO操作" class="headerlink" title="未格式化的IO操作"></a>未格式化的IO操作</h3><p>标准库还提供了一组低层操作，支持未格式化IO。允许将一个流作一个无解释的字节序列来处理。</p>
+<p>操作分两类，单字节操作和多字节操作。</p>
+<table>
+<thead>
+<tr>
+<th>单字节低层IO操作</th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>is.get(ch)</td>
+<td>从istream is读取下一个字节存入字符ch中。返回is</td>
+</tr>
+<tr>
+<td>os.put(ch)</td>
+<td>将字符ch输出到ostream os。返回os</td>
+</tr>
+<tr>
+<td>is.get()</td>
+<td>将is的下一个字节作为int返回</td>
+</tr>
+<tr>
+<td>is.putback(ch)</td>
+<td>将字符ch放回is。返回is</td>
+</tr>
+<tr>
+<td>is.unget()</td>
+<td>将is向后移动一个字节。返回is</td>
+</tr>
+<tr>
+<td>is.peek()</td>
+<td>将下一个字节作为int返回，但不从流中删除它</td>
+</tr>
+</tbody>
+</table>
+<table>
+<thead>
+<tr>
+<th>多字节低层IO操作</th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>is.get(sink, size, delim)</td>
+<td>从is中读取最多size个字节，并保存在字符数组中，字符数组的起始地址由sink给出。读取过程直至遇到字符delim或读取了size个字节或遇到文件尾时停止。如果遇到了delim，则将其留在输入流中，不读取出来存入sink</td>
+</tr>
+<tr>
+<td>is.getline(sink,size,delim)</td>
+<td>与接受三个参数的get版本莱斯，但会读取并丢弃delim</td>
+</tr>
+<tr>
+<td>is.read(sink, size)</td>
+<td>读取最多size个字节，存入字符数组sink中。返回is</td>
+</tr>
+<tr>
+<td>is.gcount()</td>
+<td>返回上一个未格式化读取操作从is读取的字节数</td>
+</tr>
+<tr>
+<td>os.write(source, size)</td>
+<td>将字符数组source中的size个字节写入os。返回os</td>
+</tr>
+<tr>
+<td>is.ignore(size, delim)</td>
+<td>读取并忽略最多size个字符，包括delim。与其他未格式化函数不同，ignore有默认参数：size默认值为1，delim默认值为文件尾</td>
+</tr>
+</tbody>
+</table>
+<h3 id="流随机访问"><a href="#流随机访问" class="headerlink" title="流随机访问"></a>流随机访问</h3><p>各种流类型通常都支持对流中数据的随机访问。我们可以重定位流，使之跳过一些数据。</p>
+<table>
+<thead>
+<tr>
+<th>seek和tell</th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>tellg()<br>tellp()</td>
+<td>返回一个输入流中(tellg)或输出流(tellp)中标记的当前位置</td>
+</tr>
+<tr>
+<td>seekg(pos)<br>seekp(pos)</td>
+<td>在一个输入流或输出流中将标记重定位到给定的绝对地址。pos通常是前一个tellg或tellp的返回值</td>
+</tr>
+<tr>
+<td>seekp(off, from)<br>seekg(off, from)</td>
+<td>在一个输入流或输出流中将标记定位到from之前或之后off个字符，from可以是下列值之一: beg，偏移量相对于流开始位置；cur，偏移量相对于流当前位置；end，偏移量相对于流结尾位置</td>
+</tr>
+</tbody>
+</table>
+
+      
+      
+    </div>
+    
+  </div>
+  
+    
+    <div class="copyright">
+        <p><span>本文标题:</span><a href="/2018/12/06/C++ Primer - 标准库特殊设施/">C++ Primer - 标准库特殊设施</a></p>
+        <p><span>文章作者:</span><a href="/" title="访问 r00tk1t 的个人博客">r00tk1t</a></p>
+        <p><span>发布时间:</span>2018年12月06日 - 20时22分</p>
+        <p><span>最后更新:</span>2020年10月20日 - 21时01分</p>
+        <p>
+            <span>原始链接:</span><a class="post-url" href="/2018/12/06/C++ Primer - 标准库特殊设施/" title="C++ Primer - 标准库特殊设施">https://r00tk1ts.github.io/2018/12/06/C++ Primer - 标准库特殊设施/</a>
+            <span class="copy-path" data-clipboard-text="原文: https://r00tk1ts.github.io/2018/12/06/C++ Primer - 标准库特殊设施/　　作者: r00tk1t" title="点击复制文章链接"><i class="fa fa-clipboard"></i></span>
+            <script src="/js/clipboard.min.js"></script>
+            <script> var clipboard = new Clipboard('.copy-path'); </script>
+        </p>
+        <p>
+            <span>许可协议:</span><i class="fa fa-creative-commons"></i> <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/3.0/cn/" title="中国大陆 (CC BY-NC-SA 3.0 CN)" target = "_blank">"署名-非商用-相同方式共享 3.0"</a> 转载请保留原文链接及作者。
+        </p>
+    </div>
+
+
+
+<nav id="article-nav">
+  
+    <a href="/2018/12/08/C++ Primer - 用于大型程序的工具/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption"><</strong>
+      <div class="article-nav-title">
+        
+          C++ Primer - 用于大型程序的工具
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2018/12/03/C++ Primer - 模板与泛型编程/" id="article-nav-older" class="article-nav-link-wrap">
+      <div class="article-nav-title">C++ Primer - 模板与泛型编程</div>
+      <strong class="article-nav-caption">></strong>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+    <div id="toc" class="toc-article">
+    <strong class="toc-title">文章目录</strong>
+    <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#C-Primer-标准库特殊设施"><span class="toc-number">1.</span> <span class="toc-text">C++ Primer - 标准库特殊设施</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#tuple"><span class="toc-number">1.1.</span> <span class="toc-text">tuple</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#定义初始化tuple"><span class="toc-number">1.1.1.</span> <span class="toc-text">定义初始化tuple</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#bitset"><span class="toc-number">1.2.</span> <span class="toc-text">bitset</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#定义和初始化bitset"><span class="toc-number">1.2.1.</span> <span class="toc-text">定义和初始化bitset</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#bitset操作"><span class="toc-number">1.2.2.</span> <span class="toc-text">bitset操作</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#正则表达式"><span class="toc-number">1.3.</span> <span class="toc-text">正则表达式</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#正则表达式类与输入序列类型"><span class="toc-number">1.3.1.</span> <span class="toc-text">正则表达式类与输入序列类型</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#匹配与Regex迭代器类型"><span class="toc-number">1.3.2.</span> <span class="toc-text">匹配与Regex迭代器类型</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#使用子表达式"><span class="toc-number">1.3.3.</span> <span class="toc-text">使用子表达式</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#regex-replace"><span class="toc-number">1.3.4.</span> <span class="toc-text">regex_replace</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#随机数"><span class="toc-number">1.4.</span> <span class="toc-text">随机数</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#随机数引擎和分布"><span class="toc-number">1.4.1.</span> <span class="toc-text">随机数引擎和分布</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#其他随机数分布"><span class="toc-number">1.4.2.</span> <span class="toc-text">其他随机数分布</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#随机浮点数"><span class="toc-number">1.4.2.1.</span> <span class="toc-text">随机浮点数</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#非均匀分布的随机数"><span class="toc-number">1.4.2.2.</span> <span class="toc-text">非均匀分布的随机数</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#IO库再探"><span class="toc-number">1.5.</span> <span class="toc-text">IO库再探</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#格式化输入和输出"><span class="toc-number">1.5.1.</span> <span class="toc-text">格式化输入和输出</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#控制布尔值格式"><span class="toc-number">1.5.1.1.</span> <span class="toc-text">控制布尔值格式</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#指定整型值的进制"><span class="toc-number">1.5.1.2.</span> <span class="toc-text">指定整型值的进制</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#输出中指出进制"><span class="toc-number">1.5.1.3.</span> <span class="toc-text">输出中指出进制</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#控制浮点数格式"><span class="toc-number">1.5.1.4.</span> <span class="toc-text">控制浮点数格式</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#未格式化的IO操作"><span class="toc-number">1.5.2.</span> <span class="toc-text">未格式化的IO操作</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#流随机访问"><span class="toc-number">1.5.3.</span> <span class="toc-text">流随机访问</span></a></li></ol></li></ol></li></ol>
+</div>
+<input type="button" id="tocButton" value="隐藏目录"  title="点击按钮隐藏或者显示文章目录">
+
+<script src="https://7.url.cn/edu/jslib/comb/require-2.1.6,jquery-1.9.1.min.js"></script>
+<script>
+    var valueHide = "隐藏目录";
+    var valueShow = "显示目录";
+
+    if ($(".left-col").is(":hidden")) {
+        $("#tocButton").attr("value", valueShow);
+    }
+    $("#tocButton").click(function() {
+        if ($("#toc").is(":hidden")) {
+            $("#tocButton").attr("value", valueHide);
+            $("#toc").slideDown(320);
+        }
+        else {
+            $("#tocButton").attr("value", valueShow);
+            $("#toc").slideUp(350);
+        }
+    })
+    if ($(".toc").length < 1) {
+        $("#toc, #tocButton").hide();
+    }
+</script>
+
+
+
+
+
+
+
+    
+
+
+
+    <div class="scroll" id="post-nav-button">
+        
+            <a href="/2018/12/08/C++ Primer - 用于大型程序的工具/" title="上一篇: C++ Primer - 用于大型程序的工具">
+                <i class="fa fa-angle-left"></i>
+            </a>
+        
+        <a title="文章列表"><i class="fa fa-bars"></i><i class="fa fa-times"></i></a>
+        
+            <a href="/2018/12/03/C++ Primer - 模板与泛型编程/" title="下一篇: C++ Primer - 模板与泛型编程">
+                <i class="fa fa-angle-right"></i>
+            </a>
+        
+    </div>
+    <ul class="post-list"><li class="post-list-item"><a class="post-list-link" href="/2020/10/22/chromium-base库源码解读之引用计数拆解篇/">chromium-base库源码解读之引用计数拆解篇</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/12/16/深入探索禁忌目录之Effective C++篇/">深入探索禁忌目录之Effective C++篇</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/12/10/C++ Primer - 特殊工具与技术/">C++ Primer - 特殊工具与技术</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/12/08/C++ Primer - 用于大型程序的工具/">C++ Primer - 用于大型程序的工具</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/12/06/C++ Primer - 标准库特殊设施/">C++ Primer - 标准库特殊设施</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/12/03/C++ Primer - 模板与泛型编程/">C++ Primer - 模板与泛型编程</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/12/01/C++ Primer - 面向对象程序设计/">C++ Primer - 面向对象程序设计</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/29/C++ Primer - 重载运算与类型转换/">C++ Primer - 重载运算与类型转换</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/29/C++ Primer - 拷贝控制/">C++ Primer - 拷贝控制</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/26/C++ Primer - 动态内存/">C++ Primer - 动态内存</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/26/C++ Primer - 关联容器/">C++ Primer - 关联容器</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/24/C++ Primer - 泛型算法/">C++ Primer - 泛型算法</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/24/C++ Primer - 顺序容器/">C++ Primer - 顺序容器</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/21/C++ Primer - IO库/">C++ Primer - IO库</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/21/C++ Primer - 类/">C++ Primer - 类</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/20/C++ Primer - 函数/">C++ Primer - 函数</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/20/C++ Primer - 语句/">C++ Primer -语句</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/20/C++ Primer - 表达/">C++ Primer - 表达式</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/10/28/C++ Primer - string, vector & array/">C++ Primer - string, vector, array</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/10/28/C++ Primer - 变量和基本类型/">C++ Primer - 变量和基本类型</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/08/25/C++ Templates Note - 类模板/">C++ Templates Note - 类模板</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/08/25/C++ Templates Note - 函数模板/">C++ Templates Note- 函数模板</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/08/13/Linux内存管理-进程地址空间/">Linux内核学习——内存管理之进程地址空间</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/07/07/一次失败的栈溢出(SEH)之GetGo Download Manager/">一次失败的栈溢出(SEH)之GetGo Download Manager</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/06/28/DNSTracer 1.9栈溢出漏洞[CVE-2017-9430]/">DNSTracer 1.9栈溢出漏洞[CVE-2017-9430]</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/06/24/A Tale of Exploit Easy RM 2 MP3 Converter/">A Tale of Exploit "Easy RM 2 MP3</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/06/03/chromium-sandbox-ThreadProcess-analysis/">Chromium-sandbox-ThreadProcess-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/06/03/chromium-sandbox-Filesystem-analysis/">Chromium-sandbox-Filesystem-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/06/03/chromium-sandbox-LowLevelPolicy-analysis/">Chromium-sandbox-LowLevelPolicy-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/26/chromium-sandbox-PolicyEngine-analysis/">Chromium-sandbox-PolicyEngine-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/26/chromium-sandbox-Resolver-analysis/">Chromium-sandbox-Resolver-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/26/chromium-sandbox-Interception/">Chromium-sandbox-Interception-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/21/chromium-sandbox-HandleCloser-analysis/">Chromium-sandbox-HandleCloser-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/20/chromium-sandbox-SharedMemIPC/">Chromium-sandbox-SharedMemIPC-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/19/chromium-sandbox-Crosscall-analysis/">Chromium-sandbox-crosscall-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/19/chromium-sandbox-AlternateDesktop-analysis/">Chromium-sandbox-AlternateDesktop-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/19/chromium-sandbox-Tokens-analysis/">Chromium-sandbox-Tokens-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/14/chromium-sandbox-Job-analysis/">Chromium-sandbox-Job-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/13/chromium-sandbox-TargetPolicy-analysis/">Chromium-sandbox-TargetPolicy-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/13/chromium-sandbox-TargetProcess-analysis/">Chromium-sandbox-TargetProcess-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/13/chromium-sandbox-TargetServices-analysis/">Chromium-sandbox-TargetServices-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/13/chromium-sandbox-BrokerServices/">Chromium-sandbox-BrokerServices-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/04/05/x41-浏览器安全白皮书笔记/">X41-浏览器安全白皮书读书笔记</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/22/Windows系统机制之同步/">Windows系统机制之同步</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/21/Windows系统机制之对象管理器/">Windows系统机制之对象管理器</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/21/Windows系统机制之陷阱分发/">Windows系统机制之陷阱分发</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/21/Bitmaps轶事：Windows 10纪念版前的GDI对象泄露/">Bitmap轶事：Windows 10纪念版后的GDI对象泄露</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/20/理解池污染三部曲/">理解池污染三部曲</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/19/内核利用程序之Razer rzpnk.sys中的逻辑bug/">Windows exploit系列教程第十九篇：内核利用程序之Razer rzpnk.sys中的逻辑bug</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/19/内核利用程序之RS2 Bitmap巫术/">Windows exploit系列教程第十八篇：内核利用程序之RS2 Bitmap巫术</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/15/内核利用程序之滥用GDI Bitmap/">Windows exploit系列教程第十七部分：内核利用程序之任意位置任意写</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/14/内核利用程序之池溢出/">Windows exploit系列教程第十六部分：内核利用程序之池溢出</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/14/内核利用程序之UAF/">Windows exploit系列教程第十五部分：内核利用程序之UAF</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/10/coin1/">Writeup.pwnable.kr系列之coin1</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/10/shellshock/">Writeup.pwnable.kr系列之shellshock</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/09/mistake/">Writeup.pwnable.kr系列之mistake</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/07/leg/">Writeup.pwnable.kr系列之leg</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/06/input/">Writeup.pwnable.kr系列之input</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/05/random/">Writeup.pwnable.kr系列之random</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/05/passcode/">Writeup.pwnable.kr系列之passcode</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/04/flag/">Writeup.pwnable.kr系列之flag</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/04/bof/">Writeup.pwnable.kr系列之bof</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/03/collision/">Writeup.pwnable.kr系列之collision</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/03/fd/">Writeup.pwnable.kr系列之fd</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/02/26/Binary Security Assembly/">Binary-Security-Assembly</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/02/07/内核利用程序之整数溢出/">Windows exploit系列教程第十四部分：内核利用程序之整数溢出</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/02/06/内核利用程序之未初始化栈变量/">Windows exploit系列教程第十三部分：内核利用程序之未初始化栈变量</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/02/06/内核利用程序之空指针引用/">Windows exploit系列教程第十二部分：内核利用程序之空指针引用</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/02/01/内核利用程序之任意位置任意写/">Windows exploit系列教程第十一部分：内核利用程序之任意位置任意写</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/01/15/ring0层exp原语之滥用GDI/">ring0层exp原语之滥用GDI</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/01/14/Windows x64内核提权/">Windows x64内核提权</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/01/14/关键的Windows内核数据结构一览（下）/">关键的Windows内核数据结构一览（下）</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/01/08/关键的Windows内核数据结构一览（上）/">关键的Windows内核数据结构一览（上）</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/01/06/内核利用程序开发之栈溢出/">Windows exploit系列教程第十部分：内核利用程序之栈溢出</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/01/05/堆喷射[第二章：UAF]/">Windows exploit系列教程第九部分：堆喷射[第二章：UAF]</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/12/30/Kernel Driver mmap Handler Exploitation/">内核驱动mmap Handler利用技术</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/12/28/API Interception via DLL Redirection/">通过DLL重定向实现API劫持</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/12/21/Linux中断内幕/">Linux中断内幕</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/12/19/Windows架构设计/">Windows架构设计</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/10/30/house_of_force.log/">house_of_force log</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/10/25/Linux内存管理-非连续内存区管理/">Linux内核学习——内存管理之非连续内存区管理</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/10/24/Linux内存管理-内存区管理/">Linux内核学习——内存管理之内存区管理</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/10/20/Linux内存管理-页框管理/">Linux内核学习——内存管理之页框管理</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/10/19/first_fit.log/">first_fit log</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/10/19/house_of_einherjar.log/">house_of_einherjar log</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/10/18/fastbin_dup_into_stack.log/">fastbin_dup_into_stack log</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/10/12/fastbin_dup.log/">fastbin_dup log</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/09/23/Windows栈溢出之ret eip/">Windows栈溢出之ret eip</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/09/23/Windows栈溢出概述/">Windows栈溢出概述</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/09/16/DEFCON-2015-r0pbaby/">DEFCON-2015-r0pbaby</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/09/11/PWN选手的自我修养/">PWN选手的自我修养</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/08/27/linearsort/">linear sort</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/08/27/quicksort/">quicksort</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/08/27/heapsort&priority-queue/">heapsort & priority-queue</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/08/27/Linux进程的创建与撤销/">Linux内核学习——Linux进程的创建与撤销</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/08/26/Linux进程切换/">Linux内核学习——Linux进程切换</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/08/24/GNU Hash ELF Sections/">GNU Hash ELF Sections</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/08/22/Linux进程概述/">Linux内核学习——Linux进程概述</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/08/18/Linux内存寻址/">Linux内核学习——内存寻址</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/05/15/PlaySms  1.4代码执行漏洞之import csv/">PlaySms 1.4代码执行漏洞之import csv</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/05/15/PlaySms  1.4代码执行漏洞分析/">PlaySms 1.4代码执行漏洞分析</a></li></ul>
+    <script src="https://7.url.cn/edu/jslib/comb/require-2.1.6,jquery-1.9.1.min.js"></script>
+    <script>
+        $(".post-list").addClass("toc-article");
+        $(".post-list-item a").attr("target","_blank");
+        $("#post-nav-button > a:nth-child(2)").click(function() {
+            $(".fa-bars, .fa-times").toggle();
+            $(".post-list").toggle(300);
+            if ($(".toc").length > 0) {
+                $("#toc, #tocButton").toggle(200, function() {
+                    if ($(".switch-area").is(":visible")) {
+                        $("#tocButton").attr("value", valueHide);
+                        }
+                    })
+            }
+            else {
+            }
+        })
+    </script>
+
+
+
+    <script>
+        
+    </script>
+</div>
+      <footer id="footer">
+    <div class="outer">
+        <div id="footer-info">
+            <div class="footer-left">
+                &copy; 2020 r00tk1t
+            </div>
+            <div class="footer-right">
+                <a href="http://hexo.io/" target="_blank">Hexo</a>  Theme <a href="https://github.com/luuman/hexo-theme-spfk" target="_blank">spfk</a> by luuman
+            </div>
+        </div>
+        
+            <div class="visit">
+                
+                    <span id="busuanzi_container_site_pv" style='display:none'>
+                        <span id="site-visit" >访问数量: 
+                            <span id="busuanzi_value_site_uv"></span>
+                        </span>
+                    </span>
+                
+                
+                    <span>, </span>
+                
+                
+                    <span id="busuanzi_container_page_pv" style='display:none'>
+                        <span id="page-visit">本页阅读量: 
+                            <span id="busuanzi_value_page_pv"></span>
+                        </span>
+                    </span>
+                
+            </div>
+        
+    </div>
+</footer>
+
+    </div>
+    <script src="https://7.url.cn/edu/jslib/comb/require-2.1.6,jquery-1.9.1.min.js"></script>
+<script src="/js/main.js"></script>
+
+    <script>
+        $(document).ready(function() {
+            var backgroundnum = 24;
+            var backgroundimg = "url(/background/bg-x.jpg)".replace(/x/gi, Math.ceil(Math.random() * backgroundnum));
+            $("#mobile-nav").css({"background-image": backgroundimg,"background-size": "cover","background-position": "center"});
+            $(".left-col").css({"background-image": backgroundimg,"background-size": "cover","background-position": "center"});
+        })
+    </script>
+
+
+
+
+
+<div class="scroll" id="scroll">
+    <a href="#"><i class="fa fa-arrow-up"></i></a>
+    <a href="#comments"><i class="fa fa-comments-o"></i></a>
+    <a href="#footer"><i class="fa fa-arrow-down"></i></a>
+</div>
+<script>
+    $(document).ready(function() {
+        if ($("#comments").length < 1) {
+            $("#scroll > a:nth-child(2)").hide();
+        };
+    })
+</script>
+
+<script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js">
+</script>
+
+  <script language="javascript">
+    $(function() {
+        $("a[title]").each(function() {
+            var a = $(this);
+            var title = a.attr('title');
+            if (title == undefined || title == "") return;
+            a.data('title', title).removeAttr('title').hover(
+
+            function() {
+                var offset = a.offset();
+                $("<div id=\"anchortitlecontainer\"></div>").appendTo($("body")).html(title).css({
+                    top: offset.top - a.outerHeight() - 15,
+                    left: offset.left + a.outerWidth()/2 + 1
+                }).fadeIn(function() {
+                    var pop = $(this);
+                    setTimeout(function() {
+                        pop.remove();
+                    }, pop.text().length * 800);
+                });
+            }, function() {
+                $("#anchortitlecontainer").remove();
+            });
+        });
+    });
+</script>
+
+
+  </div>
+</body>
+</html>

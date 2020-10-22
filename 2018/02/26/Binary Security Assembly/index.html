@@ -1,0 +1,1440 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>Binary-Security-Assembly | r00tk1t&#39;s blog</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="在二进制研究中对优质的资源进行整合。老年人表示好记性的确不如烂笔头。方便自己lookup&amp;amp;review，也为后来人乘凉。本博文永久更新。">
+<meta name="keywords" content="resources,tutorial">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Binary-Security-Assembly">
+<meta property="og:url" content="https://r00tk1ts.github.io/2018/02/26/Binary Security Assembly/index.html">
+<meta property="og:site_name" content="r00tk1t&#39;s blog">
+<meta property="og:description" content="在二进制研究中对优质的资源进行整合。老年人表示好记性的确不如烂笔头。方便自己lookup&amp;amp;review，也为后来人乘凉。本博文永久更新。">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="https://r00tk1ts.github.io/images/misc/20180226_1.jpg">
+<meta property="og:image" content="https://r00tk1ts.github.io/images/misc/20180226_2.jpg">
+<meta property="og:image" content="https://r00tk1ts.github.io/images/misc/20180226_3.jpg">
+<meta property="og:image" content="https://r00tk1ts.github.io/images/misc/20180226_4.jpg">
+<meta property="og:image" content="https://r00tk1ts.github.io/images/misc/20180226_5.jpg">
+<meta property="og:image" content="https://r00tk1ts.github.io/images/misc/20180226_6.jpg">
+<meta property="og:image" content="https://r00tk1ts.github.io/images/misc/20180226_7.jpg">
+<meta property="og:image" content="https://r00tk1ts.github.io/images/misc/20180226_8.jpg">
+<meta property="og:image" content="https://r00tk1ts.github.io/images/misc/20180226_9.jpg">
+<meta property="og:image" content="https://r00tk1ts.github.io/images/misc/20180226_10.jpg">
+<meta property="og:image" content="https://r00tk1ts.github.io/images/misc/20180226_11.jpg">
+<meta property="og:image" content="https://r00tk1ts.github.io/images/misc/20180226_12.jpg">
+<meta property="og:image" content="https://r00tk1ts.github.io/images/misc/20180226_13.jpg">
+<meta property="og:image" content="https://r00tk1ts.github.io/images/misc/20180226_14.jpg">
+<meta property="og:image" content="https://r00tk1ts.github.io/images/misc/20180226_15.jpg">
+<meta property="og:image" content="https://r00tk1ts.github.io/images/misc/20180226_16.jpg">
+<meta property="og:image" content="https://r00tk1ts.github.io/images/misc/20180226_17.jpg">
+<meta property="og:image" content="https://r00tk1ts.github.io/images/misc/20180226_18.jpg">
+<meta property="og:image" content="https://r00tk1ts.github.io/images/misc/20180226_19.jpg">
+<meta property="og:image" content="https://r00tk1ts.github.io/images/misc/20180226_20.jpg">
+<meta property="og:image" content="https://r00tk1ts.github.io/images/misc/20180226_21.jpg">
+<meta property="og:image" content="https://r00tk1ts.github.io/images/misc/20180226_22.jpg">
+<meta property="og:image" content="https://r00tk1ts.github.io/images/misc/20180226_23.jpg">
+<meta property="og:image" content="https://r00tk1ts.github.io/images/misc/20180226_24.jpg">
+<meta property="og:image" content="https://r00tk1ts.github.io/images/misc/20180226_25.jpg">
+<meta property="og:image" content="https://r00tk1ts.github.io/images/misc/20180226_26.jpg">
+<meta property="og:image" content="https://r00tk1ts.github.io/images/misc/20180226_27.jpg">
+<meta property="og:image" content="https://r00tk1ts.github.io/images/misc/20180226_28.jpg">
+<meta property="og:image" content="https://r00tk1ts.github.io/images/misc/20180226_29.jpg">
+<meta property="og:updated_time" content="2020-10-20T13:01:02.339Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Binary-Security-Assembly">
+<meta name="twitter:description" content="在二进制研究中对优质的资源进行整合。老年人表示好记性的确不如烂笔头。方便自己lookup&amp;amp;review，也为后来人乘凉。本博文永久更新。">
+<meta name="twitter:image" content="https://r00tk1ts.github.io/images/misc/20180226_1.jpg">
+  
+    <link rel="alternative" href="/atom.xml" title="r00tk1t&#39;s blog" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/img/favicon.png">
+  
+  
+      <link rel="stylesheet" href="//cdn.bootcss.com/animate.css/3.5.0/animate.min.css">
+  
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/font-awesome/css/font-awesome.min.css">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  
+  
+      <link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+  
+  <!-- 加载特效 -->
+    <script src="/js/pace.js"></script>
+    <link href="/css/pace/pace-theme-flash.css" rel="stylesheet" />
+  <script>
+      var yiliaConfig = {
+          rootUrl: '/',
+          fancybox: true,
+          animate: true,
+          isHome: false,
+          isPost: true,
+          isArchive: false,
+          isTag: false,
+          isCategory: false,
+          open_in_new: false
+      }
+  </script>
+</head>
+<body>
+  <div id="container">
+    <div class="left-col">
+    <div class="overlay"></div>
+<div class="intrude-less">
+    <header id="header" class="inner">
+        <a href="/" class="profilepic">
+            
+            <img lazy-src="/img/head.jpg" class="js-avatar">
+            
+        </a>
+
+        <hgroup>
+          <h1 class="header-author"><a href="/" title="Hi Mate">r00tk1t</a></h1>
+        </hgroup>
+
+        
+        <p class="header-subtitle">二进制安全 | Web安全 | 伪装成程序员的菜鸡</p>
+        
+        
+        
+            <div id="switch-btn" class="switch-btn">
+                <div class="icon">
+                    <div class="icon-ctn">
+                        <div class="icon-wrap icon-house" data-idx="0">
+                            <div class="birdhouse"></div>
+                            <div class="birdhouse_holes"></div>
+                        </div>
+                        <div class="icon-wrap icon-ribbon hide" data-idx="1">
+                            <div class="ribbon"></div>
+                        </div>
+                        
+                        <div class="icon-wrap icon-link hide" data-idx="2">
+                            <div class="loopback_l"></div>
+                            <div class="loopback_r"></div>
+                        </div>
+                        
+                        
+                        <div class="icon-wrap icon-me hide" data-idx="3">
+                            <div class="user"></div>
+                            <div class="shoulder"></div>
+                        </div>
+                        
+                    </div>
+                    
+                </div>
+                <div class="tips-box hide">
+                    <div class="tips-arrow"></div>
+                    <ul class="tips-inner">
+                        <li>菜单</li>
+                        <li>标签</li>
+                        
+                        <li>友情链接</li>
+                        
+                        
+                        <li>关于我</li>
+                        
+                    </ul>
+                </div>
+            </div>
+        
+
+        <div id="switch-area" class="switch-area">
+            <div class="switch-wrap">
+                <section class="switch-part switch-part1">
+                    <nav class="header-menu">
+                        <ul>
+                        
+                            <li><a href="/">博客首页</a></li>
+                        
+                            <li><a href="/archives">所有文章</a></li>
+                        
+                            <li><a href="/tags">标签</a></li>
+                        
+                        </ul>
+                    </nav>
+                    <nav class="header-nav">
+                        <ul class="social">
+                            
+                                <a class="fl mail" target="_blank" href="mailto: 1903442252@qq.com" title="mail">mail</a>
+                            
+                                <a class="fl github" target="_blank" href="https://github.com/r00tk1ts" title="github">github</a>
+                            
+                                <a class="fl zhihu" target="_blank" href="https://www.zhihu.com/people/r00tk1t-5" title="zhihu">zhihu</a>
+                            
+                                <a class="fl weibo" target="_blank" href="http://weibo.com/2698344533" title="weibo">weibo</a>
+                            
+                                <a class="fl QQ" target="_blank" href="https://user.qzone.qq.com/1903442252" title="QQ">QQ</a>
+                            
+                        </ul>
+                    </nav>
+                </section>
+                
+                
+                <section class="switch-part switch-part2">
+                    <div class="widget tagcloud" id="js-tagcloud">
+                        <a href="/tags/SEH-overwrite/" style="font-size: 10px;">SEH overwrite</a> <a href="/tags/algorithm/" style="font-size: 11.67px;">algorithm</a> <a href="/tags/browser/" style="font-size: 10px;">browser</a> <a href="/tags/chrome/" style="font-size: 16.67px;">chrome</a> <a href="/tags/chrome-sandbox/" style="font-size: 16.67px;">chrome-sandbox</a> <a href="/tags/cpp/" style="font-size: 20px;">cpp</a> <a href="/tags/cpp-primer/" style="font-size: 18.33px;">cpp-primer</a> <a href="/tags/cpp-templates/" style="font-size: 11.67px;">cpp-templates</a> <a href="/tags/dll-hooking/" style="font-size: 10px;">dll hooking</a> <a href="/tags/exploit/" style="font-size: 12.5px;">exploit</a> <a href="/tags/glibc/" style="font-size: 10px;">glibc</a> <a href="/tags/glibc-heap/" style="font-size: 13.33px;">glibc-heap</a> <a href="/tags/linux/" style="font-size: 10.83px;">linux</a> <a href="/tags/linux-kernel/" style="font-size: 14.17px;">linux-kernel</a> <a href="/tags/mmap/" style="font-size: 10px;">mmap</a> <a href="/tags/novice/" style="font-size: 17.5px;">novice</a> <a href="/tags/php/" style="font-size: 10.83px;">php</a> <a href="/tags/pool/" style="font-size: 10px;">pool</a> <a href="/tags/pwn/" style="font-size: 19.17px;">pwn</a> <a href="/tags/pwnable-kr/" style="font-size: 15px;">pwnable.kr</a> <a href="/tags/resources/" style="font-size: 10px;">resources</a> <a href="/tags/stack-overrun/" style="font-size: 11.67px;">stack-overrun</a> <a href="/tags/tutorial/" style="font-size: 10px;">tutorial</a> <a href="/tags/ulk/" style="font-size: 14.17px;">ulk</a> <a href="/tags/web/" style="font-size: 10.83px;">web</a> <a href="/tags/windows/" style="font-size: 15.83px;">windows</a> <a href="/tags/windows-kernel/" style="font-size: 14.17px;">windows-kernel</a> <a href="/tags/writeup/" style="font-size: 10px;">writeup</a> <a href="/tags/wrk/" style="font-size: 12.5px;">wrk</a>
+                    </div>
+                </section>
+                
+                
+                
+                <section class="switch-part switch-part3">
+                    <div id="js-friends">
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://eternalsakura13.com">樱花师傅</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="https://chybeta.github.io/">Chybeta</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://whereisk0shl.top/">k0shl</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://o0xmuhe.github.io/">o0xmuhe</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://bestwing.me/">swing</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://yixuankeer.win/">joker</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://www.hackersb.cn/">王松_Striker</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="https://www.hackfun.org/">4ido10n</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://www.cnblogs.com/iamstudy/">l3m0n</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://www.cnblogs.com/Ox9A82/">Ox9A82</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://mxny.org/">麦香浓郁</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://0x48.pw/">Hcamael</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="https://blog.nuptzj.cn/">画船听雨</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="https://www.bodkin.ren/">老锥</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://www.zerokeeper.com/">ZeroKeeper</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="https://www.ycjcl.cc/">信鑫</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://www.wowotech.net/">wowotech</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://fuzzysecurity.com/">fuzzySecurity</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="https://rootkits.xyz/">rootkits.xyz</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://www.pentestingexperts.com/">pentestingexperts</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="https://blog.skylined.nl/">skylined</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="https://systemk1t.github.io/">systemk1t</a>
+                    
+                    </div>
+                </section>
+                
+
+                
+                
+                <section class="switch-part switch-part4">
+                
+                    <div id="js-aboutme">二进制狗一枚，懂点Web安全，一个伪装成程序员混迹在某公司的菜鸡。</div>
+                </section>
+                
+            </div>
+        </div>
+    </header>                
+</div>
+    </div>
+    <div class="mid-col">
+      <nav id="mobile-nav">
+      <div class="overlay">
+          <div class="slider-trigger"></div>
+          <h1 class="header-author js-mobile-header hide"><a href="/" title="Me">r00tk1t</a></h1>
+      </div>
+    <div class="intrude-less">
+        <header id="header" class="inner">
+            <a href="/" class="profilepic">
+                
+                    <img lazy-src="/img/head.jpg" class="js-avatar">
+                
+            </a>
+            <hgroup>
+              <h1 class="header-author"><a href="/" title="Me">r00tk1t</a></h1>
+            </hgroup>
+            
+            <p class="header-subtitle">二进制安全 | Web安全 | 伪装成程序员的菜鸡</p>
+            
+            <nav class="header-menu">
+                <ul>
+                
+                    <li><a href="/">博客首页</a></li>
+                
+                    <li><a href="/archives">所有文章</a></li>
+                
+                    <li><a href="/tags">标签</a></li>
+                
+                <div class="clearfix"></div>
+                </ul>
+            </nav>
+            <nav class="header-nav">
+                <div class="social">
+                    
+                        <a class="mail" target="_blank" href="mailto: 1903442252@qq.com" title="mail">mail</a>
+                    
+                        <a class="github" target="_blank" href="https://github.com/r00tk1ts" title="github">github</a>
+                    
+                        <a class="zhihu" target="_blank" href="https://www.zhihu.com/people/r00tk1t-5" title="zhihu">zhihu</a>
+                    
+                        <a class="weibo" target="_blank" href="http://weibo.com/2698344533" title="weibo">weibo</a>
+                    
+                        <a class="QQ" target="_blank" href="https://user.qzone.qq.com/1903442252" title="QQ">QQ</a>
+                    
+                </div>
+            </nav>
+        </header>                
+    </div>
+</nav>
+      <div class="body-wrap"><article id="post-Binary Security Assembly" class="article article-type-post" itemscope itemprop="blogPost">
+  
+    <div class="article-meta">
+      <a href="/2018/02/26/Binary Security Assembly/" class="article-date">
+      <time datetime="2018-02-26T13:31:11.000Z" itemprop="datePublished">2018-02-26</time>
+</a>
+    </div>
+  
+  <div class="article-inner">
+    
+      <input type="hidden" class="isFancy" />
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      Binary-Security-Assembly
+    </h1>
+  
+
+      </header>
+      
+      <div class="article-info article-info-post">
+        
+    <div class="article-category tagcloud">
+    <a class="article-category-link" href="/categories/resources/">resources</a>
+    </div>
+
+
+        
+    <div class="article-tag tagcloud">
+        <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/resources/">resources</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/tutorial/">tutorial</a></li></ul>
+    </div>
+
+        <div class="clearfix"></div>
+      </div>
+      
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+          
+        <p>在二进制研究中对优质的资源进行整合。老年人表示好记性的确不如烂笔头。方便自己lookup&amp;review，也为后来人乘凉。本博文永久更新。</p>
+<a id="more"></a>
+<h1 id="Binary-Security-Assembly"><a href="#Binary-Security-Assembly" class="headerlink" title="Binary-Security-Assembly"></a>Binary-Security-Assembly</h1><h2 id="Books"><a href="#Books" class="headerlink" title="Books"></a>Books</h2><p>一些基础的必修书籍以及品相平庸的我就不一一枚举了，以下提到的都是我已经读过或者正在阅读的优质书籍。我会简要的写一点评价，鉴于本人才疏学浅，难免有失偏颇，故仅供参考。</p>
+<ul>
+<li><p>《0day安全：软件漏洞分析技术》</p>
+<p><img src="/images/misc/20180226_1.jpg" alt=""></p>
+<blockquote>
+<p>书评：</p>
+<p>​    可以说是Windows漏洞研究入门的圣经。也正是这本书带我入了漏洞分析的大门(keng)。由于本书纂写的时间较早，很多现代的流行保护技术并不能cover，对堆的理解也仅限于2k/xp sp1的时代。但其中对经典栈溢出的几种利用手法、ASLR/DEP/GS的绕过、SEH的机理再到safeSEH的保护，可以说是教科书般的诠释。书中亦曾提到fuzzing相关内容以及web安全的只言片语（彼时web安全尚不成体系），平添趣味。</p>
+<p>​    早年我曾有幸购入一本实体书，现已绝版。电子资源pdf比比皆是，不予枚举。</p>
+<p>推荐指数：10</p>
+</blockquote>
+</li>
+<li><p>《加密与解密》</p>
+<p><img src="/images/misc/20180226_2.jpg" alt=""></p>
+<blockquote>
+<p>书评：</p>
+<p>​    看雪掌门人的教科书，如果说0day安全带我入了漏洞分析的大门，那么这本书带给我的则是基础技能的学习（调试器、静态动态分析、PE结构、加密解密算法）以及软件保护方面知识的扩展。本书面面俱到却也往往点到为止，旨在做一个科普形式的入门级铺叙。看雪论坛此前发起过本书的升级出版事宜，却又无疾而终。</p>
+<p>​    时隔多年，依稀记着买到实体书的那个夜晚，通宵达旦，畅快淋漓。</p>
+<p>推荐指数：10</p>
+</blockquote>
+</li>
+<li><p>《漏洞战争》</p>
+<p><img src="/images/misc/20180226_3.jpg" alt=""></p>
+<blockquote>
+<p>书评：</p>
+<p>​    你可能不认识riusksk这个id，但一定听说过泉哥的传奇故事。这本书记录了泉哥3年来呕心沥血的优质CVE调试笔记，最终于2016年发布。由于时间线颇为靠后，所以涵盖了很多现代漏洞分析与利用的奇技淫巧，书中的CVE主要集中在Windows平台，也有几个Android相关的漏洞解读，横贯了栈溢出、堆溢出、UAF、内核漏洞等方方面面。</p>
+<p>​    这本书的阅读门槛较高，需要读者预先掌握漏洞分析各方面的理论基础并具有一定的动手能力。CVE的分析过程限于篇幅无法详尽到每个点（各种巧妙的exp，不是靶场那种一目了然可以比拟的），需要自行复盘以挖掘其中精妙。</p>
+<p>​    我是在这本书出版不久的时候，逛书店无意中看到，想来也是有缘，遂匆匆购入。</p>
+<p>推荐指数：10</p>
+</blockquote>
+</li>
+<li><p>《C++反汇编与逆向分析技术揭秘》</p>
+<p><img src="/images/misc/20180226_4.jpg" alt=""></p>
+<blockquote>
+<p>书评：</p>
+<p>​    手把手教你怎么反汇编C/C++。对C/C++常见的语法糖的反汇编表现形式进行了拆解。本书适合逆向分析初学者入门，想要完全掌握本书的内容，需要对Windows底层有一定了解。</p>
+<p>​    书的最后章节还对臭名昭著的蠕虫——熊猫烧香进行了分析，作者也是很有情怀。</p>
+<p>推荐指数：9</p>
+</blockquote>
+</li>
+<li><p>《IDA Pro权威指南》</p>
+<p><img src="/images/misc/20180226_5.jpg" alt=""></p>
+<blockquote>
+<p>书评：</p>
+<p>​    屠龙宝刀、点击就送！很自信的说，玩二进制的没有人离得开IDA。这本书就是IDA的说明书，全面、准确、不可多得。很惭愧的说，我没完整的读过这本书（枯燥啊），多数时候是作为reference，这可能就是我只会拙劣的使用IDA的原因吧。</p>
+<p>推荐指数：7</p>
+</blockquote>
+</li>
+<li><p>《Windows PE权威指南》</p>
+<p><img src="/images/misc/20180226_6.jpg" alt=""></p>
+<blockquote>
+<p>书评：</p>
+<p>​    专门讲Windows的PE格式，不仅充当了手册，还涉及了PE相关的编程技术。也是比较枯燥的一本书，但绝对好过官方手册。如果你想对PE有一个全盘的理解，进而研究Windows的可执行文件的保护与壳、PE病毒分析，那么本书是必读的捷径。</p>
+<p>推荐指数：7</p>
+</blockquote>
+</li>
+<li><p>《程序员的自我修养——链接、装载与库》</p>
+<p><img src="/images/misc/20180226_7.jpg" alt=""></p>
+<blockquote>
+<p>书评：</p>
+<p>​    很早以前就在书店看到过这本书，由于名字过于中二，直接就把武断的归类于什么21天精通XXX这类书籍。后来无意中在看雪论坛看到了该书的节选引用，一时震惊，果断入了实体书。</p>
+<p>​    这本书涉及了Windows和Linux两个平台，讲解了PE与ELF两种文件格式，也剖析了两个平台的应用程序在编译、链接、装载、运行四个时刻发生的事宜。美中不足的是每个阶段的阐述还是不够细腻，我在阅读的时候还参考了源码以及大量的其他资源。然在有限的篇幅中能做出如此准确全面的阐释，足以叹为观止。</p>
+<p>推荐指数：10</p>
+</blockquote>
+</li>
+<li><p>《恶意代码分析实战》</p>
+<p><img src="/images/misc/20180226_8.jpg" alt=""></p>
+<blockquote>
+<p>书评：</p>
+<p>​    诸葛领队译，质量绝对保证，内容比较杂，围绕着恶意代码的常见表征对调试手法进行了讲解。书篇幅较长，不乏干货，美中不足的是技术深度参差不齐，字里行间可以看出作者在攥写本著作时，定位难度系数时的摇摆犹豫。这也是国外很多技术作家的通病。</p>
+<p>​    总体来讲还是很适合新手来通读的，一些看不懂的地方就暂且放一放，时机未到不用硬磕。</p>
+<p>推荐指数：8</p>
+</blockquote>
+</li>
+<li><p>《Reverse Engineering for Beginners》</p>
+<p><img src="/images/misc/20180226_9.jpg" alt=""></p>
+<blockquote>
+<p>书评：</p>
+<p>​    简称RE4B，见名知意。与其说是书籍，不如说是一位逆向工程师精心编排的手稿汇编。本书在各流行编译器、CPU架构上对高级语言（主要是C/C++）的反汇编指令进行了阐释，内容颇丰，动手能力强，非基础章节的阅读还需要自行扩展阅读大量的资料。书是免费的但没有中文译本（其实有但尚未完善），读英文译本即可。</p>
+<p>推荐指数：9</p>
+</blockquote>
+</li>
+<li><p>《软件保护与分析技术——原理与实践》</p>
+<p><img src="/images/misc/20180226_10.jpg" alt=""></p>
+<blockquote>
+<p>书评：</p>
+<p>​    看雪大牛netsowell的密界心得。本书归纳了流行的软件保护技术以及软件破解手法，但对于VM技术则点到为止（实际上在另一本书中展开）。本书还手把手指导了一些调试软件时需要的小工具的制作，真正做到授人以渔。本书主要是归纳，所以内容不是很详细，适合有了一定的破解经验但不知所以然的安全研究者。</p>
+<p>推荐指数：7</p>
+</blockquote>
+</li>
+<li><p>《代码虚拟与自动化分析》</p>
+<p><img src="/images/misc/20180226_11.jpg" alt=""></p>
+<blockquote>
+<p>书评：</p>
+<p>​    netsowell的进阶之作，专门讲解密界当下最为主流，难度也最高的VM技术。这本书我还没看完，个人对于VM技术的理解也止步于入门阶段，待我择日研习后，再做注解。</p>
+<p>推荐指数：null</p>
+</blockquote>
+</li>
+<li><p>《软件调试》</p>
+<p><img src="/images/misc/20180226_12.jpg" alt=""></p>
+<blockquote>
+<p>书评：</p>
+<p>​    微软工程师手把手教你Windows调试。本书讲调试相关的理论，从底层到上层，看罢会对整个调试机制有一个全盘的认识。这本书无疑是硬核的，由于书主要讲调试，所以在谈到Windows内核的中断、异常、陷阱以及ring0/3态时裁剪掉了很多内容。这就需要读者预先熟悉Windows内核。</p>
+<p>推荐指数：9</p>
+</blockquote>
+</li>
+<li><p>《格蠹汇编  软件调试案例集锦》</p>
+<p><img src="/images/misc/20180226_13.jpg" alt=""></p>
+<blockquote>
+<p>书评：</p>
+<p>​    《软件调试》的姊妹篇，这本书记载了使用Windbg调试解决问题的大量案例。一些理论讲解会充斥在调试过程中，阅读起来趣味横生，悬疑小说即视感。</p>
+<p>​    很早以前，我曾在书店看到过这两本，多年以后始觉其价值所在，但恨已无实体书可入，心下戚戚然。</p>
+<p>推荐指数：9</p>
+</blockquote>
+</li>
+<li><p>《黑客攻防技术宝典——系统实战篇》</p>
+<p><img src="/images/misc/20180226_14.jpg" alt=""></p>
+<blockquote>
+<p>书评：</p>
+<p>​    这本书相当老了，如果没有那本0day，或许这本书会成为入门的圣经。书名虽然中二，但内容确实扎实。书名可以看出这是一个系列，而这本专注二进制安全的则是最老的一本。</p>
+<p>​    我只读过前半本，后面的测试审计则没有研读过。这本书的立足点比较高，比起落实下去的奇技淫巧，更多讲授的是归纳出来的漏洞分析方法论。非常希望这本书能够升级换代。</p>
+<p>推荐指数：7</p>
+</blockquote>
+</li>
+<li><p>《Rootkits——Windows内核的安全防护》</p>
+<p><img src="/images/misc/20180226_15.jpg" alt=""></p>
+<blockquote>
+<p>书评：</p>
+<p>​    Windows内核驱动编程中，恶意程序与防护软件常用的各类手法。倾向于实战性的铺叙，原理层面则谈得不多。时隔多年，不知道书中资源所在的website还健在否？</p>
+<p>推荐指数：7</p>
+</blockquote>
+</li>
+<li><p>《黑客攻防技术宝典——反病毒篇》</p>
+<p><img src="/images/misc/20180226_16.jpg" alt=""></p>
+<blockquote>
+<p>书评：</p>
+<p>​    比较新的书，不久前刚入了一本实体还没来得及阅读。走马观花了一番，虽涉猎甚广但不够深入。有时间要好好研读。</p>
+<p>推荐指数：null</p>
+</blockquote>
+</li>
+<li><p>《Windows核心编程》</p>
+<p><img src="/images/misc/20180226_17.jpg" alt=""></p>
+<blockquote>
+<p>书评：</p>
+<p>​    经久不衰的神作，站在内核的角度居高临下看用户态的那些事儿。阅读本书，不仅能够掌握Windows系统各个模块API的正确使用，也能够窥得Windows内核一二。</p>
+<p>​    我在阅读这本书的时候，尚还只是堪堪刷过《Windows程序设计》的毛头小子，彼时对于OS的理解也是停留在课本所讲的概念上。这本书启蒙了我对OS的认知，在后期阅读《Windows内核情景分析》、《Windows内核原理与实现》、《Windows Internals》等Windows内核相关书籍时，理解起来也更加平滑。</p>
+<p>推荐指数：10</p>
+</blockquote>
+</li>
+<li><p>《Windows程序设计》</p>
+<p><img src="/images/misc/20180226_18.jpg" alt=""></p>
+<blockquote>
+<p>书评：</p>
+<p>​    迫于形势，这本书的第六版已经转去讲C#了（确切的说，是.Net），而第五版虽然老旧，确是基于Windows SDK进行API的讲解，段落章节更是渗透了Windows系统繁杂的知识点。本书的第五版被业内人士奉为圣经，教科书般的展示了SDK方方面面正确的开发姿势。</p>
+<p>​    这本书非常之厚，对于入门者有着强大的劝退效果，但实际上却并不难啃。另一方面，研究Windows底层二进制是无论如何也绕不开原生API编程的。</p>
+<p>推荐指数：9</p>
+</blockquote>
+</li>
+<li><p>《Windows内核安全与驱动开发》</p>
+<p><img src="/images/misc/20180226_19.jpg" alt=""></p>
+<blockquote>
+<p>书评：</p>
+<p>​    在Windows驱动编程界内，楚狂人算得上赫赫有名，而本书也基本上出自楚狂人之手。实际上在本书问世前，有着Windows驱动编程的三剑客——《天书夜读》、《寒江独钓》、《竹林蹊径》。本书是前两本的重构（前两本也是楚狂人写的），修改了一些示例代码的bug，更新了一些Windows7以上平台的新知识点。</p>
+<p>​    对于二进制安全研究者来说，Windows内核驱动编程是颇为重要的基本功，尤其是从事安全防护、反病毒木马的工程师。</p>
+<p>​    我在这本书问世前，已经读过了它的两个蓝本，唯有一本竹林蹊径不曾看过。记得竹林蹊径主要是讲PCI、USB相关，而我一时竟无此意欲，毕竟不同组件的驱动程序在Windows平台上迥然有别。</p>
+<p>推荐指数：7</p>
+</blockquote>
+</li>
+<li><p>《Windows内核原理与实现》</p>
+<p><img src="/images/misc/20180226_20.jpg" alt=""></p>
+<blockquote>
+<p>书评：</p>
+<p>​    这本书很老了，老到甚至不是在wrk1.2版本上做的阐释。潘老师的这本书深入浅出，对Windows内核的各个层面、各个组件进行了较为完整的陈述。这本书没有通篇的代码引用，采用的是高度的语言概括，这对于一些阅读源码较为吃力或急于求成的人来说，无疑是了解Windows内核最为有效的捷径（当然潘老师也在书中的每个地方给出了源码所在位置，并期望读者去自行阅读）。</p>
+<p>​    对于不开源的Windows来说，wrk极具参考价值，不管新的机制如何更迭，最原始的设计思想不会变更。</p>
+<p>​    Windows内核体积过巨，这本书也无出意外的无法涵盖内核的方方面面，另一方面，想要通过堪堪千页便通晓内核，也未免太奢侈了。</p>
+<p>推荐指数：10</p>
+</blockquote>
+</li>
+<li><p>《Windows Internals》</p>
+<p><img src="/images/misc/20180226_21.jpg" alt=""></p>
+<blockquote>
+<p>书评：</p>
+<p>​    微软工程师编纂的神作，所以说解铃还须系铃人，自家人写的剖析注解就是透彻。遗憾的是，这本书仅有第六版上册的译本（深入解析Windows操作系统），下册的译本据说是夭折了，原因未知。而本书的下册内容同样丰富（存储管理、内存管理、文件系统、I/O），所以需要读者有一定的英文功底。好在看雪论坛上曾有前辈翻译过下册的几个比较重要的篇章，难能可贵的是，还加入了自身的理解，不得不感概同是天涯沦落人。</p>
+<p>​    当然，本书的作者考虑到需要避嫌，所以并没有直接拉出源代码来层层解读，其所能做的只能是高度的抽象与概括，阐述实现的思想与设计方案。所以，在阅读本书时，多参考wrk，多使用windbg调试kernel，会有不小的收获。</p>
+<p>推荐指数：10</p>
+</blockquote>
+</li>
+<li><p>《Windows内核情景分析》</p>
+<p><img src="/images/misc/20180226_22.jpg" alt=""></p>
+<blockquote>
+<p>书评：</p>
+<p>​    我时常亲切的称这本书为“毛批”。毛德操老师另外一本姊妹篇是《Linux内核源代码情景分析》，两书的风格相近，这一本的布局表达更成熟老练一些。由于Windows不开源，所以本书是基于ReactOS内核分析的，至于ReactOS是一群逆向爱好者对Windows内核的翻写，可以说除了wrk，它的参考价值最大（尽管一些细节上的处理和wrk不同，但瑕不掩瑜）。</p>
+<p>​    我买的第一套（分上下册）通往Windows内核的书籍，尽管由于当初水平有限，尘封多年，却也拓展了视野。</p>
+<p>推荐指数：8</p>
+</blockquote>
+</li>
+<li><p>《Linux内核源代码情景分析》</p>
+<p><img src="/images/misc/20180226_23.jpg" alt=""></p>
+<blockquote>
+<p>书评：</p>
+<p>​    另一本“毛批”，年代久远，讲解的甚至是2.4的内核。这本书对于细节上的讲解非常细腻，对每个知识点都进行了深度递归。然而，由于篇幅有限，OS的各个模块都只是筛选出几个知识点进行了解读，很多重要的内容并未叙述，盖因毛老师考虑到既然无法深入讲解到每个知识点，那么只言片语也毫无意义，干脆绝口不提。</p>
+<p>推荐指数：7</p>
+</blockquote>
+</li>
+<li><p>《深入理解Linux内核》</p>
+<p><img src="/images/misc/20180226_24.jpg" alt=""></p>
+<blockquote>
+<p>书评：</p>
+<p>​    大名鼎鼎的ULK，我个人是建议读英文原版的。一方面有些相近的概念翻译过来有点冲突（比如各种组件中的缓存），另一方面一些术语转化成中文丢失了原本的韵味。原版亦是行云流水，而书的内容也类似于潘爱民的《Windows内核情景分析》的风格，摒弃了通篇的代码，从逻辑上概括了每个组件的设计与思想。</p>
+<p>​    这本书是基于2.6版本的内核，与当前4.x的内核结构还是有着不小的差别，尽管如此，在当下还没有任何一本讲4.x内核的书可以相形媲美（《奔跑吧Linux内核》还差点火候，内容不够详实且多处字眼不准确起误导作用）。如果想要了解Linux内核，那么ULK无疑是首选。</p>
+<p>推荐指数：10</p>
+</blockquote>
+</li>
+<li><p>《linux内核设计与实现》</p>
+<p><img src="/images/misc/20180226_25.jpg" alt=""></p>
+<blockquote>
+<p>书评：</p>
+<p>​    这本书只有堪堪300多页，却涵盖了Linux内核的诸多关键组件。这本书对进程调度、中断和内核同步有着非常详细的介绍，可以作为ULK的姊妹篇来通读。本书言简意赅，对内核进行了一番抽丝剥茧，非常适合新手入门Linux内核。</p>
+<p>推荐指数：8</p>
+</blockquote>
+</li>
+<li><p>《Linux设备驱动程序》</p>
+<p><img src="/images/misc/20180226_26.jpg" alt=""></p>
+<blockquote>
+<p>书评：</p>
+<p>​    Linux驱动开发必备，就好比学Windows驱动要看楚狂人和张帆一样。这本书篇幅较短，且没有对示例程序进行逐一的阐释，所以如果脱离了示例程序，那么只能是看得云里雾里。诚然，对于驱动程序来说，动手实践才是王道！</p>
+<p>​    如果你对Linux内核有了较为深入的理解，那么阅读本作当是轻车熟路，也更容易理解什么样的驱动程序是正确的。</p>
+<p>推荐指数：9</p>
+</blockquote>
+</li>
+<li><p>《Unix环境高级编程》</p>
+<p><img src="/images/misc/20180226_27.jpg" alt=""></p>
+<blockquote>
+<p>书评：</p>
+<p>​    POSIX标准的那些事儿，使用标准的API来进行用户层的C编程，可以说是POSIX编程的圣经。本书涵盖面非常之广，从文件、I/O到进程环境与控制再到进程间通信，教科书般展示了POSIX编程之道。</p>
+<p>​    这本书是我入门Linux编程的第一本书，如同《Windows程序设计》一般，博大精深，概念清晰，内容权威，理解起来很舒服。</p>
+<p>推荐指数：10</p>
+</blockquote>
+</li>
+<li><p>《Unix网络编程 卷1：套接字联网API》</p>
+<p><img src="/images/misc/20180226_28.jpg" alt=""></p>
+<blockquote>
+<p>书评：</p>
+<p>​    Windows有winsock，Linux对应也有自己的socket库，在学习了计算机网络、TCP/IP协议后，就可以来尝试使用socket编程完成各种各样的网络应用。本书着重讲socket编程但绝不仅限制于socket编程。</p>
+<p>​    由于工作性质，每每和TCP/IP打交道，所以这本《Unix环境高级编程》的姊妹篇也就一并读了。这本书的卷二是讲进程间通信的，我没有读过（由于此前已读过《Unix环境高级编程》），所以就不提出来了。</p>
+<p>推荐指数：7</p>
+</blockquote>
+</li>
+<li><p>《琢石成器 windows环境下32位汇编语言程序设计》</p>
+<p><img src="/images/misc/20180226_29.jpg" alt=""></p>
+<blockquote>
+<p>书评：</p>
+<p>​    年代久远的Win32汇编。本书不是讲汇编语言，而是讲如何用masm32来编写Windows程序（调用Windows原生API）。老罗的惊艳之作，算是一本比较另类的Windows程序设计书籍。</p>
+<p>​    我早年的时候非常喜欢这本书，一直苦于售罄而未能购入一本实体书。后来在一位毕业学长的书摊前淘得此书，九成新（学长说没有翻过），以高价购入（记得学长很忐忑的要价40，我直接给了50，在学长学姐一片关爱智障的眼神中心满意足的离开），慰矣。</p>
+<p>推荐指数：6</p>
+</blockquote>
+</li>
+</ul>
+<h2 id="Course"><a href="#Course" class="headerlink" title="Course"></a>Course</h2><ul>
+<li><p><a href="http://security.cs.rpi.edu/courses/binexp-spring2015/" target="_blank" rel="noopener">Modern Binary Exploitation</a></p>
+<ul>
+<li><a href="http://security.cs.rpi.edu/courses/binexp-spring2015/lectures/1/01_lecture.pdf" target="_blank" rel="noopener">Syllabus and Review</a></li>
+<li><a href="http://security.cs.rpi.edu/courses/binexp-spring2015/lectures/2/02_lecture.pdf" target="_blank" rel="noopener">Tools and Basic Reverse Engineering</a></li>
+<li><a href="http://security.cs.rpi.edu/courses/binexp-spring2015/lectures/3/03_lecture.pdf" target="_blank" rel="noopener">Extended Reverse Engineering</a></li>
+<li><a href="http://security.cs.rpi.edu/courses/binexp-spring2015/lectures/5/04_lecture.pdf" target="_blank" rel="noopener">Introduction to Memory Corruption</a></li>
+<li><a href="http://security.cs.rpi.edu/courses/binexp-spring2015/lectures/7/05_lecture.pdf" target="_blank" rel="noopener">Shellcoding</a></li>
+<li><a href="http://security.cs.rpi.edu/courses/binexp-spring2015/lectures/9/06_lecture.pdf" target="_blank" rel="noopener">Format Strings</a></li>
+<li><a href="http://security.cs.rpi.edu/courses/binexp-spring2015/lectures/11/07_lecture.pdf" target="_blank" rel="noopener">DEP and ROP</a></li>
+<li><a href="http://security.cs.rpi.edu/courses/binexp-spring2015/lectures/13/08_lecture.pdf" target="_blank" rel="noopener">Secure Systems and Game Console Exploitation</a></li>
+<li><a href="http://security.cs.rpi.edu/courses/binexp-spring2015/lectures/15/09_lecture.pdf" target="_blank" rel="noopener">Address Space Layout Randomization</a></li>
+<li><a href="http://security.cs.rpi.edu/courses/binexp-spring2015/lectures/17/10_lecture.pdf" target="_blank" rel="noopener">Heap Exploitation</a></li>
+<li><a href="http://security.cs.rpi.edu/courses/binexp-spring2015/lectures/19/11_lecture.pdf" target="_blank" rel="noopener">Misc concepts &amp; Stack Canaries</a></li>
+<li><a href="http://security.cs.rpi.edu/courses/binexp-spring2015/lectures/21/12_lecture.pdf" target="_blank" rel="noopener">C++ Concepts and Differences</a></li>
+<li><a href="http://security.cs.rpi.edu/courses/binexp-spring2015/lectures/23/13_lecture.pdf" target="_blank" rel="noopener">Kernel Exploitation</a></li>
+<li><a href="http://security.cs.rpi.edu/courses/binexp-spring2015/lectures/26/14_lecture.pdf" target="_blank" rel="noopener">Exploitation on 64bit, ARM, Windows</a></li>
+<li><a href="http://security.cs.rpi.edu/courses/binexp-spring2015/lectures/27/15_lecture.pdf" target="_blank" rel="noopener">Automation &amp; The Future of Exploitation</a></li>
+</ul>
+</li>
+<li><p><a href="https://sploitfun.wordpress.com/2015/06/26/linux-x86-exploit-development-tutorial-series/" target="_blank" rel="noopener">Linux (x86) Exploit Development Series</a></p>
+<ul>
+<li>Basic Vulnerabilities<ul>
+<li><a href="https://sploitfun.wordpress.com/2015/05/08/classic-stack-based-buffer-overflow/" target="_blank" rel="noopener">Classic Stack Based Buffer Overflow</a></li>
+<li><a href="https://sploitfun.wordpress.com/2015/06/23/integer-overflow/" target="_blank" rel="noopener">Integer Overflow</a></li>
+<li><a href="https://sploitfun.wordpress.com/2015/06/07/off-by-one-vulnerability-stack-based-2/" target="_blank" rel="noopener">Off-By-One (Stack Based)</a></li>
+</ul>
+</li>
+<li>Bypassing Exploit Mitigation Techniques<ul>
+<li><a href="https://sploitfun.wordpress.com/2015/05/08/bypassing-nx-bit-using-return-to-libc/" target="_blank" rel="noopener">Bypassing NX bit using return-to-libc</a></li>
+<li><a href="https://sploitfun.wordpress.com/2015/05/08/bypassing-nx-bit-using-chained-return-to-libc/" target="_blank" rel="noopener">Bypassing NX bit using chained return-to-libc</a></li>
+<li>Bypasing ASLR<ul>
+<li><a href="https://sploitfun.wordpress.com/2015/05/08/bypassing-aslr-part-i/" target="_blank" rel="noopener">Part I using return-to-plt</a></li>
+<li><a href="https://sploitfun.wordpress.com/2015/05/08/bypassing-aslr-part-ii/" target="_blank" rel="noopener">Part II using brute force</a></li>
+<li><a href="https://sploitfun.wordpress.com/2015/05/08/bypassing-aslr-part-iii" target="_blank" rel="noopener">Part III using GOT overwrite and GOT dereference</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li>Heap Vulnerabilites<ul>
+<li><a href="https://sploitfun.wordpress.com/2015/02/26/heap-overflow-using-unlink/" target="_blank" rel="noopener">Heap overflow using unlink</a></li>
+<li><a href="https://sploitfun.wordpress.com/2015/03/04/heap-overflow-using-malloc-maleficarum/" target="_blank" rel="noopener">Heap overflow using Malloc Maleficarum</a></li>
+<li><a href="https://sploitfun.wordpress.com/2015/06/09/off-by-one-vulnerability-heap-based" target="_blank" rel="noopener">Off-By-One (Heap Based)</a></li>
+<li><a href="https://sploitfun.wordpress.com/2015/06/16/use-after-free/" target="_blank" rel="noopener">Use After Free</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="http://liveoverflow.com/binary_hacking/index.html" target="_blank" rel="noopener">liveoverflow: Binary Hacking Course</a></li>
+<li><p><a href="https://www.fuzzysecurity.com/tutorials.html" target="_blank" rel="noopener">FuzzySecurity tutorials</a></p>
+<ul>
+<li>Windows Exploit Development Tutorial Series<ul>
+<li><a href="https://www.fuzzysecurity.com/tutorials/expDev/1.html" target="_blank" rel="noopener">Part1: Introduction to Exploit Development</a></li>
+<li><a href="https://www.fuzzysecurity.com/tutorials/expDev/2.html" target="_blank" rel="noopener">Part2: Saved Return Pointer Overflows</a></li>
+<li><a href="https://www.fuzzysecurity.com/tutorials/expDev/3.html" target="_blank" rel="noopener">Part3: Structured Exception Handler(SEH)</a></li>
+<li><a href="https://www.fuzzysecurity.com/tutorials/expDev/4.html" target="_blank" rel="noopener">Part4: Egg Hunters</a></li>
+<li><a href="https://www.fuzzysecurity.com/tutorials/expDev/5.html" target="_blank" rel="noopener">Part5: Unicode 0x00410041</a></li>
+<li><a href="https://www.fuzzysecurity.com/tutorials/expDev/6.html" target="_blank" rel="noopener">Part6: Writing W32 shellcode</a></li>
+<li><a href="https://www.fuzzysecurity.com/tutorials/expDev/7.html" target="_blank" rel="noopener">Part7: Return Oriented Programming</a></li>
+<li><a href="https://www.fuzzysecurity.com/tutorials/expDev/8.html" target="_blank" rel="noopener">Part8: Spraying the Heap &lt;Chapter1: Vanilla EIP&gt;</a></li>
+<li><a href="https://www.fuzzysecurity.com/tutorials/expDev/11.html" target="_blank" rel="noopener">Part9: Spraying the Heap &lt;Chapter2: Use-After-Free&gt;</a></li>
+<li><a href="https://www.fuzzysecurity.com/tutorials/expDev/14.html" target="_blank" rel="noopener">Part10: Kernel Exploitation -&gt; Stack Overflow</a></li>
+<li><a href="https://www.fuzzysecurity.com/tutorials/expDev/15.html" target="_blank" rel="noopener">Part11: Kernel Exploitation -&gt; Write-What-Where</a></li>
+<li><a href="https://www.fuzzysecurity.com/tutorials/expDev/16.html" target="_blank" rel="noopener">Part12: Kernel Exploitation -&gt; Null Pointer Dereference</a></li>
+<li><a href="https://www.fuzzysecurity.com/tutorials/expDev/17.html" target="_blank" rel="noopener">Part13: Kernel Exploitation -&gt; Uninitialized Stack Variable</a></li>
+<li><a href="https://www.fuzzysecurity.com/tutorials/expDev/18.html" target="_blank" rel="noopener">Part14: Kernel Exploitation -&gt; Integer Overflow</a></li>
+<li><a href="https://www.fuzzysecurity.com/tutorials/expDev/19.html" target="_blank" rel="noopener">Part15: Kernel Exploitation -&gt; UAF</a></li>
+<li><a href="https://www.fuzzysecurity.com/tutorials/expDev/20.html" target="_blank" rel="noopener">Part16: Kernel Exploitation -&gt; Pool Overflow</a></li>
+<li><a href="https://www.fuzzysecurity.com/tutorials/expDev/21.html" target="_blank" rel="noopener">Part17: Kernel Exploitation -&gt; GDI Bitmap Abuse(Win7-10 32/64bit)</a></li>
+<li><a href="https://www.fuzzysecurity.com/tutorials/expDev/22.html" target="_blank" rel="noopener">Part18: Kernel Exploitation -&gt; RS2 Bitmap Necromancy</a></li>
+<li><a href="https://www.fuzzysecurity.com/tutorials/expDev/23.html" target="_blank" rel="noopener">Part19: Kernel Exploitation -&gt; Logic bugs in Razer rzpnk.sys</a></li>
+</ul>
+</li>
+<li>Windows Heap Exploitation<ul>
+<li><a href="https://www.fuzzysecurity.com/tutorials/mr_me/1.html" target="_blank" rel="noopener">What’s Going On Here b33f?</a></li>
+<li><a href="https://www.fuzzysecurity.com/tutorials/mr_me/2.html" target="_blank" rel="noopener">Heap Overflows For Human 101</a></li>
+<li><a href="https://www.fuzzysecurity.com/tutorials/mr_me/3.html" target="_blank" rel="noopener">Heap Overflows For Human 102</a></li>
+<li><a href="https://www.fuzzysecurity.com/tutorials/mr_me/4.html" target="_blank" rel="noopener">Heap Overflows For Human 102.5</a></li>
+<li><a href="https://www.fuzzysecurity.com/tutorials/mr_me/5.html" target="_blank" rel="noopener">Heap Overflows For Human 103</a></li>
+<li><a href="https://www.fuzzysecurity.com/tutorials/mr_me/6.html" target="_blank" rel="noopener">Heap Overflows For Human 103.5</a></li>
+</ul>
+</li>
+<li>Linux Exploit Development Tutorial Series<ul>
+<li><a href="https://www.fuzzysecurity.com/tutorials/expDev/9.html" target="_blank" rel="noopener">Part1: Introduction to Linux Exploit Development</a></li>
+<li><a href="https://www.fuzzysecurity.com/tutorials/expDev/10.html" target="_blank" rel="noopener">Part2: Linux Format String Exploitation</a></li>
+<li><a href="https://www.fuzzysecurity.com/tutorials/expDev/12.html" target="_blank" rel="noopener">Part3: Buffer Overflow(Pwnable.kr -&gt; bof)</a></li>
+<li><a href="https://www.fuzzysecurity.com/tutorials/expDev/13.html" target="_blank" rel="noopener">Part4: Use-After-Free(Pwnable.kr -&gt; uaf)</a></li>
+</ul>
+</li>
+<li>Occult Windows Hacking<ul>
+<li><a href="https://www.fuzzysecurity.com/tutorials/16.html" target="_blank" rel="noopener">Windows Privilege Escalation Fundamentals</a></li>
+<li><a href="https://www.fuzzysecurity.com/tutorials/18.html" target="_blank" rel="noopener">I’ll Get Your Credentials … Later!</a></li>
+<li><a href="https://www.fuzzysecurity.com/tutorials/19.html" target="_blank" rel="noopener">Windows Userland Persistence Fundamentals</a></li>
+<li><a href="https://www.fuzzysecurity.com/tutorials/20.html" target="_blank" rel="noopener">Powershell PE Injection: This is not the Calc you are looking for!</a></li>
+<li><a href="https://www.fuzzysecurity.com/tutorials/24.html" target="_blank" rel="noopener">Low-Level Windows API Access From PowerShell</a></li>
+<li><a href="https://www.fuzzysecurity.com/tutorials/25.html" target="_blank" rel="noopener">Windows Domains, Pivot &amp; Profit</a></li>
+<li><a href="https://www.fuzzysecurity.com/tutorials/27.html" target="_blank" rel="noopener">Anatomy of UAC Attacks</a></li>
+<li><a href="https://www.fuzzysecurity.com/tutorials/28.html" target="_blank" rel="noopener">Capcom Rootkit Proof-Of-Concept</a></li>
+<li><a href="https://www.fuzzysecurity.com/tutorials/29.html" target="_blank" rel="noopener">Application Introspection &amp; Hooking With Frida</a></li>
+</ul>
+</li>
+<li>Malware Analysis<ul>
+<li><a href="https://www.fuzzysecurity.com/tutorials/21.html" target="_blank" rel="noopener">Magnitude EK: Traffic Analysis(08/05/2015)</a></li>
+<li><a href="https://www.fuzzysecurity.com/tutorials/22.html" target="_blank" rel="noopener">Angler EK JavaScript Deobfuscation: The Emperor Has No Clothes</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>Hack The Virtual Memory</p>
+<ul>
+<li><a href="https://blog.holbertonschool.com/hack-the-virtual-memory-c-strings-proc/" target="_blank" rel="noopener">Hack The Virtual Memory: C strings &amp; /proc</a></li>
+<li><a href="https://blog.holbertonschool.com/hack-the-virtual-memory-python-bytes/" target="_blank" rel="noopener">Hack The Virtual Memory: Python bytes</a></li>
+<li><a href="https://blog.holbertonschool.com/hack-the-virtual-memory-drawing-the-vm-diagram/" target="_blank" rel="noopener">Hack the Virtual Memory: drawing the VM diagram</a></li>
+<li><a href="https://blog.holbertonschool.com/hack-the-virtual-memory-malloc-the-heap-the-program-break/" target="_blank" rel="noopener">Hack the Virtual Memory: malloc, the heap &amp; the program break</a></li>
+</ul>
+</li>
+<li><p>Exploit writing tutorial</p>
+<ul>
+<li><a href="https://www.corelan.be/index.php/2009/07/19/exploit-writing-tutorial-part-1-stack-based-overflows/" target="_blank" rel="noopener">Stack Based Overflows</a></li>
+<li><a href="https://www.corelan.be/index.php/2009/07/23/writing-buffer-overflow-exploits-a-quick-and-basic-tutorial-part-2/" target="_blank" rel="noopener">Stack Based Overflows – jumping to shellcode</a></li>
+<li><a href="https://www.corelan.be/index.php/2009/07/25/writing-buffer-overflow-exploits-a-quick-and-basic-tutorial-part-3-seh/" target="_blank" rel="noopener">SEH Based Exploits</a></li>
+<li><a href="https://www.corelan.be/index.php/2009/07/28/seh-based-exploit-writing-tutorial-continued-just-another-example-part-3b/" target="_blank" rel="noopener">SEH Based Exploits – just another example</a></li>
+<li><a href="https://www.corelan.be/index.php/2009/08/12/exploit-writing-tutorials-part-4-from-exploit-to-metasploit-the-basics/" target="_blank" rel="noopener">From Exploit to Metasploit – The basics</a></li>
+<li><a href="https://www.corelan.be/index.php/2009/09/05/exploit-writing-tutorial-part-5-how-debugger-modules-plugins-can-speed-up-basic-exploit-development/" target="_blank" rel="noopener">How debugger modules &amp; plugins can speed up basic exploit development</a></li>
+<li><a href="https://www.corelan.be/index.php/2009/09/21/exploit-writing-tutorial-part-6-bypassing-stack-cookies-safeseh-hw-dep-and-aslr/" target="_blank" rel="noopener">Bypassing Stack Cookies, SafeSeh, SEHOP, HW DEP and ASLR</a></li>
+<li><a href="https://www.corelan.be/index.php/2009/11/06/exploit-writing-tutorial-part-7-unicode-from-0x00410041-to-calc/" target="_blank" rel="noopener">Unicode – from 0x00410041 to calc</a></li>
+<li><a href="https://www.corelan.be/index.php/2010/01/09/exploit-writing-tutorial-part-8-win32-egg-hunting/" target="_blank" rel="noopener">Win32 Egg Hunting</a></li>
+<li><a href="https://www.corelan.be/index.php/2010/02/25/exploit-writing-tutorial-part-9-introduction-to-win32-shellcoding/" target="_blank" rel="noopener">Introduction to Win32 shellcoding</a></li>
+<li><a href="https://www.corelan.be/index.php/2010/06/16/exploit-writing-tutorial-part-10-chaining-dep-with-rop-the-rubikstm-cube/" target="_blank" rel="noopener">Chaining DEP with ROP</a></li>
+<li><a href="https://www.corelan.be/index.php/2011/12/31/exploit-writing-tutorial-part-11-heap-spraying-demystified/" target="_blank" rel="noopener">Heap Spraying Demystified</a></li>
+<li>​</li>
+</ul>
+</li>
+<li><a href="https://fumalwareanalysis.blogspot.jp/p/malware-analysis-tutorials-reverse.html" target="_blank" rel="noopener">Malware Analysis Tutorials: a Reverse Engineering Approach</a><ul>
+<li><a href="http://fumalwareanalysis.blogspot.com/2011/08/malware-analysis-tutorial-reverse.html" target="_blank" rel="noopener">Malware Analysis Tutorial 1- A Reverse Engineering Approach (Lesson 1: VM Based Analysis Platform) </a></li>
+<li><a href="http://fumalwareanalysis.blogspot.com/2011/08/malware-analysis-tutorial-reverse_31.html" target="_blank" rel="noopener">Malware Analysis Tutorial 2- Introduction to Ring3 Debugging  </a></li>
+<li><a href="http://fumalwareanalysis.blogspot.com/2011/09/malware-analysis-3-int2d-anti-debugging.html" target="_blank" rel="noopener">Malware Analysis Tutorial 3- Int 2D Anti-Debugging </a>.</li>
+<li><a href="http://fumalwareanalysis.blogspot.com/2011/10/malware-analysis-tutorial-4-int2dh-anti.html" target="_blank" rel="noopener">Malware Analysis Tutorial 4- Int 2D Anti-Debugging (Part II)  </a></li>
+<li><a href="http://fumalwareanalysis.blogspot.com/2011/10/malware-analysis-tutorial-5-int2d-anti.html" target="_blank" rel="noopener">Malware Analysis Tutorial 5- Int 2D in Max++ (Part III) </a>.</li>
+<li><a href="http://fumalwareanalysis.blogspot.com/2011/12/malware-analysis-tutorial-6-analyzing.html" target="_blank" rel="noopener">Malware Analysis Tutorial 6- Self-Decoding and Self-Extracting Code Segment </a>.</li>
+<li><a href="http://fumalwareanalysis.blogspot.com/2011/12/malware-analysis-tutorial-7-exploring.html" target="_blank" rel="noopener">Malware Analysis Tutorial 7: Exploring Kernel Data Structure </a>.</li>
+<li><a href="http://fumalwareanalysis.blogspot.com/2011/12/malware-analysis-tutorial-8-pe-header.html" target="_blank" rel="noopener">Malware Analysis Tutorial 8: PE Header and Export Table </a>.</li>
+<li><a href="http://fumalwareanalysis.blogspot.com/2011/12/malware-analysis-tutorial-9-encoded.html" target="_blank" rel="noopener">Malware Analysis Tutorial 9: Encoded Export Table </a>.  </li>
+<li><a href="http://fumalwareanalysis.blogspot.com/2012/01/malware-analysis-tutorial-10-tricks-for.html" target="_blank" rel="noopener">Malware Analysis Tutorial 10: Tricks for Confusing Static Analysis Tools </a>.</li>
+<li><a href="http://fumalwareanalysis.blogspot.com/2012/01/malware-analysis-tutorial-11-starling.html" target="_blank" rel="noopener">Malware Analysis Tutorial 11: Starling Technique and Hijacking Kernel System Calls using Hardware Breakpoints </a>.</li>
+<li><a href="http://fumalwareanalysis.blogspot.com/2012/01/malware-analysis-tutorial-12-debug.html" target="_blank" rel="noopener">Malware Analysis Tutorial 12: Debug the Debugger - Fix Module Information and UDD File </a>.</li>
+<li><a href="http://fumalwareanalysis.blogspot.com/2012/01/malware-tutorial-13-tracing-dll-entry.html" target="_blank" rel="noopener">Malware Analysis Tutorial 13: Tracing DLL Entry Point </a>.</li>
+<li><a href="http://fumalwareanalysis.blogspot.com/2012/01/malware-analysis-tutorial-14-retrieve.html" target="_blank" rel="noopener">Malware Analysis Tutorial 14: Retrieve Self-Decoding Key </a>.</li>
+<li><a href="http://fumalwareanalysis.blogspot.com/2012/02/malware-analysis-tutorial-15-injecting.html" target="_blank" rel="noopener">Malware Analysis Tutorial 15: Injecting Thread into a Running Process </a>.</li>
+<li><a href="http://fumalwareanalysis.blogspot.com/2012/02/malware-analysis-tutorial-16-return.html" target="_blank" rel="noopener">Malware Analysis Tutorial 16: Return Oriented Programming (Return to LIBC) Attack </a>.</li>
+<li><a href="http://fumalwareanalysis.blogspot.com/2012/02/malware-analysis-tutorial-17-infecting.html" target="_blank" rel="noopener">Malware Analysis Tutorial 17: Infection of System Modules (Part I: Randomly Pick a Driver).</a></li>
+<li><a href="http://fumalwareanalysis.blogspot.com/2012/02/malware-analysis-tutorial-18-infecting.html" target="_blank" rel="noopener">Malware Analysis Tutorial 18: Infecting Driver Files (Part II: Simple Infection) </a>.  </li>
+<li><a href="http://fumalwareanalysis.blogspot.com/2012/03/malware-analysis-tutorial-19-anatomy-of.html" target="_blank" rel="noopener">Malware Analysis Tutorial 19: Anatomy of Infected Driver </a></li>
+<li><a href="http://fumalwareanalysis.blogspot.com/2012/03/malware-analysis-tutorial-20-kernel.html" target="_blank" rel="noopener">Malware Analysis Tutorial 20: Kernel Debugging - Intercepting Driver Loading </a>.</li>
+<li><a href="http://fumalwareanalysis.blogspot.com/2012/03/malware-analysis-tutorial-21-hijack.html" target="_blank" rel="noopener">Malware Analysis Tutorial 21: Hijacking Disk Driver </a></li>
+<li><a href="http://fumalwareanalysis.blogspot.com/2012/03/malware-analysis-tutorial-22-irp.html" target="_blank" rel="noopener">Malware Analysis Tutorial 22: IRP Handler and Infected Disk Driver</a></li>
+<li><a href="http://fumalwareanalysis.blogspot.com/2012/03/malware-tutorial-analysis-23-tracing.html" target="_blank" rel="noopener">Malware Tutorial Analysis 23: Tracing Kernel Data Using Data Breakpoints </a></li>
+<li><a href="http://fumalwareanalysis.blogspot.com/2012/04/malware-analysis-tutorial-24-tracing.html" target="_blank" rel="noopener">Malware Analysis Tutorial 24: Tracing Malicious TDI Network Behaviors of Max++  </a></li>
+<li><a href="http://fumalwareanalysis.blogspot.com/2012/04/malware-analysis-tutorial-25-deferred.html" target="_blank" rel="noopener">Malware Analysis Tutorial 25: Deferred Procedure Call (DPC) and TCP Connection </a></li>
+<li><a href="http://fumalwareanalysis.blogspot.com/2012/04/malware-analysis-tutorial-26-rootkit.html" target="_blank" rel="noopener">Malware Analysis Tutorial 26: Rootkit Configuration </a></li>
+<li><a href="http://fumalwareanalysis.blogspot.com/2012/05/malware-analysis-tutorial-27-stealthy.html" target="_blank" rel="noopener">Malware Analysis Tutorial 27: Stealthy Loading of Malicious Driver  </a></li>
+<li><a href="http://fumalwareanalysis.blogspot.com/2012/05/malware-analysis-tutorial-28-break-max.html" target="_blank" rel="noopener">Malware Analysis Tutorial 28: Break Max++ Rootkit Hidden Drive Protection</a></li>
+<li><a href="http://fumalwareanalysis.blogspot.com/2012/06/malware-analysis-tutorial-29-stealthy.html" target="_blank" rel="noopener">Malware Analysis Tutorial 29: Stealthy Library Loading II (Using Self-Modifying APC) </a></li>
+<li><a href="http://fumalwareanalysis.blogspot.com/2012/06/malware-analysis-tutorial-30-loading.html" target="_blank" rel="noopener">Malware Analysis Tutorial 30: Self-Overwriting COM Loading for Remote Loading DLL</a></li>
+<li><a href="http://fumalwareanalysis.blogspot.com/2012/08/malware-analysis-tutorial-31-exposing.html" target="_blank" rel="noopener">Malware Analysis Tutorial 31: Exposing Hidden Control Flow </a></li>
+<li><a href="http://fumalwareanalysis.blogspot.com/2012/08/malware-analysis-tutorial-32.html" target="_blank" rel="noopener">Malware Analysis Tutorial 32: Exploration of Botnet Client </a></li>
+<li><a href="http://fumalwareanalysis.blogspot.com/2012/09/malware-analysis-tutorial-33-evaluation.html" target="_blank" rel="noopener">Malware Analysis Tutorial 33: Evaluation of Automated Malware Analysis System I (Anubis) </a> </li>
+<li><a href="http://fumalwareanalysis.blogspot.com/2012/10/malware-analysis-tutorial-34-evaluation.html" target="_blank" rel="noopener">Malware Analysis Tutorial 34: Evaluation of Automated Malware Analysis Tools CWSandBox, PeID, and Other Unpacking Tools</a></li>
+</ul>
+</li>
+<li><a href="https://github.com/RPISEC/Malware" target="_blank" rel="noopener">RPISEC Malware Course</a></li>
+<li><a href="https://securedorg.github.io/RE101/" target="_blank" rel="noopener">Reverse Engineering Malware 101</a></li>
+<li>Securitysift<ul>
+<li><a href="http://www.securitysift.com/windows-exploit-development-part-1-basics/" target="_blank" rel="noopener">Windows Exploit Development – Part 1: The Basics</a></li>
+<li><a href="http://www.securitysift.com/windows-exploit-development-part-2-intro-stack-overflow/" target="_blank" rel="noopener">Windows Exploit Development – Part 2: Intro to Stack Based Overflows</a></li>
+<li><a href="http://www.securitysift.com/windows-exploit-development-part-3-changing-offsets-and-rebased-modules/" target="_blank" rel="noopener">Windows Exploit Development – Part 3: Changing Offsets and Rebased Modules</a></li>
+<li><a href="http://www.securitysift.com/windows-exploit-development-part-4-locating-shellcode-jumps/" target="_blank" rel="noopener">Windows Exploit Development – Part 4: Locating Shellcode With Jumps</a></li>
+<li><a href="http://www.securitysift.com/windows-exploit-development-part-5-locating-shellcode-egghunting/" target="_blank" rel="noopener">Windows Exploit Development – Part 5: Locating Shellcode With Egghunting</a></li>
+<li><a href="http://www.securitysift.com/windows-exploit-development-part-6-seh-exploits/" target="_blank" rel="noopener">Windows Exploit Development – Part 6: SEH Exploits</a></li>
+<li><a href="http://www.securitysift.com/windows-exploit-development-part-7-unicode-buffer-overflows/" target="_blank" rel="noopener">Windows Exploit Development – Part 7: Unicode Buffer Overflows</a></li>
+</ul>
+</li>
+<li>Whitehatters Academy<ul>
+<li><a href="https://www.whitehatters.academy/intro-to-kernel-exploitation-part-1/" target="_blank" rel="noopener">Intro to Windows kernel exploitation 1/N: Kernel Debugging</a></li>
+<li><a href="https://www.whitehatters.academy/intro-to-windows-kernel-exploitation-2-windows-drivers/" target="_blank" rel="noopener">Intro to Windows kernel exploitation 2/N: HackSys Extremely Vulnerable Driver</a></li>
+<li><a href="https://www.whitehatters.academy/intro-to-windows-kernel-exploitation-3-my-first-driver-exploit/" target="_blank" rel="noopener">Intro to Windows kernel exploitation 3/N: My first Driver exploit</a></li>
+<li><a href="https://www.whitehatters.academy/intro-to-windows-kernel-exploitation-more-of-the-hacksys-driver/" target="_blank" rel="noopener">Intro to Windows kernel exploitation 3.5/N: A bit more of the HackSys Driver</a></li>
+<li><a href="https://www.whitehatters.academy/backdoor-103-fully-undetected/" target="_blank" rel="noopener">Backdoor 103: Fully Undetected</a></li>
+<li><a href="https://www.whitehatters.academy/backdoor-102/" target="_blank" rel="noopener">Backdoor 102</a></li>
+<li><a href="https://www.whitehatters.academy/backdoor101-vysec/" target="_blank" rel="noopener">Backdoor 101</a></li>
+</ul>
+</li>
+<li>TheSprawl<ul>
+<li><a href="http://thesprawl.org/research/corelan-integer-overflows-exercise-solution/" target="_blank" rel="noopener">corelan - integer overflows - exercise solution</a></li>
+<li><a href="http://thesprawl.org/research/heap-overflows-humans-102-exercise-solution/" target="_blank" rel="noopener">heap overflows for humans - 102 - exercise solution</a></li>
+<li><a href="http://thesprawl.org/research/exploit-exercises-protostar-final/" target="_blank" rel="noopener">exploit exercises - protostar - final levels</a></li>
+<li><a href="http://thesprawl.org/research/exploit-exercises-protostar-network/" target="_blank" rel="noopener">exploit exercises - protostar - network levels</a></li>
+<li><a href="http://thesprawl.org/research/exploit-exercises-protostar-heap/" target="_blank" rel="noopener">exploit exercises - protostar - heap levels</a></li>
+<li><a href="http://thesprawl.org/research/exploit-exercises-protostar-format/" target="_blank" rel="noopener">exploit exercises - protostar - format string levels</a></li>
+<li><a href="http://thesprawl.org/research/exploit-exercises-protostar-stack/" target="_blank" rel="noopener">exploit exercises - protostar - stack levels</a></li>
+<li><a href="http://thesprawl.org/research/ost-introduction-software-exploits-uninit-overflow/" target="_blank" rel="noopener">open security training - introduction to software exploits - uninitialized variable overflow</a></li>
+<li><a href="http://thesprawl.org/research/ost-introduction-exploits-offbyone/" target="_blank" rel="noopener">open security training - introduction to software exploits - off-by-one</a></li>
+<li><a href="http://thesprawl.org/research/ost-introduction-re-bomb-secret-phase/" target="_blank" rel="noopener">open security training - introduction to re - bomb lab secret phase</a></li>
+<li><a href="http://thesprawl.org/research/ost-introductory-x86-buffer-overflow-mystery-box/" target="_blank" rel="noopener">open security training - introductory x86 - buffer overflow mystery box</a></li>
+<li><a href="http://thesprawl.org/research/corelan-tutorial-10-exercise-solution/" target="_blank" rel="noopener">corelan - tutorial 10 - exercise solution</a></li>
+<li><a href="http://thesprawl.org/research/corelan-tutorial-9-exercise-solution/" target="_blank" rel="noopener">corelan - tutorial 9 - exercise solution</a></li>
+<li><a href="http://thesprawl.org/research/corelan-tutorial-7-exercise-solution/" target="_blank" rel="noopener">corelan - tutorial 7 - exercise solution</a></li>
+<li><a href="http://thesprawl.org/research/seh-to-nseh/" target="_blank" rel="noopener">getting from seh to nseh</a></li>
+<li><a href="http://thesprawl.org/research/corelan-tutorial-3b-exercise-solution/" target="_blank" rel="noopener">corelan - tutorial 3b - exercise solution</a></li>
+</ul>
+</li>
+<li>Expdev-Kiuhnm<ul>
+<li><a href="http://expdev-kiuhnm.rhcloud.com/2015/05/17/windbg/" target="_blank" rel="noopener">WinDbg</a></li>
+<li><a href="http://expdev-kiuhnm.rhcloud.com/2015/05/19/mona-2/" target="_blank" rel="noopener">Mona 2</a></li>
+<li><a href="http://expdev-kiuhnm.rhcloud.com/2015/05/19/structured-exception-handling-seh/" target="_blank" rel="noopener">Structure Exception Handling (SEH)</a></li>
+<li><a href="http://expdev-kiuhnm.rhcloud.com/2015/05/20/heap/" target="_blank" rel="noopener">Heap</a></li>
+<li><a href="http://expdev-kiuhnm.rhcloud.com/2015/05/20/windows-basics/" target="_blank" rel="noopener">Windows Basics</a></li>
+<li><a href="http://expdev-kiuhnm.rhcloud.com/2015/05/22/shellcode/" target="_blank" rel="noopener">Shellcode</a></li>
+<li><a href="http://expdev-kiuhnm.rhcloud.com/2015/05/26/exploitme1-ret-eip-overwrite/" target="_blank" rel="noopener">Exploitme1 (ret eip overwrite)</a></li>
+<li><a href="http://expdev-kiuhnm.rhcloud.com/2015/05/26/exploitme2-stack-cookies-seh-2/" target="_blank" rel="noopener">Exploitme2 (Stack cookies &amp; SEH)</a></li>
+<li><a href="http://expdev-kiuhnm.rhcloud.com/2015/05/27/exploitme3-dep/" target="_blank" rel="noopener">Exploitme3 (DEP)</a></li>
+<li><a href="http://expdev-kiuhnm.rhcloud.com/2015/05/28/exploitme4-aslr/" target="_blank" rel="noopener">Exploitme4 (ASLR)</a></li>
+<li><a href="http://expdev-kiuhnm.rhcloud.com/2015/05/29/exploitme5-heap-spraying-uaf/" target="_blank" rel="noopener">Exploitme5 (Heap Spraying &amp; UAF)</a></li>
+<li><a href="http://expdev-kiuhnm.rhcloud.com/2015/05/29/emet-5-2-2/" target="_blank" rel="noopener">EMET 5.2</a></li>
+<li><a href="http://expdev-kiuhnm.rhcloud.com/2015/05/31/ie10-reverse-engineering-ie/" target="_blank" rel="noopener">Internet Explorer 10 - Reverse Engineering IE</a></li>
+<li><a href="http://expdev-kiuhnm.rhcloud.com/2015/05/31/ie-10-from-one-byte-write-to-full-process-space-readwrite/" target="_blank" rel="noopener">Internet Explorer 10 - From one-byte-write to full process space read/write</a></li>
+<li><a href="http://expdev-kiuhnm.rhcloud.com/2015/05/31/ie10-god-mode-1/" target="_blank" rel="noopener">Internet Explorer 10 - God Mode (1)</a></li>
+<li><a href="http://expdev-kiuhnm.rhcloud.com/2015/06/01/ie10-god-mode-2/" target="_blank" rel="noopener">Internet Explorer 10 - God Mode (2)</a></li>
+<li><a href="http://expdev-kiuhnm.rhcloud.com/2015/06/01/ie10-use-free-bug/" target="_blank" rel="noopener">Internet Explorer 10 - Use-After-Free bug</a></li>
+<li><a href="http://expdev-kiuhnm.rhcloud.com/2015/06/02/ie11-part-1/" target="_blank" rel="noopener">Internet Explorer 11 - Part 1</a></li>
+<li><a href="http://expdev-kiuhnm.rhcloud.com/2015/06/02/ie11-part-2/" target="_blank" rel="noopener">Internet Explorer 11 - Part 2</a></li>
+</ul>
+</li>
+</ul>
+<p>##Papers</p>
+<h3 id="ROP"><a href="#ROP" class="headerlink" title="ROP"></a>ROP</h3><ul>
+<li>ROP萌芽期<ul>
+<li>【待续】海枫的一些文章</li>
+</ul>
+</li>
+<li>基本ROP<ul>
+<li><a href="http://cb.drops.wiki/drops/tips-6597.html" target="_blank" rel="noopener">一步一步学ROP之linux_x86篇</a></li>
+<li><a href="http://cb.drops.wiki/drops/papers-7551.html" target="_blank" rel="noopener">一步一步学ROP之linux_x86篇</a></li>
+<li><a href="http://cb.drops.wiki/drops/binary-10638.html" target="_blank" rel="noopener">一步一步学ROP之gadgets和2free篇</a></li>
+<li><a href="http://cb.drops.wiki/drops/papers-11390.html" target="_blank" rel="noopener">一步一步学ROP之Android ARM 32位篇</a></li>
+<li><a href="https://medium.com/@iseethieves/intro-to-rop-rop-emporium-split-9b2ec6d4db08" target="_blank" rel="noopener">Intro to ROP: ROP Emporium — Split</a></li>
+<li><a href="https://ropemporium.com/" target="_blank" rel="noopener">ROP Emporium</a></li>
+<li><a href="https://blog.skullsecurity.org/2013/ropasaurusrex-a-primer-on-return-oriented-programming" target="_blank" rel="noopener">ropasaurusrex: a primer on return-oriented programming2</a></li>
+<li><a href="http://bobao.360.cn/learning/detail/3569.html" target="_blank" rel="noopener">ROP技术入门教程</a></li>
+<li><a href="https://xianzhi.aliyun.com/forum/read/840.html?fpage=2" target="_blank" rel="noopener">二进制漏洞利用中的ROP技术研究与实例分析</a></li>
+<li><a href="http://bobao.360.cn/learning/detail/3694.html" target="_blank" rel="noopener">现代栈溢出利用技术基础：ROP</a></li>
+<li><a href="http://wooyun.jozxing.cc/static/drops/binary-14360.html" target="_blank" rel="noopener">通过ELF动态装载构造ROP链</a></li>
+<li><a href="http://bestwing.me/2017/03/19/stack-overflow-two-ROP/" target="_blank" rel="noopener">Swing: 基础栈溢出复习 二 之 ROP</a></li>
+<li><a href="http://cseweb.ucsd.edu/~hovav/dist/geometry.pdf" target="_blank" rel="noopener">The Geometry of Innocent Flesh on the Bone: Return-into-libc without Function Calls</a></li>
+<li><a href="http://www.scs.stanford.edu/brop/bittau-brop.pdf" target="_blank" rel="noopener">Blind return-oriented programming</a></li>
+<li><a href="https://www.cs.vu.nl/~herbertb/papers/srop_sp14.pdf" target="_blank" rel="noopener">Sigreturn-oriented Programming</a></li>
+<li><a href="http://ftp.ncsu.edu/pub/tech/2010/TR-2010-8.pdf" target="_blank" rel="noopener">Jump-Oriented Programming: A New Class of Code-Reuse Attack</a></li>
+<li><a href="http://www.cs.stevens.edu/~gportoka/files/outofcontrol_oakland14.pdf" target="_blank" rel="noopener">Out of control: Overcoming control-flow integrity</a></li>
+<li><a href="http://www.cs.berkeley.edu/~daw/papers/rop-usenix14.pdf" target="_blank" rel="noopener">ROP is Still Dangerous: Breaking Modern Defenses</a></li>
+<li><a href="https://www.sec.in.tum.de/assets/staff/muntean/Loop-Oriented_Programming_A_New_Code_Reuse_Attack_to_Bypass_Modern0ADefenses.pdf" target="_blank" rel="noopener">Loop-Oriented Programming(LOP): A New Code Reuse Attack to Bypass Modern Defenses</a> - by Bingchen Lan, Yan Li, Hao Sun, Chao Su, Yao Liu, Qingkai Zeng [2015]</li>
+<li><a href="https://people.csail.mit.edu/nickolai/papers/skowyra-rop.pdf" target="_blank" rel="noopener">Systematic Analysis of Defenses Against Return-Oriented Programming</a> -by R. Skowyra, K. Casteel, H. Okhravi, N. Zeldovich, and W. Streilein [2013]</li>
+<li><a href="https://www.cs.uic.edu/~s/papers/noret_ccs2010/noret_ccs2010.pdf" target="_blank" rel="noopener">Return-oriented programming without returns</a> -by S.Checkoway, L. Davi, A. Dmitrienko, A. Sadeghi, H. Shacham, and M. Winandy [2010]</li>
+<li><a href="https://www.comp.nus.edu.sg/~liangzk/papers/asiaccs11.pdf" target="_blank" rel="noopener">Jump-oriented programming: a new class of code-reuse attack</a> -by T. K. Bletsch, X. Jiang, V. W. Freeh, and Z. Liang [2011]</li>
+<li><a href="https://www.usenix.org/system/files/conference/usenixsecurity14/sec14-paper-davi.pdf" target="_blank" rel="noopener">Stitching the gadgets: on the ineffectiveness of coarse-grained control-flow integrity protection</a> - by L. Davi, A. Sadeghi, and D. Lehmann [2014]</li>
+<li><a href="https://www.usenix.org/system/files/conference/usenixsecurity14/sec14-paper-goktas.pdf" target="_blank" rel="noopener">Size does matter: Why using gadget-chain length to prevent code-reuse attacks is hard</a> - by E. Göktas, E.Athanasopoulos, M. Polychronakis, H. Bos, and G.Portokalidis [2014]</li>
+<li><a href="http://www.mastropaolo.com/2005/06/04/buffer-overflow-attacks-bypassing-dep-nxxd-bits-part-1/" target="_blank" rel="noopener">Buffer overflow attacks bypassing DEP (NX/XD bits) – part 1</a> - by Marco Mastropaolo [2005]</li>
+<li><a href="http://www.mastropaolo.com/2005/06/05/buffer-overflow-attacks-bypassing-dep-nxxd-bits-part-2-code-injection/" target="_blank" rel="noopener">Buffer overflow attacks bypassing DEP (NX/XD bits) – part 2</a> - by Marco Mastropaolo [2005]</li>
+<li><a href="http://trailofbits.files.wordpress.com/2010/04/practical-rop.pdf" target="_blank" rel="noopener">Practical Rop</a> - by Dino Dai Zovi [2010]</li>
+<li><a href="https://packetstormsecurity.com/papers/general/Windows-DEP-WPM.txt" target="_blank" rel="noopener">Exploitation with WriteProcessMemory</a> - by Spencer Pratt [2010]</li>
+<li><a href="http://hick.org/~mmiller/presentations/misc/exploitation_techniques_and_mitigations_on_windows.pdf" target="_blank" rel="noopener">Exploitation techniques and mitigations on Windows</a> - by skape</li>
+<li><a href="http://blog.harmonysecurity.com/2010/04/little-return-oriented-exploitation-on.html" target="_blank" rel="noopener">A little return oriented exploitation on Windows x86 – Part 1</a> - by Harmony Security and Stephen Fewer [2010]</li>
+<li><a href="http://blog.harmonysecurity.com/2010/04/little-return-oriented-exploitation-on_16.html" target="_blank" rel="noopener">A little return oriented exploitation on Windows x86 – Part 2</a> - by Harmony Security and Stephen Fewer [2010]</li>
+</ul>
+</li>
+<li>BROP<ul>
+<li><a href="http://www.scs.stanford.edu/brop/" target="_blank" rel="noopener">Blind Return Oriented Programming</a></li>
+<li><a href="http://o0xmuhe.me/2017/01/22/Have-fun-with-Blind-ROP/" target="_blank" rel="noopener">muhe: Have fun with Blind ROP</a></li>
+<li><a href="http://bestwing.me/2017/03/24/stack-overflow-four-BROP/" target="_blank" rel="noopener">Swing: 基础栈溢出复习 四 之 BROP</a></li>
+</ul>
+</li>
+<li>SROP<ul>
+<li><a href="http://www.freebuf.com/articles/network/87447.html" target="_blank" rel="noopener">Sigreturn Oriented Programming (SROP) Attack攻击原理</a></li>
+<li><a href="http://bestwing.me/2017/03/20/stack-overflow-three-SROP/" target="_blank" rel="noopener">Swing: 基础栈溢出复习 三 之 SROP</a></li>
+</ul>
+</li>
+<li>Return-to-dl-resolve<ul>
+<li><a href="http://www.freebuf.com/articles/system/149214.html" target="_blank" rel="noopener">如何在32位系统中使用ROP+Return-to-dl来绕过ASLR+DEP</a></li>
+<li><a href="http://www.evil0x.com/posts/19226.html" target="_blank" rel="noopener">通过ELF动态装载构造ROP链 （ Return-to-dl-resolve）</a></li>
+</ul>
+</li>
+</ul>
+<h3 id="栈相关"><a href="#栈相关" class="headerlink" title="栈相关"></a>栈相关</h3><ul>
+<li>栈溢出<ul>
+<li><a href="http://bobao.360.cn/learning/detail/3717.html" target="_blank" rel="noopener">手把手教你栈溢出从入门到放弃（上）</a></li>
+<li><a href="http://bobao.360.cn/learning/detail/3718.html" target="_blank" rel="noopener">手把手教你栈溢出从入门到放弃（下）</a></li>
+<li><a href="http://0x48.pw/2016/11/03/0x26/" target="_blank" rel="noopener">Hcamael: PWN学习总结之基础栈溢出</a></li>
+<li><a href="http://0x48.pw/2016/11/21/0x27/" target="_blank" rel="noopener">Hcamael: PWN学习总结之基础栈溢出2</a></li>
+<li><a href="http://bestwing.me/2017/03/18/stack-overflow-one/" target="_blank" rel="noopener">Swing: 基础栈溢出复习 之基础</a></li>
+<li><a href="http://www.freebuf.com/articles/terminal/107276.html" target="_blank" rel="noopener">ARM栈溢出攻击实践：从虚拟环境搭建到ROP利用</a></li>
+<li><a href="https://blog.techorganic.com/2015/04/10/64-bit-linux-stack-smashing-tutorial-part-1/" target="_blank" rel="noopener">64-bit Linux stack smashing tutorial: Part 1</a></li>
+<li><a href="https://blog.techorganic.com/2015/04/21/64-bit-linux-stack-smashing-tutorial-part-2/" target="_blank" rel="noopener">64-bit Linux stack smashing tutorial: Part 2</a></li>
+<li><a href="https://blog.techorganic.com/2016/03/18/64-bit-linux-stack-smashing-tutorial-part-3/" target="_blank" rel="noopener">64-bit Linux stack smashing tutorial: Part 3</a></li>
+<li><a href="http://cybersecurity.upv.es/attacks/offset2lib/offset2lib.html" target="_blank" rel="noopener">Offset2lib: bypassing full ASLR on 64bit Linu</a></li>
+<li><a href="https://www.tuicool.com/articles/VVBz6va" target="_blank" rel="noopener">return2libc学习笔记</a></li>
+<li><a href="http://www.phrack.com/issues.html?issue=55&amp;id=15#article" target="_blank" rel="noopener">Win32 Buffer Overflows (Location, Exploitation and Prevention)</a> - by Dark spyrit [1999]</li>
+<li><a href="http://www.packetstormsecurity.org/papers/win/" target="_blank" rel="noopener">Writing Stack Based Overflows on Windows</a> - by Nish Bhalla’s [2005]</li>
+<li><a href="https://www.blackhat.com/presentations/bh-europe-09/Fritsch/Blackhat-Europe-2009-Fritsch-Bypassing-aslr-slides.pdf" target="_blank" rel="noopener">Stack Smashing as of Today</a> - by Hagen Fritsch [2009]</li>
+<li><a href="http://phrack.org/issues/56/8.html" target="_blank" rel="noopener">SMASHING C++ VPTRS</a> - by rix [2000]</li>
+</ul>
+</li>
+<li>Canary/GS绕过<ul>
+<li><a href="http://0x48.pw/2017/03/14/0x2d/" target="_blank" rel="noopener">栈溢出之绕过CANARY保护</a></li>
+<li><a href="http://veritas501.space/2017/04/28/%E8%AE%BAcanary%E7%9A%84%E5%87%A0%E7%A7%8D%E7%8E%A9%E6%B3%95/" target="_blank" rel="noopener">论canary的几种玩法</a></li>
+<li><a href="http://yunnigu.dropsec.xyz/2017/03/20/Liunx%E4%B8%8B%E5%85%B3%E4%BA%8E%E7%BB%95%E8%BF%87cancry%E4%BF%9D%E6%8A%A4%E6%80%BB%E7%BB%93/" target="_blank" rel="noopener">Liunx下关于绕过cancry保护总结</a></li>
+</ul>
+</li>
+</ul>
+<h3 id="堆相关"><a href="#堆相关" class="headerlink" title="堆相关"></a>堆相关</h3><ul>
+<li>堆理论基础<ul>
+<li><a href="http://paper.seebug.org/255/" target="_blank" rel="noopener">PWN之堆内存管理</a></li>
+<li><a href="http://www.freebuf.com/articles/system/104144.html" target="_blank" rel="noopener">Linux堆内存管理深入分析（上）</a></li>
+<li><a href="http://www.freebuf.com/articles/security-management/105285.html" target="_blank" rel="noopener">Linux堆内存管理深入分析（下）</a></li>
+<li><a href="http://bobao.360.cn/learning/detail/3548.html" target="_blank" rel="noopener">Windows Exploit开发系列教程——堆喷射（一）</a></li>
+<li><a href="http://bobao.360.cn/learning/detail/3555.html" target="_blank" rel="noopener">Windows Exploit开发系列教程——堆喷射（二）</a></li>
+<li><a href="http://www.freebuf.com/articles/system/91527.html" target="_blank" rel="noopener">Libc堆管理机制及漏洞利用技术 (一）</a></li>
+<li><a href="https://blog.iret.xyz/article.aspx/linux_heapoverflow_enterance" target="_blank" rel="noopener">Notes About Heap Overflow Under Linux</a></li>
+<li><a href="http://www.freebuf.com/vuls/98404.html" target="_blank" rel="noopener">如何理解堆和堆溢出漏洞的利用?</a></li>
+<li><a href="http://o0xmuhe.me/2016/11/21/Have-fun-with-glibc%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/" target="_blank" rel="noopener">Have fun with glibc内存管理</a></li>
+<li><a href="http://www.tuicool.com/articles/A7n2ueq" target="_blank" rel="noopener">内存映射mmap</a></li>
+<li><a href="http://0x48.pw/2017/07/25/0x35/" target="_blank" rel="noopener">glibc malloc学习笔记之fastbin</a></li>
+<li><a href="http://0x48.pw/2017/08/07/0x37/" target="_blank" rel="noopener">malloc.c源码阅读之__libc_free</a></li>
+<li><a href="http://www.cnblogs.com/wangaohui/p/5190889.html" target="_blank" rel="noopener">Malloc碎碎念</a></li>
+<li><a href="http://blog.csdn.net/maokelong95/article/details/52006379" target="_blank" rel="noopener">glibc内存分配与回收过程图解</a></li>
+<li><a href="http://blog.csdn.net/maokelong95/article/details/51989081#allocated-chunk" target="_blank" rel="noopener">理解 glibc malloc</a></li>
+</ul>
+</li>
+<li>堆利用技术<ul>
+<li><a href="http://bobao.360.cn/learning/detail/4386.html" target="_blank" rel="noopener">how2heap总结-上</a></li>
+<li><a href="http://bobao.360.cn/learning/detail/4383.html" target="_blank" rel="noopener">how2heap总结-下</a></li>
+<li><a href="http://wooyun.jozxing.cc/static/drops/binary-14596.html" target="_blank" rel="noopener">溢出科普：heap overflow&amp;溢出保护和绕过</a></li>
+<li><a href="http://bobao.360.cn/learning/detail/3197.html" target="_blank" rel="noopener">现代化的堆相关漏洞利用技巧</a></li>
+<li><a href="http://bobao.360.cn/learning/detail/3113.html" target="_blank" rel="noopener">从一字节溢出到任意代码执行-Linux下堆漏洞利用</a></li>
+<li><a href="https://sploitfun.wordpress.com/2015/02/26/heap-overflow-using-unlink/?spm=a313e.7916648.0.0.x4nzYZ" target="_blank" rel="noopener">Heap overflow using unlink</a></li>
+<li><a href="https://www.tuicool.com/articles/E3Ezu2u" target="_blank" rel="noopener">堆溢出的unlink利用方法</a></li>
+<li><a href="https://jaq.alibaba.com/community/art/show?spm=a313e.7916646.24000001.74.ZP8rXN&amp;articleid=360" target="_blank" rel="noopener">Linux堆溢出漏洞利用之unlink</a></li>
+<li><a href="http://www.freebuf.com/news/88660.html?utm_source=tuicool&amp;utm_medium=referral" target="_blank" rel="noopener">浅析Linux堆溢出之fastbin</a></li>
+<li><a href="http://bobao.360.cn/learning/detail/3996.html" target="_blank" rel="noopener">Linux堆溢出之Fastbin Attack实例详解</a></li>
+<li><a href="http://bobao.360.cn/learning/detail/3296.html" target="_blank" rel="noopener">unsorted bin attack分析</a></li>
+<li><a href="http://www.vuln.cn/6172" target="_blank" rel="noopener">Double Free浅析</a></li>
+<li><a href="http://www.blackhat.com/presentations/bh-usa-07/Ferguson/Whitepaper/bh-usa-07-ferguson-WP.pdf" target="_blank" rel="noopener">Understanding the heap by breaking it</a></li>
+<li><a href="https://www.purehacking.com/blog/lloyd-simon/an-introduction-to-use-after-free-vulnerabilities" target="_blank" rel="noopener">An Introduction to Use After Free Vulnerabilities</a></li>
+<li><a href="http://bobao.360.cn/learning/detail/3379.html?utm_source=tuicool&amp;utm_medium=referral" target="_blank" rel="noopener">Use After Free漏洞浅析</a></li>
+<li><a href="http://d0m021ng.github.io/2017/03/04/PWN/Linux%E5%A0%86%E6%BC%8F%E6%B4%9E%E4%B9%8BUse-after-free%E5%AE%9E%E4%BE%8B/" target="_blank" rel="noopener">Linux堆漏洞之Use after free实例</a></li>
+<li><a href="http://bobao.360.cn/learning/detail/3417.html" target="_blank" rel="noopener">堆之House of Spirit</a></li>
+<li><a href="http://www.freebuf.com/articles/system/151372.html" target="_blank" rel="noopener">Dance In Heap（一）：浅析堆的申请释放及相应保护机制</a></li>
+<li><a href="http://www.freebuf.com/articles/system/151407.html" target="_blank" rel="noopener">Dance In Heap（二）：一些堆利用的方法（上）</a></li>
+<li><a href="http://www.freebuf.com/articles/system/151428.html" target="_blank" rel="noopener">Dance In Heap（三）：一些堆利用的方法（中）</a></li>
+<li><a href="http://www.freebuf.com/articles/system/151435.html" target="_blank" rel="noopener">Dance In Heap（四）：一些堆利用的方法（下）</a></li>
+<li><a href="https://info.contextis.com/acton/attachment/24535/f-02c8/1/-/-/-/-/Glibc%20Adventures%3A%20The%20forgotten%20chunks.pdf" target="_blank" rel="noopener">Glibc Adventures：The Forgotten Chunks</a></li>
+<li><a href="http://www.blackhat.com/presentations/win-usa-02/halvarflake-winsec02.ppt" target="_blank" rel="noopener">Third Generation Exploitation smashing heap on 2k</a> - by Halvar Flake [2002]</li>
+<li><a href="http://freeworld.thc.org/root/docs/exploit_writing/msrpcheap.pdf" target="_blank" rel="noopener">Exploiting the MSRPC Heap Overflow Part 1</a> - by Dave Aitel (MS03-026) [September 2003]</li>
+<li><a href="http://freeworld.thc.org/root/docs/exploit_writing/msrpcheap2.pdf" target="_blank" rel="noopener">Exploiting the MSRPC Heap Overflow Part 2</a> - by Dave Aitel (MS03-026) [September 2003]</li>
+<li><a href="https://www.blackhat.com/presentations/win-usa-04/bh-win-04-litchfield/bh-win-04-litchfield.ppt" target="_blank" rel="noopener">Windows heap overflow penetration in black hat</a> - by David Litchfield [2004]</li>
+<li><a href="http://www.contextis.com/documents/120/Glibc_Adventures-The_Forgotten_Chunks.pdf" target="_blank" rel="noopener">Glibc Adventures: The Forgotten Chunk</a> - by François Goichon [2015]</li>
+<li><a href="http://www.phrack.org/issues/68/10.html" target="_blank" rel="noopener">Pseudomonarchia jemallocum</a> - by argp &amp; huku</li>
+<li><a href="http://phrack.org/issues/67/8.html" target="_blank" rel="noopener">The House Of Lore: Reloaded</a> - by blackngel [2010]</li>
+<li><a href="http://phrack.org/issues/66/10.html" target="_blank" rel="noopener">Malloc Des-Maleficarum</a> - by blackngel [2009]</li>
+<li><a href="http://phrack.org/issues/66/6.html" target="_blank" rel="noopener">free() exploitation technique</a> - by huku</li>
+<li><a href="https://www.blackhat.com/presentations/bh-usa-07/Ferguson/Whitepaper/bh-usa-07-ferguson-WP.pdf" target="_blank" rel="noopener">Understanding the heap by breaking it</a> - by Justin N. Ferguson [2007]</li>
+<li><a href="http://phrack.org/issues/64/9.html" target="_blank" rel="noopener">The use of set_head to defeat the wilderness</a> - by g463</li>
+<li><a href="http://seclists.org/bugtraq/2005/Oct/118" target="_blank" rel="noopener">The Malloc Maleficarum</a> - by Phantasmal Phantasmagoria [2005]</li>
+<li><a href="http://seclists.org/vuln-dev/2004/Feb/25" target="_blank" rel="noopener">Exploiting The Wilderness</a> - by Phantasmal Phantasmagoria [2004]</li>
+<li><a href="http://phrack.org/issues/61/6.html" target="_blank" rel="noopener">Advanced Doug lea’s malloc exploits</a> - by jp</li>
+</ul>
+</li>
+</ul>
+<h3 id="格式化字符串"><a href="#格式化字符串" class="headerlink" title="格式化字符串"></a>格式化字符串</h3><ul>
+<li>格式化字符串漏洞<ul>
+<li><a href="https://crypto.stanford.edu/cs155old/cs155-spring08/papers/formatstring-1.2.pdf" target="_blank" rel="noopener">Exploiting Format String Vulnerabilities</a></li>
+<li><a href="http://cb.drops.wiki/drops/binary-6259.html" target="_blank" rel="noopener">二进制漏洞之——邪恶的printf</a></li>
+<li><a href="http://cb.drops.wiki/drops/papers-9426.html" target="_blank" rel="noopener">漏洞挖掘基础之格式化字符串</a></li>
+<li><a href="http://bobao.360.cn/learning/detail/3654.html" target="_blank" rel="noopener">格式化字符串漏洞利用小结（一）</a></li>
+<li><a href="http://bobao.360.cn/learning/detail/3674.html" target="_blank" rel="noopener">格式化字符串漏洞利用小结（二）</a></li>
+<li><a href="http://www.cnblogs.com/Ox9A82/p/5429099.html" target="_blank" rel="noopener">Linux下的格式化字符串漏洞利用姿势</a></li>
+<li><a href="http://0x48.pw/2017/03/13/0x2c/?utm_source=tuicool&amp;utm_medium=referral" target="_blank" rel="noopener">Linux系统下格式化字符串利用研究</a></li>
+<li><a href="http://phrack.org/issues/59/7.html" target="_blank" rel="noopener">Advances in format string exploitation</a></li>
+<li><a href="http://www.vnsecurity.net/research/2012/02/16/exploiting-sudo-format-string-vunerability.html" target="_blank" rel="noopener">Exploiting Sudo format string vunerability</a></li>
+</ul>
+</li>
+</ul>
+<h3 id="Misc"><a href="#Misc" class="headerlink" title="Misc"></a>Misc</h3><ul>
+<li>FSP溢出<ul>
+<li><a href="http://wooyun.jozxing.cc/static/drops/binary-12740.html" target="_blank" rel="noopener">Head First FILE Stream Pointer Overflow</a></li>
+<li><a href="https://outflux.net/blog/archives/2011/12/22/abusing-the-file-structure/" target="_blank" rel="noopener">abusing the FILE structure</a></li>
+<li><a href="http://repo.thehackademy.net/depot_ouah/fsp-overflows.txt" target="_blank" rel="noopener">File Stream Pointer Overflows Paper.</a></li>
+<li><a href="http://bobao.360.cn/learning/detail/3219.html" target="_blank" rel="noopener">溢出利用FILE结构体</a></li>
+</ul>
+</li>
+<li>整数溢出<ul>
+<li><a href="http://blog.csdn.net/wuxiaobingandbob/article/details/44618925" target="_blank" rel="noopener">整数溢出漏洞</a></li>
+</ul>
+</li>
+<li>ARM汇编<ul>
+<li><a href="http://bobao.360.cn/learning/detail/4070.html" target="_blank" rel="noopener">ARM 汇编基础速成1：ARM汇编以及汇编语言基础介绍</a></li>
+<li><a href="http://bobao.360.cn/learning/detail/4075.html" target="_blank" rel="noopener">ARM 汇编基础速成2：ARM汇编中的数据类型</a></li>
+<li><a href="http://bobao.360.cn/learning/detail/4082.html" target="_blank" rel="noopener">ARM 汇编基础速成3：ARM模式与THUMB模式</a></li>
+<li><a href="http://bobao.360.cn/learning/detail/4087.html" target="_blank" rel="noopener">ARM 汇编基础速成4：ARM汇编内存访问相关指令</a></li>
+<li><a href="http://bobao.360.cn/learning/detail/4097.html" target="_blank" rel="noopener">ARM 汇编基础速成5：连续存取</a></li>
+<li><a href="http://bobao.360.cn/learning/detail/4104.html" target="_blank" rel="noopener">ARM 汇编基础速成6：条件执行与分支</a></li>
+<li><a href="http://bobao.360.cn/learning/detail/4108.html" target="_blank" rel="noopener">ARM 汇编基础速成7：栈与函数</a></li>
+</ul>
+</li>
+<li>Lua<ul>
+<li><a href="http://bobao.360.cn/learning/detail/4534.html" target="_blank" rel="noopener">Lua程序逆向之Luac文件格式分析</a></li>
+</ul>
+</li>
+<li>进程注入<ul>
+<li><a href="http://bobao.360.cn/learning/detail/4131.html" target="_blank" rel="noopener">10种常见的进程注入技术的总结</a></li>
+<li><a href="http://www.freebuf.com/articles/system/143640.html" target="_blank" rel="noopener">系统安全攻防战：DLL注入技术详解</a></li>
+</ul>
+</li>
+<li>符号执行<ul>
+<li><a href="https://github.com/enzet/symbolic-execution" target="_blank" rel="noopener">关于符号执行</a></li>
+<li><a href="http://www.miasm.re/blog/2017/10/05/playing_with_dynamic_symbolic_execution.html" target="_blank" rel="noopener">Playing with Dynamic symbolic execution</a></li>
+</ul>
+</li>
+<li>Windows memory protections<ul>
+<li><a href="http://support.microsoft.com/kb/875352" target="_blank" rel="noopener">Data Execution Prevention</a></li>
+<li><a href="http://msdn.microsoft.com/en-us/library/Aa290051" target="_blank" rel="noopener">/GS (Buffer Security Check)</a></li>
+<li><a href="http://msdn.microsoft.com/en-us/library/9a89h429(VS.80" target="_blank" rel="noopener">/SAFESEH</a>.aspx)</li>
+<li><a href="http://blogs.msdn.com/michael_howard/archive/2006/05/26/address-space-layout-randomization-in-windows-vista.aspx" target="_blank" rel="noopener">ASLR</a></li>
+<li><a href="http://blogs.technet.com/srd/archive/2009/02/02/preventing-the-exploitation-of-seh-overwrites-with-sehop.aspx" target="_blank" rel="noopener">SEHOP</a></li>
+</ul>
+</li>
+<li>Bypassing filter and protections<ul>
+<li><a href="http://www.blackhat.com/presentations/win-usa-02/halvarflake-winsec02.ppt" target="_blank" rel="noopener">Third Generation Exploitation smashing heap on 2k</a> - by Halvar Flake [2002]</li>
+<li><a href="http://www.net-security.org/dl/articles/unicodebo.pdf" target="_blank" rel="noopener">Creating Arbitrary Shellcode In Unicode Expanded Strings</a> - by Chris Anley</li>
+<li><a href="http://www.immunityinc.com/downloads/immunity_win32_exploitation.final2.ppt" target="_blank" rel="noopener">Advanced windows exploitation</a> - by Dave Aitel [2003]</li>
+<li><a href="http://www.ngssoftware.com/papers/defeating-w2k3-stack-protection.pdf" target="_blank" rel="noopener">Defeating the Stack Based Buffer Overflow Prevention Mechanism of Microsoft Windows 2003 Server</a> - by David Litchfield</li>
+<li><a href="http://cybertech.net/~sh0ksh0k/projects/winheap/XPSP2%20Heap%20Exploitation.ppt" target="_blank" rel="noopener">Reliable heap exploits and after that Windows Heap Exploitation (Win2KSP0 through WinXPSP2)</a> - by Matt Conover in cansecwest 2004</li>
+<li><a href="http://www.hick.org/code/skape/papers/egghunt-shellcode.pdf" target="_blank" rel="noopener">Safely Searching Process Virtual Address Space</a> - by Matt Miller [2004]</li>
+<li><a href="http://www.exploit-db.com/exploits/612" target="_blank" rel="noopener">IE exploit and used a technology called Heap Spray</a></li>
+<li><a href="http://www.uninformed.org/?v=2&amp;a=4&amp;t=pdf" target="_blank" rel="noopener">Bypassing hardware-enforced DEP</a> - by Skape (Matt Miller) and Skywing (Ken Johnson) [October 2005]</li>
+<li><a href="http://www.orkspace.net/secdocs/Windows/Protection/Bypass/Exploiting%20Freelist%5B0%5D%20On%20XP%20Service%20Pack%202.pdf" target="_blank" rel="noopener">Exploiting Freelist[0] On XP Service Pack 2</a> - by Brett Moore [2005]</li>
+<li><a href="http://www.uninformed.org/?v=3&amp;a=4&amp;t=pdf" target="_blank" rel="noopener">Kernel-mode Payloads on Windows in uninformed</a></li>
+<li><a href="http://www.uninformed.org/?v=6&amp;a=2&amp;t=pdf" target="_blank" rel="noopener">Exploiting 802.11 Wireless Driver Vulnerabilities on Windows</a></li>
+<li><a href="http://www.reversemode.com/index.php?option=com_content&amp;task=view&amp;id=38&amp;Itemid=1" target="_blank" rel="noopener">Exploiting Comon Flaws In Drivers</a></li>
+<li><a href="http://www.blackhat.com/presentations/bh-europe-07/Sotirov/Presentation/bh-eu-07-sotirov-apr19.pdf" target="_blank" rel="noopener">Heap Feng Shui in JavaScript</a> by Alexander sotirov [2007]</li>
+<li><a href="http://kkamagui.springnote.com/pages/1350732/attachments/579350" target="_blank" rel="noopener">Understanding and bypassing Windows Heap Protection</a> - by Nicolas Waisman [2007]</li>
+<li><a href="http://www.insomniasec.com/publications/Heaps_About_Heaps.ppt" target="_blank" rel="noopener">Heaps About Heaps</a> - by Brett moore [2008]</li>
+<li><a href="http://taossa.com/archive/bh08sotirovdowd.pdf" target="_blank" rel="noopener">Bypassing browser memory protections in Windows Vista</a> - by Mark Dowd and Alex Sotirov [2008]</li>
+<li><a href="http://www.ruxcon.org.au/files/2008/hawkes_ruxcon.pdf" target="_blank" rel="noopener">Attacking the Vista Heap</a> - by ben hawkes [2008]</li>
+<li><a href="http://cseweb.ucsd.edu/~hovav/dist/blackhat08.pdf" target="_blank" rel="noopener">Return oriented programming Exploitation without Code Injection</a> - by Hovav Shacham (and others ) [2008]</li>
+<li><a href="http://www.argeniss.com/research/TokenKidnapping.pdf" target="_blank" rel="noopener">Token Kidnapping and a super reliable exploit for windows 2k3 and 2k8</a> - by Cesar Cerrudo [2008]</li>
+<li><a href="http://www.immunityinc.com/downloads/DEPLIB.pdf" target="_blank" rel="noopener">Defeating DEP Immunity Way</a> - by Pablo Sole [2008]</li>
+<li><a href="http://www.blackhat.com/presentations/bh-usa-09/MCDONALD/BHUSA09-McDonald-WindowsHeap-PAPER.pdf" target="_blank" rel="noopener">Practical Windows XP2003 Heap Exploitation</a> - by John McDonald and Chris Valasek [2009]</li>
+<li><a href="http://www.sysdream.com/articles/sehop_en.pdf" target="_blank" rel="noopener">Bypassing SEHOP</a> - by Stefan Le Berre Damien Cauquil [2009]</li>
+<li><a href="http://www.semantiscope.com/research/BHDC2010/BHDC-2010-Slides-v2.pdf" target="_blank" rel="noopener">Interpreter Exploitation : Pointer Inference and JIT Spraying</a> - by Dionysus Blazakis[2010]</li>
+<li><a href="http://vreugdenhilresearch.nl/Pwn2Own-2010-Windows7-InternetExplorer8.pdf" target="_blank" rel="noopener">Write-up of Pwn2Own 2010</a> - by Peter Vreugdenhil</li>
+<li><a href="http://wintercore.com/downloads/rootedcon_0day_english.pdf" target="_blank" rel="noopener">All in one 0day presented in rootedCON</a> - by Ruben Santamarta [2010]</li>
+<li><a href="http://web.archive.org/web/20130820021520/http://abysssec.com/files/The_Arashi.pdf" target="_blank" rel="noopener">DEP/ASLR bypass using 3rd party</a> - by Shahin Ramezany [2013]</li>
+<li><a href="http://blog.sec-consult.com/2014/10/microsoft-emet-armor-against-zero-days.html" target="_blank" rel="noopener">Bypassing EMET 5.0</a> - by René Freingruber [2014]</li>
+</ul>
+</li>
+<li>Typical windows exploits<ul>
+<li><a href="http://www.exploit-db.com/exploits/3652" target="_blank" rel="noopener">Real-world HW-DEP bypass Exploit</a> - by Devcode</li>
+<li><a href="http://www.metasploit.com/redmine/projects/framework/repository/revisions/7246/entry/modules/exploits/windows/brightstor/mediasrv_sunrpc.rb" target="_blank" rel="noopener">Bypassing DEP by returning into HeapCreate</a> - by Toto</li>
+<li><a href="http://www.metasploit.com/redmine/projects/framework/repository/entry/modules/exploits/windows/email/ani_loadimage_chunksize.rb" target="_blank" rel="noopener">First public ASLR bypass exploit by using partial overwrite </a>- by Skape</li>
+<li><a href="http://skypher.com/SkyLined/download/www.edup.tudelft.nl/~bjwever/exploits/InternetExploiter2.zip" target="_blank" rel="noopener">Heap spray and bypassing DEP</a> - by Skylined</li>
+<li><a href="http://www.metasploit.com/redmine/projects/framework/repository/revisions/8833/raw/modules/exploits/windows/fileformat/adobe_libtiff.rb" target="_blank" rel="noopener">First public exploit that used ROP for bypassing DEP in adobe lib TIFF vulnerability</a></li>
+<li><a href="http://phreedom.org/research/bypassing-browser-memory-protections/bypassing-browser-memory-protections-code.zip" target="_blank" rel="noopener">Exploit codes of bypassing browsers memory protections</a></li>
+<li><a href="http://www.argeniss.com/research/Churrasco.zip" target="_blank" rel="noopener">PoC’s on Tokken TokenKidnapping . PoC for 2k3 -part 1</a> - by Cesar Cerrudo</li>
+<li><a href="http://www.argeniss.com/research/Churrasco2.zip" target="_blank" rel="noopener">PoC’s on Tokken TokenKidnapping . PoC for 2k8 -part 2</a> - by Cesar Cerrudo</li>
+<li><a href="http://lock.cmpxchg8b.com/c0af0967d904cef2ad4db766a00bc6af/KiTrap0D.zip" target="_blank" rel="noopener">An exploit works from win 3.1 to win 7</a> - by Tavis Ormandy KiTra0d</li>
+<li><a href="http://metasploit.com/svn/framework3/trunk/modules/exploits/windows/smb/ms08_067_netapi.rb" target="_blank" rel="noopener">Old ms08-067 metasploit module multi-target and DEP bypass</a></li>
+<li><a href="http://www.exploit-db.com/exploits/12189" target="_blank" rel="noopener">PHP 6.0 Dev str_transliterate() Buffer overflow – NX + ASLR Bypass</a></li>
+<li><a href="http://www.metasploit.com/redmine/projects/framework/repository/revisions/8916/raw/modules/exploits/windows/smb/ms09_050_smb2_negotiate_func_index.rb" target="_blank" rel="noopener">SMBv2 Exploit</a> - by Stephen Fewer</li>
+<li><a href="http://www.phrack.org/issues/68/12.html" target="_blank" rel="noopener">Microsoft IIS 7.5 remote heap buffer overflow</a> - by redpantz</li>
+<li><a href="https://labs.bluefrostsecurity.de/files/Look_Mom_I_Dont_Use_Shellcode-WP.pdf" target="_blank" rel="noopener">Browser Exploitation Case Study for Internet Explorer 11</a> - by Moritz Jodeit [2016]</li>
+</ul>
+</li>
+</ul>
+<h3 id="内核"><a href="#内核" class="headerlink" title="内核"></a>内核</h3><ul>
+<li>Windows<ul>
+<li><a href="https://github.com/k0keoyo/Some-Kernel-Fuzzing-Paper" target="_blank" rel="noopener">Some-Kernel-Fuzzing-Paper</a></li>
+<li><a href="https://chybeta.github.io/2017/08/19/Software-Security-Learning/Introduction%20to%20Windows%20Kernel%20Driver%20Exploitation%20(Pt.%201" target="_blank" rel="noopener">Introduction to Windows Kernel Driver Exploitation (Pt. 1) - Environment Setup</a> - Environment Setup)</li>
+<li><a href="https://glennmcgui.re/introduction-to-windows-kernel-driver-exploitation-pt-2/" target="_blank" rel="noopener">Introduction to Windows Kernel Driver Exploitation (Pt. 2) - Stack Buffer Overflow to System Shell</a></li>
+<li><a href="https://github.com/hacksysteam/HackSysExtremeVulnerableDriver" target="_blank" rel="noopener">HackSysExtremeVulnerableDriver</a></li>
+<li><a href="https://hshrzd.wordpress.com/2017/05/28/starting-with-windows-kernel-exploitation-part-1-setting-up-the-lab/" target="_blank" rel="noopener">Starting with Windows Kernel Exploitation – part 1 – setting up the lab</a></li>
+<li><a href="https://hshrzd.wordpress.com/2017/06/05/starting-with-windows-kernel-exploitation-part-2/" target="_blank" rel="noopener">Starting with Windows Kernel Exploitation – part 2 – getting familiar with HackSys Extreme Vulnerable Driver</a></li>
+<li><a href="http://bobao.360.cn/learning/detail/4477.html" target="_blank" rel="noopener">利用WinDbg本地内核调试器攻陷 Windows 内核</a></li>
+<li><a href="http://bobao.360.cn/learning/detail/4002.html" target="_blank" rel="noopener">Windows内核利用之旅：熟悉HEVD（附视频演示）</a></li>
+<li><a href="http://bobao.360.cn/learning/detail/3718.html" target="_blank" rel="noopener">Windows 内核攻击：栈溢出</a></li>
+<li>Kernel based Windows overflows<ul>
+<li><a href="http://www.derkeiler.com/Mailing-Lists/Full-Disclosure/2003-08/0101.html" target="_blank" rel="noopener">How to attack kernel based vulns on windows was done</a> - by a Polish group called “sec-labs” [2003]</li>
+<li><a href="http://www.artofhacking.com/tucops/hack/windows/live/aoh_win32dcv.htm" target="_blank" rel="noopener">Sec-lab old whitepaper</a></li>
+<li><a href="http://www.securityfocus.com/bid/8329/info" target="_blank" rel="noopener">Sec-lab old exploit</a></li>
+<li><a href="http://www.packetstormsecurity.org/hitb04/hitb04-sk-chong.pdf" target="_blank" rel="noopener">Windows Local Kernel Exploitation (based on sec-lab research)</a> - by S.K Chong [2004]</li>
+<li><a href="http://packetstormsecurity.nl/Xcon2005/Xcon2005_SoBeIt.pdf" target="_blank" rel="noopener">How to exploit Windows kernel memory pool</a> - by SoBeIt [2005]</li>
+<li><a href="http://research.eeye.com/html/papers/download/StepIntoTheRing.pdf" target="_blank" rel="noopener">Exploiting remote kernel overflows in windows</a> - by Eeye Security</li>
+<li><a href="http://www.uninformed.org/?v=3&amp;a=4&amp;t=pdf" target="_blank" rel="noopener">Kernel-mode Payloads on Windows in uninformed</a> - by Matt Miller</li>
+<li><a href="http://www.uninformed.org/?v=6&amp;a=2&amp;t=pdf" target="_blank" rel="noopener">Exploiting 802.11 Wireless Driver Vulnerabilities on Windows</a></li>
+<li><a href="http://www.blackhat.com/presentations/bh-usa-07/Lindsay/Whitepaper/bh-usa-07-lindsay-WP.pdf" target="_blank" rel="noopener">BH US 2007 Attacking the Windows Kernel</a></li>
+<li><a href="http://www.blackhat.com/presentations/bh-usa-07/Bulygin/Presentation/bh-usa-07-bulygin.pdf" target="_blank" rel="noopener">Remote and Local Exploitation of Network Drivers</a></li>
+<li><a href="http://www.reversemode.com/index.php?option=com_content&amp;task=view&amp;id=38&amp;Itemid=1" target="_blank" rel="noopener">Exploiting Comon Flaws In Drivers</a></li>
+<li><a href="http://www.immunityinc.com/downloads/DriverImpersonationAttack_i2omgmt.pdf" target="_blank" rel="noopener">I2OMGMT Driver Impersonation Attack</a></li>
+<li><a href="http://sebug.net/paper/Meeting-Documents/syscanhk/KernelPool.pdf" target="_blank" rel="noopener">Real World Kernel Pool Exploitation</a></li>
+<li><a href="http://www.argeniss.com/research/TokenKidnapping.pdf" target="_blank" rel="noopener">Exploit for windows 2k3 and 2k8</a></li>
+<li><a href="http://www.uninformed.org/?v=10&amp;a=2&amp;t=pdf" target="_blank" rel="noopener">Alyzing local privilege escalations in win32k</a></li>
+<li><a href="http://www.dontstuffbeansupyournose.com/trac/browser/projects/ucon09/Intro_NT_kernel_security_stuff.pdf" target="_blank" rel="noopener">Intro to Windows Kernel Security Development</a></li>
+<li><a href="http://www.cr0.org/paper/to-jt-party-at-ring0.pdf" target="_blank" rel="noopener">There’s a party at ring0 and you’re invited</a></li>
+<li><a href="http://vexillium.org/dl.php?call_gate_exploitation.pdf" target="_blank" rel="noopener">Windows kernel vulnerability exploitation</a></li>
+<li><a href="https://www.blackhat.com/docs/asia-16/materials/asia-16-Wang-A-New-CVE-2015-0057-Exploit-Technology-wp.pdf" target="_blank" rel="noopener">A New CVE-2015-0057 Exploit Technology</a> - by Yu Wang [2016]</li>
+<li><a href="https://labs.bluefrostsecurity.de/publications/2016/01/07/exploiting-cve-2014-4113-on-windows-8.1/" target="_blank" rel="noopener">Exploiting CVE-2014-4113 on Windows 8.1</a> - by Moritz Jodeit [2016]</li>
+<li><a href="http://media.blackhat.com/bh-us-12/Briefings/Cerrudo/BH_US_12_Cerrudo_Windows_Kernel_WP.pdf" target="_blank" rel="noopener">Easy local Windows Kernel exploitation</a> - by Cesar Cerrudo [2012]</li>
+<li><a href="http://www.hacking-training.com/download/WKE.pdf" target="_blank" rel="noopener">Windows Kernel Exploitation </a>- by Simone Cardona 2016</li>
+<li><a href="https://sensepost.com/blog/2017/exploiting-ms16-098-rgnobj-integer-overflow-on-windows-8.1-x64-bit-by-abusing-gdi-objects/" target="_blank" rel="noopener">Exploiting MS16-098 RGNOBJ Integer Overflow on Windows 8.1 x64 bit by abusing GDI objects</a> - by Saif Sherei 2017</li>
+<li><a href="http://www.slideshare.net/PeterHlavaty/windows-kernel-exploitation-this-time-font-hunt-you-down-in-4-bytes" target="_blank" rel="noopener">Windows Kernel Exploitation : This Time Font hunt you down in 4 bytes</a> - by keen team [2015]</li>
+<li><a href="https://www.coresecurity.com/system/files/publications/2016/10/Abusing-GDI-Reloaded-ekoparty-2016_0.pdf" target="_blank" rel="noopener">Abusing GDI for ring0 exploit primitives</a> - [2016]</li>
+</ul>
+</li>
+<li>Windows Kernel Memory Corruption<ul>
+<li><a href="https://cansecwest.com/core05/windowsremotekernel.pdf" target="_blank" rel="noopener">Remote Windows Kernel Exploitation</a> - by Barnaby Jack [2005]</li>
+<li><a href="http://uninformed.org/index.cgi?v=3&amp;a=4&amp;t=sumry" target="_blank" rel="noopener">windows kernel-mode payload fundamentals</a> - by Skape [2006]</li>
+<li><a href="http://www.uninformed.org/?v=6&amp;a=2&amp;t=sumry" target="_blank" rel="noopener">exploiting 802.11 wireless driver vulnerabilities on windows</a> - by Johnny Cache, H D Moore, skape [2007]</li>
+<li><a href="https://media.blackhat.com/bh-dc-11/Mandt/BlackHat_DC_2011_Mandt_kernelpool-wp.pdf" target="_blank" rel="noopener">Kernel Pool Exploitation on Windows 7</a> - by Tarjei Mandt [2011]</li>
+<li><a href="https://github.com/enddo/awesome-windows-exploitation/blob/master/vexillium.org/dl.php?/Windows_Kernel-mode_GS_Cookies_subverted.pdf" target="_blank" rel="noopener">Windows Kernel-mode GS Cookies and 1 bit of entropy</a> - [2011]</li>
+<li><a href="http://j00ru.vexillium.org/?p=762" target="_blank" rel="noopener">Subtle information disclosure in WIN32K.SYS syscall return values</a> - [2011]</li>
+<li><a href="http://j00ru.vexillium.org/?p=769" target="_blank" rel="noopener">nt!NtMapUserPhysicalPages and Kernel Stack-Spraying Techniques</a> - [2011]</li>
+<li><a href="http://j00ru.vexillium.org/?p=783" target="_blank" rel="noopener">SMEP: What is it, and how to beat it on Windows</a> - [2011]</li>
+<li><a href="http://www.mista.nu/research/mandt-win32k-paper.pdf" target="_blank" rel="noopener">Kernel Attacks through User-Mode Callbacks</a> - by Tarjei Mandt [2011]</li>
+<li><a href="http://j00ru.vexillium.org/blog/04_12_11/Windows_Kernel_Address_Protection.pdf" target="_blank" rel="noopener">Windows Security Hardening Through Kernel Address Protection</a> - by Mateusz “j00ru” Jurczyk [2011]</li>
+<li><a href="http://hitcon.org/2012/download/0720A5_360.MJ0011_Reversing%20Windows8-Interesting%20Features%20of%20Kernel%20Security.pdf" target="_blank" rel="noopener">Reversing Windows8: Interesting Features of Kernel Security</a> - by MJ0011 [2012]</li>
+<li><a href="https://github.com/enddo/awesome-windows-exploitation/blob/master/mista.nu/research/smashing_the_atom.pdf" target="_blank" rel="noopener">Smashing The Atom: Extraordinary String Based Attacks</a> - by Tarjei Mandt [2012]</li>
+<li><a href="http://media.blackhat.com/bh-us-12/Briefings/Cerrudo/BH_US_12_Cerrudo_Windows_Kernel_WP.pdf" target="_blank" rel="noopener">Easy local Windows Kernel exploitation</a> - by Cesar Cerrudo [2012]</li>
+<li><a href="https://github.com/enddo/awesome-windows-exploitation/blob/master/www.powerofcommunity.net/poc2012/mj0011.pdf" target="_blank" rel="noopener">Using a Patched Vulnerability to Bypass Windows 8 x64 Driver Signature Enforcement</a> - by MJ0011 [2012]</li>
+<li><a href="https://labs.mwrinfosecurity.com/blog/mwr-labs-pwn2own-2013-write-up-kernel-exploit/" target="_blank" rel="noopener">MWR Labs Pwn2Own 2013 Write-up - Kernel Exploit</a> - [2013]</li>
+<li><a href="https://github.com/enddo/awesome-windows-exploitation/blob/master/www.alex-ionescu.com/?p=82" target="_blank" rel="noopener">KASLR Bypass Mitigations in Windows 8.1</a> - [2013]</li>
+<li><a href="http://doar-e.github.io/blog/2014/03/11/first-dip-into-the-kernel-pool-ms10-058/" target="_blank" rel="noopener">First Dip Into the Kernel Pool: MS10-058</a> - by Jeremy [2014]</li>
+<li><a href="https://labs.mwrinfosecurity.com/blog/windows-8-kernel-memory-protections-bypass/" target="_blank" rel="noopener">Windows 8 Kernel Memory Protections Bypass</a> - [2014]</li>
+<li><a href="http://blog.trendmicro.com/trendlabs-security-intelligence/an-analysis-of-a-windows-kernel-mode-vulnerability-cve-2014-4113/" target="_blank" rel="noopener">An Analysis of A Windows Kernel-Mode Vulnerability (CVE-2014-4113)</a> - by Weimin Wu [2014]</li>
+<li><a href="http://www.alex-ionescu.com/?p=231" target="_blank" rel="noopener">Sheep Year Kernel Heap Fengshui: Spraying in the Big Kids’ Pool</a> - [2014]</li>
+<li><a href="https://www.nccgroup.trust/globalassets/newsroom/uk/blog/documents/2015/07/exploiting-cve-2015.pdf" target="_blank" rel="noopener">Exploiting the win32k!xxxEnableWndSBArrows use-after-free (CVE 2015-0057) bug on both 32-bit and 64-bit</a> - by Aaron Adams [2015]</li>
+<li><a href="https://www.nccgroup.trust/globalassets/our-research/uk/whitepapers/2015/08/2015-08-27_-_ncc_group_-_exploiting_ms15_061_uaf_-_release.pdf" target="_blank" rel="noopener">Exploiting MS15-061 Microsoft Windows Kernel Use-After-Free (win32k!xxxSetClassLong)</a> - by Dominic Wang [2015]</li>
+<li><a href="https://www.nccgroup.trust/globalassets/our-research/uk/whitepapers/2015/09/2015-08-28_-_ncc_group_-_exploiting_cve_2015_2426_-_release.pdf" target="_blank" rel="noopener">Exploiting CVE-2015-2426, and How I Ported it to a Recent Windows 8.1 64-bit</a> - by Cedric Halbronn [2015]</li>
+<li><a href="https://www.coresecurity.com/blog/abusing-gdi-for-ring0-exploit-primitives" target="_blank" rel="noopener">Abusing GDI for ring0 exploit primitives</a> - by Diego Juarez [2015]</li>
+<li><a href="https://www.virusbulletin.com/uploads/pdf/conference_slides/2015/OhFlorio-VB2015.pdf" target="_blank" rel="noopener">Duqu 2.0 Win32k exploit analysis</a> - [2015]</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>Linux<ul>
+<li><a href="http://bobao.360.cn/learning/detail/3700.html" target="_blank" rel="noopener">Linux 内核漏洞利用教程（一）：环境配置</a></li>
+<li><a href="http://bobao.360.cn/learning/detail/3702.html" target="_blank" rel="noopener">Linux 内核漏洞利用教程（二）：两个Demo</a></li>
+<li><a href="http://bobao.360.cn/learning/detail/3706.html" target="_blank" rel="noopener">Linux 内核漏洞利用教程（三）：实践 CSAW CTF 题目</a></li>
+<li><a href="http://www.freebuf.com/articles/system/94198.html" target="_blank" rel="noopener">Linux内核ROP姿势详解(一)</a></li>
+<li><a href="http://www.freebuf.com/articles/system/135402.html" target="_blank" rel="noopener">Linux内核ROP姿势详解（二）</a></li>
+</ul>
+</li>
+</ul>
+<h3 id="虚拟机逃逸"><a href="#虚拟机逃逸" class="headerlink" title="虚拟机逃逸"></a>虚拟机逃逸</h3><ul>
+<li><a href="https://www.exploit-db.com/papers/42883/" target="_blank" rel="noopener">Phrack: VM escape - QEMU Case Study</a></li>
+<li><a href="http://bbs.pediy.com/thread-217997.htm" target="_blank" rel="noopener">虚拟机逃逸——QEMU的案例分析（一）</a></li>
+<li><a href="http://bbs.pediy.com/thread-217999.htm" target="_blank" rel="noopener">虚拟机逃逸——QEMU的案例分析（二）</a></li>
+<li><a href="http://bbs.pediy.com/thread-218045.htm" target="_blank" rel="noopener">虚拟机逃逸——QEMU的案例分析（三）</a></li>
+</ul>
+<h3 id="漏洞挖掘"><a href="#漏洞挖掘" class="headerlink" title="漏洞挖掘"></a>漏洞挖掘</h3><ul>
+<li><a href="http://bobao.360.cn/learning/detail/4213.html" target="_blank" rel="noopener">看我如何对Apache进行模糊测试并挖到了一个价值1500刀的漏洞</a></li>
+</ul>
+<h3 id="CTF"><a href="#CTF" class="headerlink" title="CTF"></a>CTF</h3><ul>
+<li>pwn<ul>
+<li>入门<ul>
+<li><a href="http://bobao.360.cn/learning/detail/3300.html" target="_blank" rel="noopener">跟我入坑PWN第一章</a></li>
+<li><a href="http://bobao.360.cn/learning/detail/3339.html" target="_blank" rel="noopener">跟我入坑PWN第二章</a></li>
+</ul>
+</li>
+<li>技巧<ul>
+<li><a href="http://bobao.360.cn/learning/detail/3298.html?utm_source=tuicool&amp;utm_medium=referral" target="_blank" rel="noopener">借助DynELF实现无libc的漏洞利用小结</a></li>
+<li><a href="http://o0xmuhe.me/2016/12/24/what-DynELF-does-basically/" target="_blank" rel="noopener">what DynELF does basically</a></li>
+<li><a href="http://uaf.io/exploitation/misc/2016/04/02/Finding-Functions.html" target="_blank" rel="noopener">Finding Function’s Load Address</a></li>
+</ul>
+</li>
+<li>总结<ul>
+<li><a href="https://github.com/jmpews/pwn2exploit" target="_blank" rel="noopener">pwn2exploit</a></li>
+<li>【待续】muhe师傅的钻石矿</li>
+<li><a href="https://github.com/stfpeak/CTF" target="_blank" rel="noopener">CTF总结</a></li>
+<li><a href="http://skysider.com/?p=223" target="_blank" rel="noopener">pwn tips</a></li>
+<li><a href="https://github.com/Naetw/CTF-pwn-tips" target="_blank" rel="noopener">CTF-pwn-tips</a></li>
+<li><a href="http://www.angelwhu.com/blog/?p=460" target="_blank" rel="noopener">pwn 学习总结</a></li>
+<li><a href="http://www.cnblogs.com/Ox9A82/p/5559167.html" target="_blank" rel="noopener">CTF中做Linux下漏洞利用的一些心得</a></li>
+<li><a href="http://drops.xmd5.com/static/drops/binary-6521.html" target="_blank" rel="noopener">linux常见漏洞利用技术实践</a></li>
+</ul>
+</li>
+<li>Writeup<ul>
+<li><a href="http://0x48.pw/2017/08/01/0x36/" target="_blank" rel="noopener">堆溢出学习之0CTF 2017 Babyheap</a></li>
+<li><a href="http://bobao.360.cn/learning/detail/3189.html" target="_blank" rel="noopener">一道有趣的CTF PWN题</a></li>
+<li><a href="https://github.com/1u4nx/Exploit-Exercises-Nebula" target="_blank" rel="noopener">Exploit-Exercises Nebula全攻略</a></li>
+<li><a href="http://wooyun.jozxing.cc/static/drops/binary-16700.html" target="_blank" rel="noopener">三个白帽之从pwn me调试到Linux攻防学习</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li>reverse</li>
+</ul>
+<h2 id="Practice"><a href="#Practice" class="headerlink" title="Practice"></a>Practice</h2><h3 id="Reverse"><a href="#Reverse" class="headerlink" title="Reverse"></a>Reverse</h3><ul>
+<li><a href="http://www.crackmes.de/" target="_blank" rel="noopener">Crackmes.de</a></li>
+<li><a href="https://reverse.put.as/crackmes/" target="_blank" rel="noopener">OSX Crackmes</a></li>
+<li><a href="http://www.joineset.com/jobs-analyst.html" target="_blank" rel="noopener">ESET Challenges</a></li>
+<li><a href="http://flare-on.com/" target="_blank" rel="noopener">Flare-on Challenges</a></li>
+<li><a href="http://github.com/ctfs/" target="_blank" rel="noopener">Github CTF Archives</a></li>
+<li><a href="http://challenges.re/" target="_blank" rel="noopener">Reverse Engineering Challenges</a></li>
+<li><a href="http://www.xorpd.net/pages/xchg_rax/snip_00.html" target="_blank" rel="noopener">xorpd Advanced Assembly Exercises</a></li>
+<li><a href="http://virusshare.com/" target="_blank" rel="noopener">Virusshare.com</a></li>
+<li><a href="http://contagiodump.blogspot.com/" target="_blank" rel="noopener">Contagio</a></li>
+<li><a href="https://malware-traffic-analysis.com/" target="_blank" rel="noopener">Malware-Traffic-Analysis</a></li>
+<li><a href="http://malshare.com/" target="_blank" rel="noopener">Malshare</a></li>
+<li><a href="http://www.malwareblacklist.com/showMDL.php" target="_blank" rel="noopener">Malware Blacklist</a></li>
+<li><a href="https://malwr.com/" target="_blank" rel="noopener">malwr.com</a></li>
+<li><a href="http://vxvault.net/" target="_blank" rel="noopener">vxvault</a></li>
+</ul>
+
+      
+      
+    </div>
+    
+  </div>
+  
+    
+    <div class="copyright">
+        <p><span>本文标题:</span><a href="/2018/02/26/Binary Security Assembly/">Binary-Security-Assembly</a></p>
+        <p><span>文章作者:</span><a href="/" title="访问 r00tk1t 的个人博客">r00tk1t</a></p>
+        <p><span>发布时间:</span>2018年02月26日 - 21时31分</p>
+        <p><span>最后更新:</span>2020年10月20日 - 21时01分</p>
+        <p>
+            <span>原始链接:</span><a class="post-url" href="/2018/02/26/Binary Security Assembly/" title="Binary-Security-Assembly">https://r00tk1ts.github.io/2018/02/26/Binary Security Assembly/</a>
+            <span class="copy-path" data-clipboard-text="原文: https://r00tk1ts.github.io/2018/02/26/Binary Security Assembly/　　作者: r00tk1t" title="点击复制文章链接"><i class="fa fa-clipboard"></i></span>
+            <script src="/js/clipboard.min.js"></script>
+            <script> var clipboard = new Clipboard('.copy-path'); </script>
+        </p>
+        <p>
+            <span>许可协议:</span><i class="fa fa-creative-commons"></i> <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/3.0/cn/" title="中国大陆 (CC BY-NC-SA 3.0 CN)" target = "_blank">"署名-非商用-相同方式共享 3.0"</a> 转载请保留原文链接及作者。
+        </p>
+    </div>
+
+
+
+<nav id="article-nav">
+  
+    <a href="/2018/03/03/fd/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption"><</strong>
+      <div class="article-nav-title">
+        
+          Writeup.pwnable.kr系列之fd
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2018/02/07/内核利用程序之整数溢出/" id="article-nav-older" class="article-nav-link-wrap">
+      <div class="article-nav-title">Windows exploit系列教程第十四部分：内核利用程序之整数溢出</div>
+      <strong class="article-nav-caption">></strong>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+    <div id="toc" class="toc-article">
+    <strong class="toc-title">文章目录</strong>
+    <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#Binary-Security-Assembly"><span class="toc-number">1.</span> <span class="toc-text">Binary-Security-Assembly</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#Books"><span class="toc-number">1.1.</span> <span class="toc-text">Books</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Course"><span class="toc-number">1.2.</span> <span class="toc-text">Course</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#ROP"><span class="toc-number">1.2.1.</span> <span class="toc-text">ROP</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#栈相关"><span class="toc-number">1.2.2.</span> <span class="toc-text">栈相关</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#堆相关"><span class="toc-number">1.2.3.</span> <span class="toc-text">堆相关</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#格式化字符串"><span class="toc-number">1.2.4.</span> <span class="toc-text">格式化字符串</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Misc"><span class="toc-number">1.2.5.</span> <span class="toc-text">Misc</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#内核"><span class="toc-number">1.2.6.</span> <span class="toc-text">内核</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#虚拟机逃逸"><span class="toc-number">1.2.7.</span> <span class="toc-text">虚拟机逃逸</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#漏洞挖掘"><span class="toc-number">1.2.8.</span> <span class="toc-text">漏洞挖掘</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#CTF"><span class="toc-number">1.2.9.</span> <span class="toc-text">CTF</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Practice"><span class="toc-number">1.3.</span> <span class="toc-text">Practice</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Reverse"><span class="toc-number">1.3.1.</span> <span class="toc-text">Reverse</span></a></li></ol></li></ol></li></ol>
+</div>
+<input type="button" id="tocButton" value="隐藏目录"  title="点击按钮隐藏或者显示文章目录">
+
+<script src="https://7.url.cn/edu/jslib/comb/require-2.1.6,jquery-1.9.1.min.js"></script>
+<script>
+    var valueHide = "隐藏目录";
+    var valueShow = "显示目录";
+
+    if ($(".left-col").is(":hidden")) {
+        $("#tocButton").attr("value", valueShow);
+    }
+    $("#tocButton").click(function() {
+        if ($("#toc").is(":hidden")) {
+            $("#tocButton").attr("value", valueHide);
+            $("#toc").slideDown(320);
+        }
+        else {
+            $("#tocButton").attr("value", valueShow);
+            $("#toc").slideUp(350);
+        }
+    })
+    if ($(".toc").length < 1) {
+        $("#toc, #tocButton").hide();
+    }
+</script>
+
+
+
+
+
+
+
+    
+
+
+
+    <div class="scroll" id="post-nav-button">
+        
+            <a href="/2018/03/03/fd/" title="上一篇: Writeup.pwnable.kr系列之fd">
+                <i class="fa fa-angle-left"></i>
+            </a>
+        
+        <a title="文章列表"><i class="fa fa-bars"></i><i class="fa fa-times"></i></a>
+        
+            <a href="/2018/02/07/内核利用程序之整数溢出/" title="下一篇: Windows exploit系列教程第十四部分：内核利用程序之整数溢出">
+                <i class="fa fa-angle-right"></i>
+            </a>
+        
+    </div>
+    <ul class="post-list"><li class="post-list-item"><a class="post-list-link" href="/2020/10/22/chromium-base库源码解读之引用计数拆解篇/">chromium-base库源码解读之引用计数拆解篇</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/12/16/深入探索禁忌目录之Effective C++篇/">深入探索禁忌目录之Effective C++篇</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/12/10/C++ Primer - 特殊工具与技术/">C++ Primer - 特殊工具与技术</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/12/08/C++ Primer - 用于大型程序的工具/">C++ Primer - 用于大型程序的工具</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/12/06/C++ Primer - 标准库特殊设施/">C++ Primer - 标准库特殊设施</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/12/03/C++ Primer - 模板与泛型编程/">C++ Primer - 模板与泛型编程</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/12/01/C++ Primer - 面向对象程序设计/">C++ Primer - 面向对象程序设计</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/29/C++ Primer - 重载运算与类型转换/">C++ Primer - 重载运算与类型转换</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/29/C++ Primer - 拷贝控制/">C++ Primer - 拷贝控制</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/26/C++ Primer - 动态内存/">C++ Primer - 动态内存</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/26/C++ Primer - 关联容器/">C++ Primer - 关联容器</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/24/C++ Primer - 泛型算法/">C++ Primer - 泛型算法</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/24/C++ Primer - 顺序容器/">C++ Primer - 顺序容器</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/21/C++ Primer - IO库/">C++ Primer - IO库</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/21/C++ Primer - 类/">C++ Primer - 类</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/20/C++ Primer - 函数/">C++ Primer - 函数</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/20/C++ Primer - 语句/">C++ Primer -语句</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/20/C++ Primer - 表达/">C++ Primer - 表达式</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/10/28/C++ Primer - string, vector & array/">C++ Primer - string, vector, array</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/10/28/C++ Primer - 变量和基本类型/">C++ Primer - 变量和基本类型</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/08/25/C++ Templates Note - 类模板/">C++ Templates Note - 类模板</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/08/25/C++ Templates Note - 函数模板/">C++ Templates Note- 函数模板</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/08/13/Linux内存管理-进程地址空间/">Linux内核学习——内存管理之进程地址空间</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/07/07/一次失败的栈溢出(SEH)之GetGo Download Manager/">一次失败的栈溢出(SEH)之GetGo Download Manager</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/06/28/DNSTracer 1.9栈溢出漏洞[CVE-2017-9430]/">DNSTracer 1.9栈溢出漏洞[CVE-2017-9430]</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/06/24/A Tale of Exploit Easy RM 2 MP3 Converter/">A Tale of Exploit "Easy RM 2 MP3</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/06/03/chromium-sandbox-ThreadProcess-analysis/">Chromium-sandbox-ThreadProcess-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/06/03/chromium-sandbox-Filesystem-analysis/">Chromium-sandbox-Filesystem-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/06/03/chromium-sandbox-LowLevelPolicy-analysis/">Chromium-sandbox-LowLevelPolicy-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/26/chromium-sandbox-PolicyEngine-analysis/">Chromium-sandbox-PolicyEngine-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/26/chromium-sandbox-Resolver-analysis/">Chromium-sandbox-Resolver-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/26/chromium-sandbox-Interception/">Chromium-sandbox-Interception-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/21/chromium-sandbox-HandleCloser-analysis/">Chromium-sandbox-HandleCloser-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/20/chromium-sandbox-SharedMemIPC/">Chromium-sandbox-SharedMemIPC-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/19/chromium-sandbox-Crosscall-analysis/">Chromium-sandbox-crosscall-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/19/chromium-sandbox-AlternateDesktop-analysis/">Chromium-sandbox-AlternateDesktop-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/19/chromium-sandbox-Tokens-analysis/">Chromium-sandbox-Tokens-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/14/chromium-sandbox-Job-analysis/">Chromium-sandbox-Job-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/13/chromium-sandbox-TargetPolicy-analysis/">Chromium-sandbox-TargetPolicy-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/13/chromium-sandbox-TargetProcess-analysis/">Chromium-sandbox-TargetProcess-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/13/chromium-sandbox-TargetServices-analysis/">Chromium-sandbox-TargetServices-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/13/chromium-sandbox-BrokerServices/">Chromium-sandbox-BrokerServices-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/04/05/x41-浏览器安全白皮书笔记/">X41-浏览器安全白皮书读书笔记</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/22/Windows系统机制之同步/">Windows系统机制之同步</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/21/Windows系统机制之对象管理器/">Windows系统机制之对象管理器</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/21/Windows系统机制之陷阱分发/">Windows系统机制之陷阱分发</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/21/Bitmaps轶事：Windows 10纪念版前的GDI对象泄露/">Bitmap轶事：Windows 10纪念版后的GDI对象泄露</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/20/理解池污染三部曲/">理解池污染三部曲</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/19/内核利用程序之Razer rzpnk.sys中的逻辑bug/">Windows exploit系列教程第十九篇：内核利用程序之Razer rzpnk.sys中的逻辑bug</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/19/内核利用程序之RS2 Bitmap巫术/">Windows exploit系列教程第十八篇：内核利用程序之RS2 Bitmap巫术</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/15/内核利用程序之滥用GDI Bitmap/">Windows exploit系列教程第十七部分：内核利用程序之任意位置任意写</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/14/内核利用程序之池溢出/">Windows exploit系列教程第十六部分：内核利用程序之池溢出</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/14/内核利用程序之UAF/">Windows exploit系列教程第十五部分：内核利用程序之UAF</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/10/coin1/">Writeup.pwnable.kr系列之coin1</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/10/shellshock/">Writeup.pwnable.kr系列之shellshock</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/09/mistake/">Writeup.pwnable.kr系列之mistake</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/07/leg/">Writeup.pwnable.kr系列之leg</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/06/input/">Writeup.pwnable.kr系列之input</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/05/random/">Writeup.pwnable.kr系列之random</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/05/passcode/">Writeup.pwnable.kr系列之passcode</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/04/flag/">Writeup.pwnable.kr系列之flag</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/04/bof/">Writeup.pwnable.kr系列之bof</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/03/collision/">Writeup.pwnable.kr系列之collision</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/03/fd/">Writeup.pwnable.kr系列之fd</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/02/26/Binary Security Assembly/">Binary-Security-Assembly</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/02/07/内核利用程序之整数溢出/">Windows exploit系列教程第十四部分：内核利用程序之整数溢出</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/02/06/内核利用程序之未初始化栈变量/">Windows exploit系列教程第十三部分：内核利用程序之未初始化栈变量</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/02/06/内核利用程序之空指针引用/">Windows exploit系列教程第十二部分：内核利用程序之空指针引用</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/02/01/内核利用程序之任意位置任意写/">Windows exploit系列教程第十一部分：内核利用程序之任意位置任意写</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/01/15/ring0层exp原语之滥用GDI/">ring0层exp原语之滥用GDI</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/01/14/Windows x64内核提权/">Windows x64内核提权</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/01/14/关键的Windows内核数据结构一览（下）/">关键的Windows内核数据结构一览（下）</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/01/08/关键的Windows内核数据结构一览（上）/">关键的Windows内核数据结构一览（上）</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/01/06/内核利用程序开发之栈溢出/">Windows exploit系列教程第十部分：内核利用程序之栈溢出</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/01/05/堆喷射[第二章：UAF]/">Windows exploit系列教程第九部分：堆喷射[第二章：UAF]</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/12/30/Kernel Driver mmap Handler Exploitation/">内核驱动mmap Handler利用技术</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/12/28/API Interception via DLL Redirection/">通过DLL重定向实现API劫持</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/12/21/Linux中断内幕/">Linux中断内幕</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/12/19/Windows架构设计/">Windows架构设计</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/10/30/house_of_force.log/">house_of_force log</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/10/25/Linux内存管理-非连续内存区管理/">Linux内核学习——内存管理之非连续内存区管理</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/10/24/Linux内存管理-内存区管理/">Linux内核学习——内存管理之内存区管理</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/10/20/Linux内存管理-页框管理/">Linux内核学习——内存管理之页框管理</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/10/19/first_fit.log/">first_fit log</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/10/19/house_of_einherjar.log/">house_of_einherjar log</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/10/18/fastbin_dup_into_stack.log/">fastbin_dup_into_stack log</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/10/12/fastbin_dup.log/">fastbin_dup log</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/09/23/Windows栈溢出之ret eip/">Windows栈溢出之ret eip</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/09/23/Windows栈溢出概述/">Windows栈溢出概述</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/09/16/DEFCON-2015-r0pbaby/">DEFCON-2015-r0pbaby</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/09/11/PWN选手的自我修养/">PWN选手的自我修养</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/08/27/linearsort/">linear sort</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/08/27/quicksort/">quicksort</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/08/27/heapsort&priority-queue/">heapsort & priority-queue</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/08/27/Linux进程的创建与撤销/">Linux内核学习——Linux进程的创建与撤销</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/08/26/Linux进程切换/">Linux内核学习——Linux进程切换</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/08/24/GNU Hash ELF Sections/">GNU Hash ELF Sections</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/08/22/Linux进程概述/">Linux内核学习——Linux进程概述</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/08/18/Linux内存寻址/">Linux内核学习——内存寻址</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/05/15/PlaySms  1.4代码执行漏洞之import csv/">PlaySms 1.4代码执行漏洞之import csv</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/05/15/PlaySms  1.4代码执行漏洞分析/">PlaySms 1.4代码执行漏洞分析</a></li></ul>
+    <script src="https://7.url.cn/edu/jslib/comb/require-2.1.6,jquery-1.9.1.min.js"></script>
+    <script>
+        $(".post-list").addClass("toc-article");
+        $(".post-list-item a").attr("target","_blank");
+        $("#post-nav-button > a:nth-child(2)").click(function() {
+            $(".fa-bars, .fa-times").toggle();
+            $(".post-list").toggle(300);
+            if ($(".toc").length > 0) {
+                $("#toc, #tocButton").toggle(200, function() {
+                    if ($(".switch-area").is(":visible")) {
+                        $("#tocButton").attr("value", valueHide);
+                        }
+                    })
+            }
+            else {
+            }
+        })
+    </script>
+
+
+
+    <script>
+        
+    </script>
+</div>
+      <footer id="footer">
+    <div class="outer">
+        <div id="footer-info">
+            <div class="footer-left">
+                &copy; 2020 r00tk1t
+            </div>
+            <div class="footer-right">
+                <a href="http://hexo.io/" target="_blank">Hexo</a>  Theme <a href="https://github.com/luuman/hexo-theme-spfk" target="_blank">spfk</a> by luuman
+            </div>
+        </div>
+        
+            <div class="visit">
+                
+                    <span id="busuanzi_container_site_pv" style='display:none'>
+                        <span id="site-visit" >访问数量: 
+                            <span id="busuanzi_value_site_uv"></span>
+                        </span>
+                    </span>
+                
+                
+                    <span>, </span>
+                
+                
+                    <span id="busuanzi_container_page_pv" style='display:none'>
+                        <span id="page-visit">本页阅读量: 
+                            <span id="busuanzi_value_page_pv"></span>
+                        </span>
+                    </span>
+                
+            </div>
+        
+    </div>
+</footer>
+
+    </div>
+    <script src="https://7.url.cn/edu/jslib/comb/require-2.1.6,jquery-1.9.1.min.js"></script>
+<script src="/js/main.js"></script>
+
+    <script>
+        $(document).ready(function() {
+            var backgroundnum = 24;
+            var backgroundimg = "url(/background/bg-x.jpg)".replace(/x/gi, Math.ceil(Math.random() * backgroundnum));
+            $("#mobile-nav").css({"background-image": backgroundimg,"background-size": "cover","background-position": "center"});
+            $(".left-col").css({"background-image": backgroundimg,"background-size": "cover","background-position": "center"});
+        })
+    </script>
+
+
+
+
+
+<div class="scroll" id="scroll">
+    <a href="#"><i class="fa fa-arrow-up"></i></a>
+    <a href="#comments"><i class="fa fa-comments-o"></i></a>
+    <a href="#footer"><i class="fa fa-arrow-down"></i></a>
+</div>
+<script>
+    $(document).ready(function() {
+        if ($("#comments").length < 1) {
+            $("#scroll > a:nth-child(2)").hide();
+        };
+    })
+</script>
+
+<script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js">
+</script>
+
+  <script language="javascript">
+    $(function() {
+        $("a[title]").each(function() {
+            var a = $(this);
+            var title = a.attr('title');
+            if (title == undefined || title == "") return;
+            a.data('title', title).removeAttr('title').hover(
+
+            function() {
+                var offset = a.offset();
+                $("<div id=\"anchortitlecontainer\"></div>").appendTo($("body")).html(title).css({
+                    top: offset.top - a.outerHeight() - 15,
+                    left: offset.left + a.outerWidth()/2 + 1
+                }).fadeIn(function() {
+                    var pop = $(this);
+                    setTimeout(function() {
+                        pop.remove();
+                    }, pop.text().length * 800);
+                });
+            }, function() {
+                $("#anchortitlecontainer").remove();
+            });
+        });
+    });
+</script>
+
+
+  </div>
+</body>
+</html>

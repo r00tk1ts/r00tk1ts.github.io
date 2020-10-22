@@ -1,0 +1,1235 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>C++ Primer - 顺序容器 | r00tk1t&#39;s blog</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="《C++ Primer》第五版引入了11标准相关内容，我早年在初学C++时还只有第四版，近来想对C++做一个整体的复习+版本升级，借此机会过一遍第五版。本文是阅读第九章“顺序容器”时所做的笔记。">
+<meta name="keywords" content="cpp,cpp-primer">
+<meta property="og:type" content="article">
+<meta property="og:title" content="C++ Primer - 顺序容器">
+<meta property="og:url" content="https://r00tk1ts.github.io/2018/11/24/C++ Primer - 顺序容器/index.html">
+<meta property="og:site_name" content="r00tk1t&#39;s blog">
+<meta property="og:description" content="《C++ Primer》第五版引入了11标准相关内容，我早年在初学C++时还只有第四版，近来想对C++做一个整体的复习+版本升级，借此机会过一遍第五版。本文是阅读第九章“顺序容器”时所做的笔记。">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:updated_time" content="2020-10-20T13:01:02.350Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="C++ Primer - 顺序容器">
+<meta name="twitter:description" content="《C++ Primer》第五版引入了11标准相关内容，我早年在初学C++时还只有第四版，近来想对C++做一个整体的复习+版本升级，借此机会过一遍第五版。本文是阅读第九章“顺序容器”时所做的笔记。">
+  
+    <link rel="alternative" href="/atom.xml" title="r00tk1t&#39;s blog" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/img/favicon.png">
+  
+  
+      <link rel="stylesheet" href="//cdn.bootcss.com/animate.css/3.5.0/animate.min.css">
+  
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/font-awesome/css/font-awesome.min.css">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  
+  
+      <link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+  
+  <!-- 加载特效 -->
+    <script src="/js/pace.js"></script>
+    <link href="/css/pace/pace-theme-flash.css" rel="stylesheet" />
+  <script>
+      var yiliaConfig = {
+          rootUrl: '/',
+          fancybox: true,
+          animate: true,
+          isHome: false,
+          isPost: true,
+          isArchive: false,
+          isTag: false,
+          isCategory: false,
+          open_in_new: false
+      }
+  </script>
+</head>
+<body>
+  <div id="container">
+    <div class="left-col">
+    <div class="overlay"></div>
+<div class="intrude-less">
+    <header id="header" class="inner">
+        <a href="/" class="profilepic">
+            
+            <img lazy-src="/img/head.jpg" class="js-avatar">
+            
+        </a>
+
+        <hgroup>
+          <h1 class="header-author"><a href="/" title="Hi Mate">r00tk1t</a></h1>
+        </hgroup>
+
+        
+        <p class="header-subtitle">二进制安全 | Web安全 | 伪装成程序员的菜鸡</p>
+        
+        
+        
+            <div id="switch-btn" class="switch-btn">
+                <div class="icon">
+                    <div class="icon-ctn">
+                        <div class="icon-wrap icon-house" data-idx="0">
+                            <div class="birdhouse"></div>
+                            <div class="birdhouse_holes"></div>
+                        </div>
+                        <div class="icon-wrap icon-ribbon hide" data-idx="1">
+                            <div class="ribbon"></div>
+                        </div>
+                        
+                        <div class="icon-wrap icon-link hide" data-idx="2">
+                            <div class="loopback_l"></div>
+                            <div class="loopback_r"></div>
+                        </div>
+                        
+                        
+                        <div class="icon-wrap icon-me hide" data-idx="3">
+                            <div class="user"></div>
+                            <div class="shoulder"></div>
+                        </div>
+                        
+                    </div>
+                    
+                </div>
+                <div class="tips-box hide">
+                    <div class="tips-arrow"></div>
+                    <ul class="tips-inner">
+                        <li>菜单</li>
+                        <li>标签</li>
+                        
+                        <li>友情链接</li>
+                        
+                        
+                        <li>关于我</li>
+                        
+                    </ul>
+                </div>
+            </div>
+        
+
+        <div id="switch-area" class="switch-area">
+            <div class="switch-wrap">
+                <section class="switch-part switch-part1">
+                    <nav class="header-menu">
+                        <ul>
+                        
+                            <li><a href="/">博客首页</a></li>
+                        
+                            <li><a href="/archives">所有文章</a></li>
+                        
+                            <li><a href="/tags">标签</a></li>
+                        
+                        </ul>
+                    </nav>
+                    <nav class="header-nav">
+                        <ul class="social">
+                            
+                                <a class="fl mail" target="_blank" href="mailto: 1903442252@qq.com" title="mail">mail</a>
+                            
+                                <a class="fl github" target="_blank" href="https://github.com/r00tk1ts" title="github">github</a>
+                            
+                                <a class="fl zhihu" target="_blank" href="https://www.zhihu.com/people/r00tk1t-5" title="zhihu">zhihu</a>
+                            
+                                <a class="fl weibo" target="_blank" href="http://weibo.com/2698344533" title="weibo">weibo</a>
+                            
+                                <a class="fl QQ" target="_blank" href="https://user.qzone.qq.com/1903442252" title="QQ">QQ</a>
+                            
+                        </ul>
+                    </nav>
+                </section>
+                
+                
+                <section class="switch-part switch-part2">
+                    <div class="widget tagcloud" id="js-tagcloud">
+                        <a href="/tags/SEH-overwrite/" style="font-size: 10px;">SEH overwrite</a> <a href="/tags/algorithm/" style="font-size: 11.67px;">algorithm</a> <a href="/tags/browser/" style="font-size: 10px;">browser</a> <a href="/tags/chrome/" style="font-size: 16.67px;">chrome</a> <a href="/tags/chrome-sandbox/" style="font-size: 16.67px;">chrome-sandbox</a> <a href="/tags/cpp/" style="font-size: 20px;">cpp</a> <a href="/tags/cpp-primer/" style="font-size: 18.33px;">cpp-primer</a> <a href="/tags/cpp-templates/" style="font-size: 11.67px;">cpp-templates</a> <a href="/tags/dll-hooking/" style="font-size: 10px;">dll hooking</a> <a href="/tags/exploit/" style="font-size: 12.5px;">exploit</a> <a href="/tags/glibc/" style="font-size: 10px;">glibc</a> <a href="/tags/glibc-heap/" style="font-size: 13.33px;">glibc-heap</a> <a href="/tags/linux/" style="font-size: 10.83px;">linux</a> <a href="/tags/linux-kernel/" style="font-size: 14.17px;">linux-kernel</a> <a href="/tags/mmap/" style="font-size: 10px;">mmap</a> <a href="/tags/novice/" style="font-size: 17.5px;">novice</a> <a href="/tags/php/" style="font-size: 10.83px;">php</a> <a href="/tags/pool/" style="font-size: 10px;">pool</a> <a href="/tags/pwn/" style="font-size: 19.17px;">pwn</a> <a href="/tags/pwnable-kr/" style="font-size: 15px;">pwnable.kr</a> <a href="/tags/resources/" style="font-size: 10px;">resources</a> <a href="/tags/stack-overrun/" style="font-size: 11.67px;">stack-overrun</a> <a href="/tags/tutorial/" style="font-size: 10px;">tutorial</a> <a href="/tags/ulk/" style="font-size: 14.17px;">ulk</a> <a href="/tags/web/" style="font-size: 10.83px;">web</a> <a href="/tags/windows/" style="font-size: 15.83px;">windows</a> <a href="/tags/windows-kernel/" style="font-size: 14.17px;">windows-kernel</a> <a href="/tags/writeup/" style="font-size: 10px;">writeup</a> <a href="/tags/wrk/" style="font-size: 12.5px;">wrk</a>
+                    </div>
+                </section>
+                
+                
+                
+                <section class="switch-part switch-part3">
+                    <div id="js-friends">
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://eternalsakura13.com">樱花师傅</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="https://chybeta.github.io/">Chybeta</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://whereisk0shl.top/">k0shl</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://o0xmuhe.github.io/">o0xmuhe</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://bestwing.me/">swing</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://yixuankeer.win/">joker</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://www.hackersb.cn/">王松_Striker</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="https://www.hackfun.org/">4ido10n</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://www.cnblogs.com/iamstudy/">l3m0n</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://www.cnblogs.com/Ox9A82/">Ox9A82</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://mxny.org/">麦香浓郁</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://0x48.pw/">Hcamael</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="https://blog.nuptzj.cn/">画船听雨</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="https://www.bodkin.ren/">老锥</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://www.zerokeeper.com/">ZeroKeeper</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="https://www.ycjcl.cc/">信鑫</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://www.wowotech.net/">wowotech</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://fuzzysecurity.com/">fuzzySecurity</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="https://rootkits.xyz/">rootkits.xyz</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://www.pentestingexperts.com/">pentestingexperts</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="https://blog.skylined.nl/">skylined</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="https://systemk1t.github.io/">systemk1t</a>
+                    
+                    </div>
+                </section>
+                
+
+                
+                
+                <section class="switch-part switch-part4">
+                
+                    <div id="js-aboutme">二进制狗一枚，懂点Web安全，一个伪装成程序员混迹在某公司的菜鸡。</div>
+                </section>
+                
+            </div>
+        </div>
+    </header>                
+</div>
+    </div>
+    <div class="mid-col">
+      <nav id="mobile-nav">
+      <div class="overlay">
+          <div class="slider-trigger"></div>
+          <h1 class="header-author js-mobile-header hide"><a href="/" title="Me">r00tk1t</a></h1>
+      </div>
+    <div class="intrude-less">
+        <header id="header" class="inner">
+            <a href="/" class="profilepic">
+                
+                    <img lazy-src="/img/head.jpg" class="js-avatar">
+                
+            </a>
+            <hgroup>
+              <h1 class="header-author"><a href="/" title="Me">r00tk1t</a></h1>
+            </hgroup>
+            
+            <p class="header-subtitle">二进制安全 | Web安全 | 伪装成程序员的菜鸡</p>
+            
+            <nav class="header-menu">
+                <ul>
+                
+                    <li><a href="/">博客首页</a></li>
+                
+                    <li><a href="/archives">所有文章</a></li>
+                
+                    <li><a href="/tags">标签</a></li>
+                
+                <div class="clearfix"></div>
+                </ul>
+            </nav>
+            <nav class="header-nav">
+                <div class="social">
+                    
+                        <a class="mail" target="_blank" href="mailto: 1903442252@qq.com" title="mail">mail</a>
+                    
+                        <a class="github" target="_blank" href="https://github.com/r00tk1ts" title="github">github</a>
+                    
+                        <a class="zhihu" target="_blank" href="https://www.zhihu.com/people/r00tk1t-5" title="zhihu">zhihu</a>
+                    
+                        <a class="weibo" target="_blank" href="http://weibo.com/2698344533" title="weibo">weibo</a>
+                    
+                        <a class="QQ" target="_blank" href="https://user.qzone.qq.com/1903442252" title="QQ">QQ</a>
+                    
+                </div>
+            </nav>
+        </header>                
+    </div>
+</nav>
+      <div class="body-wrap"><article id="post-C++ Primer - 顺序容器" class="article article-type-post" itemscope itemprop="blogPost">
+  
+    <div class="article-meta">
+      <a href="/2018/11/24/C++ Primer - 顺序容器/" class="article-date">
+      <time datetime="2018-11-24T06:11:11.000Z" itemprop="datePublished">2018-11-24</time>
+</a>
+    </div>
+  
+  <div class="article-inner">
+    
+      <input type="hidden" class="isFancy" />
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      C++ Primer - 顺序容器
+    </h1>
+  
+
+      </header>
+      
+      <div class="article-info article-info-post">
+        
+    <div class="article-category tagcloud">
+    <a class="article-category-link" href="/categories/programming-language/">programming-language</a>
+    </div>
+
+
+        
+    <div class="article-tag tagcloud">
+        <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/cpp/">cpp</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/cpp-primer/">cpp-primer</a></li></ul>
+    </div>
+
+        <div class="clearfix"></div>
+      </div>
+      
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+          
+        <p>《C++ Primer》第五版引入了11标准相关内容，我早年在初学C++时还只有第四版，近来想对C++做一个整体的复习+版本升级，借此机会过一遍第五版。本文是阅读第九章“顺序容器”时所做的笔记。</p>
+<a id="more"></a>
+<h1 id="C-Primer-顺序容器"><a href="#C-Primer-顺序容器" class="headerlink" title="C++ Primer - 顺序容器"></a>C++ Primer - 顺序容器</h1><p>所谓容器就是一些特定类型对象的集合。容器分为顺序容器和关联容器。</p>
+<p>##顺序容器概览</p>
+<p>顺序容器为程序员提供了控制元素存储和访问顺序的能力。这种顺序不依赖于元素的值，而是与元素加入容器时的位置相对应。</p>
+<table>
+<thead>
+<tr>
+<th>-</th>
+<th>-</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>vector</td>
+<td>可变尺寸数组。支持快速随机访问。在尾部之外的位置插入或删除元素可能很慢。</td>
+</tr>
+<tr>
+<td>deque</td>
+<td>双端队列。支持快速随机访问。在头尾位置插入/删除速度很快</td>
+</tr>
+<tr>
+<td>list</td>
+<td>双向链表。只支持双向顺序访问。在list中任何位置进行插入/删除操作速度都很快</td>
+</tr>
+<tr>
+<td>forward_list</td>
+<td>单向链表。只支持单向顺序访问。在链表任何位置进行插入/删除操作速度都很快</td>
+</tr>
+<tr>
+<td>array</td>
+<td>固定大小数组。支持快速随机访问。不能添加或删除元素</td>
+</tr>
+<tr>
+<td>string</td>
+<td>与vector相似的容器，但专门用于保存字符。随机访问快。在尾部插入/删除速度快</td>
+</tr>
+</tbody>
+</table>
+<p>forward_list和array是C++11标准扩展内容。array相比内值数组更安全易用。array大小是固定的，它无法添加或删除元素。forward_list的设计目标是达到与最好的手写的单链表相当的性能。因此，forward_list没有size操作，因为保存或计算其大小就会比手写链表多出额外的开销。</p>
+<p>程序员自己的写的容器往往劣于标准库所提供的版本。所以，请使用标准库容器。</p>
+<p>使用哪种容器要根据具体场景需求去确定。</p>
+<p>每个容器都定义在一个头文件中，文件名与类型名相同。</p>
+<p>容器都是模板类，所以需要定义时提供额外信息来生成特定的容器类型。比如<code>list&lt;Sales_data&gt;</code>，<code>deque&lt;double&gt;</code>。</p>
+<p>顺序容器几乎可以保存任意类型的元素，且容器可以嵌套。<code>vector&lt;vector&lt;string&gt;&gt;</code>。</p>
+<blockquote>
+<p>C++11以前，连续的两个&gt;&gt;之间要有空格。写成<code>vector&lt;vector&lt;string&gt; &gt;</code></p>
+</blockquote>
+<table>
+<thead>
+<tr>
+<th>容器操作一览</th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>类型别名</strong></td>
+<td></td>
+</tr>
+<tr>
+<td>iterator</td>
+<td>此容器类型的迭代器类型</td>
+</tr>
+<tr>
+<td>const_iterator</td>
+<td>可以读取元素，但不能修改元素的迭代器类型</td>
+</tr>
+<tr>
+<td>size_type</td>
+<td>无符号整数类型，足够保存此种容器类型最大可能容器的大小</td>
+</tr>
+<tr>
+<td>difference_type</td>
+<td>带符号整型，足够保存两个迭代器之间的距离</td>
+</tr>
+<tr>
+<td>value_type</td>
+<td>元素类型</td>
+</tr>
+<tr>
+<td>reference</td>
+<td>元素的左值类型；与value_type&amp;含义相同</td>
+</tr>
+<tr>
+<td>const_reference</td>
+<td>元素的const左值类型(const value_type&amp;)</td>
+</tr>
+<tr>
+<td><strong>构造函数</strong></td>
+<td></td>
+</tr>
+<tr>
+<td>C c;</td>
+<td>默认构造函数，构造空容器</td>
+</tr>
+<tr>
+<td>C c1(c2);</td>
+<td>构造c2的拷贝c1</td>
+</tr>
+<tr>
+<td>C c(b, e);</td>
+<td>构造c，将迭代器b和e指定的范围内的元素拷贝到c</td>
+</tr>
+<tr>
+<td>C c{a, b, c…};</td>
+<td>列表初始化c</td>
+</tr>
+<tr>
+<td><strong>赋值与swap</strong></td>
+<td></td>
+</tr>
+<tr>
+<td>c1 = c2</td>
+<td>将c1中的元素替换为c2中元素</td>
+</tr>
+<tr>
+<td>c1 = {a, b, c…}</td>
+<td>将c1中的元素替换为列表中元素（不适用于array）</td>
+</tr>
+<tr>
+<td>a.swap(b)</td>
+<td>交换a和b的元素</td>
+</tr>
+<tr>
+<td>swap(a, b)</td>
+<td>与a.swap(b)等价</td>
+</tr>
+<tr>
+<td><strong>大小</strong></td>
+<td></td>
+</tr>
+<tr>
+<td>c.size()</td>
+<td>c中元素的数目(不支持forward_list)</td>
+</tr>
+<tr>
+<td>c.max_size()</td>
+<td>c可保存的最大元素数目</td>
+</tr>
+<tr>
+<td>c.empty()</td>
+<td>若c中存储了元素，返回false，否则返回true</td>
+</tr>
+<tr>
+<td><strong>添加/删除元素 (不适用于array)</strong></td>
+<td>注：不同容器中，这些操作的接口都不同</td>
+</tr>
+<tr>
+<td>c.insert(args)</td>
+<td>将args中元素拷贝到c</td>
+</tr>
+<tr>
+<td>c.emplace(inits)</td>
+<td>使用inits构造c中的一个元素</td>
+</tr>
+<tr>
+<td>c.erase(args)</td>
+<td>删除args指定的元素</td>
+</tr>
+<tr>
+<td>c.clear()</td>
+<td>删除c中的所有元素，返回void</td>
+</tr>
+<tr>
+<td><strong>关系运算符</strong></td>
+<td></td>
+</tr>
+<tr>
+<td>==, !=</td>
+<td>所有容器都支持相等(不等)运算符</td>
+</tr>
+<tr>
+<td>&lt;, &lt;=, &gt;, &gt;=</td>
+<td>关系运算符(无序关联容器不支持)</td>
+</tr>
+<tr>
+<td><strong>获取迭代器</strong></td>
+<td></td>
+</tr>
+<tr>
+<td>c.begin(), c.end()</td>
+<td>返回指向c的首元素和尾元素之后位置的迭代器</td>
+</tr>
+<tr>
+<td>c.cbegin(). c.cend()</td>
+<td>返回const_iterator</td>
+</tr>
+<tr>
+<td><strong>反向容器的额外成员(不支持forward_list)</strong></td>
+<td></td>
+</tr>
+<tr>
+<td>reverse_iterator</td>
+<td>按逆序寻址元素的迭代器</td>
+</tr>
+<tr>
+<td>const_reverse_iterator</td>
+<td>不能修改元素的逆序迭代器</td>
+</tr>
+<tr>
+<td>c.rbegin(), c.rend()</td>
+<td>返回指向c的尾元素和首元素之前位置的迭代器</td>
+</tr>
+<tr>
+<td>c.crbegin(), c.crend()</td>
+<td>返回const_reverse_iterator</td>
+</tr>
+</tbody>
+</table>
+<h3 id="迭代器"><a href="#迭代器" class="headerlink" title="迭代器"></a>迭代器</h3><p>forward_list类型不支持递减运算符<code>--</code>。</p>
+<p>一个迭代器范围（iterator range）由一对迭代器表示。这两个迭代器通常被称为begin和end，分别指向同一个容器中的元素或尾后地址。end迭代器不会指向范围中的最后一个元素，而是指向尾元素之后的位置。这种元素范围被称为左闭合区间（left-inclusive interval），其标准数学描述为<em>[begin，end）</em>。迭代器begin和end必须指向相同的容器，end可以与begin指向相同的位置，但不能指向begin之前的位置（由程序员确保）。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">while</span> (begin != end)</span><br><span class="line">&#123;</span><br><span class="line">    *begin = val;   </span><br><span class="line">    ++begin;    </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="容器定义和初始化"><a href="#容器定义和初始化" class="headerlink" title="容器定义和初始化"></a>容器定义和初始化</h3><p>每个容器类型都定义了一个默认构造函数。除array以外，其他容器的默认构造函数都会创建一个指定类型的空容器，且都可以接受指定容器大小和元素初始值的参数。</p>
+<table>
+<thead>
+<tr>
+<th>容器定义和初始化</th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>C c;</td>
+<td>默认构造函数。如果C是一个array，则c中元素按默认方式初始化；否则c为空</td>
+</tr>
+<tr>
+<td>C c1(c2)</td>
+<td>c1初始化为c2的拷贝。c1和c2必须是相同类型。array类型还需要两者大小相等</td>
+</tr>
+<tr>
+<td>C c{a, b, c…};  C c= {a, b, c…}</td>
+<td>c初始化为初始化列表中元素的拷贝。列表中元素类型必须与C的元素类型相容。对array类型来说，列表中元素数目必须小于等于array的大小，任何遗漏的元素都进行值初始化</td>
+</tr>
+<tr>
+<td>C c(b,e)</td>
+<td>c初始化为迭代器b和e指定范围中的元素拷贝。</td>
+</tr>
+<tr>
+<td>C seq(n)</td>
+<td>seq包含n个元素，这些元素进行了值初始化，该构造函数是explicit的</td>
+</tr>
+<tr>
+<td>C seq(n,t)</td>
+<td>seq包含n个初始化为值t的元素</td>
+</tr>
+</tbody>
+</table>
+<p>只有顺序容器（不包括array）的构造函数才能接受大小参数。</p>
+<p>定义和使用array类型时，需要同时指定元素类型和容器大小。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">array</span>&lt;<span class="keyword">int</span>, 42&gt;      <span class="comment">// 保存42个int的数组</span></span><br><span class="line"><span class="built_in">array</span>&lt;<span class="built_in">string</span>, 10&gt;   <span class="comment">// 保存10个string的数组</span></span><br></pre></td></tr></table></figure>
+<h3 id="赋值和swap"><a href="#赋值和swap" class="headerlink" title="赋值和swap"></a>赋值和swap</h3><table>
+<thead>
+<tr>
+<th>容器赋值运算</th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>c1 = c2</td>
+<td>c1中元素替换为c2中元素的拷贝。c1和c2必须类型相同</td>
+</tr>
+<tr>
+<td>c = {a,b,c…}</td>
+<td>c1中元素替换为初始化列表中元素的拷贝（array不适用）</td>
+</tr>
+<tr>
+<td>swap(c1,c2)    c1.swap(c2)</td>
+<td>交换c1和c2中的元素。c1和c2必须具有相同类型。swap通常比从c2向c1拷贝元素快得多</td>
+</tr>
+<tr>
+<td>seq.assign(b,e)</td>
+<td>将seq中元素替换为迭代器b和e所表示的范围中的元素。b和e不能指向seq中的元素</td>
+</tr>
+<tr>
+<td>seq.assign(il)</td>
+<td>将seq中元素替换为初始化列表il中的元素</td>
+</tr>
+<tr>
+<td>seq.assign(n, t)</td>
+<td>将seq中元素替换为n个值为t的元素</td>
+</tr>
+</tbody>
+</table>
+<p>赋值相关运算会导致指向左边容器内部的迭代器、引用和指针失效。而swap操作交换容器内容，不会导致迭代器、引用和指针失效（array和string除外）。而对于array，swap会真正交换它们的元素。因此在swap操作后，指针、引用和迭代器所绑定的元素不变，但元素值已经被交换。</p>
+<p><strong>array不支持assign，也不允许用花括号列表进行赋值。</strong></p>
+<p>新标准库同时提供了成员和非成员函数版本的swap。非成员版本的swap在泛型编程中非常重要，建议统一使用非成员版本的swap。</p>
+<h3 id="容器大小操作"><a href="#容器大小操作" class="headerlink" title="容器大小操作"></a>容器大小操作</h3><p><code>size</code>成员返回容器中元素的数量；<code>empty</code>当size为0时返回true，否则返回false；<code>max_size</code>返回一个大于或等于该类型容器所能容纳的最大元素数量的值。forward_list支持max_size和empty，但不支持size。</p>
+<h3 id="关系运算符"><a href="#关系运算符" class="headerlink" title="关系运算符"></a>关系运算符</h3><p>两个容器的比较实际上是元素的逐对比较，其工作方式与string的关系运算符类似：</p>
+<ul>
+<li>如果两个容器大小相同且所有元素对应相等，则这两个容器相等。</li>
+<li>如果两个容器大小不同，但较小容器中的每个元素都等于较大容器中的对应元素，则较小容器小于较大容器。</li>
+<li>如果两个容器都不是对方的前缀子序列，则两个容器的比较结果取决于第一个不等元素的比较结果。</li>
+</ul>
+<p>容器的相等运算符实际上是使用元素的<code>==</code>运算符实现的，而其他关系运算符则是使用元素的<code>&lt;</code>运算符。如果元素类型不支持所需运算符，则保存该元素的容器就不能使用相应的关系运算。</p>
+<blockquote>
+<p>这就意味着如果想要使用容器承载自己定义的类类型，且希望可以进行该种容器的关系运算符操作，那么就要自己去重载自定义类类型的==和&lt;运算符。</p>
+</blockquote>
+<h2 id="顺序容器操作"><a href="#顺序容器操作" class="headerlink" title="顺序容器操作"></a>顺序容器操作</h2><h3 id="添加元素"><a href="#添加元素" class="headerlink" title="添加元素"></a>添加元素</h3><table>
+<thead>
+<tr>
+<th>顺序容器添加元素的操作</th>
+<th>array不支持</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>c.push_back(t) c.emplace_back(args)</td>
+<td>在c的尾部创建一个值为t或由args创建的元素。返回void</td>
+</tr>
+<tr>
+<td>c.push_front(t) c.emplace_front(args)</td>
+<td>在c的头部创建一个值为t或由args创建的元素。返回void</td>
+</tr>
+<tr>
+<td>c.insert(p,t) c.emplace(p, args)</td>
+<td>在迭代器p指向的元素之前创建一个值为t或由args创建的元素。返回指向新添加的元素的迭代器</td>
+</tr>
+<tr>
+<td>c.insert(p, n, t)</td>
+<td>在迭代器p指向的元素之前插入n个值为t的元素。返回指向新添加的第一个元素的迭代器；若n为0，则返回p</td>
+</tr>
+<tr>
+<td>c.insert(p,b,e)</td>
+<td>将迭代器b和e指定的范围内的元素插入到迭代器p指向的元素之前。b和e不能指向c中的元素。返回指向新添加的第一个元素的迭代器；若范围为空，则返回p</td>
+</tr>
+<tr>
+<td>c.insert(p,il)</td>
+<td>il是一个花括号包围的元素值列表。将这些给定值插入到迭代器p指向的元素之前。返回指向新添加的第一个元素的迭代器；若列表尾空，则返回p</td>
+</tr>
+</tbody>
+</table>
+<p>新标准库增加了三个直接构造而不是拷贝元素的操作：<code>emplace_front</code>、<code>emplace_back</code>和<code>emplace</code>，其分别对应push_front、push_back和insert。当调用push或insert时，元素对象被拷贝到容器中。而调用emplace时，则是将参数传递给元素类型的构造函数，直接在容器的内存空间中构造元素。传递给emplace的参数必须与元素类型的构造函数相匹配。</p>
+<p>forward_list有特殊版本的insert和emplace操作，且不支持push_back和emplace_back。vector和string不支持push_front和emplace_front。</p>
+<h3 id="访问元素"><a href="#访问元素" class="headerlink" title="访问元素"></a>访问元素</h3><table>
+<thead>
+<tr>
+<th>顺序容器中访问元素</th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>c.back()</td>
+<td>返回c中尾元素的引用。若c为空，函数行为未定义</td>
+</tr>
+<tr>
+<td>c.front()</td>
+<td>返回c中首元素的引用。若c为空，函数行为未定义</td>
+</tr>
+<tr>
+<td>c[n]</td>
+<td>返回c中下标为n的元素的引用，n是一个无符号整数。若n&gt;=c.size()，则函数行为未定义</td>
+</tr>
+<tr>
+<td>c.at(n)</td>
+<td>返回下标为n的元素的引用。如果下标越界，则抛出out_of_range异常</td>
+</tr>
+</tbody>
+</table>
+<p>at和下标操作只适用于string/vector/deque和array。</p>
+<p>back不适用于forward_list。</p>
+<h3 id="删除元素"><a href="#删除元素" class="headerlink" title="删除元素"></a>删除元素</h3><table>
+<thead>
+<tr>
+<th>顺序容器的删除操作</th>
+<th>array不适用</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>c.pop_back()</td>
+<td>删除c中尾元素。若c为空，则函数行为未定义。返回void</td>
+</tr>
+<tr>
+<td>c.pop_front()</td>
+<td>删除c中首元素。若c为空，则函数行为未定义。返回void</td>
+</tr>
+<tr>
+<td>c.erase(p)</td>
+<td>删除迭代器p所指定的元素，返回一个指向被删除元素之后元素的迭代器，若p指向尾元素，则返回尾后迭代器。若p是尾后迭代器，则函数行为未定义</td>
+</tr>
+<tr>
+<td>c.erase(b,e)</td>
+<td>删除迭代器b和e所指定范围内的元素。返回一个指向最后一个被删元素之后元素的迭代器，若e本身就是尾后迭代器，则函数也返回尾后迭代器。</td>
+</tr>
+<tr>
+<td>c.clear()</td>
+<td>删除c中所有元素。返回void</td>
+</tr>
+</tbody>
+</table>
+<p>forward_list有特殊版本的erase，且不支持pop_back。</p>
+<p>vector和string不支持pop_front。</p>
+<p>###特殊的forward_list</p>
+<table>
+<thead>
+<tr>
+<th>forward_list插入或删除操作</th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>lst.before_begin() lst.cbefore_begin()</td>
+<td>返回指向链表首元素之前不存在的元素的迭代器。此迭代器不能解引用。cbefore_begin()返回一个const_iterator</td>
+</tr>
+<tr>
+<td>lst.insert_after(p,t) lst.insert_after(p,n,t) lst.insert_after(p,b,e) lst.insert_after(p,il)</td>
+<td>迭代器p之后插入元素。t为对象，n为数量，b和e表示范围的一对迭代器（不能指向自身），il是一个花括号列表。返回一个指向最后一个插入元素的迭代器。</td>
+</tr>
+<tr>
+<td>emplace_after(p, args)</td>
+<td>使用args在p指定的位置之后创建一个元素，返回一个指向这个新元素的迭代器。若p为尾后迭代器，则函数行为未定义</td>
+</tr>
+<tr>
+<td>lst.erase_after(p) lst.erase_after(b,e)</td>
+<td>删除p指向的位置之后的元素，或删除b到e之间的元素。返回一个指向被删元素之后元素的迭代器。</td>
+</tr>
+</tbody>
+</table>
+<h3 id="resize"><a href="#resize" class="headerlink" title="resize"></a>resize</h3><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">list</span>&lt;<span class="keyword">int</span>&gt; ilist(<span class="number">10</span>,<span class="number">42</span>);</span><br><span class="line">ilist.resize(<span class="number">15</span>);	<span class="comment">//将5个值为0的元素添加到ilist末尾</span></span><br><span class="line">ilist.resize(<span class="number">25</span>,<span class="number">-1</span>);	<span class="comment">//再将10个值为-1的元素添加到ilist末尾</span></span><br><span class="line">ilist.resize(<span class="number">5</span>);	<span class="comment">//从ilist末尾删除20个元素</span></span><br></pre></td></tr></table></figure>
+<p>显然，array不支持resize。</p>
+<h3 id="容器操作可能使迭代器失效"><a href="#容器操作可能使迭代器失效" class="headerlink" title="容器操作可能使迭代器失效"></a>容器操作可能使迭代器失效</h3><p>向容器中添加或删除元素可能会使指向容器元素的指针、引用或迭代器失效。失效的指针、引用或迭代器不再表示任何元素，使用它们是一种严重的程序设计错误。</p>
+<p>##扩展的string操作</p>
+<p>###构造string的其他方法</p>
+<table>
+<thead>
+<tr>
+<th>n，len2和pos2都是无符号值</th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>string s(cp, n)</td>
+<td>s是cp指向的数组中前n个字符的拷贝。此数组至少应该包含n个字符</td>
+</tr>
+<tr>
+<td>string s(s2, pos2)</td>
+<td>s是string s2从下标pos2开始的字符的拷贝。若pos2&gt;s2.size()，构造函数的行为未定义</td>
+</tr>
+<tr>
+<td>string s(s2, pos2, len2)</td>
+<td>s是string s2从下标pos2开始len2个字符的拷贝。若pos2&gt;s2.size()，构造函数的行为未定义。不管len2值是多少，构造函数至多拷贝s2.size()-pos2个字符</td>
+</tr>
+</tbody>
+</table>
+<p>string的一些操作</p>
+<table>
+<thead>
+<tr>
+<th>子字符串操作</th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>s.substr(pos, n)</td>
+<td>返回一个string，包含s中从pos开始的n个字符的拷贝。pos的默认值为0。n的默认值为s.size()-pos，即拷贝从pos开始的所有字符</td>
+</tr>
+</tbody>
+</table>
+<table>
+<thead>
+<tr>
+<th>修改string的操作</th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>s.insert(pos,args)</td>
+<td>在pos前插入args指定的字符。pos可以是下标或迭代器。接受下标的版本返回一个指向s的引用，接受迭代器的版本返回指向第一个插入字符的迭代器。</td>
+</tr>
+<tr>
+<td>s.erase(pos,len)</td>
+<td>删除从位置pos开始的len个字符。如果len被省略，则删除从pos开始到s末尾的所有字符。返回一个指向s的引用</td>
+</tr>
+<tr>
+<td>s.assign(args)</td>
+<td>将s中的字符替换为args指定的字符。返回一个指向s的引用</td>
+</tr>
+<tr>
+<td>s.append(args)</td>
+<td>将args追加到s。返回一个指向s的引用</td>
+</tr>
+<tr>
+<td>s.replace(range, args)</td>
+<td>删除s中范围range内的字符，替换为args指定的字符。range或者是一个下标和一个长度，或者是一对指向s的迭代器。返回一个指向s的引用</td>
+</tr>
+</tbody>
+</table>
+<p>args的形式：</p>
+<ul>
+<li>str：字符串</li>
+<li>str,pos,len：str中从pos开始最多len个字符</li>
+<li>cp,len：从cp指向的字符数组的前（最多）len个字符</li>
+<li>cp：cp指向的以空字符结尾的字符数组</li>
+<li>n,c：n个字符c</li>
+<li>b,e：迭代器b和e指定的范围内的字符</li>
+<li>初始化列表：花括号包围的，以逗号分隔的字符列表</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>搜索操作</th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>s.find(args)</td>
+<td>查找s中args第一次出现的位置</td>
+</tr>
+<tr>
+<td>s.rfind(args)</td>
+<td>查找s中args最后一次出现的位置</td>
+</tr>
+<tr>
+<td>s.find_first_of(args)</td>
+<td>在s中查找args中任何一个字符第一次出现的位置</td>
+</tr>
+<tr>
+<td>s.find_last_of(args)</td>
+<td>在s中查找args中任何一个字符最后一次出现的位置</td>
+</tr>
+<tr>
+<td>s.find_first_not_of(args)</td>
+<td>在s中查找第一个不在args中的字符</td>
+</tr>
+<tr>
+<td>s.find_last_not_of(args)</td>
+<td>在s中查找最后一个不在args中的字符</td>
+</tr>
+</tbody>
+</table>
+<p>args形式：</p>
+<ul>
+<li>c,pos：从s中位置pos开始查找字符c。pos默认为0</li>
+<li>s2,pos：从s中位置pos开始查找字符串s2。pos默认为0</li>
+<li>cp,pos：从s中位置pos开始查找指针cp指向的以空字符结尾的C风格字符串。pos默认为0。</li>
+<li>cp,pos,n：从s中位置pos开始查找指针cp指向的数组的前n个字符。pos和n无默认值。</li>
+</ul>
+<p>string还提供一组compare函数，用于比较，类似C的strcmp。</p>
+<table>
+<thead>
+<tr>
+<th>s.compare的几种参数形式</th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>s2</td>
+<td>比较s和s2</td>
+</tr>
+<tr>
+<td>pos1, n1, s2</td>
+<td>将s中从pos1开始的n1个字符与s2比较</td>
+</tr>
+<tr>
+<td>pos1,n1,s2,pos2,n2</td>
+<td>将s中pos1开始的n1个字符与s2中从pos2开始的n2个字符进行比较</td>
+</tr>
+<tr>
+<td>cp</td>
+<td>比较s与cp指向的以空字符结尾的字符数组</td>
+</tr>
+<tr>
+<td>pos1,n1,cp</td>
+<td>s中pos1开始的n1个字符与cp指向的空字符结尾的字符数组进行比较</td>
+</tr>
+<tr>
+<td>pos1,n1,cp,n2</td>
+<td>将s中从pos1开始的n1个字符与指针cp指向的地址开始的n2个字符进行比较</td>
+</tr>
+</tbody>
+</table>
+<p>字符串转数值型也是非常常见的场景，字符串往往包含数值的字符。</p>
+<table>
+<thead>
+<tr>
+<th>string和数值间转换</th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>to_string(val)</td>
+<td>一组重载函数，返回数值val的string表示。val可以是任何算术类型。对每个浮点类型和int或更大的整型，都有对应版本的to_string。小整型会被提升。</td>
+</tr>
+<tr>
+<td>stoi(s, p, b) stol(s, p, b) stoul(s, p, b) stoll(s, p, b) stoull(s, p, b)</td>
+<td>返回s的起始子串的数值，返回值类型分别是int、long、unsigned long、long long、unsigned long long。b表示转换所用的基数，默认为10，表示十进制。p是size_t指针，用来保存s中第一个非数值字符的下标，p默认为0，即函数不保存下标。</td>
+</tr>
+<tr>
+<td>stof(s, p)  stod(s, p) stold(s, p)</td>
+<td>返回s的起始子串的数值，返回值类型分别为float、double或long double。参数p的作用域整数转换函数中一样。</td>
+</tr>
+</tbody>
+</table>
+<h2 id="适配器"><a href="#适配器" class="headerlink" title="适配器"></a>适配器</h2><p>标准库还定义了3个顺序容器适配器：stack, queue和priority_queue。</p>
+<p>适配器(Adapter)是标准库中的一个概念，它是一种机制，使某种事物的行为看起来像另一种事物一样。</p>
+<table>
+<thead>
+<tr>
+<th>所有容器适配器都支持的操作和类型</th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>size_type</td>
+<td>一种类型，足以保存当前类型的最大对象的大小</td>
+</tr>
+<tr>
+<td>value_type</td>
+<td>元素类型</td>
+</tr>
+<tr>
+<td>container_type</td>
+<td>实现适配器的底层容器类型</td>
+</tr>
+<tr>
+<td>A a;</td>
+<td>创建一个名为a的空适配器</td>
+</tr>
+<tr>
+<td>A a(c);</td>
+<td>创建一个名为a的适配器，带有容器c的一个拷贝</td>
+</tr>
+<tr>
+<td>关系运算符</td>
+<td>每个适配器都支持所有关系运算符：==, !=, &lt;, &lt;=, &gt;和&gt;=。</td>
+</tr>
+<tr>
+<td>a.empty()</td>
+<td>若a中包含任何元素，返回false，否则返回true</td>
+</tr>
+<tr>
+<td>a.size()</td>
+<td>返回a中的元素数目</td>
+</tr>
+<tr>
+<td>swap(a,b)  a.swap(b)</td>
+<td>交换a和b的内容，a和b必须有相同类型，包括底层容器类型也必须相同</td>
+</tr>
+</tbody>
+</table>
+<p>默认情况下，stack和queue是基于deque实现的，priority_queue是基于vector实现的。可以在创建适配器时将一个命名的顺序容器作为第二个类型参数，来重载默认容器类型。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 基于vector实现的空stack</span></span><br><span class="line"><span class="built_in">stack</span>&lt;<span class="built_in">string</span>, <span class="built_in">vector</span>&lt;<span class="built_in">string</span>&gt;&gt; str_stk;</span><br><span class="line"><span class="comment">// str_stk2基于vector实现，以svec拷贝初始化</span></span><br><span class="line"><span class="built_in">stack</span>&lt;<span class="built_in">string</span>, <span class="built_in">vector</span>&lt;<span class="built_in">string</span>&gt;&gt; str_stk2(svec);</span><br></pre></td></tr></table></figure>
+<p>所有适配器都要求容器具有添加和删除元素的能力，因此适配器不能构造在array至上。适配器还要求容器具有添加、删除和访问尾元素的能力，因此也不能用forward_list构造适配器。</p>
+<h3 id="stack"><a href="#stack" class="headerlink" title="stack"></a>stack</h3><table>
+<thead>
+<tr>
+<th>支持的操作</th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>s.pop()</td>
+<td>删除栈顶元素，但不反回该元素值</td>
+</tr>
+<tr>
+<td>s.push(item) s.emplace(args)</td>
+<td>创建一个新元素压入栈顶，该元素通过拷贝或移动item而来，或者由args构造</td>
+</tr>
+<tr>
+<td>s.top()</td>
+<td>返回栈顶元素，但不将元素弹出栈</td>
+</tr>
+</tbody>
+</table>
+<p>stack默认基于deque实现，也可以在list或vector上实现</p>
+<h3 id="queue-amp-priority-queue"><a href="#queue-amp-priority-queue" class="headerlink" title="queue &amp; priority_queue"></a>queue &amp; priority_queue</h3><table>
+<thead>
+<tr>
+<th>支持的操作</th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>q.pop()</td>
+<td>返回queue的首元素或priority_queue的最高优先级的元素，但不删除此元素</td>
+</tr>
+<tr>
+<td>q.front() q.back()</td>
+<td>返回首元素或尾元素，但不删除此元素，只适用于queue</td>
+</tr>
+<tr>
+<td>q.top()</td>
+<td>返回最高优先级元素，但不删除该元素，只适用于priority_queue</td>
+</tr>
+<tr>
+<td>q.push(item) q.emplace(args)</td>
+<td>在queue末尾或priority_queue中恰当的位置创建一个元素，值为item或由args构造</td>
+</tr>
+</tbody>
+</table>
+<p>queue应用FIFO的访问和存储策略。priority_queue允许我们为队列元素建立优先级。标准库在元素类型上默认使用&lt;运算符来确定相对优先级，这个可以根据具体需求情况而重载。</p>
+
+      
+      
+    </div>
+    
+  </div>
+  
+    
+    <div class="copyright">
+        <p><span>本文标题:</span><a href="/2018/11/24/C++ Primer - 顺序容器/">C++ Primer - 顺序容器</a></p>
+        <p><span>文章作者:</span><a href="/" title="访问 r00tk1t 的个人博客">r00tk1t</a></p>
+        <p><span>发布时间:</span>2018年11月24日 - 14时11分</p>
+        <p><span>最后更新:</span>2020年10月20日 - 21时01分</p>
+        <p>
+            <span>原始链接:</span><a class="post-url" href="/2018/11/24/C++ Primer - 顺序容器/" title="C++ Primer - 顺序容器">https://r00tk1ts.github.io/2018/11/24/C++ Primer - 顺序容器/</a>
+            <span class="copy-path" data-clipboard-text="原文: https://r00tk1ts.github.io/2018/11/24/C++ Primer - 顺序容器/　　作者: r00tk1t" title="点击复制文章链接"><i class="fa fa-clipboard"></i></span>
+            <script src="/js/clipboard.min.js"></script>
+            <script> var clipboard = new Clipboard('.copy-path'); </script>
+        </p>
+        <p>
+            <span>许可协议:</span><i class="fa fa-creative-commons"></i> <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/3.0/cn/" title="中国大陆 (CC BY-NC-SA 3.0 CN)" target = "_blank">"署名-非商用-相同方式共享 3.0"</a> 转载请保留原文链接及作者。
+        </p>
+    </div>
+
+
+
+<nav id="article-nav">
+  
+    <a href="/2018/11/24/C++ Primer - 泛型算法/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption"><</strong>
+      <div class="article-nav-title">
+        
+          C++ Primer - 泛型算法
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2018/11/21/C++ Primer - IO库/" id="article-nav-older" class="article-nav-link-wrap">
+      <div class="article-nav-title">C++ Primer - IO库</div>
+      <strong class="article-nav-caption">></strong>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+    <div id="toc" class="toc-article">
+    <strong class="toc-title">文章目录</strong>
+    <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#C-Primer-顺序容器"><span class="toc-number">1.</span> <span class="toc-text">C++ Primer - 顺序容器</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#迭代器"><span class="toc-number">1.0.1.</span> <span class="toc-text">迭代器</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#容器定义和初始化"><span class="toc-number">1.0.2.</span> <span class="toc-text">容器定义和初始化</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#赋值和swap"><span class="toc-number">1.0.3.</span> <span class="toc-text">赋值和swap</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#容器大小操作"><span class="toc-number">1.0.4.</span> <span class="toc-text">容器大小操作</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#关系运算符"><span class="toc-number">1.0.5.</span> <span class="toc-text">关系运算符</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#顺序容器操作"><span class="toc-number">1.1.</span> <span class="toc-text">顺序容器操作</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#添加元素"><span class="toc-number">1.1.1.</span> <span class="toc-text">添加元素</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#访问元素"><span class="toc-number">1.1.2.</span> <span class="toc-text">访问元素</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#删除元素"><span class="toc-number">1.1.3.</span> <span class="toc-text">删除元素</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#resize"><span class="toc-number">1.1.4.</span> <span class="toc-text">resize</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#容器操作可能使迭代器失效"><span class="toc-number">1.1.5.</span> <span class="toc-text">容器操作可能使迭代器失效</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#适配器"><span class="toc-number">1.2.</span> <span class="toc-text">适配器</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#stack"><span class="toc-number">1.2.1.</span> <span class="toc-text">stack</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#queue-amp-priority-queue"><span class="toc-number">1.2.2.</span> <span class="toc-text">queue &amp; priority_queue</span></a></li></ol></li></ol></li></ol>
+</div>
+<input type="button" id="tocButton" value="隐藏目录"  title="点击按钮隐藏或者显示文章目录">
+
+<script src="https://7.url.cn/edu/jslib/comb/require-2.1.6,jquery-1.9.1.min.js"></script>
+<script>
+    var valueHide = "隐藏目录";
+    var valueShow = "显示目录";
+
+    if ($(".left-col").is(":hidden")) {
+        $("#tocButton").attr("value", valueShow);
+    }
+    $("#tocButton").click(function() {
+        if ($("#toc").is(":hidden")) {
+            $("#tocButton").attr("value", valueHide);
+            $("#toc").slideDown(320);
+        }
+        else {
+            $("#tocButton").attr("value", valueShow);
+            $("#toc").slideUp(350);
+        }
+    })
+    if ($(".toc").length < 1) {
+        $("#toc, #tocButton").hide();
+    }
+</script>
+
+
+
+
+
+
+
+    
+
+
+
+    <div class="scroll" id="post-nav-button">
+        
+            <a href="/2018/11/24/C++ Primer - 泛型算法/" title="上一篇: C++ Primer - 泛型算法">
+                <i class="fa fa-angle-left"></i>
+            </a>
+        
+        <a title="文章列表"><i class="fa fa-bars"></i><i class="fa fa-times"></i></a>
+        
+            <a href="/2018/11/21/C++ Primer - IO库/" title="下一篇: C++ Primer - IO库">
+                <i class="fa fa-angle-right"></i>
+            </a>
+        
+    </div>
+    <ul class="post-list"><li class="post-list-item"><a class="post-list-link" href="/2020/10/22/chromium-base库源码解读之引用计数拆解篇/">chromium-base库源码解读之引用计数拆解篇</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/12/16/深入探索禁忌目录之Effective C++篇/">深入探索禁忌目录之Effective C++篇</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/12/10/C++ Primer - 特殊工具与技术/">C++ Primer - 特殊工具与技术</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/12/08/C++ Primer - 用于大型程序的工具/">C++ Primer - 用于大型程序的工具</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/12/06/C++ Primer - 标准库特殊设施/">C++ Primer - 标准库特殊设施</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/12/03/C++ Primer - 模板与泛型编程/">C++ Primer - 模板与泛型编程</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/12/01/C++ Primer - 面向对象程序设计/">C++ Primer - 面向对象程序设计</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/29/C++ Primer - 重载运算与类型转换/">C++ Primer - 重载运算与类型转换</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/29/C++ Primer - 拷贝控制/">C++ Primer - 拷贝控制</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/26/C++ Primer - 动态内存/">C++ Primer - 动态内存</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/26/C++ Primer - 关联容器/">C++ Primer - 关联容器</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/24/C++ Primer - 泛型算法/">C++ Primer - 泛型算法</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/24/C++ Primer - 顺序容器/">C++ Primer - 顺序容器</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/21/C++ Primer - IO库/">C++ Primer - IO库</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/21/C++ Primer - 类/">C++ Primer - 类</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/20/C++ Primer - 函数/">C++ Primer - 函数</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/20/C++ Primer - 语句/">C++ Primer -语句</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/20/C++ Primer - 表达/">C++ Primer - 表达式</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/10/28/C++ Primer - string, vector & array/">C++ Primer - string, vector, array</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/10/28/C++ Primer - 变量和基本类型/">C++ Primer - 变量和基本类型</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/08/25/C++ Templates Note - 类模板/">C++ Templates Note - 类模板</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/08/25/C++ Templates Note - 函数模板/">C++ Templates Note- 函数模板</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/08/13/Linux内存管理-进程地址空间/">Linux内核学习——内存管理之进程地址空间</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/07/07/一次失败的栈溢出(SEH)之GetGo Download Manager/">一次失败的栈溢出(SEH)之GetGo Download Manager</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/06/28/DNSTracer 1.9栈溢出漏洞[CVE-2017-9430]/">DNSTracer 1.9栈溢出漏洞[CVE-2017-9430]</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/06/24/A Tale of Exploit Easy RM 2 MP3 Converter/">A Tale of Exploit "Easy RM 2 MP3</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/06/03/chromium-sandbox-ThreadProcess-analysis/">Chromium-sandbox-ThreadProcess-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/06/03/chromium-sandbox-Filesystem-analysis/">Chromium-sandbox-Filesystem-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/06/03/chromium-sandbox-LowLevelPolicy-analysis/">Chromium-sandbox-LowLevelPolicy-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/26/chromium-sandbox-PolicyEngine-analysis/">Chromium-sandbox-PolicyEngine-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/26/chromium-sandbox-Resolver-analysis/">Chromium-sandbox-Resolver-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/26/chromium-sandbox-Interception/">Chromium-sandbox-Interception-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/21/chromium-sandbox-HandleCloser-analysis/">Chromium-sandbox-HandleCloser-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/20/chromium-sandbox-SharedMemIPC/">Chromium-sandbox-SharedMemIPC-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/19/chromium-sandbox-Crosscall-analysis/">Chromium-sandbox-crosscall-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/19/chromium-sandbox-AlternateDesktop-analysis/">Chromium-sandbox-AlternateDesktop-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/19/chromium-sandbox-Tokens-analysis/">Chromium-sandbox-Tokens-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/14/chromium-sandbox-Job-analysis/">Chromium-sandbox-Job-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/13/chromium-sandbox-TargetPolicy-analysis/">Chromium-sandbox-TargetPolicy-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/13/chromium-sandbox-TargetProcess-analysis/">Chromium-sandbox-TargetProcess-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/13/chromium-sandbox-TargetServices-analysis/">Chromium-sandbox-TargetServices-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/13/chromium-sandbox-BrokerServices/">Chromium-sandbox-BrokerServices-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/04/05/x41-浏览器安全白皮书笔记/">X41-浏览器安全白皮书读书笔记</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/22/Windows系统机制之同步/">Windows系统机制之同步</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/21/Windows系统机制之对象管理器/">Windows系统机制之对象管理器</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/21/Windows系统机制之陷阱分发/">Windows系统机制之陷阱分发</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/21/Bitmaps轶事：Windows 10纪念版前的GDI对象泄露/">Bitmap轶事：Windows 10纪念版后的GDI对象泄露</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/20/理解池污染三部曲/">理解池污染三部曲</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/19/内核利用程序之Razer rzpnk.sys中的逻辑bug/">Windows exploit系列教程第十九篇：内核利用程序之Razer rzpnk.sys中的逻辑bug</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/19/内核利用程序之RS2 Bitmap巫术/">Windows exploit系列教程第十八篇：内核利用程序之RS2 Bitmap巫术</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/15/内核利用程序之滥用GDI Bitmap/">Windows exploit系列教程第十七部分：内核利用程序之任意位置任意写</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/14/内核利用程序之池溢出/">Windows exploit系列教程第十六部分：内核利用程序之池溢出</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/14/内核利用程序之UAF/">Windows exploit系列教程第十五部分：内核利用程序之UAF</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/10/coin1/">Writeup.pwnable.kr系列之coin1</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/10/shellshock/">Writeup.pwnable.kr系列之shellshock</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/09/mistake/">Writeup.pwnable.kr系列之mistake</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/07/leg/">Writeup.pwnable.kr系列之leg</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/06/input/">Writeup.pwnable.kr系列之input</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/05/random/">Writeup.pwnable.kr系列之random</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/05/passcode/">Writeup.pwnable.kr系列之passcode</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/04/flag/">Writeup.pwnable.kr系列之flag</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/04/bof/">Writeup.pwnable.kr系列之bof</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/03/collision/">Writeup.pwnable.kr系列之collision</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/03/fd/">Writeup.pwnable.kr系列之fd</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/02/26/Binary Security Assembly/">Binary-Security-Assembly</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/02/07/内核利用程序之整数溢出/">Windows exploit系列教程第十四部分：内核利用程序之整数溢出</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/02/06/内核利用程序之未初始化栈变量/">Windows exploit系列教程第十三部分：内核利用程序之未初始化栈变量</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/02/06/内核利用程序之空指针引用/">Windows exploit系列教程第十二部分：内核利用程序之空指针引用</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/02/01/内核利用程序之任意位置任意写/">Windows exploit系列教程第十一部分：内核利用程序之任意位置任意写</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/01/15/ring0层exp原语之滥用GDI/">ring0层exp原语之滥用GDI</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/01/14/Windows x64内核提权/">Windows x64内核提权</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/01/14/关键的Windows内核数据结构一览（下）/">关键的Windows内核数据结构一览（下）</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/01/08/关键的Windows内核数据结构一览（上）/">关键的Windows内核数据结构一览（上）</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/01/06/内核利用程序开发之栈溢出/">Windows exploit系列教程第十部分：内核利用程序之栈溢出</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/01/05/堆喷射[第二章：UAF]/">Windows exploit系列教程第九部分：堆喷射[第二章：UAF]</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/12/30/Kernel Driver mmap Handler Exploitation/">内核驱动mmap Handler利用技术</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/12/28/API Interception via DLL Redirection/">通过DLL重定向实现API劫持</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/12/21/Linux中断内幕/">Linux中断内幕</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/12/19/Windows架构设计/">Windows架构设计</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/10/30/house_of_force.log/">house_of_force log</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/10/25/Linux内存管理-非连续内存区管理/">Linux内核学习——内存管理之非连续内存区管理</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/10/24/Linux内存管理-内存区管理/">Linux内核学习——内存管理之内存区管理</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/10/20/Linux内存管理-页框管理/">Linux内核学习——内存管理之页框管理</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/10/19/first_fit.log/">first_fit log</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/10/19/house_of_einherjar.log/">house_of_einherjar log</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/10/18/fastbin_dup_into_stack.log/">fastbin_dup_into_stack log</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/10/12/fastbin_dup.log/">fastbin_dup log</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/09/23/Windows栈溢出之ret eip/">Windows栈溢出之ret eip</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/09/23/Windows栈溢出概述/">Windows栈溢出概述</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/09/16/DEFCON-2015-r0pbaby/">DEFCON-2015-r0pbaby</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/09/11/PWN选手的自我修养/">PWN选手的自我修养</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/08/27/linearsort/">linear sort</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/08/27/quicksort/">quicksort</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/08/27/heapsort&priority-queue/">heapsort & priority-queue</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/08/27/Linux进程的创建与撤销/">Linux内核学习——Linux进程的创建与撤销</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/08/26/Linux进程切换/">Linux内核学习——Linux进程切换</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/08/24/GNU Hash ELF Sections/">GNU Hash ELF Sections</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/08/22/Linux进程概述/">Linux内核学习——Linux进程概述</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/08/18/Linux内存寻址/">Linux内核学习——内存寻址</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/05/15/PlaySms  1.4代码执行漏洞之import csv/">PlaySms 1.4代码执行漏洞之import csv</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/05/15/PlaySms  1.4代码执行漏洞分析/">PlaySms 1.4代码执行漏洞分析</a></li></ul>
+    <script src="https://7.url.cn/edu/jslib/comb/require-2.1.6,jquery-1.9.1.min.js"></script>
+    <script>
+        $(".post-list").addClass("toc-article");
+        $(".post-list-item a").attr("target","_blank");
+        $("#post-nav-button > a:nth-child(2)").click(function() {
+            $(".fa-bars, .fa-times").toggle();
+            $(".post-list").toggle(300);
+            if ($(".toc").length > 0) {
+                $("#toc, #tocButton").toggle(200, function() {
+                    if ($(".switch-area").is(":visible")) {
+                        $("#tocButton").attr("value", valueHide);
+                        }
+                    })
+            }
+            else {
+            }
+        })
+    </script>
+
+
+
+    <script>
+        
+    </script>
+</div>
+      <footer id="footer">
+    <div class="outer">
+        <div id="footer-info">
+            <div class="footer-left">
+                &copy; 2020 r00tk1t
+            </div>
+            <div class="footer-right">
+                <a href="http://hexo.io/" target="_blank">Hexo</a>  Theme <a href="https://github.com/luuman/hexo-theme-spfk" target="_blank">spfk</a> by luuman
+            </div>
+        </div>
+        
+            <div class="visit">
+                
+                    <span id="busuanzi_container_site_pv" style='display:none'>
+                        <span id="site-visit" >访问数量: 
+                            <span id="busuanzi_value_site_uv"></span>
+                        </span>
+                    </span>
+                
+                
+                    <span>, </span>
+                
+                
+                    <span id="busuanzi_container_page_pv" style='display:none'>
+                        <span id="page-visit">本页阅读量: 
+                            <span id="busuanzi_value_page_pv"></span>
+                        </span>
+                    </span>
+                
+            </div>
+        
+    </div>
+</footer>
+
+    </div>
+    <script src="https://7.url.cn/edu/jslib/comb/require-2.1.6,jquery-1.9.1.min.js"></script>
+<script src="/js/main.js"></script>
+
+    <script>
+        $(document).ready(function() {
+            var backgroundnum = 24;
+            var backgroundimg = "url(/background/bg-x.jpg)".replace(/x/gi, Math.ceil(Math.random() * backgroundnum));
+            $("#mobile-nav").css({"background-image": backgroundimg,"background-size": "cover","background-position": "center"});
+            $(".left-col").css({"background-image": backgroundimg,"background-size": "cover","background-position": "center"});
+        })
+    </script>
+
+
+
+
+
+<div class="scroll" id="scroll">
+    <a href="#"><i class="fa fa-arrow-up"></i></a>
+    <a href="#comments"><i class="fa fa-comments-o"></i></a>
+    <a href="#footer"><i class="fa fa-arrow-down"></i></a>
+</div>
+<script>
+    $(document).ready(function() {
+        if ($("#comments").length < 1) {
+            $("#scroll > a:nth-child(2)").hide();
+        };
+    })
+</script>
+
+<script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js">
+</script>
+
+  <script language="javascript">
+    $(function() {
+        $("a[title]").each(function() {
+            var a = $(this);
+            var title = a.attr('title');
+            if (title == undefined || title == "") return;
+            a.data('title', title).removeAttr('title').hover(
+
+            function() {
+                var offset = a.offset();
+                $("<div id=\"anchortitlecontainer\"></div>").appendTo($("body")).html(title).css({
+                    top: offset.top - a.outerHeight() - 15,
+                    left: offset.left + a.outerWidth()/2 + 1
+                }).fadeIn(function() {
+                    var pop = $(this);
+                    setTimeout(function() {
+                        pop.remove();
+                    }, pop.text().length * 800);
+                });
+            }, function() {
+                $("#anchortitlecontainer").remove();
+            });
+        });
+    });
+</script>
+
+
+  </div>
+</body>
+</html>

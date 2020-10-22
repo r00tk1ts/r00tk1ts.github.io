@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>Chromium-sandbox-HandleCloser-analysis | r00tk1t&#39;s blog</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="本篇是sandbox源码剖析的第九篇，主要分析了windows平台下，Chromium sandbox中broker制造并传输target需要关闭的句柄的实现机制。阅读本篇前，请先阅读前四篇。 想要流程的阅读本系列你需要以下几个条件：  较高水平的C++编码能力（至少通读C++ Primer 5th，刷过课后题，有一定编码量）。 熟悉Windows API编程，尤其是安全相关的内容。 对二进制安全">
+<meta name="keywords" content="chrome,chrome-sandbox">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Chromium-sandbox-HandleCloser-analysis">
+<meta property="og:url" content="https://r00tk1ts.github.io/2018/05/21/chromium-sandbox-HandleCloser-analysis/index.html">
+<meta property="og:site_name" content="r00tk1t&#39;s blog">
+<meta property="og:description" content="本篇是sandbox源码剖析的第九篇，主要分析了windows平台下，Chromium sandbox中broker制造并传输target需要关闭的句柄的实现机制。阅读本篇前，请先阅读前四篇。 想要流程的阅读本系列你需要以下几个条件：  较高水平的C++编码能力（至少通读C++ Primer 5th，刷过课后题，有一定编码量）。 熟悉Windows API编程，尤其是安全相关的内容。 对二进制安全">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:updated_time" content="2020-10-20T13:01:02.369Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Chromium-sandbox-HandleCloser-analysis">
+<meta name="twitter:description" content="本篇是sandbox源码剖析的第九篇，主要分析了windows平台下，Chromium sandbox中broker制造并传输target需要关闭的句柄的实现机制。阅读本篇前，请先阅读前四篇。 想要流程的阅读本系列你需要以下几个条件：  较高水平的C++编码能力（至少通读C++ Primer 5th，刷过课后题，有一定编码量）。 熟悉Windows API编程，尤其是安全相关的内容。 对二进制安全">
+  
+    <link rel="alternative" href="/atom.xml" title="r00tk1t&#39;s blog" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/img/favicon.png">
+  
+  
+      <link rel="stylesheet" href="//cdn.bootcss.com/animate.css/3.5.0/animate.min.css">
+  
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/font-awesome/css/font-awesome.min.css">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  
+  
+      <link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+  
+  <!-- 加载特效 -->
+    <script src="/js/pace.js"></script>
+    <link href="/css/pace/pace-theme-flash.css" rel="stylesheet" />
+  <script>
+      var yiliaConfig = {
+          rootUrl: '/',
+          fancybox: true,
+          animate: true,
+          isHome: false,
+          isPost: true,
+          isArchive: false,
+          isTag: false,
+          isCategory: false,
+          open_in_new: false
+      }
+  </script>
+</head>
+<body>
+  <div id="container">
+    <div class="left-col">
+    <div class="overlay"></div>
+<div class="intrude-less">
+    <header id="header" class="inner">
+        <a href="/" class="profilepic">
+            
+            <img lazy-src="/img/head.jpg" class="js-avatar">
+            
+        </a>
+
+        <hgroup>
+          <h1 class="header-author"><a href="/" title="Hi Mate">r00tk1t</a></h1>
+        </hgroup>
+
+        
+        <p class="header-subtitle">二进制安全 | Web安全 | 伪装成程序员的菜鸡</p>
+        
+        
+        
+            <div id="switch-btn" class="switch-btn">
+                <div class="icon">
+                    <div class="icon-ctn">
+                        <div class="icon-wrap icon-house" data-idx="0">
+                            <div class="birdhouse"></div>
+                            <div class="birdhouse_holes"></div>
+                        </div>
+                        <div class="icon-wrap icon-ribbon hide" data-idx="1">
+                            <div class="ribbon"></div>
+                        </div>
+                        
+                        <div class="icon-wrap icon-link hide" data-idx="2">
+                            <div class="loopback_l"></div>
+                            <div class="loopback_r"></div>
+                        </div>
+                        
+                        
+                        <div class="icon-wrap icon-me hide" data-idx="3">
+                            <div class="user"></div>
+                            <div class="shoulder"></div>
+                        </div>
+                        
+                    </div>
+                    
+                </div>
+                <div class="tips-box hide">
+                    <div class="tips-arrow"></div>
+                    <ul class="tips-inner">
+                        <li>菜单</li>
+                        <li>标签</li>
+                        
+                        <li>友情链接</li>
+                        
+                        
+                        <li>关于我</li>
+                        
+                    </ul>
+                </div>
+            </div>
+        
+
+        <div id="switch-area" class="switch-area">
+            <div class="switch-wrap">
+                <section class="switch-part switch-part1">
+                    <nav class="header-menu">
+                        <ul>
+                        
+                            <li><a href="/">博客首页</a></li>
+                        
+                            <li><a href="/archives">所有文章</a></li>
+                        
+                            <li><a href="/tags">标签</a></li>
+                        
+                        </ul>
+                    </nav>
+                    <nav class="header-nav">
+                        <ul class="social">
+                            
+                                <a class="fl mail" target="_blank" href="mailto: 1903442252@qq.com" title="mail">mail</a>
+                            
+                                <a class="fl github" target="_blank" href="https://github.com/r00tk1ts" title="github">github</a>
+                            
+                                <a class="fl zhihu" target="_blank" href="https://www.zhihu.com/people/r00tk1t-5" title="zhihu">zhihu</a>
+                            
+                                <a class="fl weibo" target="_blank" href="http://weibo.com/2698344533" title="weibo">weibo</a>
+                            
+                                <a class="fl QQ" target="_blank" href="https://user.qzone.qq.com/1903442252" title="QQ">QQ</a>
+                            
+                        </ul>
+                    </nav>
+                </section>
+                
+                
+                <section class="switch-part switch-part2">
+                    <div class="widget tagcloud" id="js-tagcloud">
+                        <a href="/tags/SEH-overwrite/" style="font-size: 10px;">SEH overwrite</a> <a href="/tags/algorithm/" style="font-size: 11.67px;">algorithm</a> <a href="/tags/browser/" style="font-size: 10px;">browser</a> <a href="/tags/chrome/" style="font-size: 16.67px;">chrome</a> <a href="/tags/chrome-sandbox/" style="font-size: 16.67px;">chrome-sandbox</a> <a href="/tags/cpp/" style="font-size: 20px;">cpp</a> <a href="/tags/cpp-primer/" style="font-size: 18.33px;">cpp-primer</a> <a href="/tags/cpp-templates/" style="font-size: 11.67px;">cpp-templates</a> <a href="/tags/dll-hooking/" style="font-size: 10px;">dll hooking</a> <a href="/tags/exploit/" style="font-size: 12.5px;">exploit</a> <a href="/tags/glibc/" style="font-size: 10px;">glibc</a> <a href="/tags/glibc-heap/" style="font-size: 13.33px;">glibc-heap</a> <a href="/tags/linux/" style="font-size: 10.83px;">linux</a> <a href="/tags/linux-kernel/" style="font-size: 14.17px;">linux-kernel</a> <a href="/tags/mmap/" style="font-size: 10px;">mmap</a> <a href="/tags/novice/" style="font-size: 17.5px;">novice</a> <a href="/tags/php/" style="font-size: 10.83px;">php</a> <a href="/tags/pool/" style="font-size: 10px;">pool</a> <a href="/tags/pwn/" style="font-size: 19.17px;">pwn</a> <a href="/tags/pwnable-kr/" style="font-size: 15px;">pwnable.kr</a> <a href="/tags/resources/" style="font-size: 10px;">resources</a> <a href="/tags/stack-overrun/" style="font-size: 11.67px;">stack-overrun</a> <a href="/tags/tutorial/" style="font-size: 10px;">tutorial</a> <a href="/tags/ulk/" style="font-size: 14.17px;">ulk</a> <a href="/tags/web/" style="font-size: 10.83px;">web</a> <a href="/tags/windows/" style="font-size: 15.83px;">windows</a> <a href="/tags/windows-kernel/" style="font-size: 14.17px;">windows-kernel</a> <a href="/tags/writeup/" style="font-size: 10px;">writeup</a> <a href="/tags/wrk/" style="font-size: 12.5px;">wrk</a>
+                    </div>
+                </section>
+                
+                
+                
+                <section class="switch-part switch-part3">
+                    <div id="js-friends">
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://eternalsakura13.com">樱花师傅</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="https://chybeta.github.io/">Chybeta</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://whereisk0shl.top/">k0shl</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://o0xmuhe.github.io/">o0xmuhe</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://bestwing.me/">swing</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://yixuankeer.win/">joker</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://www.hackersb.cn/">王松_Striker</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="https://www.hackfun.org/">4ido10n</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://www.cnblogs.com/iamstudy/">l3m0n</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://www.cnblogs.com/Ox9A82/">Ox9A82</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://mxny.org/">麦香浓郁</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://0x48.pw/">Hcamael</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="https://blog.nuptzj.cn/">画船听雨</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="https://www.bodkin.ren/">老锥</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://www.zerokeeper.com/">ZeroKeeper</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="https://www.ycjcl.cc/">信鑫</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://www.wowotech.net/">wowotech</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://fuzzysecurity.com/">fuzzySecurity</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="https://rootkits.xyz/">rootkits.xyz</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://www.pentestingexperts.com/">pentestingexperts</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="https://blog.skylined.nl/">skylined</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="https://systemk1t.github.io/">systemk1t</a>
+                    
+                    </div>
+                </section>
+                
+
+                
+                
+                <section class="switch-part switch-part4">
+                
+                    <div id="js-aboutme">二进制狗一枚，懂点Web安全，一个伪装成程序员混迹在某公司的菜鸡。</div>
+                </section>
+                
+            </div>
+        </div>
+    </header>                
+</div>
+    </div>
+    <div class="mid-col">
+      <nav id="mobile-nav">
+      <div class="overlay">
+          <div class="slider-trigger"></div>
+          <h1 class="header-author js-mobile-header hide"><a href="/" title="Me">r00tk1t</a></h1>
+      </div>
+    <div class="intrude-less">
+        <header id="header" class="inner">
+            <a href="/" class="profilepic">
+                
+                    <img lazy-src="/img/head.jpg" class="js-avatar">
+                
+            </a>
+            <hgroup>
+              <h1 class="header-author"><a href="/" title="Me">r00tk1t</a></h1>
+            </hgroup>
+            
+            <p class="header-subtitle">二进制安全 | Web安全 | 伪装成程序员的菜鸡</p>
+            
+            <nav class="header-menu">
+                <ul>
+                
+                    <li><a href="/">博客首页</a></li>
+                
+                    <li><a href="/archives">所有文章</a></li>
+                
+                    <li><a href="/tags">标签</a></li>
+                
+                <div class="clearfix"></div>
+                </ul>
+            </nav>
+            <nav class="header-nav">
+                <div class="social">
+                    
+                        <a class="mail" target="_blank" href="mailto: 1903442252@qq.com" title="mail">mail</a>
+                    
+                        <a class="github" target="_blank" href="https://github.com/r00tk1ts" title="github">github</a>
+                    
+                        <a class="zhihu" target="_blank" href="https://www.zhihu.com/people/r00tk1t-5" title="zhihu">zhihu</a>
+                    
+                        <a class="weibo" target="_blank" href="http://weibo.com/2698344533" title="weibo">weibo</a>
+                    
+                        <a class="QQ" target="_blank" href="https://user.qzone.qq.com/1903442252" title="QQ">QQ</a>
+                    
+                </div>
+            </nav>
+        </header>                
+    </div>
+</nav>
+      <div class="body-wrap"><article id="post-chromium-sandbox-HandleCloser-analysis" class="article article-type-post" itemscope itemprop="blogPost">
+  
+    <div class="article-meta">
+      <a href="/2018/05/21/chromium-sandbox-HandleCloser-analysis/" class="article-date">
+      <time datetime="2018-05-21T12:13:11.000Z" itemprop="datePublished">2018-05-21</time>
+</a>
+    </div>
+  
+  <div class="article-inner">
+    
+      <input type="hidden" class="isFancy" />
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      Chromium-sandbox-HandleCloser-analysis
+    </h1>
+  
+
+      </header>
+      
+      <div class="article-info article-info-post">
+        
+    <div class="article-category tagcloud">
+    <a class="article-category-link" href="/categories/browser-security/">browser-security</a>
+    </div>
+
+
+        
+    <div class="article-tag tagcloud">
+        <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/chrome/">chrome</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/chrome-sandbox/">chrome-sandbox</a></li></ul>
+    </div>
+
+        <div class="clearfix"></div>
+      </div>
+      
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+          
+        <p>本篇是sandbox源码剖析的第九篇，主要分析了windows平台下，Chromium sandbox中broker制造并传输target需要关闭的句柄的实现机制。阅读本篇前，请先阅读前四篇。</p>
+<p>想要流程的阅读本系列你需要以下几个条件：</p>
+<ol>
+<li>较高水平的C++编码能力（至少通读C++ Primer 5th，刷过课后题，有一定编码量）。</li>
+<li>熟悉Windows API编程，尤其是安全相关的内容。</li>
+<li>对二进制安全有一定了解，熟悉各类型安全漏洞成因、漏洞缓解措施及bypass手法。</li>
+</ol>
+<a id="more"></a>
+<h1 id="chromium-sandbox-HandleCloser-analysis"><a href="#chromium-sandbox-HandleCloser-analysis" class="headerlink" title="chromium-sandbox-HandleCloser-analysis"></a>chromium-sandbox-HandleCloser-analysis</h1><p>在分析了<code>PolicyBase</code>的三大组件后，转去分析了一波不太相关的<code>SharedMemIPC</code>机制。实际上<code>PolicyBase</code>内部还有很多东西我们没有拆解，比如AppContainer、<code>HandleClose</code>、Mitigations等等。今天来分析一个比较简单的<code>HandleCloser</code>类。该类模块维护了一个句柄类型到名称的映射，用于在target进程中关闭句柄。而联系此前在<code>PolicyBase</code>中所观察到的对<code>handle_closer_</code>成员的使用以及句柄列表的传输，这个模块的功用也就呼之欲出了。</p>
+<h2 id="PolicyBase-related"><a href="#PolicyBase-related" class="headerlink" title="PolicyBase related"></a><code>PolicyBase</code> related</h2><p>从<code>PolicyBase</code>的操纵开始分析，在<code>BrokerServicesBase::SpawnTarget</code>中创建<code>TargetProcess</code>并将target挂到<code>PolicyBase</code>对象时，调用了<code>PolicyBase::AddTarget</code>，而它的内部进行了这样几个操作：</p>
+<ol>
+<li>low-level-policy的收工（这个low-level-policy是个狭义的policy，和<code>PolicyBase</code>的这个policy不是一个层面的意思，我们之后会说到，windows子系统行为鉴权的三大构成：policy+dispatcher+interception）</li>
+<li>mitigation对target进程的应用（当前还是挂起态）</li>
+<li>部署Interceptions</li>
+<li>部署<code>HandleCloser</code></li>
+<li>创建<code>SharedMemIPC</code>的Server端，实际上创建的是IPC server和<code>Dispatcher</code>，用于处理target进程的IPC请求。</li>
+<li>对target进程的全局变量<code>g_shared_delayed_integrity_level</code>和<code>g_shared_delayed_mitigations</code>赋值</li>
+</ol>
+<p>这里关于第五点和第六点，我们都已经清楚了它的实现机理与意义，前三个我们暂时不关心，看看第四点对<code>HandleCloser</code>的部署：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">bool</span> PolicyBase::SetupHandleCloser(TargetProcess* target) &#123;</span><br><span class="line">  <span class="comment">// 调用了handle_closer_的InitializeTargetHandles方法</span></span><br><span class="line">  <span class="comment">// handle_closer_是PolicyBase内部的HandleCloser对象</span></span><br><span class="line">  <span class="keyword">return</span> handle_closer_.InitializeTargetHandles(target);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="HandleCloser"><a href="#HandleCloser" class="headerlink" title="HandleCloser"></a><code>HandleCloser</code></h2><p>在展开<code>HandleCloser</code>类头定义前，先看看该类成员类型<code>HandleMap</code>的定义。<code>HandleMap</code>是这样的一种类型：<code>typedef std::map&lt;const base::string16, std::set&lt;base::string16&gt;&gt; HandleMap;</code></p>
+<p>从<code>const string16</code>(也就是<code>const std::wstring</code>)到<code>set&lt;base::string16&gt;</code>的一个map。</p>
+<p>除了<code>HandleMap</code>以外，先不关心其他的辅助结构，看看类头：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Adds handles to close after lockdown.</span></span><br><span class="line"><span class="comment">// 在target进程被LowerToken()降权时，关闭加入的所有句柄</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">HandleCloser</span> &#123;</span></span><br><span class="line"> <span class="keyword">public</span>:</span><br><span class="line">  HandleCloser();</span><br><span class="line">  ~HandleCloser();</span><br><span class="line"></span><br><span class="line">  <span class="comment">// Adds a handle that will be closed in the target process after lockdown.</span></span><br><span class="line">  <span class="comment">// A nullptr value for handle_name indicates all handles of the specified</span></span><br><span class="line">  <span class="comment">// type. An empty string for handle_name indicates the handle is unnamed.</span></span><br><span class="line">  <span class="comment">// 可以看到这个接口需要被提供句柄类型和名称</span></span><br><span class="line">  <span class="comment">// 如果name是nullptr，那就表示所有的该类型句柄都要加入</span></span><br><span class="line">  <span class="comment">// 如果name是空串，就表示该句柄是匿名的</span></span><br><span class="line">  <span class="function">ResultCode <span class="title">AddHandle</span><span class="params">(<span class="keyword">const</span> base::char16* handle_type,</span></span></span><br><span class="line"><span class="function"><span class="params">                       <span class="keyword">const</span> base::char16* handle_name)</span></span>;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// Serializes and copies the closer table into the target process.</span></span><br><span class="line">  <span class="comment">// 看起来是序列化待关闭句柄表，copy给target进程</span></span><br><span class="line">  <span class="comment">// 这个函数就是在PolicyBase::SetupHandleCloser中调用的</span></span><br><span class="line">  <span class="function"><span class="keyword">bool</span> <span class="title">InitializeTargetHandles</span><span class="params">(TargetProcess* target)</span></span>;</span><br><span class="line"></span><br><span class="line"> <span class="keyword">private</span>:</span><br><span class="line">  <span class="comment">// Calculates the memory needed to copy the serialized handles list (rounded</span></span><br><span class="line">  <span class="comment">// to the nearest machine-word size).</span></span><br><span class="line">  <span class="comment">// copy序列化句柄列表时，用于计算buffer尺寸</span></span><br><span class="line">  <span class="keyword">size_t</span> GetBufferSize();</span><br><span class="line"></span><br><span class="line">  <span class="comment">// Serializes the handle list into the target process.</span></span><br><span class="line">  <span class="comment">// 序列化句柄列表到target进程</span></span><br><span class="line">  <span class="function"><span class="keyword">bool</span> <span class="title">SetupHandleList</span><span class="params">(<span class="keyword">void</span>* buffer, <span class="keyword">size_t</span> buffer_bytes)</span></span>;</span><br><span class="line"></span><br><span class="line">  HandleMap handles_to_close_;	<span class="comment">//这个HandleMap就是维护句柄类型到名称的成员</span></span><br><span class="line"></span><br><span class="line">  DISALLOW_COPY_AND_ASSIGN(HandleCloser);</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<p>此外，有个全局的<code>g_handle_closer_info</code>指针指向<code>HandleCloserInfo</code>结构。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Global parameters and a pointer to the list of entries.</span></span><br><span class="line"><span class="comment">// 看起来是个全局量，内部维护了一个到handle列表的指针</span></span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">HandleCloserInfo</span> &#123;</span></span><br><span class="line">  <span class="keyword">size_t</span> record_bytes;  <span class="comment">// Rounded to sizeof(size_t) bytes.</span></span><br><span class="line">  <span class="keyword">size_t</span> num_handle_types;	<span class="comment">//有多少种类型</span></span><br><span class="line">  <span class="class"><span class="keyword">struct</span> <span class="title">HandleListEntry</span> <span class="title">handle_entries</span>[1];</span>	<span class="comment">//应该是flexible</span></span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Type and set of corresponding handle names to close.</span></span><br><span class="line"><span class="comment">// 某种类型句柄的所有handle</span></span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">HandleListEntry</span> &#123;</span></span><br><span class="line">  <span class="keyword">size_t</span> record_bytes;     <span class="comment">// Rounded to sizeof(size_t) bytes.</span></span><br><span class="line">  <span class="keyword">size_t</span> offset_to_names;  <span class="comment">// Nul terminated strings of name_count names.</span></span><br><span class="line">  <span class="keyword">size_t</span> name_count;	<span class="comment">// 有多少个name</span></span><br><span class="line">  base::char16 handle_type[<span class="number">1</span>];	<span class="comment">// 这个应该不是flexible，表示type类型</span></span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<p>这里的设计很像<code>SharedMemIPC</code>中buffer的设计，它也分为三级结构：</p>
+<ol>
+<li><code>HandleCloserInfo</code>的<code>num_handle_types</code>表明了有多少个<code>HandleListEntry</code>结构</li>
+<li>每个<code>HandleListEntry</code>包含了一个<code>offset_to_names</code>成员，指向了存储该type的句柄所有名称的位置</li>
+<li>指向的真实数据就是一堆句柄的名称了，它们应该是紧凑的附加在<code>HandleListEntry</code>数组的正后方的。</li>
+</ol>
+<p>当然，这里仅仅是大胆的猜测，是否真的如此，还得继续看代码逻辑处理。</p>
+<p>###<code>InitializeTargetHandles</code></p>
+<p>由<code>PolicyBase::SetupHandleCloser</code>跟入：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">bool</span> HandleCloser::InitializeTargetHandles(TargetProcess* target) &#123;</span><br><span class="line">  <span class="comment">// Do nothing on an empty list (global pointer already initialized to</span></span><br><span class="line">  <span class="comment">// nullptr).</span></span><br><span class="line">  <span class="comment">// 如果没什么需要target关闭的，返回就好了</span></span><br><span class="line">  <span class="keyword">if</span> (handles_to_close_.empty())</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">size_t</span> bytes_needed = GetBufferSize();<span class="comment">//先不管他怎么算出来的</span></span><br><span class="line">  <span class="comment">// new出一片空间，划分成size_t大小的块，local_buffer指向首块</span></span><br><span class="line">  <span class="built_in">std</span>::<span class="built_in">unique_ptr</span>&lt;<span class="keyword">size_t</span>[]&gt; local_buffer(</span><br><span class="line">      <span class="keyword">new</span> <span class="keyword">size_t</span>[bytes_needed / <span class="keyword">sizeof</span>(<span class="keyword">size_t</span>)]);</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 切成size_t数组的缓冲区丢给SetupHandleList，内部应该就是对buffer结构的部署</span></span><br><span class="line">  <span class="keyword">if</span> (!SetupHandleList(local_buffer.get(), bytes_needed))</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 拿到target进程的进程句柄</span></span><br><span class="line">  HANDLE child = target-&gt;Process();</span><br><span class="line"></span><br><span class="line">  <span class="comment">// Windows跨进程写入数据的常见套路VirtualAllocEx-&gt;WriteProcessMemory</span></span><br><span class="line">  <span class="comment">// 然而第二个参数使用的是nullptr，这就表示broker在这里并不是把数据写入到某个固定的内存空间</span></span><br><span class="line">  <span class="comment">// Allocate memory in the target process without specifying the address</span></span><br><span class="line">  <span class="keyword">void</span>* remote_data = ::VirtualAllocEx(child, <span class="literal">nullptr</span>, bytes_needed, MEM_COMMIT,</span><br><span class="line">                                       PAGE_READWRITE);</span><br><span class="line">  <span class="keyword">if</span> (!remote_data)</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// Copy the handle buffer over.</span></span><br><span class="line">  SIZE_T bytes_written;</span><br><span class="line">  <span class="keyword">bool</span> result = ::WriteProcessMemory(child, remote_data, local_buffer.get(),</span><br><span class="line">                                     bytes_needed, &amp;bytes_written);</span><br><span class="line">  <span class="keyword">if</span> (!result || bytes_written != bytes_needed) &#123;</span><br><span class="line">    ::VirtualFreeEx(child, remote_data, <span class="number">0</span>, MEM_RELEASE);</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">  &#125;</span><br><span class="line">	</span><br><span class="line">  <span class="comment">// 为了让target自己能够找到这段内存空间，broker把一个指向这段内存起始的remote_data也传了过去</span></span><br><span class="line">  <span class="comment">// 依然是通过老方法TransferVariable，对target自己的全局变量g_handles_to_close赋值</span></span><br><span class="line">  <span class="comment">// 这里也可以看到，内存空间已经布局成了HandleCloserInfo，暂时和我们的猜想一致</span></span><br><span class="line">  g_handles_to_close = <span class="keyword">reinterpret_cast</span>&lt;HandleCloserInfo*&gt;(remote_data);</span><br><span class="line">  ResultCode rc = target-&gt;TransferVariable(</span><br><span class="line">      <span class="string">"g_handles_to_close"</span>, &amp;g_handles_to_close, <span class="keyword">sizeof</span>(g_handles_to_close));</span><br><span class="line"></span><br><span class="line">  <span class="keyword">return</span> (SBOX_ALL_OK == rc);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>展开<code>GetBufferSize</code>看看：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">size_t</span> HandleCloser::GetBufferSize() &#123;</span><br><span class="line">  <span class="comment">// 先算出HandleCloserInfo第一层数据的尺寸</span></span><br><span class="line">  <span class="keyword">size_t</span> bytes_total = offsetof(HandleCloserInfo, handle_entries);</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 迭代每种type的handles，</span></span><br><span class="line">  <span class="keyword">for</span> (HandleMap::iterator i = handles_to_close_.begin();</span><br><span class="line">       i != handles_to_close_.end(); ++i) &#123;</span><br><span class="line">    <span class="comment">// bytes_entry表示HandleListEntry二层结构的尺寸加上handle_type本身这个字符串的尺寸</span></span><br><span class="line">    <span class="keyword">size_t</span> bytes_entry = offsetof(HandleListEntry, handle_type) +</span><br><span class="line">                         (i-&gt;first.size() + <span class="number">1</span>) * <span class="keyword">sizeof</span>(base::char16);</span><br><span class="line">    <span class="comment">// 迭代该类型handles的set，里面存的都是名称</span></span><br><span class="line">    <span class="keyword">for</span> (HandleMap::mapped_type::iterator j = i-&gt;second.begin();</span><br><span class="line">         j != i-&gt;second.end(); ++j) &#123;</span><br><span class="line">      <span class="comment">// 这里又对bytes_entry累加了所有名称的长度</span></span><br><span class="line">      bytes_entry += ((*j).size() + <span class="number">1</span>) * <span class="keyword">sizeof</span>(base::char16);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Round up to the nearest multiple of word size.</span></span><br><span class="line">    <span class="comment">// 因为字符串的单位不规则，为了解构时方便索引下一个HandleListEntry，做了个对齐操作</span></span><br><span class="line">    bytes_entry = RoundUpToWordSize(bytes_entry);</span><br><span class="line">    <span class="comment">// 加到总的尺寸上</span></span><br><span class="line">    bytes_total += bytes_entry;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">return</span> bytes_total;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>好吧，看到这个<code>GetBuffer</code>感觉和此前的猜想有些出入，至少<code>HandleListEntry</code>的<code>handle_type</code>是flexible的，但它的长度是不定的，而紧随在一个<code>HandleListEntry</code>之后的并不是下一个<code>HandleListEntry</code>，应该是该种类型handles的名称字符串集合，<code>HandleListEntry</code>的<code>offset_to_names</code>指向了第一个name起始。</p>
+<p>为了确认这一布局，我们在<code>SetupHandleList</code>中一探究竟：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">bool</span> HandleCloser::SetupHandleList(<span class="keyword">void</span>* buffer, <span class="keyword">size_t</span> buffer_bytes) &#123;</span><br><span class="line">  <span class="comment">// buffer_bytes就是GetBuffer算出来的尺寸，buffer就是new出来的空间</span></span><br><span class="line">  ::ZeroMemory(buffer, buffer_bytes);</span><br><span class="line">  HandleCloserInfo* handle_info = <span class="keyword">reinterpret_cast</span>&lt;HandleCloserInfo*&gt;(buffer);</span><br><span class="line">  <span class="comment">// 总的字节数，有多少种句柄</span></span><br><span class="line">  handle_info-&gt;record_bytes = buffer_bytes;</span><br><span class="line">  handle_info-&gt;num_handle_types = handles_to_close_.size();</span><br><span class="line"></span><br><span class="line">  <span class="comment">// output指向第一个HandleListEntry起始位置</span></span><br><span class="line">  <span class="comment">// end指向整个buffer的末尾</span></span><br><span class="line">  base::char16* output =</span><br><span class="line">      <span class="keyword">reinterpret_cast</span>&lt;base::char16*&gt;(&amp;handle_info-&gt;handle_entries[<span class="number">0</span>]);</span><br><span class="line">  base::char16* end = <span class="keyword">reinterpret_cast</span>&lt;base::char16*&gt;(</span><br><span class="line">      <span class="keyword">reinterpret_cast</span>&lt;<span class="keyword">char</span>*&gt;(buffer) + buffer_bytes);</span><br><span class="line">  <span class="comment">// 这里面包含了各种不定长的HandleListEntry对nameset的嵌套</span></span><br><span class="line">  <span class="comment">// 还是迭代每种类型</span></span><br><span class="line">  <span class="keyword">for</span> (HandleMap::iterator i = handles_to_close_.begin();</span><br><span class="line">       i != handles_to_close_.end(); ++i) &#123;</span><br><span class="line">    <span class="comment">// 这说明算出来的buffer有问题</span></span><br><span class="line">    <span class="keyword">if</span> (output &gt;= end)</span><br><span class="line">      <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">    <span class="comment">// 找到本次迭代的HandleListEntry</span></span><br><span class="line">    <span class="comment">// 尽管HandleListEntry在HandleClientInfo中定义成了flexible array，但因为不定长的原因</span></span><br><span class="line">    <span class="comment">// 不能直接使用HandleListEntry[index]来索引</span></span><br><span class="line">    HandleListEntry* list_entry = <span class="keyword">reinterpret_cast</span>&lt;HandleListEntry*&gt;(output);</span><br><span class="line">    <span class="comment">//调整output到handle_type，起始处是个type name</span></span><br><span class="line">    output = &amp;list_entry-&gt;handle_type[<span class="number">0</span>];</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Copy the typename and set the offset and count.</span></span><br><span class="line">    i-&gt;first.copy(output, i-&gt;first.size());</span><br><span class="line">    *(output += i-&gt;first.size()) = L'\<span class="number">0'</span>;</span><br><span class="line">    output++;</span><br><span class="line">    <span class="comment">// skip typename后，就是一串name了，偏移也就可以算出来了</span></span><br><span class="line">    list_entry-&gt;offset_to_names =</span><br><span class="line">        <span class="keyword">reinterpret_cast</span>&lt;<span class="keyword">char</span>*&gt;(output) - <span class="keyword">reinterpret_cast</span>&lt;<span class="keyword">char</span>*&gt;(list_entry);</span><br><span class="line">    list_entry-&gt;name_count = i-&gt;second.size();</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Copy the handle names.</span></span><br><span class="line">    <span class="comment">// 拷贝所有的handle name到buffer中，output相应做位置调整</span></span><br><span class="line">    <span class="keyword">for</span> (HandleMap::mapped_type::iterator j = i-&gt;second.begin();</span><br><span class="line">         j != i-&gt;second.end(); ++j) &#123;</span><br><span class="line">      output = <span class="built_in">std</span>::copy((*j).begin(), (*j).end(), output) + <span class="number">1</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Round up to the nearest multiple of sizeof(size_t).</span></span><br><span class="line">    <span class="comment">// 向上取整，按size_t对齐，这个和GetBuffer的对齐方法必须要一致，否则这里的迭代会有问题</span></span><br><span class="line">    output = RoundUpToWordSize(output);</span><br><span class="line">    list_entry-&gt;record_bytes =</span><br><span class="line">        <span class="keyword">reinterpret_cast</span>&lt;<span class="keyword">char</span>*&gt;(output) - <span class="keyword">reinterpret_cast</span>&lt;<span class="keyword">char</span>*&gt;(list_entry);</span><br><span class="line">    <span class="comment">//处理下一个type</span></span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  DCHECK_EQ(<span class="keyword">reinterpret_cast</span>&lt;<span class="keyword">size_t</span>&gt;(output), <span class="keyword">reinterpret_cast</span>&lt;<span class="keyword">size_t</span>&gt;(end));</span><br><span class="line">  <span class="keyword">return</span> output &lt;= end;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>看了这个布局函数，也就彻底明白了<code>HandleCloserInfo</code>的嵌套结构。所以，<code>HandleCloserInfo</code>和<code>SharedMemIPC</code>的设计不同，前者只有两级结构，二级结构的flexible数组是不定长的，而后者则是三级结构，二级结构flexible数组定长。</p>
+<p>此外，我们在<code>InitializeTargetHandles</code>中看到，这些数组都被拷贝给了target进程中，由<code>g_handles_to_close</code>全局变量来定位，且不管target自己是怎么关闭这些handle的（还能怎么关，不过是同种方式解包然后<code>CloseHandle</code>），至少我们知道了在调用<code>InitializeTargetHandles</code>之前，<code>handles_to_close_</code>成员就应该已经填充好了需要关闭的句柄（这就和target可继承句柄列表的设置很像，先填充成员，再<code>CreateProcess</code>）。</p>
+<p>那么添加句柄的接口是谁呢？是还未分析的<code>AddHandle</code>。操纵<code>AddHandle</code>的又是谁呢？现在还不知道。</p>
+<h3 id="AddHandle"><a href="#AddHandle" class="headerlink" title="AddHandle"></a><code>AddHandle</code></h3><p>先看看<code>AddHandle</code>：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line">ResultCode HandleCloser::AddHandle(<span class="keyword">const</span> base::char16* handle_type,</span><br><span class="line">                                   <span class="keyword">const</span> base::char16* handle_name) &#123;</span><br><span class="line">  <span class="keyword">if</span> (!handle_type)	<span class="comment">// 这个必须有</span></span><br><span class="line">    <span class="keyword">return</span> SBOX_ERROR_BAD_PARAMS;</span><br><span class="line"></span><br><span class="line">  base::string16 resolved_name;</span><br><span class="line">  <span class="keyword">if</span> (handle_name) &#123;	<span class="comment">// 这个可以有</span></span><br><span class="line">    resolved_name = handle_name;</span><br><span class="line">    <span class="keyword">if</span> (handle_type == base::string16(<span class="string">L"Key"</span>))	<span class="comment">// 如果handle是Key类型，那么名称要修剪一下,ResolveRegistryName其实是一个Windows注册表相关操作简单的封装</span></span><br><span class="line">      <span class="comment">// 这里就不详细研究名称是什么了，想要了解可以用调试器下断点分析</span></span><br><span class="line">      <span class="keyword">if</span> (!ResolveRegistryName(resolved_name, &amp;resolved_name))</span><br><span class="line">        <span class="keyword">return</span> SBOX_ERROR_BAD_PARAMS;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 先在handles_to_close_找一下是否有该类型的句柄，map中type为键</span></span><br><span class="line">  HandleMap::iterator names = handles_to_close_.find(handle_type);</span><br><span class="line">  <span class="keyword">if</span> (names == handles_to_close_.end()) &#123;  <span class="comment">// We have no entries for this type.</span></span><br><span class="line">    <span class="comment">// 如果没有的话，就插入handle_type, HandleMap::mapped_type()这样的一个entry</span></span><br><span class="line">    <span class="built_in">std</span>::pair&lt;HandleMap::iterator, <span class="keyword">bool</span>&gt; result = handles_to_close_.insert(</span><br><span class="line">        HandleMap::value_type(handle_type, HandleMap::mapped_type()));</span><br><span class="line">    names = result.first;<span class="comment">// names索引插入的entry</span></span><br><span class="line">    <span class="keyword">if</span> (handle_name)</span><br><span class="line">      	names-&gt;second.insert(resolved_name);<span class="comment">// 如果有名字，那就在该type对应的空set中插入该名字</span></span><br><span class="line">  &#125; <span class="keyword">else</span> <span class="keyword">if</span> (!handle_name) &#123;  <span class="comment">// Now we need to close all handles of this type.</span></span><br><span class="line">    <span class="comment">// 如果handle_name是nullptr，会清掉当前该type对应set的所有名字</span></span><br><span class="line">    <span class="comment">// 原来是clear，看前面注释还以为是把所有该类型句柄都加进来。。。想想也不太可能</span></span><br><span class="line">    names-&gt;second.clear();</span><br><span class="line">  &#125; <span class="keyword">else</span> <span class="keyword">if</span> (!names-&gt;second.empty()) &#123;  <span class="comment">// Add another name for this type.</span></span><br><span class="line">    <span class="comment">// 如果当前type对应的set不为空，则插入另一个名字</span></span><br><span class="line">    names-&gt;second.insert(resolved_name);</span><br><span class="line">  &#125;  <span class="comment">// If we're already closing all handles of type then we're done.</span></span><br><span class="line">	<span class="comment">// 如果此时已经全都清掉了，那再来的就不管了。</span></span><br><span class="line">  <span class="keyword">return</span> SBOX_ALL_OK;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>逻辑很紧凑，也可以看出它的工作机理和外部的操纵息息相关，外部如果出现第一次插入某个匿名的不存在其他该type的句柄，然后后续又插入一个该type的命名句柄，并不会顺利插入。</p>
+<p>感觉这个函数挖了坑，说不定以后会有错误的使用者出现。</p>
+</blockquote>
+<p>再来找找操纵者，除了test测试代码，仅在这里找到：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">ResultCode PolicyBase::AddKernelObjectToClose(<span class="keyword">const</span> base::char16* handle_type,</span><br><span class="line">                                              <span class="keyword">const</span> base::char16* handle_name) &#123;</span><br><span class="line">  <span class="keyword">return</span> handle_closer_.AddHandle(handle_type, handle_name);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>再次查找<code>AddKernelObjectToClose</code>的caller，除了test，只有<code>PolicyBase::SetDisconnectCsrss</code>中有身影：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">ResultCode PolicyBase::SetDisconnectCsrss() &#123;</span><br><span class="line"><span class="comment">// Does not work on 32-bit, and the ASAN runtime falls over with the</span></span><br><span class="line"><span class="comment">// CreateThread EAT patch used when this is enabled.</span></span><br><span class="line"><span class="comment">// See https://crbug.com/783296#c27.</span></span><br><span class="line"><span class="comment">// 未开启ASAN的win10 x64所用，看起来和某个bug有关，以后有空看看</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">if</span> defined(_WIN64) &amp;&amp; !defined(ADDRESS_SANITIZER)</span></span><br><span class="line">  <span class="keyword">if</span> (base::win::GetVersion() &gt;= base::win::VERSION_WIN10) &#123;</span><br><span class="line">    is_csrss_connected_ = <span class="literal">false</span>;</span><br><span class="line">    <span class="keyword">return</span> AddKernelObjectToClose(<span class="string">L"ALPC Port"</span>, <span class="literal">nullptr</span>);<span class="comment">//但这里是把ALPC Port都clear了</span></span><br><span class="line">  &#125;</span><br><span class="line"><span class="meta">#<span class="meta-keyword">endif</span>  <span class="comment">// !defined(_WIN64)</span></span></span><br><span class="line">  <span class="keyword">return</span> SBOX_ALL_OK;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这里是个clear操作，显然是为了让win10 x64的target可以使用ALPC Port句柄。sandbox找不到其他的调用处，应该是启动器外部通过<code>PolicyBase</code>调用了<code>AddKernelObjectToClose</code>。</p>
+<p>毕竟<code>PolicyBase</code>是传进来的，外部通过<code>BrokerServicesBase::CreatePolicy</code>创建policy，然后对policy一顿操作，然后<code>BrokerServicesBase::SpawnTarget</code>中传入了policy。</p>
+<h2 id="HandleCloserAgent"><a href="#HandleCloserAgent" class="headerlink" title="HandleCloserAgent"></a><code>HandleCloserAgent</code></h2><p>Broker这边的流程都已了解了，下面我们找找target自身是如何关闭这些句柄的。在handle_closer_agent.h中找到了target用到的封装类。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Target process code to close the handle list copied over from the broker.</span></span><br><span class="line"><span class="comment">// 这个是target进程的代码，它关闭broker传过来的句柄列表</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">HandleCloserAgent</span> &#123;</span></span><br><span class="line"> <span class="keyword">public</span>:</span><br><span class="line">  HandleCloserAgent();</span><br><span class="line">  ~HandleCloserAgent();</span><br><span class="line"></span><br><span class="line">  <span class="comment">// Reads the serialized list from the broker and creates the lookup map.</span></span><br><span class="line">  <span class="comment">// Updates is_csrss_connected based on type of handles closed.</span></span><br><span class="line">  <span class="comment">// 从broker读取序列化列表，创建一个lookup map</span></span><br><span class="line">  <span class="comment">// 根据关闭的句柄类型，更新is_csrss_connected</span></span><br><span class="line">  <span class="function"><span class="keyword">void</span> <span class="title">InitializeHandlesToClose</span><span class="params">(<span class="keyword">bool</span>* is_csrss_connected)</span></span>;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// Closes any handles matching those in the lookup map.</span></span><br><span class="line">  <span class="comment">// 关闭lookup map中匹配的句柄</span></span><br><span class="line">  <span class="function"><span class="keyword">bool</span> <span class="title">CloseHandles</span><span class="params">()</span></span>;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// True if we have handles waiting to be closed.</span></span><br><span class="line">  <span class="comment">// 这是个static方法，用于判断当前是否在等待句柄被关闭</span></span><br><span class="line">  <span class="function"><span class="keyword">static</span> <span class="keyword">bool</span> <span class="title">NeedsHandlesClosed</span><span class="params">()</span></span>;</span><br><span class="line"></span><br><span class="line"> <span class="keyword">private</span>:</span><br><span class="line">  <span class="comment">// Attempt to stuff a closed handle with a dummy Event.</span></span><br><span class="line">  <span class="function"><span class="keyword">bool</span> <span class="title">AttemptToStuffHandleSlot</span><span class="params">(HANDLE closed_handle,</span></span></span><br><span class="line"><span class="function"><span class="params">                                <span class="keyword">const</span> base::string16&amp; type)</span></span>;</span><br><span class="line"></span><br><span class="line">  HandleMap handles_to_close_;</span><br><span class="line">  base::win::ScopedHandle dummy_handle_;</span><br><span class="line"></span><br><span class="line">  DISALLOW_COPY_AND_ASSIGN(HandleCloserAgent);</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<h3 id="InitializeHandlesToClose"><a href="#InitializeHandlesToClose" class="headerlink" title="InitializeHandlesToClose"></a><code>InitializeHandlesToClose</code></h3><p>这个函数应该就是从传过来的g_handles_to_close读操作。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Reads g_handles_to_close and creates the lookup map.</span></span><br><span class="line"><span class="keyword">void</span> HandleCloserAgent::InitializeHandlesToClose(<span class="keyword">bool</span>* is_csrss_connected) &#123;</span><br><span class="line">  CHECK(g_handles_to_close);</span><br><span class="line">  <span class="comment">//target进也定义了一个g_handles_to_close指针，但实际上是由broker进程来写入</span></span><br><span class="line"></span><br><span class="line">  <span class="comment">// Default to connected state</span></span><br><span class="line">  <span class="comment">// 默认情况是连接到运行时子系统的</span></span><br><span class="line">  *is_csrss_connected = <span class="literal">true</span>;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// Grab the header.</span></span><br><span class="line">  <span class="comment">// 开始了，对HandleCloserInfo开始parse</span></span><br><span class="line">  HandleListEntry* entry = g_handles_to_close-&gt;handle_entries;</span><br><span class="line">  <span class="keyword">for</span> (<span class="keyword">size_t</span> i = <span class="number">0</span>; i &lt; g_handles_to_close-&gt;num_handle_types; ++i) &#123;</span><br><span class="line">    <span class="comment">// Set the type name.</span></span><br><span class="line">    base::char16* input = entry-&gt;handle_type;</span><br><span class="line">    <span class="comment">// 如果关闭的句柄有ALPC Port类型，就会断开与csrss的连接（csrss就是通过这个ALPC端口连接的）</span></span><br><span class="line">    <span class="comment">// 还记得前面探索AddTarget时发现的win10 x64特殊处理吗？</span></span><br><span class="line">    <span class="keyword">if</span> (!wcscmp(input, <span class="string">L"ALPC Port"</span>)) &#123;</span><br><span class="line">      *is_csrss_connected = <span class="literal">false</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">//handle_names是句柄名的set</span></span><br><span class="line">    HandleMap::mapped_type&amp; handle_names = handles_to_close_[input];</span><br><span class="line">    input = <span class="keyword">reinterpret_cast</span>&lt;base::char16*&gt;(<span class="keyword">reinterpret_cast</span>&lt;<span class="keyword">char</span>*&gt;(entry) +</span><br><span class="line">                                            entry-&gt;offset_to_names);</span><br><span class="line">    <span class="comment">// Grab all the handle names.</span></span><br><span class="line">    <span class="comment">// 这就导入到成员handles_to_close_中了</span></span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">size_t</span> j = <span class="number">0</span>; j &lt; entry-&gt;name_count; ++j) &#123;</span><br><span class="line">      <span class="built_in">std</span>::pair&lt;HandleMap::mapped_type::iterator, <span class="keyword">bool</span>&gt; name =</span><br><span class="line">          handle_names.insert(input);</span><br><span class="line">      CHECK(name.second);</span><br><span class="line">      input += name.first-&gt;size() + <span class="number">1</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Move on to the next entry.</span></span><br><span class="line">    <span class="comment">// 继续下一个</span></span><br><span class="line">    entry = <span class="keyword">reinterpret_cast</span>&lt;HandleListEntry*&gt;(<span class="keyword">reinterpret_cast</span>&lt;<span class="keyword">char</span>*&gt;(entry) +</span><br><span class="line">                                               entry-&gt;record_bytes);</span><br><span class="line"></span><br><span class="line">    DCHECK(<span class="keyword">reinterpret_cast</span>&lt;base::char16*&gt;(entry) &gt;= input);</span><br><span class="line">    DCHECK(<span class="keyword">reinterpret_cast</span>&lt;base::char16*&gt;(entry) - input &lt;</span><br><span class="line">           <span class="keyword">static_cast</span>&lt;<span class="keyword">ptrdiff_t</span>&gt;(<span class="keyword">sizeof</span>(<span class="keyword">size_t</span>) / <span class="keyword">sizeof</span>(base::char16)));</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// Clean up the memory we copied over.</span></span><br><span class="line">  <span class="comment">// 拷贝到handles_to_close_完毕，可以清了g_handles_to_close</span></span><br><span class="line">  ::VirtualFree(g_handles_to_close, <span class="number">0</span>, MEM_RELEASE);</span><br><span class="line">  g_handles_to_close = <span class="literal">nullptr</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="CloseHandles"><a href="#CloseHandles" class="headerlink" title="CloseHandles"></a><code>CloseHandles</code></h3><p>导入操作已经知晓了，此时<code>handles_to_close_</code>已装载。下一个最为重要的就是close操作了：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">bool</span> HandleCloserAgent::CloseHandles() &#123;</span><br><span class="line">  DWORD handle_count = UINT_MAX;</span><br><span class="line">  <span class="keyword">const</span> <span class="keyword">int</span> kInvalidHandleThreshold = <span class="number">100</span>;</span><br><span class="line">  <span class="comment">// 句柄都是4的倍数，可以参考wrk的句柄表设计，PID的设计也复用了句柄表设计，所以都是4的倍数</span></span><br><span class="line">  <span class="keyword">const</span> <span class="keyword">size_t</span> kHandleOffset = <span class="number">4</span>;  <span class="comment">// Handles are always a multiple of 4.</span></span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> (!::GetProcessHandleCount(::GetCurrentProcess(), &amp;handle_count))</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// Set up buffers for the type info and the name.</span></span><br><span class="line">  <span class="built_in">std</span>::<span class="built_in">vector</span>&lt;BYTE&gt; type_info_buffer(<span class="keyword">sizeof</span>(OBJECT_TYPE_INFORMATION) +</span><br><span class="line">                                     <span class="number">32</span> * <span class="keyword">sizeof</span>(<span class="keyword">wchar_t</span>));</span><br><span class="line">  OBJECT_TYPE_INFORMATION* type_info =</span><br><span class="line">      <span class="keyword">reinterpret_cast</span>&lt;OBJECT_TYPE_INFORMATION*&gt;(&amp;(type_info_buffer[<span class="number">0</span>]));</span><br><span class="line">  base::string16 handle_name;</span><br><span class="line">  HANDLE handle = <span class="literal">nullptr</span>;</span><br><span class="line">  <span class="keyword">int</span> invalid_count = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// Keep incrementing until we hit the number of handles reported by</span></span><br><span class="line">  <span class="comment">// GetProcessHandleCount(). If we hit a very long sequence of invalid</span></span><br><span class="line">  <span class="comment">// handles we assume that we've run past the end of the table.</span></span><br><span class="line">  <span class="comment">// 以句柄号从下限值到上限值迭代，通过NtQueryObject来判断某个句柄值是否有效，然后再匹配</span></span><br><span class="line">  <span class="keyword">while</span> (handle_count &amp;&amp; invalid_count &lt; kInvalidHandleThreshold) &#123;</span><br><span class="line">    <span class="keyword">reinterpret_cast</span>&lt;<span class="keyword">size_t</span>&amp;&gt;(handle) += kHandleOffset;</span><br><span class="line">    NTSTATUS rc;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Get the type name, reusing the buffer.</span></span><br><span class="line">    <span class="comment">// 又见二次调用的操作，只不过做了二层封装</span></span><br><span class="line">    ULONG size = <span class="keyword">static_cast</span>&lt;ULONG&gt;(type_info_buffer.size());</span><br><span class="line">    rc = QueryObjectTypeInformation(handle, type_info, &amp;size);<span class="comment">//封装了NtQueryObject的一些操作</span></span><br><span class="line">    <span class="keyword">while</span> (rc == STATUS_INFO_LENGTH_MISMATCH || rc == STATUS_BUFFER_OVERFLOW) &#123;</span><br><span class="line">      type_info_buffer.resize(size + <span class="keyword">sizeof</span>(<span class="keyword">wchar_t</span>));</span><br><span class="line">      type_info =</span><br><span class="line">          <span class="keyword">reinterpret_cast</span>&lt;OBJECT_TYPE_INFORMATION*&gt;(&amp;(type_info_buffer[<span class="number">0</span>]));</span><br><span class="line">      rc = QueryObjectTypeInformation(handle, type_info, &amp;size);</span><br><span class="line">      <span class="comment">// Leave padding for the nul terminator.</span></span><br><span class="line">      <span class="keyword">if</span> (NT_SUCCESS(rc) &amp;&amp; size == type_info_buffer.size())</span><br><span class="line">        rc = STATUS_INFO_LENGTH_MISMATCH;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 如果这个句柄号是有效的，那么就说明确实有这个句柄，没有的话就不浪费感情lookup匹配了</span></span><br><span class="line">    <span class="keyword">if</span> (!NT_SUCCESS(rc) || !type_info-&gt;Name.Buffer) &#123;</span><br><span class="line">      ++invalid_count;</span><br><span class="line">      <span class="keyword">continue</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    --handle_count;</span><br><span class="line">    type_info-&gt;Name.Buffer[type_info-&gt;Name.Length / <span class="keyword">sizeof</span>(<span class="keyword">wchar_t</span>)] = L'\<span class="number">0'</span>;</span><br><span class="line">    <span class="comment">// 这段是查找传过来的handles_to_close_，看看是否需要关闭该句柄</span></span><br><span class="line">    <span class="comment">// 如果需要关闭，那就CloseHandle</span></span><br><span class="line">    <span class="comment">// Check if we're looking for this type of handle.</span></span><br><span class="line">    HandleMap::iterator result = handles_to_close_.find(type_info-&gt;Name.Buffer);</span><br><span class="line">    <span class="keyword">if</span> (result != handles_to_close_.end()) &#123;</span><br><span class="line">      HandleMap::mapped_type&amp; names = result-&gt;second;</span><br><span class="line">      <span class="comment">// Empty set means close all handles of this type; otherwise check name.</span></span><br><span class="line">      <span class="keyword">if</span> (!names.empty()) &#123;</span><br><span class="line">        <span class="comment">// Move on to the next handle if this name doesn't match.</span></span><br><span class="line">        <span class="comment">// 这个GetHandleName在handle_closer.cc中实现，实际上依然是NtQueryObject的封装</span></span><br><span class="line">        <span class="keyword">if</span> (!GetHandleName(handle, &amp;handle_name) || !names.count(handle_name))</span><br><span class="line">          <span class="keyword">continue</span>;</span><br><span class="line">      &#125;</span><br><span class="line"></span><br><span class="line">      <span class="keyword">if</span> (!::SetHandleInformation(handle, HANDLE_FLAG_PROTECT_FROM_CLOSE, <span class="number">0</span>))</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">      <span class="keyword">if</span> (!::CloseHandle(handle))</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">      <span class="comment">// Attempt to stuff this handle with a new dummy Event.</span></span><br><span class="line">      <span class="comment">// 尝试填满Handle槽？不懂什么意思，传入了handle和type</span></span><br><span class="line">      AttemptToStuffHandleSlot(handle, result-&gt;first);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Returns the object manager's name associated with a handle</span></span><br><span class="line"><span class="comment">// 通过handle反查name，实际上用NtQueryObject这个万用API可以做到，查询的class为</span></span><br><span class="line"><span class="comment">// ObjectNameInformation</span></span><br><span class="line"><span class="comment">// NtQueryObject很强大，根据传入的OBJECT_INFORMATION_CLASS值可以查询不同的信息</span></span><br><span class="line"><span class="function"><span class="keyword">bool</span> <span class="title">GetHandleName</span><span class="params">(HANDLE handle, base::string16* handle_name)</span> </span>&#123;</span><br><span class="line">  <span class="keyword">static</span> NtQueryObject QueryObject = <span class="literal">nullptr</span>;</span><br><span class="line">  <span class="keyword">if</span> (!QueryObject)</span><br><span class="line">    ResolveNTFunctionPtr(<span class="string">"NtQueryObject"</span>, &amp;QueryObject);</span><br><span class="line"></span><br><span class="line">  ULONG size = MAX_PATH;</span><br><span class="line">  <span class="built_in">std</span>::<span class="built_in">unique_ptr</span>&lt;UNICODE_STRING, base::FreeDeleter&gt; name;</span><br><span class="line">  NTSTATUS result;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">do</span> &#123;</span><br><span class="line">    name.reset(<span class="keyword">static_cast</span>&lt;UNICODE_STRING*&gt;(<span class="built_in">malloc</span>(size)));</span><br><span class="line">    DCHECK(name.get());</span><br><span class="line">    result =</span><br><span class="line">        QueryObject(handle, ObjectNameInformation, name.get(), size, &amp;size);</span><br><span class="line">  &#125; <span class="keyword">while</span> (result == STATUS_INFO_LENGTH_MISMATCH ||</span><br><span class="line">           result == STATUS_BUFFER_OVERFLOW);</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> (NT_SUCCESS(result) &amp;&amp; name-&gt;Buffer &amp;&amp; name-&gt;Length)</span><br><span class="line">    handle_name-&gt;assign(name-&gt;Buffer, name-&gt;Length / <span class="keyword">sizeof</span>(<span class="keyword">wchar_t</span>));</span><br><span class="line">  <span class="keyword">else</span></span><br><span class="line">    handle_name-&gt;clear();</span><br><span class="line"></span><br><span class="line">  <span class="keyword">return</span> NT_SUCCESS(result);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>另一个<code>QueryObjectTypeInformation</code>也类似：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Returns type infomation for an NT object. This routine is expected to be</span></span><br><span class="line"><span class="comment">// called for invalid handles so it catches STATUS_INVALID_HANDLE exceptions</span></span><br><span class="line"><span class="comment">// that can be generated when handle tracing is enabled.</span></span><br><span class="line"><span class="comment">// 返回的是handle对应的type而非name</span></span><br><span class="line"><span class="function">NTSTATUS <span class="title">QueryObjectTypeInformation</span><span class="params">(HANDLE handle, <span class="keyword">void</span>* buffer, ULONG* size)</span> </span>&#123;</span><br><span class="line">  <span class="keyword">static</span> NtQueryObject QueryObject = <span class="literal">nullptr</span>;</span><br><span class="line">  <span class="comment">// 还是用NtQueryObject</span></span><br><span class="line">  <span class="keyword">if</span> (!QueryObject)</span><br><span class="line">    ResolveNTFunctionPtr(<span class="string">"NtQueryObject"</span>, &amp;QueryObject);</span><br><span class="line"></span><br><span class="line">  NTSTATUS status = STATUS_UNSUCCESSFUL;</span><br><span class="line">  __try &#123;</span><br><span class="line">    <span class="comment">// 这一次用的class是ObjectTypeInformation</span></span><br><span class="line">    status = QueryObject(handle, ObjectTypeInformation, buffer, *size, size);</span><br><span class="line">  &#125; __except (GetExceptionCode() == STATUS_INVALID_HANDLE</span><br><span class="line">                  ? EXCEPTION_EXECUTE_HANDLER</span><br><span class="line">                  : EXCEPTION_CONTINUE_SEARCH) &#123;</span><br><span class="line">    status = STATUS_INVALID_HANDLE;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> status;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><code>CloseHandles</code>最后调用了<code>AttemptToStuffHandleSlot</code>：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Attempts to stuff |closed_handle| with a duplicated handle for a dummy Event</span></span><br><span class="line"><span class="comment">// with no access. This should allow the handle to be closed, to avoid</span></span><br><span class="line"><span class="comment">// generating EXCEPTION_INVALID_HANDLE on shutdown, but nothing else. For now</span></span><br><span class="line"><span class="comment">// the only supported |type| is Event or File.</span></span><br><span class="line"><span class="comment">// 关闭句柄时防止产生EXCEPTION_INVALID_HANDLE，仅仅支持Event或File类型句柄</span></span><br><span class="line"><span class="comment">// 这东西用途我还不理解，看起来是对于Event和File句柄做的额外操作，复制一个再CloseHandle</span></span><br><span class="line"><span class="comment">// 不懂有什么用</span></span><br><span class="line"><span class="keyword">bool</span> HandleCloserAgent::AttemptToStuffHandleSlot(HANDLE closed_handle,</span><br><span class="line">                                                 <span class="keyword">const</span> base::string16&amp; type) &#123;</span><br><span class="line">  <span class="comment">// Only attempt to stuff Files and Events at the moment.</span></span><br><span class="line">  <span class="keyword">if</span> (type != <span class="string">L"Event"</span> &amp;&amp; type != <span class="string">L"File"</span>) &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> (!dummy_handle_.IsValid())</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// This should never happen, as g_dummy is created before closing to_stuff.</span></span><br><span class="line">  DCHECK(dummy_handle_.Get() != closed_handle);</span><br><span class="line"></span><br><span class="line">  <span class="built_in">std</span>::<span class="built_in">vector</span>&lt;HANDLE&gt; to_close;</span><br><span class="line">  HANDLE dup_dummy = <span class="literal">nullptr</span>;</span><br><span class="line">  <span class="keyword">size_t</span> count = <span class="number">16</span>;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">do</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> (!::DuplicateHandle(::GetCurrentProcess(), dummy_handle_.Get(),</span><br><span class="line">                           ::GetCurrentProcess(), &amp;dup_dummy, <span class="number">0</span>, <span class="literal">false</span>, <span class="number">0</span>))</span><br><span class="line">      <span class="keyword">break</span>;</span><br><span class="line">    <span class="keyword">if</span> (dup_dummy != closed_handle)</span><br><span class="line">      to_close.push_back(dup_dummy);</span><br><span class="line">  &#125; <span class="keyword">while</span> (count-- &amp;&amp; <span class="keyword">reinterpret_cast</span>&lt;<span class="keyword">uintptr_t</span>&gt;(dup_dummy) &lt;</span><br><span class="line">                          <span class="keyword">reinterpret_cast</span>&lt;<span class="keyword">uintptr_t</span>&gt;(closed_handle));</span><br><span class="line"></span><br><span class="line">  <span class="keyword">for</span> (HANDLE h : to_close)</span><br><span class="line">    ::CloseHandle(h);</span><br><span class="line"></span><br><span class="line">  <span class="comment">// TODO(wfh): Investigate why stuffing handles sometimes fails.</span></span><br><span class="line">  <span class="comment">// http://crbug.com/649904</span></span><br><span class="line">  <span class="keyword">return</span> dup_dummy == closed_handle;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这里主要是不懂dummy_handle_成员的意义，不知道为什么要频繁尝试复制，且再次Close掉。这里面应该涉及到了某种技术，而这个函数只是抛开基础架设的一个应用。</p>
+<p>如果以后我对它有了正确的理解，再来补充吧，留个坑。</p>
+<p>下面感兴趣的就是target进程如何操纵。</p>
+<h2 id="TargetServicesBase-related"><a href="#TargetServicesBase-related" class="headerlink" title="TargetServicesBase related"></a><code>TargetServicesBase</code> related</h2><p><code>TargetServicesBase</code>是给target进程提供的服务面。在<code>TargetServicesBase::LowerToken</code>中找到了这样一个操作：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Failure here is a breach of security so the process is terminated.</span></span><br><span class="line"><span class="keyword">void</span> TargetServicesBase::LowerToken() &#123;</span><br><span class="line">  <span class="keyword">if</span> (ERROR_SUCCESS !=</span><br><span class="line">      SetProcessIntegrityLevel(g_shared_delayed_integrity_level))</span><br><span class="line">    ::TerminateProcess(::GetCurrentProcess(), SBOX_FATAL_INTEGRITY);</span><br><span class="line">  process_state_.SetRevertedToSelf();</span><br><span class="line">  <span class="comment">// If the client code as called RegOpenKey, advapi32.dll has cached some</span></span><br><span class="line">  <span class="comment">// handles. The following code gets rid of them.</span></span><br><span class="line">  <span class="comment">// 最不起眼的其实是最关键的call，不过本次我们就不理它了</span></span><br><span class="line">  <span class="keyword">if</span> (!::RevertToSelf())</span><br><span class="line">    ::TerminateProcess(::GetCurrentProcess(), SBOX_FATAL_DROPTOKEN);</span><br><span class="line">  <span class="keyword">if</span> (!FlushCachedRegHandles())</span><br><span class="line">    ::TerminateProcess(::GetCurrentProcess(), SBOX_FATAL_FLUSHANDLES);</span><br><span class="line">  <span class="keyword">if</span> (ERROR_SUCCESS != ::RegDisablePredefinedCache())</span><br><span class="line">    ::TerminateProcess(::GetCurrentProcess(), SBOX_FATAL_CACHEDISABLE);</span><br><span class="line">  <span class="keyword">if</span> (!WarmupWindowsLocales())</span><br><span class="line">    ::TerminateProcess(::GetCurrentProcess(), SBOX_FATAL_WARMUP);</span><br><span class="line">  <span class="keyword">bool</span> is_csrss_connected = <span class="literal">true</span>;</span><br><span class="line">  <span class="comment">// 就是它，关闭了句柄，并根据ALPC port是否被关闭来设置csrss的连接状态</span></span><br><span class="line">  <span class="keyword">if</span> (!CloseOpenHandles(&amp;is_csrss_connected))</span><br><span class="line">    ::TerminateProcess(::GetCurrentProcess(), SBOX_FATAL_CLOSEHANDLES);</span><br><span class="line">  process_state_.SetCsrssConnected(is_csrss_connected);</span><br><span class="line">  <span class="comment">// Enabling mitigations must happen last otherwise handle closing breaks</span></span><br><span class="line">  <span class="keyword">if</span> (g_shared_delayed_mitigations &amp;&amp;</span><br><span class="line">      !ApplyProcessMitigationsToCurrentProcess(g_shared_delayed_mitigations))</span><br><span class="line">    ::TerminateProcess(::GetCurrentProcess(), SBOX_FATAL_MITIGATION);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p> 这里还可以看到<code>g_shared_delayed_integrity_level</code>和<code>g_shared_delayed_mitigations</code>的使用。</p>
+<p>展开<code>CloseOpenHandles</code>:</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Checks if we have handle entries pending and runs the closer.</span></span><br><span class="line"><span class="comment">// Updates is_csrss_connected based on which handle types are closed.</span></span><br><span class="line"><span class="function"><span class="keyword">bool</span> <span class="title">CloseOpenHandles</span><span class="params">(<span class="keyword">bool</span>* is_csrss_connected)</span> </span>&#123;</span><br><span class="line">  <span class="keyword">if</span> (HandleCloserAgent::NeedsHandlesClosed()) &#123;<span class="comment">//其实就是!!g_handles_to_close，转bool值判断</span></span><br><span class="line">    <span class="comment">// 此时broker已经写好了g_handles_to_close，开始吧</span></span><br><span class="line">    HandleCloserAgent handle_closer;</span><br><span class="line">    <span class="comment">// 第一步，InitializeHandlesToClose</span></span><br><span class="line">    handle_closer.InitializeHandlesToClose(is_csrss_connected);</span><br><span class="line">    <span class="keyword">if</span> (!*is_csrss_connected) &#123;</span><br><span class="line">      <span class="keyword">if</span> (!CsrssDisconnectCleanup()) &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 第二步，CloseHandles</span></span><br><span class="line">    <span class="keyword">if</span> (!handle_closer.CloseHandles())</span><br><span class="line">      <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>到此，关于<code>HandleCloser</code>和<code>HandleCloserAgent</code>的分析就结束了，相对简单的一部分。</p>
+
+      
+      
+    </div>
+    
+  </div>
+  
+    
+    <div class="copyright">
+        <p><span>本文标题:</span><a href="/2018/05/21/chromium-sandbox-HandleCloser-analysis/">Chromium-sandbox-HandleCloser-analysis</a></p>
+        <p><span>文章作者:</span><a href="/" title="访问 r00tk1t 的个人博客">r00tk1t</a></p>
+        <p><span>发布时间:</span>2018年05月21日 - 20时13分</p>
+        <p><span>最后更新:</span>2020年10月20日 - 21时01分</p>
+        <p>
+            <span>原始链接:</span><a class="post-url" href="/2018/05/21/chromium-sandbox-HandleCloser-analysis/" title="Chromium-sandbox-HandleCloser-analysis">https://r00tk1ts.github.io/2018/05/21/chromium-sandbox-HandleCloser-analysis/</a>
+            <span class="copy-path" data-clipboard-text="原文: https://r00tk1ts.github.io/2018/05/21/chromium-sandbox-HandleCloser-analysis/　　作者: r00tk1t" title="点击复制文章链接"><i class="fa fa-clipboard"></i></span>
+            <script src="/js/clipboard.min.js"></script>
+            <script> var clipboard = new Clipboard('.copy-path'); </script>
+        </p>
+        <p>
+            <span>许可协议:</span><i class="fa fa-creative-commons"></i> <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/3.0/cn/" title="中国大陆 (CC BY-NC-SA 3.0 CN)" target = "_blank">"署名-非商用-相同方式共享 3.0"</a> 转载请保留原文链接及作者。
+        </p>
+    </div>
+
+
+
+<nav id="article-nav">
+  
+    <a href="/2018/05/26/chromium-sandbox-Interception/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption"><</strong>
+      <div class="article-nav-title">
+        
+          Chromium-sandbox-Interception-analysis
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2018/05/20/chromium-sandbox-SharedMemIPC/" id="article-nav-older" class="article-nav-link-wrap">
+      <div class="article-nav-title">Chromium-sandbox-SharedMemIPC-analysis</div>
+      <strong class="article-nav-caption">></strong>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+    <div id="toc" class="toc-article">
+    <strong class="toc-title">文章目录</strong>
+    <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#chromium-sandbox-HandleCloser-analysis"><span class="toc-number">1.</span> <span class="toc-text">chromium-sandbox-HandleCloser-analysis</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#PolicyBase-related"><span class="toc-number">1.1.</span> <span class="toc-text">PolicyBase related</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#HandleCloser"><span class="toc-number">1.2.</span> <span class="toc-text">HandleCloser</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#AddHandle"><span class="toc-number">1.2.1.</span> <span class="toc-text">AddHandle</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#HandleCloserAgent"><span class="toc-number">1.3.</span> <span class="toc-text">HandleCloserAgent</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#InitializeHandlesToClose"><span class="toc-number">1.3.1.</span> <span class="toc-text">InitializeHandlesToClose</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#CloseHandles"><span class="toc-number">1.3.2.</span> <span class="toc-text">CloseHandles</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#TargetServicesBase-related"><span class="toc-number">1.4.</span> <span class="toc-text">TargetServicesBase related</span></a></li></ol></li></ol>
+</div>
+<input type="button" id="tocButton" value="隐藏目录"  title="点击按钮隐藏或者显示文章目录">
+
+<script src="https://7.url.cn/edu/jslib/comb/require-2.1.6,jquery-1.9.1.min.js"></script>
+<script>
+    var valueHide = "隐藏目录";
+    var valueShow = "显示目录";
+
+    if ($(".left-col").is(":hidden")) {
+        $("#tocButton").attr("value", valueShow);
+    }
+    $("#tocButton").click(function() {
+        if ($("#toc").is(":hidden")) {
+            $("#tocButton").attr("value", valueHide);
+            $("#toc").slideDown(320);
+        }
+        else {
+            $("#tocButton").attr("value", valueShow);
+            $("#toc").slideUp(350);
+        }
+    })
+    if ($(".toc").length < 1) {
+        $("#toc, #tocButton").hide();
+    }
+</script>
+
+
+
+
+
+
+
+    
+
+
+
+    <div class="scroll" id="post-nav-button">
+        
+            <a href="/2018/05/26/chromium-sandbox-Interception/" title="上一篇: Chromium-sandbox-Interception-analysis">
+                <i class="fa fa-angle-left"></i>
+            </a>
+        
+        <a title="文章列表"><i class="fa fa-bars"></i><i class="fa fa-times"></i></a>
+        
+            <a href="/2018/05/20/chromium-sandbox-SharedMemIPC/" title="下一篇: Chromium-sandbox-SharedMemIPC-analysis">
+                <i class="fa fa-angle-right"></i>
+            </a>
+        
+    </div>
+    <ul class="post-list"><li class="post-list-item"><a class="post-list-link" href="/2020/10/22/chromium-base库源码解读之引用计数拆解篇/">chromium-base库源码解读之引用计数拆解篇</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/12/16/深入探索禁忌目录之Effective C++篇/">深入探索禁忌目录之Effective C++篇</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/12/10/C++ Primer - 特殊工具与技术/">C++ Primer - 特殊工具与技术</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/12/08/C++ Primer - 用于大型程序的工具/">C++ Primer - 用于大型程序的工具</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/12/06/C++ Primer - 标准库特殊设施/">C++ Primer - 标准库特殊设施</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/12/03/C++ Primer - 模板与泛型编程/">C++ Primer - 模板与泛型编程</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/12/01/C++ Primer - 面向对象程序设计/">C++ Primer - 面向对象程序设计</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/29/C++ Primer - 重载运算与类型转换/">C++ Primer - 重载运算与类型转换</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/29/C++ Primer - 拷贝控制/">C++ Primer - 拷贝控制</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/26/C++ Primer - 动态内存/">C++ Primer - 动态内存</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/26/C++ Primer - 关联容器/">C++ Primer - 关联容器</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/24/C++ Primer - 泛型算法/">C++ Primer - 泛型算法</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/24/C++ Primer - 顺序容器/">C++ Primer - 顺序容器</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/21/C++ Primer - IO库/">C++ Primer - IO库</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/21/C++ Primer - 类/">C++ Primer - 类</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/20/C++ Primer - 函数/">C++ Primer - 函数</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/20/C++ Primer - 语句/">C++ Primer -语句</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/20/C++ Primer - 表达/">C++ Primer - 表达式</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/10/28/C++ Primer - string, vector & array/">C++ Primer - string, vector, array</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/10/28/C++ Primer - 变量和基本类型/">C++ Primer - 变量和基本类型</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/08/25/C++ Templates Note - 类模板/">C++ Templates Note - 类模板</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/08/25/C++ Templates Note - 函数模板/">C++ Templates Note- 函数模板</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/08/13/Linux内存管理-进程地址空间/">Linux内核学习——内存管理之进程地址空间</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/07/07/一次失败的栈溢出(SEH)之GetGo Download Manager/">一次失败的栈溢出(SEH)之GetGo Download Manager</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/06/28/DNSTracer 1.9栈溢出漏洞[CVE-2017-9430]/">DNSTracer 1.9栈溢出漏洞[CVE-2017-9430]</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/06/24/A Tale of Exploit Easy RM 2 MP3 Converter/">A Tale of Exploit "Easy RM 2 MP3</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/06/03/chromium-sandbox-ThreadProcess-analysis/">Chromium-sandbox-ThreadProcess-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/06/03/chromium-sandbox-Filesystem-analysis/">Chromium-sandbox-Filesystem-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/06/03/chromium-sandbox-LowLevelPolicy-analysis/">Chromium-sandbox-LowLevelPolicy-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/26/chromium-sandbox-PolicyEngine-analysis/">Chromium-sandbox-PolicyEngine-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/26/chromium-sandbox-Resolver-analysis/">Chromium-sandbox-Resolver-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/26/chromium-sandbox-Interception/">Chromium-sandbox-Interception-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/21/chromium-sandbox-HandleCloser-analysis/">Chromium-sandbox-HandleCloser-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/20/chromium-sandbox-SharedMemIPC/">Chromium-sandbox-SharedMemIPC-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/19/chromium-sandbox-Crosscall-analysis/">Chromium-sandbox-crosscall-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/19/chromium-sandbox-AlternateDesktop-analysis/">Chromium-sandbox-AlternateDesktop-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/19/chromium-sandbox-Tokens-analysis/">Chromium-sandbox-Tokens-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/14/chromium-sandbox-Job-analysis/">Chromium-sandbox-Job-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/13/chromium-sandbox-TargetPolicy-analysis/">Chromium-sandbox-TargetPolicy-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/13/chromium-sandbox-TargetProcess-analysis/">Chromium-sandbox-TargetProcess-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/13/chromium-sandbox-TargetServices-analysis/">Chromium-sandbox-TargetServices-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/13/chromium-sandbox-BrokerServices/">Chromium-sandbox-BrokerServices-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/04/05/x41-浏览器安全白皮书笔记/">X41-浏览器安全白皮书读书笔记</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/22/Windows系统机制之同步/">Windows系统机制之同步</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/21/Windows系统机制之对象管理器/">Windows系统机制之对象管理器</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/21/Windows系统机制之陷阱分发/">Windows系统机制之陷阱分发</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/21/Bitmaps轶事：Windows 10纪念版前的GDI对象泄露/">Bitmap轶事：Windows 10纪念版后的GDI对象泄露</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/20/理解池污染三部曲/">理解池污染三部曲</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/19/内核利用程序之Razer rzpnk.sys中的逻辑bug/">Windows exploit系列教程第十九篇：内核利用程序之Razer rzpnk.sys中的逻辑bug</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/19/内核利用程序之RS2 Bitmap巫术/">Windows exploit系列教程第十八篇：内核利用程序之RS2 Bitmap巫术</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/15/内核利用程序之滥用GDI Bitmap/">Windows exploit系列教程第十七部分：内核利用程序之任意位置任意写</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/14/内核利用程序之池溢出/">Windows exploit系列教程第十六部分：内核利用程序之池溢出</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/14/内核利用程序之UAF/">Windows exploit系列教程第十五部分：内核利用程序之UAF</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/10/coin1/">Writeup.pwnable.kr系列之coin1</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/10/shellshock/">Writeup.pwnable.kr系列之shellshock</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/09/mistake/">Writeup.pwnable.kr系列之mistake</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/07/leg/">Writeup.pwnable.kr系列之leg</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/06/input/">Writeup.pwnable.kr系列之input</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/05/random/">Writeup.pwnable.kr系列之random</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/05/passcode/">Writeup.pwnable.kr系列之passcode</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/04/flag/">Writeup.pwnable.kr系列之flag</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/04/bof/">Writeup.pwnable.kr系列之bof</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/03/collision/">Writeup.pwnable.kr系列之collision</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/03/fd/">Writeup.pwnable.kr系列之fd</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/02/26/Binary Security Assembly/">Binary-Security-Assembly</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/02/07/内核利用程序之整数溢出/">Windows exploit系列教程第十四部分：内核利用程序之整数溢出</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/02/06/内核利用程序之未初始化栈变量/">Windows exploit系列教程第十三部分：内核利用程序之未初始化栈变量</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/02/06/内核利用程序之空指针引用/">Windows exploit系列教程第十二部分：内核利用程序之空指针引用</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/02/01/内核利用程序之任意位置任意写/">Windows exploit系列教程第十一部分：内核利用程序之任意位置任意写</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/01/15/ring0层exp原语之滥用GDI/">ring0层exp原语之滥用GDI</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/01/14/Windows x64内核提权/">Windows x64内核提权</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/01/14/关键的Windows内核数据结构一览（下）/">关键的Windows内核数据结构一览（下）</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/01/08/关键的Windows内核数据结构一览（上）/">关键的Windows内核数据结构一览（上）</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/01/06/内核利用程序开发之栈溢出/">Windows exploit系列教程第十部分：内核利用程序之栈溢出</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/01/05/堆喷射[第二章：UAF]/">Windows exploit系列教程第九部分：堆喷射[第二章：UAF]</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/12/30/Kernel Driver mmap Handler Exploitation/">内核驱动mmap Handler利用技术</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/12/28/API Interception via DLL Redirection/">通过DLL重定向实现API劫持</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/12/21/Linux中断内幕/">Linux中断内幕</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/12/19/Windows架构设计/">Windows架构设计</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/10/30/house_of_force.log/">house_of_force log</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/10/25/Linux内存管理-非连续内存区管理/">Linux内核学习——内存管理之非连续内存区管理</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/10/24/Linux内存管理-内存区管理/">Linux内核学习——内存管理之内存区管理</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/10/20/Linux内存管理-页框管理/">Linux内核学习——内存管理之页框管理</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/10/19/first_fit.log/">first_fit log</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/10/19/house_of_einherjar.log/">house_of_einherjar log</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/10/18/fastbin_dup_into_stack.log/">fastbin_dup_into_stack log</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/10/12/fastbin_dup.log/">fastbin_dup log</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/09/23/Windows栈溢出之ret eip/">Windows栈溢出之ret eip</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/09/23/Windows栈溢出概述/">Windows栈溢出概述</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/09/16/DEFCON-2015-r0pbaby/">DEFCON-2015-r0pbaby</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/09/11/PWN选手的自我修养/">PWN选手的自我修养</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/08/27/linearsort/">linear sort</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/08/27/quicksort/">quicksort</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/08/27/heapsort&priority-queue/">heapsort & priority-queue</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/08/27/Linux进程的创建与撤销/">Linux内核学习——Linux进程的创建与撤销</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/08/26/Linux进程切换/">Linux内核学习——Linux进程切换</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/08/24/GNU Hash ELF Sections/">GNU Hash ELF Sections</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/08/22/Linux进程概述/">Linux内核学习——Linux进程概述</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/08/18/Linux内存寻址/">Linux内核学习——内存寻址</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/05/15/PlaySms  1.4代码执行漏洞之import csv/">PlaySms 1.4代码执行漏洞之import csv</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/05/15/PlaySms  1.4代码执行漏洞分析/">PlaySms 1.4代码执行漏洞分析</a></li></ul>
+    <script src="https://7.url.cn/edu/jslib/comb/require-2.1.6,jquery-1.9.1.min.js"></script>
+    <script>
+        $(".post-list").addClass("toc-article");
+        $(".post-list-item a").attr("target","_blank");
+        $("#post-nav-button > a:nth-child(2)").click(function() {
+            $(".fa-bars, .fa-times").toggle();
+            $(".post-list").toggle(300);
+            if ($(".toc").length > 0) {
+                $("#toc, #tocButton").toggle(200, function() {
+                    if ($(".switch-area").is(":visible")) {
+                        $("#tocButton").attr("value", valueHide);
+                        }
+                    })
+            }
+            else {
+            }
+        })
+    </script>
+
+
+
+    <script>
+        
+    </script>
+</div>
+      <footer id="footer">
+    <div class="outer">
+        <div id="footer-info">
+            <div class="footer-left">
+                &copy; 2020 r00tk1t
+            </div>
+            <div class="footer-right">
+                <a href="http://hexo.io/" target="_blank">Hexo</a>  Theme <a href="https://github.com/luuman/hexo-theme-spfk" target="_blank">spfk</a> by luuman
+            </div>
+        </div>
+        
+            <div class="visit">
+                
+                    <span id="busuanzi_container_site_pv" style='display:none'>
+                        <span id="site-visit" >访问数量: 
+                            <span id="busuanzi_value_site_uv"></span>
+                        </span>
+                    </span>
+                
+                
+                    <span>, </span>
+                
+                
+                    <span id="busuanzi_container_page_pv" style='display:none'>
+                        <span id="page-visit">本页阅读量: 
+                            <span id="busuanzi_value_page_pv"></span>
+                        </span>
+                    </span>
+                
+            </div>
+        
+    </div>
+</footer>
+
+    </div>
+    <script src="https://7.url.cn/edu/jslib/comb/require-2.1.6,jquery-1.9.1.min.js"></script>
+<script src="/js/main.js"></script>
+
+    <script>
+        $(document).ready(function() {
+            var backgroundnum = 24;
+            var backgroundimg = "url(/background/bg-x.jpg)".replace(/x/gi, Math.ceil(Math.random() * backgroundnum));
+            $("#mobile-nav").css({"background-image": backgroundimg,"background-size": "cover","background-position": "center"});
+            $(".left-col").css({"background-image": backgroundimg,"background-size": "cover","background-position": "center"});
+        })
+    </script>
+
+
+
+
+
+<div class="scroll" id="scroll">
+    <a href="#"><i class="fa fa-arrow-up"></i></a>
+    <a href="#comments"><i class="fa fa-comments-o"></i></a>
+    <a href="#footer"><i class="fa fa-arrow-down"></i></a>
+</div>
+<script>
+    $(document).ready(function() {
+        if ($("#comments").length < 1) {
+            $("#scroll > a:nth-child(2)").hide();
+        };
+    })
+</script>
+
+<script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js">
+</script>
+
+  <script language="javascript">
+    $(function() {
+        $("a[title]").each(function() {
+            var a = $(this);
+            var title = a.attr('title');
+            if (title == undefined || title == "") return;
+            a.data('title', title).removeAttr('title').hover(
+
+            function() {
+                var offset = a.offset();
+                $("<div id=\"anchortitlecontainer\"></div>").appendTo($("body")).html(title).css({
+                    top: offset.top - a.outerHeight() - 15,
+                    left: offset.left + a.outerWidth()/2 + 1
+                }).fadeIn(function() {
+                    var pop = $(this);
+                    setTimeout(function() {
+                        pop.remove();
+                    }, pop.text().length * 800);
+                });
+            }, function() {
+                $("#anchortitlecontainer").remove();
+            });
+        });
+    });
+</script>
+
+
+  </div>
+</body>
+</html>

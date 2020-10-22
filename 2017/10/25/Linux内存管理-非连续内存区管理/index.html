@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>Linux内核学习——内存管理之非连续内存区管理 | r00tk1t&#39;s blog</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="非连续内存区管理内容较少，也比较简单，无非就是连续的线性地址到非连续物理内存区的映射。与内核永久内存映射和内核临时内存映射并称三大物理地址与线性地址之间的映射机制。了解非连续内存区管理前，最好优先阅读页框管理和内存区管理。">
+<meta name="keywords" content="linux-kernel,ulk">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Linux内核学习——内存管理之非连续内存区管理">
+<meta property="og:url" content="https://r00tk1ts.github.io/2017/10/25/Linux内存管理-非连续内存区管理/index.html">
+<meta property="og:site_name" content="r00tk1t&#39;s blog">
+<meta property="og:description" content="非连续内存区管理内容较少，也比较简单，无非就是连续的线性地址到非连续物理内存区的映射。与内核永久内存映射和内核临时内存映射并称三大物理地址与线性地址之间的映射机制。了解非连续内存区管理前，最好优先阅读页框管理和内存区管理。">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="https://r00tk1ts.github.io/images/ulk/20171025_1.jpg">
+<meta property="og:updated_time" content="2020-10-20T13:01:02.357Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Linux内核学习——内存管理之非连续内存区管理">
+<meta name="twitter:description" content="非连续内存区管理内容较少，也比较简单，无非就是连续的线性地址到非连续物理内存区的映射。与内核永久内存映射和内核临时内存映射并称三大物理地址与线性地址之间的映射机制。了解非连续内存区管理前，最好优先阅读页框管理和内存区管理。">
+<meta name="twitter:image" content="https://r00tk1ts.github.io/images/ulk/20171025_1.jpg">
+  
+    <link rel="alternative" href="/atom.xml" title="r00tk1t&#39;s blog" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/img/favicon.png">
+  
+  
+      <link rel="stylesheet" href="//cdn.bootcss.com/animate.css/3.5.0/animate.min.css">
+  
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/font-awesome/css/font-awesome.min.css">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  
+  
+      <link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+  
+  <!-- 加载特效 -->
+    <script src="/js/pace.js"></script>
+    <link href="/css/pace/pace-theme-flash.css" rel="stylesheet" />
+  <script>
+      var yiliaConfig = {
+          rootUrl: '/',
+          fancybox: true,
+          animate: true,
+          isHome: false,
+          isPost: true,
+          isArchive: false,
+          isTag: false,
+          isCategory: false,
+          open_in_new: false
+      }
+  </script>
+</head>
+<body>
+  <div id="container">
+    <div class="left-col">
+    <div class="overlay"></div>
+<div class="intrude-less">
+    <header id="header" class="inner">
+        <a href="/" class="profilepic">
+            
+            <img lazy-src="/img/head.jpg" class="js-avatar">
+            
+        </a>
+
+        <hgroup>
+          <h1 class="header-author"><a href="/" title="Hi Mate">r00tk1t</a></h1>
+        </hgroup>
+
+        
+        <p class="header-subtitle">二进制安全 | Web安全 | 伪装成程序员的菜鸡</p>
+        
+        
+        
+            <div id="switch-btn" class="switch-btn">
+                <div class="icon">
+                    <div class="icon-ctn">
+                        <div class="icon-wrap icon-house" data-idx="0">
+                            <div class="birdhouse"></div>
+                            <div class="birdhouse_holes"></div>
+                        </div>
+                        <div class="icon-wrap icon-ribbon hide" data-idx="1">
+                            <div class="ribbon"></div>
+                        </div>
+                        
+                        <div class="icon-wrap icon-link hide" data-idx="2">
+                            <div class="loopback_l"></div>
+                            <div class="loopback_r"></div>
+                        </div>
+                        
+                        
+                        <div class="icon-wrap icon-me hide" data-idx="3">
+                            <div class="user"></div>
+                            <div class="shoulder"></div>
+                        </div>
+                        
+                    </div>
+                    
+                </div>
+                <div class="tips-box hide">
+                    <div class="tips-arrow"></div>
+                    <ul class="tips-inner">
+                        <li>菜单</li>
+                        <li>标签</li>
+                        
+                        <li>友情链接</li>
+                        
+                        
+                        <li>关于我</li>
+                        
+                    </ul>
+                </div>
+            </div>
+        
+
+        <div id="switch-area" class="switch-area">
+            <div class="switch-wrap">
+                <section class="switch-part switch-part1">
+                    <nav class="header-menu">
+                        <ul>
+                        
+                            <li><a href="/">博客首页</a></li>
+                        
+                            <li><a href="/archives">所有文章</a></li>
+                        
+                            <li><a href="/tags">标签</a></li>
+                        
+                        </ul>
+                    </nav>
+                    <nav class="header-nav">
+                        <ul class="social">
+                            
+                                <a class="fl mail" target="_blank" href="mailto: 1903442252@qq.com" title="mail">mail</a>
+                            
+                                <a class="fl github" target="_blank" href="https://github.com/r00tk1ts" title="github">github</a>
+                            
+                                <a class="fl zhihu" target="_blank" href="https://www.zhihu.com/people/r00tk1t-5" title="zhihu">zhihu</a>
+                            
+                                <a class="fl weibo" target="_blank" href="http://weibo.com/2698344533" title="weibo">weibo</a>
+                            
+                                <a class="fl QQ" target="_blank" href="https://user.qzone.qq.com/1903442252" title="QQ">QQ</a>
+                            
+                        </ul>
+                    </nav>
+                </section>
+                
+                
+                <section class="switch-part switch-part2">
+                    <div class="widget tagcloud" id="js-tagcloud">
+                        <a href="/tags/SEH-overwrite/" style="font-size: 10px;">SEH overwrite</a> <a href="/tags/algorithm/" style="font-size: 11.67px;">algorithm</a> <a href="/tags/browser/" style="font-size: 10px;">browser</a> <a href="/tags/chrome/" style="font-size: 16.67px;">chrome</a> <a href="/tags/chrome-sandbox/" style="font-size: 16.67px;">chrome-sandbox</a> <a href="/tags/cpp/" style="font-size: 20px;">cpp</a> <a href="/tags/cpp-primer/" style="font-size: 18.33px;">cpp-primer</a> <a href="/tags/cpp-templates/" style="font-size: 11.67px;">cpp-templates</a> <a href="/tags/dll-hooking/" style="font-size: 10px;">dll hooking</a> <a href="/tags/exploit/" style="font-size: 12.5px;">exploit</a> <a href="/tags/glibc/" style="font-size: 10px;">glibc</a> <a href="/tags/glibc-heap/" style="font-size: 13.33px;">glibc-heap</a> <a href="/tags/linux/" style="font-size: 10.83px;">linux</a> <a href="/tags/linux-kernel/" style="font-size: 14.17px;">linux-kernel</a> <a href="/tags/mmap/" style="font-size: 10px;">mmap</a> <a href="/tags/novice/" style="font-size: 17.5px;">novice</a> <a href="/tags/php/" style="font-size: 10.83px;">php</a> <a href="/tags/pool/" style="font-size: 10px;">pool</a> <a href="/tags/pwn/" style="font-size: 19.17px;">pwn</a> <a href="/tags/pwnable-kr/" style="font-size: 15px;">pwnable.kr</a> <a href="/tags/resources/" style="font-size: 10px;">resources</a> <a href="/tags/stack-overrun/" style="font-size: 11.67px;">stack-overrun</a> <a href="/tags/tutorial/" style="font-size: 10px;">tutorial</a> <a href="/tags/ulk/" style="font-size: 14.17px;">ulk</a> <a href="/tags/web/" style="font-size: 10.83px;">web</a> <a href="/tags/windows/" style="font-size: 15.83px;">windows</a> <a href="/tags/windows-kernel/" style="font-size: 14.17px;">windows-kernel</a> <a href="/tags/writeup/" style="font-size: 10px;">writeup</a> <a href="/tags/wrk/" style="font-size: 12.5px;">wrk</a>
+                    </div>
+                </section>
+                
+                
+                
+                <section class="switch-part switch-part3">
+                    <div id="js-friends">
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://eternalsakura13.com">樱花师傅</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="https://chybeta.github.io/">Chybeta</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://whereisk0shl.top/">k0shl</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://o0xmuhe.github.io/">o0xmuhe</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://bestwing.me/">swing</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://yixuankeer.win/">joker</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://www.hackersb.cn/">王松_Striker</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="https://www.hackfun.org/">4ido10n</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://www.cnblogs.com/iamstudy/">l3m0n</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://www.cnblogs.com/Ox9A82/">Ox9A82</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://mxny.org/">麦香浓郁</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://0x48.pw/">Hcamael</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="https://blog.nuptzj.cn/">画船听雨</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="https://www.bodkin.ren/">老锥</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://www.zerokeeper.com/">ZeroKeeper</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="https://www.ycjcl.cc/">信鑫</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://www.wowotech.net/">wowotech</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://fuzzysecurity.com/">fuzzySecurity</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="https://rootkits.xyz/">rootkits.xyz</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://www.pentestingexperts.com/">pentestingexperts</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="https://blog.skylined.nl/">skylined</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="https://systemk1t.github.io/">systemk1t</a>
+                    
+                    </div>
+                </section>
+                
+
+                
+                
+                <section class="switch-part switch-part4">
+                
+                    <div id="js-aboutme">二进制狗一枚，懂点Web安全，一个伪装成程序员混迹在某公司的菜鸡。</div>
+                </section>
+                
+            </div>
+        </div>
+    </header>                
+</div>
+    </div>
+    <div class="mid-col">
+      <nav id="mobile-nav">
+      <div class="overlay">
+          <div class="slider-trigger"></div>
+          <h1 class="header-author js-mobile-header hide"><a href="/" title="Me">r00tk1t</a></h1>
+      </div>
+    <div class="intrude-less">
+        <header id="header" class="inner">
+            <a href="/" class="profilepic">
+                
+                    <img lazy-src="/img/head.jpg" class="js-avatar">
+                
+            </a>
+            <hgroup>
+              <h1 class="header-author"><a href="/" title="Me">r00tk1t</a></h1>
+            </hgroup>
+            
+            <p class="header-subtitle">二进制安全 | Web安全 | 伪装成程序员的菜鸡</p>
+            
+            <nav class="header-menu">
+                <ul>
+                
+                    <li><a href="/">博客首页</a></li>
+                
+                    <li><a href="/archives">所有文章</a></li>
+                
+                    <li><a href="/tags">标签</a></li>
+                
+                <div class="clearfix"></div>
+                </ul>
+            </nav>
+            <nav class="header-nav">
+                <div class="social">
+                    
+                        <a class="mail" target="_blank" href="mailto: 1903442252@qq.com" title="mail">mail</a>
+                    
+                        <a class="github" target="_blank" href="https://github.com/r00tk1ts" title="github">github</a>
+                    
+                        <a class="zhihu" target="_blank" href="https://www.zhihu.com/people/r00tk1t-5" title="zhihu">zhihu</a>
+                    
+                        <a class="weibo" target="_blank" href="http://weibo.com/2698344533" title="weibo">weibo</a>
+                    
+                        <a class="QQ" target="_blank" href="https://user.qzone.qq.com/1903442252" title="QQ">QQ</a>
+                    
+                </div>
+            </nav>
+        </header>                
+    </div>
+</nav>
+      <div class="body-wrap"><article id="post-Linux内存管理-非连续内存区管理" class="article article-type-post" itemscope itemprop="blogPost">
+  
+    <div class="article-meta">
+      <a href="/2017/10/25/Linux内存管理-非连续内存区管理/" class="article-date">
+      <time datetime="2017-10-25T12:21:11.000Z" itemprop="datePublished">2017-10-25</time>
+</a>
+    </div>
+  
+  <div class="article-inner">
+    
+      <input type="hidden" class="isFancy" />
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      Linux内核学习——内存管理之非连续内存区管理
+    </h1>
+  
+
+      </header>
+      
+      <div class="article-info article-info-post">
+        
+    <div class="article-category tagcloud">
+    <a class="article-category-link" href="/categories/Linux/">Linux</a>
+    </div>
+
+
+        
+    <div class="article-tag tagcloud">
+        <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/linux-kernel/">linux-kernel</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/ulk/">ulk</a></li></ul>
+    </div>
+
+        <div class="clearfix"></div>
+      </div>
+      
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+          
+        <p>非连续内存区管理内容较少，也比较简单，无非就是连续的线性地址到非连续物理内存区的映射。与内核永久内存映射和内核临时内存映射并称三大物理地址与线性地址之间的映射机制。了解非连续内存区管理前，最好优先阅读页框管理和内存区管理。</p>
+<a id="more"></a>
+<h1 id="Linux内存管理-非连续内存区管理"><a href="#Linux内存管理-非连续内存区管理" class="headerlink" title="Linux内存管理-非连续内存区管理"></a>Linux内存管理-非连续内存区管理</h1><p>研究内存区管理时已经知道，内存区映射到一组连续的页框是非常好的做法，这可以充分利用高速缓存来提高效率。Linux还设计了一种机制来实现连续的线性地址映射到非连续的页框。这种方式避免了外碎片，但与此同时打乱了内核页表。Linux的非连续内存区必须是4K的倍数，IO驱动缓冲区，模块分配等都会用到非连续内存区。</p>
+<h2 id="线性地址"><a href="#线性地址" class="headerlink" title="线性地址"></a>线性地址</h2><p>从PAGE_OFFSET也就是0xc0000000，第4GB的线性地址查找空闲区，这1GB的线性地址空间如图：<br><img src="/images/ulk/20171025_1.jpg" alt=""></p>
+<ol>
+<li>内存区开始部分包含的是对前896M的RAM进行映射的线性地址，这一部分直接映射的物理内存末尾所对应的线性地址在high_memory变量中。</li>
+<li>内存区结尾部分包含的是固定映射的线性地址。</li>
+<li>PKMAP_BASE起始，查找用于高端内存页框的永久内核映射的线性地址。</li>
+<li>其余的线性地址可以用于非连续内存区。物理内存映射末尾到第一个内存区之间有个8M的安全区，为了捕获内存越界访问。每个内存区之间也有4K的安全区来隔离非连续的内存区。</li>
+</ol>
+<p>对应的宏：<br><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 第一个非连续映射的内存区与连续映射的线性区末尾之间的安全区大小。</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> VMALLOC_OFFSET	(8*1024*1024)</span></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 为非连续内存区保留的线性地址的起始地址。</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> VMALLOC_START	(((unsigned long) high_memory + vmalloc_earlyreserve + \</span></span><br><span class="line">			<span class="number">2</span>*VMALLOC_OFFSET<span class="number">-1</span>) &amp; ~(VMALLOC_OFFSET<span class="number">-1</span>))</span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 为非连续内存区保留的线性地址的结束地址。</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">ifdef</span> CONFIG_HIGHMEM</span></span><br><span class="line"><span class="meta"># <span class="meta-keyword">define</span> VMALLOC_END	(PKMAP_BASE-2*PAGE_SIZE)</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">else</span></span></span><br><span class="line"><span class="meta"># <span class="meta-keyword">define</span> VMALLOC_END	(FIXADDR_START-2*PAGE_SIZE)</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">endif</span></span></span><br></pre></td></tr></table></figure></p>
+<h2 id="vm-struct"><a href="#vm-struct" class="headerlink" title="vm_struct"></a>vm_struct</h2><p>每个非连续内存区都对应一个vm_struct的描述符：<br><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 非连续内存区的描述符</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">vm_struct</span> &#123;</span></span><br><span class="line">	<span class="comment">/**</span></span><br><span class="line"><span class="comment">	 * 内存区内第一个内存单元的线性地址。</span></span><br><span class="line"><span class="comment">	 */</span></span><br><span class="line">	<span class="keyword">void</span>			*addr;</span><br><span class="line">	<span class="comment">/**</span></span><br><span class="line"><span class="comment">	 * 内存区大小加4096(内存区之间的安全区的大小)</span></span><br><span class="line"><span class="comment">	 */</span></span><br><span class="line">	<span class="keyword">unsigned</span> <span class="keyword">long</span>		size;</span><br><span class="line">	<span class="comment">/**</span></span><br><span class="line"><span class="comment">	 * 非连续内存区映射的内存的类型。</span></span><br><span class="line"><span class="comment">	 * VM_ALLOC表示使用vmalloc得到的页.</span></span><br><span class="line"><span class="comment">	 * VM_MAP表示使用vmap映射的已经被分配的页。</span></span><br><span class="line"><span class="comment">	 * VM_IOREMAP表示使用ioremap映射的硬件设备的板上内存。</span></span><br><span class="line"><span class="comment">	 */</span></span><br><span class="line">	<span class="keyword">unsigned</span> <span class="keyword">long</span>		flags;</span><br><span class="line">	<span class="comment">/**</span></span><br><span class="line"><span class="comment">	 * 指向nr_pages数组的指针，该数组由指向页描述符的指针组成。</span></span><br><span class="line"><span class="comment">	 */</span></span><br><span class="line">	<span class="class"><span class="keyword">struct</span> <span class="title">page</span>		**<span class="title">pages</span>;</span></span><br><span class="line">	<span class="comment">/**</span></span><br><span class="line"><span class="comment">	 * 内存区填充的页的个数。</span></span><br><span class="line"><span class="comment">	 */</span></span><br><span class="line">	<span class="keyword">unsigned</span> <span class="keyword">int</span>		nr_pages;</span><br><span class="line">	<span class="comment">/**</span></span><br><span class="line"><span class="comment">	 * 一般为0,除非内存已经被创建来映射一个硬件设备IO共享内存。</span></span><br><span class="line"><span class="comment">	 */</span></span><br><span class="line">	<span class="keyword">unsigned</span> <span class="keyword">long</span>		phys_addr;</span><br><span class="line">	<span class="comment">/**</span></span><br><span class="line"><span class="comment">	 * 指向下一个vm_struct结构的指针。</span></span><br><span class="line"><span class="comment">	 */</span></span><br><span class="line">	<span class="class"><span class="keyword">struct</span> <span class="title">vm_struct</span>	*<span class="title">next</span>;</span></span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure></p>
+<p>描述符通过next形成链，链表第一个元素地址存放在vmlist中。<br>flags标志非连续区映射的内存类型，VM_ALLOC表示使用vmalloc()得到页，VM_MAP表示使用vmap()得到页，VM_IOREMAP表示ioremap()得到页。</p>
+<h2 id="查找空闲区域"><a href="#查找空闲区域" class="headerlink" title="查找空闲区域"></a>查找空闲区域</h2><p>通过<code>get_vm_area()</code>，用kmalloc分配内存区，在vmlist上找线性地址的空闲区域。<br><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 在线性地址VMALLOC_START和VMALLOC_END之间查找一个空闲区域</span></span><br><span class="line"><span class="comment"> * size-将被创建的内存区的字节大小</span></span><br><span class="line"><span class="comment"> * flag-指定空闲区类型</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function">struct vm_struct *<span class="title">get_vm_area</span><span class="params">(<span class="keyword">unsigned</span> <span class="keyword">long</span> size, <span class="keyword">unsigned</span> <span class="keyword">long</span> flags)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="keyword">return</span> __get_vm_area(size, flags, VMALLOC_START, VMALLOC_END);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">vm_struct</span> *__<span class="title">get_vm_area</span>(<span class="title">unsigned</span> <span class="title">long</span> <span class="title">size</span>, <span class="title">unsigned</span> <span class="title">long</span> <span class="title">flags</span>,</span></span><br><span class="line"><span class="class">				<span class="title">unsigned</span> <span class="title">long</span> <span class="title">start</span>, <span class="title">unsigned</span> <span class="title">long</span> <span class="title">end</span>)</span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line">	<span class="class"><span class="keyword">struct</span> <span class="title">vm_struct</span> **<span class="title">p</span>, *<span class="title">tmp</span>, *<span class="title">area</span>;</span></span><br><span class="line">	<span class="keyword">unsigned</span> <span class="keyword">long</span> align = <span class="number">1</span>;</span><br><span class="line">	<span class="keyword">unsigned</span> <span class="keyword">long</span> addr;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> (flags &amp; VM_IOREMAP) &#123;</span><br><span class="line">		<span class="keyword">int</span> bit = fls(size);</span><br><span class="line"></span><br><span class="line">		<span class="keyword">if</span> (bit &gt; IOREMAP_MAX_ORDER)</span><br><span class="line">			bit = IOREMAP_MAX_ORDER;</span><br><span class="line">		<span class="keyword">else</span> <span class="keyword">if</span> (bit &lt; PAGE_SHIFT)</span><br><span class="line">			bit = PAGE_SHIFT;</span><br><span class="line"></span><br><span class="line">		align = <span class="number">1u</span>l &lt;&lt; bit;</span><br><span class="line">	&#125;</span><br><span class="line">	addr = ALIGN(start, align);</span><br><span class="line"></span><br><span class="line">	<span class="comment">/**</span></span><br><span class="line"><span class="comment">	 * 调用kmalloc为vm_struct类型的新描述符获得一个内存区。</span></span><br><span class="line"><span class="comment">	 */</span></span><br><span class="line">	area = kmalloc(<span class="keyword">sizeof</span>(*area), GFP_KERNEL);</span><br><span class="line">	<span class="keyword">if</span> (unlikely(!area))</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">NULL</span>;</span><br><span class="line"></span><br><span class="line">	<span class="comment">/*</span></span><br><span class="line"><span class="comment">	 * We always allocate a guard page.</span></span><br><span class="line"><span class="comment">	 */</span></span><br><span class="line">	size += PAGE_SIZE;</span><br><span class="line">	<span class="keyword">if</span> (unlikely(!size)) &#123;</span><br><span class="line">		kfree (area);</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">NULL</span>;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="comment">/**</span></span><br><span class="line"><span class="comment">	 * 为写获得vmlist_lock锁。</span></span><br><span class="line"><span class="comment">	 */</span></span><br><span class="line">	write_lock(&amp;vmlist_lock);</span><br><span class="line">	<span class="comment">/**</span></span><br><span class="line"><span class="comment">	 * 扫描vmlist链表，来查找线性地址的一个空闲区域。至少覆盖size+4096个地址(4096是安全区)</span></span><br><span class="line"><span class="comment">	 */</span></span><br><span class="line">	<span class="keyword">for</span> (p = &amp;vmlist; (tmp = *p) != <span class="literal">NULL</span> ;p = &amp;tmp-&gt;next) &#123;</span><br><span class="line">        <span class="comment">/*</span></span><br><span class="line"><span class="comment">         * 起始地址addr落在了其他已经分配的vm_struct的VA地址空间中间</span></span><br><span class="line"><span class="comment">         */</span></span><br><span class="line">		<span class="keyword">if</span> ((<span class="keyword">unsigned</span> <span class="keyword">long</span>)tmp-&gt;addr &lt; addr) &#123;</span><br><span class="line">            <span class="comment">/*</span></span><br><span class="line"><span class="comment">             * addr 已经超过了前一个vm_struct所覆盖的真个VA地址空间，那么addr就更新到上一个vm_struct的VA地址空间最后面</span></span><br><span class="line"><span class="comment">             */</span></span><br><span class="line">			<span class="keyword">if</span>((<span class="keyword">unsigned</span> <span class="keyword">long</span>)tmp-&gt;addr + tmp-&gt;size &gt;= addr)</span><br><span class="line">				addr = ALIGN(tmp-&gt;size + </span><br><span class="line">					     (<span class="keyword">unsigned</span> <span class="keyword">long</span>)tmp-&gt;addr, align);</span><br><span class="line">			<span class="keyword">continue</span>;</span><br><span class="line">		&#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">/*</span></span><br><span class="line"><span class="comment">         * 到达这里的条件是:</span></span><br><span class="line"><span class="comment">         *  tmp-&gt;addr &gt;= addr </span></span><br><span class="line"><span class="comment">         * 也就是 addr 没有落在其他已经分配的vm_struct的VA地址空间中间，即下一个vm_struct地址空间之前</span></span><br><span class="line"><span class="comment">         */</span></span><br><span class="line">		<span class="keyword">if</span> ((size + addr) &lt; addr)</span><br><span class="line">			<span class="keyword">goto</span> out;</span><br><span class="line"></span><br><span class="line">        <span class="comment">/*</span></span><br><span class="line"><span class="comment">         * addr+size 也没有落在其他已经分配的vm_struct的VA地址空间中间，即下一个vm_struct地址空间之前</span></span><br><span class="line"><span class="comment">         */</span></span><br><span class="line">		<span class="keyword">if</span> (size + addr &lt;= (<span class="keyword">unsigned</span> <span class="keyword">long</span>)tmp-&gt;addr)</span><br><span class="line">			<span class="keyword">goto</span> found;</span><br><span class="line"></span><br><span class="line">        <span class="comment">/*</span></span><br><span class="line"><span class="comment">         * 到达这里是 addr+size 落在了下一个已经分配的vm_struct的VA地址空间中间</span></span><br><span class="line"><span class="comment">         * addr就更新到下一个vm_struct的VA地址空间最后面</span></span><br><span class="line"><span class="comment">         */</span></span><br><span class="line">		addr = ALIGN(tmp-&gt;size + (<span class="keyword">unsigned</span> <span class="keyword">long</span>)tmp-&gt;addr, align);</span><br><span class="line">		<span class="keyword">if</span> (addr &gt; end - size)</span><br><span class="line">			<span class="keyword">goto</span> out;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">found:</span><br><span class="line">	<span class="comment">/**</span></span><br><span class="line"><span class="comment">	 * 如果存在这样一个空闲区间，就初始化描述符的字段</span></span><br><span class="line"><span class="comment">	 */</span></span><br><span class="line">	area-&gt;next = *p;</span><br><span class="line">	*p = area;</span><br><span class="line"></span><br><span class="line">	area-&gt;flags = flags;</span><br><span class="line">	area-&gt;addr = (<span class="keyword">void</span> *)addr;</span><br><span class="line">	area-&gt;size = size;</span><br><span class="line">	area-&gt;pages = <span class="literal">NULL</span>;</span><br><span class="line">	area-&gt;nr_pages = <span class="number">0</span>;</span><br><span class="line">	area-&gt;phys_addr = <span class="number">0</span>;</span><br><span class="line">	<span class="comment">/**</span></span><br><span class="line"><span class="comment">	 * 释放锁并返回内存区的起始地址。</span></span><br><span class="line"><span class="comment">	 */</span></span><br><span class="line">	write_unlock(&amp;vmlist_lock);</span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span> area;</span><br><span class="line"></span><br><span class="line">out:</span><br><span class="line">	<span class="comment">/**</span></span><br><span class="line"><span class="comment">	 * 没有找到空闲区，就释放锁并释放先前得到的描述符，然后返回NULL。</span></span><br><span class="line"><span class="comment">	 */</span></span><br><span class="line">	write_unlock(&amp;vmlist_lock);</span><br><span class="line">	kfree(area);</span><br><span class="line">	<span class="keyword">if</span> (printk_ratelimit())</span><br><span class="line">		printk(KERN_WARNING <span class="string">"allocation failed: out of vmalloc space - use vmalloc=&lt;size&gt; to increase size.\n"</span>);</span><br><span class="line">	<span class="keyword">return</span> <span class="literal">NULL</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<h2 id="分配非连续内存区"><a href="#分配非连续内存区" class="headerlink" title="分配非连续内存区"></a>分配非连续内存区</h2><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 给内核分配一个非连续内存区。</span></span><br><span class="line"><span class="comment"> * size-所请求分配的内存区的大小。</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function"><span class="keyword">void</span> *<span class="title">vmalloc</span><span class="params">(<span class="keyword">unsigned</span> <span class="keyword">long</span> size)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">       <span class="keyword">return</span> __vmalloc(size, GFP_KERNEL | __GFP_HIGHMEM, PAGE_KERNEL);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">void</span> *__vmalloc(<span class="keyword">unsigned</span> <span class="keyword">long</span> size, <span class="keyword">int</span> gfp_mask, <span class="keyword">pgprot_t</span> prot)</span><br><span class="line">&#123;</span><br><span class="line">	<span class="class"><span class="keyword">struct</span> <span class="title">vm_struct</span> *<span class="title">area</span>;</span></span><br><span class="line">	<span class="class"><span class="keyword">struct</span> <span class="title">page</span> **<span class="title">pages</span>;</span></span><br><span class="line">	<span class="keyword">unsigned</span> <span class="keyword">int</span> nr_pages, array_size, i;</span><br><span class="line"></span><br><span class="line">	<span class="comment">/**</span></span><br><span class="line"><span class="comment">	 * 首先将参数size设为4096的整数倍。</span></span><br><span class="line"><span class="comment">	 */</span></span><br><span class="line">	size = PAGE_ALIGN(size);</span><br><span class="line">	<span class="keyword">if</span> (!size || (size &gt;&gt; PAGE_SHIFT) &gt; num_physpages)</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">NULL</span>;</span><br><span class="line"></span><br><span class="line">	<span class="comment">/**</span></span><br><span class="line"><span class="comment">	 * 通过调用get_vm_area来创建一个新的描述符。并返回分配给这个内存区的线性地址。</span></span><br><span class="line"><span class="comment">	 * 描述符的flags字段被初始化为VM_ALLOC，这意味着通过使用vmalloc函数，非连续页框将被映射到一个线性地址空间。</span></span><br><span class="line"><span class="comment">	 */</span></span><br><span class="line">	area = get_vm_area(size, VM_ALLOC);</span><br><span class="line">	<span class="keyword">if</span> (!area)</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">NULL</span>;</span><br><span class="line"></span><br><span class="line">	nr_pages = size &gt;&gt; PAGE_SHIFT;</span><br><span class="line">	array_size = (nr_pages * <span class="keyword">sizeof</span>(struct page *));</span><br><span class="line"></span><br><span class="line">	area-&gt;nr_pages = nr_pages;</span><br><span class="line">	<span class="comment">/* Please note that the recursion is strictly bounded. */</span></span><br><span class="line">	<span class="comment">/**</span></span><br><span class="line"><span class="comment">	 * 为页描述符指针数组分配页框。</span></span><br><span class="line"><span class="comment">	 */</span></span><br><span class="line">	<span class="keyword">if</span> (array_size &gt; PAGE_SIZE)</span><br><span class="line">		pages = __vmalloc(array_size, gfp_mask, PAGE_KERNEL);</span><br><span class="line">	<span class="keyword">else</span></span><br><span class="line">		pages = kmalloc(array_size, (gfp_mask &amp; ~__GFP_HIGHMEM));</span><br><span class="line">	area-&gt;pages = pages;</span><br><span class="line">	<span class="keyword">if</span> (!area-&gt;pages) &#123;</span><br><span class="line">		remove_vm_area(area-&gt;addr);</span><br><span class="line">		kfree(area);</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">NULL</span>;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="built_in">memset</span>(area-&gt;pages, <span class="number">0</span>, array_size);</span><br><span class="line"></span><br><span class="line">	<span class="comment">/**</span></span><br><span class="line"><span class="comment">	 * 重复调用alloc_page，为内存区分配nr_pages个页框。并把对应的页描述符放到area-&gt;pages中。</span></span><br><span class="line"><span class="comment">	 * 必须使用area-&gt;pages数组是因为:页框可能属于ZONE_HIGHMEM内存管理区，此时它们不一定映射到一个线性地址上。</span></span><br><span class="line"><span class="comment">	 */</span></span><br><span class="line">	<span class="keyword">for</span> (i = <span class="number">0</span>; i &lt; area-&gt;nr_pages; i++) &#123;</span><br><span class="line">		area-&gt;pages[i] = alloc_page(gfp_mask);</span><br><span class="line">		<span class="keyword">if</span> (unlikely(!area-&gt;pages[i])) &#123;</span><br><span class="line">			<span class="comment">/* Successfully allocated i pages, free them in __vunmap() */</span></span><br><span class="line">			area-&gt;nr_pages = i;</span><br><span class="line">			<span class="keyword">goto</span> fail;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="comment">/**</span></span><br><span class="line"><span class="comment">	 * 现在已经得到了一个连续的线性地址空间，并且分配了一组非连续的页框来映射这些地址。</span></span><br><span class="line"><span class="comment">	 * 需要修改内核页表项，将二者对应起来。这是map_vm_area的工作。</span></span><br><span class="line"><span class="comment">	 */</span></span><br><span class="line">	<span class="keyword">if</span> (map_vm_area(area, prot, &amp;pages))</span><br><span class="line">		<span class="keyword">goto</span> fail;</span><br><span class="line">	<span class="keyword">return</span> area-&gt;addr;</span><br><span class="line"></span><br><span class="line">fail:</span><br><span class="line">	vfree(area-&gt;addr);</span><br><span class="line">	<span class="keyword">return</span> <span class="literal">NULL</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>最后的对应关系修正需要展开<code>map_vm_area</code>:<br><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 将线性地址和页框对应起来</span></span><br><span class="line"><span class="comment"> * area-指向内存区的vm_struct描述符的指针</span></span><br><span class="line"><span class="comment"> * prot-已分配页框的保护位，它总是被置为0x63，对应着present,accessed,read/write及dirty.</span></span><br><span class="line"><span class="comment"> * pages-指向一个指针数组的变量的地址。该指针数组的指针指向页描述符。</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">map_vm_area</span><span class="params">(struct vm_struct *area, <span class="keyword">pgprot_t</span> prot, struct page ***pages)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="comment">/**</span></span><br><span class="line"><span class="comment">	 * 首先将内存区的开始和末尾的线性地址分配给局部变量address和end</span></span><br><span class="line"><span class="comment">	 */</span></span><br><span class="line">	<span class="keyword">unsigned</span> <span class="keyword">long</span> address = (<span class="keyword">unsigned</span> <span class="keyword">long</span>) area-&gt;addr;</span><br><span class="line">	<span class="keyword">unsigned</span> <span class="keyword">long</span> end = address + (area-&gt;size-PAGE_SIZE);</span><br><span class="line">	<span class="keyword">unsigned</span> <span class="keyword">long</span> next;</span><br><span class="line">	<span class="keyword">pgd_t</span> *pgd;</span><br><span class="line">	<span class="keyword">int</span> err = <span class="number">0</span>;</span><br><span class="line">	<span class="keyword">int</span> i;</span><br><span class="line"></span><br><span class="line">	<span class="comment">/**</span></span><br><span class="line"><span class="comment">	 * 使用pgd_offset_k来获得主内核页全局目录中的目录项。该目录项对应于内存区起始线性地址。</span></span><br><span class="line"><span class="comment">	 */</span></span><br><span class="line">	<span class="comment">/*</span></span><br><span class="line"><span class="comment">	 * 更新根目录在swapper_pg_dir主内核页全局目录中的常规页表集合，</span></span><br><span class="line"><span class="comment">	 * 这个页全局目录由主内存描述符的pgd字段所指向，而主内存描述符存放于init_mm遍历</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">	pgd = pgd_offset_k(address);</span><br><span class="line">	<span class="comment">/**</span></span><br><span class="line"><span class="comment">	 * 获得内核页表自旋锁。</span></span><br><span class="line"><span class="comment">	 */</span></span><br><span class="line">	spin_lock(&amp;init_mm.page_table_lock);</span><br><span class="line">	<span class="comment">/**</span></span><br><span class="line"><span class="comment">	 * 此循环为每个页框建立页表项。</span></span><br><span class="line"><span class="comment">	 */</span></span><br><span class="line">	<span class="keyword">for</span> (i = pgd_index(address); i &lt;= pgd_index(end<span class="number">-1</span>); i++) &#123;</span><br><span class="line">		<span class="comment">/**</span></span><br><span class="line"><span class="comment">		 * 调用pud_alloc来为新内存区创建一个页上级目录。并把它的物理地址写入内核页全局目录的合适表项。</span></span><br><span class="line"><span class="comment">		 * 建立了PGD和PUD的联系(addr对应部分)</span></span><br><span class="line"><span class="comment">		 */</span></span><br><span class="line">		<span class="keyword">pud_t</span> *pud = pud_alloc(&amp;init_mm, pgd, address);</span><br><span class="line">		<span class="keyword">if</span> (!pud) &#123;</span><br><span class="line">			err = -ENOMEM;</span><br><span class="line">			<span class="keyword">break</span>;</span><br><span class="line">		&#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">/*</span></span><br><span class="line"><span class="comment">         * next是本PUD项映射范围的结束地址</span></span><br><span class="line"><span class="comment">         */</span></span><br><span class="line">		next = (address + PGDIR_SIZE) &amp; PGDIR_MASK;</span><br><span class="line">		<span class="keyword">if</span> (next &lt; address || next &gt; end)</span><br><span class="line">			next = end;</span><br><span class="line">		<span class="comment">/**</span></span><br><span class="line"><span class="comment">		 * map_area_pud函数为页上级目录所指向的所有页表建立对应关系。</span></span><br><span class="line"><span class="comment">		 * 建立PUD以下映射关系</span></span><br><span class="line"><span class="comment">		 */</span></span><br><span class="line">		<span class="keyword">if</span> (map_area_pud(pud, address, next, prot, pages)) &#123;</span><br><span class="line">			err = -ENOMEM;</span><br><span class="line">			<span class="keyword">break</span>;</span><br><span class="line">		&#125;</span><br><span class="line"></span><br><span class="line">		address = next;</span><br><span class="line">		pgd++;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	spin_unlock(&amp;init_mm.page_table_lock);</span><br><span class="line">	flush_cache_vmap((<span class="keyword">unsigned</span> <span class="keyword">long</span>) area-&gt;addr, end);</span><br><span class="line">	<span class="keyword">return</span> err;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>还有一个vmap()，它会映射非连续内存区中已经分配的页框：<br><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 它将映射非连续内存区中已经分配的页框。本质上，该函数接收一组指向页描述符的指针作为参数，</span></span><br><span class="line"><span class="comment"> * 调用get_vm_area得到一个新的vm_struct描述符。然后调用map_vm_area来映射页框。因此该函数与vmalloc类似，但是不分配页框。</span></span><br><span class="line"><span class="comment"> * 即页框pages已经在函数调用者中分配好了，只是还没有映射VA而已，这里完成映射</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function"><span class="keyword">void</span> *<span class="title">vmap</span><span class="params">(struct page **pages, <span class="keyword">unsigned</span> <span class="keyword">int</span> count,</span></span></span><br><span class="line"><span class="function"><span class="params">		<span class="keyword">unsigned</span> <span class="keyword">long</span> flags, <span class="keyword">pgprot_t</span> prot)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="class"><span class="keyword">struct</span> <span class="title">vm_struct</span> *<span class="title">area</span>;</span></span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> (count &gt; num_physpages)</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">NULL</span>;</span><br><span class="line"></span><br><span class="line">	area = get_vm_area((count &lt;&lt; PAGE_SHIFT), flags);</span><br><span class="line">	<span class="keyword">if</span> (!area)</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">NULL</span>;</span><br><span class="line">	<span class="keyword">if</span> (map_vm_area(area, prot, &amp;pages)) &#123;</span><br><span class="line">		vunmap(area-&gt;addr);</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">NULL</span>;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span> area-&gt;addr;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">//显然map_vm_area是核心</span></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 将线性地址和页框对应起来</span></span><br><span class="line"><span class="comment"> * area-指向内存区的vm_struct描述符的指针</span></span><br><span class="line"><span class="comment"> * prot-已分配页框的保护位，它总是被置为0x63，对应着present,accessed,read/write及dirty.</span></span><br><span class="line"><span class="comment"> * pages-指向一个指针数组的变量的地址。该指针数组的指针指向页描述符。</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">map_vm_area</span><span class="params">(struct vm_struct *area, <span class="keyword">pgprot_t</span> prot, struct page ***pages)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="comment">/**</span></span><br><span class="line"><span class="comment">	 * 首先将内存区的开始和末尾的线性地址分配给局部变量address和end</span></span><br><span class="line"><span class="comment">	 */</span></span><br><span class="line">	<span class="keyword">unsigned</span> <span class="keyword">long</span> address = (<span class="keyword">unsigned</span> <span class="keyword">long</span>) area-&gt;addr;</span><br><span class="line">	<span class="keyword">unsigned</span> <span class="keyword">long</span> end = address + (area-&gt;size-PAGE_SIZE);</span><br><span class="line">	<span class="keyword">unsigned</span> <span class="keyword">long</span> next;</span><br><span class="line">	<span class="keyword">pgd_t</span> *pgd;</span><br><span class="line">	<span class="keyword">int</span> err = <span class="number">0</span>;</span><br><span class="line">	<span class="keyword">int</span> i;</span><br><span class="line"></span><br><span class="line">	<span class="comment">/**</span></span><br><span class="line"><span class="comment">	 * 使用pgd_offset_k来获得主内核页全局目录中的目录项。该目录项对应于内存区起始线性地址。</span></span><br><span class="line"><span class="comment">	 */</span></span><br><span class="line">	<span class="comment">/*</span></span><br><span class="line"><span class="comment">	 * 更新根目录在swapper_pg_dir主内核页全局目录中的常规页表集合，</span></span><br><span class="line"><span class="comment">	 * 这个页全局目录由主内存描述符的pgd字段所指向，而主内存描述符存放于init_mm遍历</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">	pgd = pgd_offset_k(address);</span><br><span class="line">	<span class="comment">/**</span></span><br><span class="line"><span class="comment">	 * 获得内核页表自旋锁。</span></span><br><span class="line"><span class="comment">	 */</span></span><br><span class="line">	spin_lock(&amp;init_mm.page_table_lock);</span><br><span class="line">	<span class="comment">/**</span></span><br><span class="line"><span class="comment">	 * 此循环为每个页框建立页表项。</span></span><br><span class="line"><span class="comment">	 */</span></span><br><span class="line">	<span class="keyword">for</span> (i = pgd_index(address); i &lt;= pgd_index(end<span class="number">-1</span>); i++) &#123;</span><br><span class="line">		<span class="comment">/**</span></span><br><span class="line"><span class="comment">		 * 调用pud_alloc来为新内存区创建一个页上级目录。并把它的物理地址写入内核页全局目录的合适表项。</span></span><br><span class="line"><span class="comment">		 * 建立了PGD和PUD的联系(addr对应部分)</span></span><br><span class="line"><span class="comment">		 */</span></span><br><span class="line">		<span class="keyword">pud_t</span> *pud = pud_alloc(&amp;init_mm, pgd, address);</span><br><span class="line">		<span class="keyword">if</span> (!pud) &#123;</span><br><span class="line">			err = -ENOMEM;</span><br><span class="line">			<span class="keyword">break</span>;</span><br><span class="line">		&#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">/*</span></span><br><span class="line"><span class="comment">         * next是本PUD项映射范围的结束地址</span></span><br><span class="line"><span class="comment">         */</span></span><br><span class="line">		next = (address + PGDIR_SIZE) &amp; PGDIR_MASK;</span><br><span class="line">		<span class="keyword">if</span> (next &lt; address || next &gt; end)</span><br><span class="line">			next = end;</span><br><span class="line">		<span class="comment">/**</span></span><br><span class="line"><span class="comment">		 * map_area_pud函数为页上级目录所指向的所有页表建立对应关系。</span></span><br><span class="line"><span class="comment">		 * 建立PUD以下映射关系</span></span><br><span class="line"><span class="comment">		 */</span></span><br><span class="line">		<span class="keyword">if</span> (map_area_pud(pud, address, next, prot, pages)) &#123;</span><br><span class="line">			err = -ENOMEM;</span><br><span class="line">			<span class="keyword">break</span>;</span><br><span class="line">		&#125;</span><br><span class="line"></span><br><span class="line">		address = next;</span><br><span class="line">		pgd++;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	spin_unlock(&amp;init_mm.page_table_lock);</span><br><span class="line">	flush_cache_vmap((<span class="keyword">unsigned</span> <span class="keyword">long</span>) area-&gt;addr, end);</span><br><span class="line">	<span class="keyword">return</span> err;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<h2 id="释放非连续内存区"><a href="#释放非连续内存区" class="headerlink" title="释放非连续内存区"></a>释放非连续内存区</h2><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">vfree</span><span class="params">(<span class="keyword">void</span> *addr)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	kfree(addr);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 释放由kmalloc接口分配的内存</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">kfree</span> <span class="params">(<span class="keyword">const</span> <span class="keyword">void</span> *objp)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="keyword">kmem_cache_t</span> *c;</span><br><span class="line">	<span class="keyword">unsigned</span> <span class="keyword">long</span> flags;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> (!objp)</span><br><span class="line">		<span class="keyword">return</span>;</span><br><span class="line">	local_irq_save(flags);</span><br><span class="line">	kfree_debugcheck(objp);</span><br><span class="line">	<span class="comment">/**</span></span><br><span class="line"><span class="comment">	 * 通过((kmem_cache_t *)(pg)-&gt;lru.next)，可确定合适的高速缓存描述符。</span></span><br><span class="line"><span class="comment">	 */</span></span><br><span class="line">	c = GET_PAGE_CACHE(virt_to_page(objp));</span><br><span class="line">	<span class="comment">/**</span></span><br><span class="line"><span class="comment">	 * __cache_free释放高速缓存中的对象。</span></span><br><span class="line"><span class="comment">	 */</span></span><br><span class="line">	__cache_free(c, (<span class="keyword">void</span>*)objp);</span><br><span class="line">	local_irq_restore(flags);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>vmap对应的是vunmap:<br><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 释放vmap创建的内存区。</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">vunmap</span><span class="params">(<span class="keyword">void</span> *addr)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	BUG_ON(in_interrupt());</span><br><span class="line">	__vunmap(addr, <span class="number">0</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 被vfree或者vunmap调用，来释放非连续分配的内存区。</span></span><br><span class="line"><span class="comment"> * addr-要释放的内存区的起始地址。</span></span><br><span class="line"><span class="comment"> * deallocate_pages-如果被映射的页框需要释放到分区页框分配器，就置位(当vfree调用本函数时)。否则不置位(被vunmap调用时)</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">void</span> __vunmap(<span class="keyword">void</span> *addr, <span class="keyword">int</span> deallocate_pages)</span><br><span class="line">&#123;</span><br><span class="line">	<span class="class"><span class="keyword">struct</span> <span class="title">vm_struct</span> *<span class="title">area</span>;</span></span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> (!addr)</span><br><span class="line">		<span class="keyword">return</span>;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> ((PAGE_SIZE<span class="number">-1</span>) &amp; (<span class="keyword">unsigned</span> <span class="keyword">long</span>)addr) &#123;</span><br><span class="line">		printk(KERN_ERR <span class="string">"Trying to vfree() bad address (%p)\n"</span>, addr);</span><br><span class="line">		WARN_ON(<span class="number">1</span>);</span><br><span class="line">		<span class="keyword">return</span>;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="comment">/**</span></span><br><span class="line"><span class="comment">	 * 调用remove_vm_area得到vm_struct描述符的地址。</span></span><br><span class="line"><span class="comment">	 * 并清除非连续内存区中的线性地址对应的内核的页表项。</span></span><br><span class="line"><span class="comment">	 */</span></span><br><span class="line">	area = remove_vm_area(addr);</span><br><span class="line">	<span class="keyword">if</span> (unlikely(!area)) &#123;</span><br><span class="line">		printk(KERN_ERR <span class="string">"Trying to vfree() nonexistent vm area (%p)\n"</span>,</span><br><span class="line">				addr);</span><br><span class="line">		WARN_ON(<span class="number">1</span>);</span><br><span class="line">		<span class="keyword">return</span>;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="comment">/**</span></span><br><span class="line"><span class="comment">	 * 如果deallocate_pages被置位，扫描指向页描述符的area-&gt;nr_pages</span></span><br><span class="line"><span class="comment">	 */</span></span><br><span class="line">	<span class="keyword">if</span> (deallocate_pages) &#123;</span><br><span class="line">		<span class="keyword">int</span> i;</span><br><span class="line"></span><br><span class="line">		<span class="keyword">for</span> (i = <span class="number">0</span>; i &lt; area-&gt;nr_pages; i++) &#123;</span><br><span class="line">			<span class="comment">/**</span></span><br><span class="line"><span class="comment">			 * 对每一个数组元素，调用__free_page函数释放页框到分区页框分配器。</span></span><br><span class="line"><span class="comment">			 */</span></span><br><span class="line">			<span class="keyword">if</span> (unlikely(!area-&gt;pages[i]))</span><br><span class="line">				BUG();</span><br><span class="line">			__free_page(area-&gt;pages[i]);</span><br><span class="line">		&#125;</span><br><span class="line"></span><br><span class="line">		<span class="comment">/**</span></span><br><span class="line"><span class="comment">		 * 释放area-&gt;pages数组本身。</span></span><br><span class="line"><span class="comment">		 */</span></span><br><span class="line">		<span class="keyword">if</span> (area-&gt;nr_pages &gt; PAGE_SIZE/<span class="keyword">sizeof</span>(struct page *))</span><br><span class="line">			vfree(area-&gt;pages);</span><br><span class="line">		<span class="keyword">else</span></span><br><span class="line">			kfree(area-&gt;pages);</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="comment">/**</span></span><br><span class="line"><span class="comment">	 * 释放vm_struct描述符。</span></span><br><span class="line"><span class="comment">	 */</span></span><br><span class="line">	kfree(area);</span><br><span class="line">	<span class="keyword">return</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>释放永远要比分配简单。</p>
+
+      
+      
+    </div>
+    
+  </div>
+  
+    
+    <div class="copyright">
+        <p><span>本文标题:</span><a href="/2017/10/25/Linux内存管理-非连续内存区管理/">Linux内核学习——内存管理之非连续内存区管理</a></p>
+        <p><span>文章作者:</span><a href="/" title="访问 r00tk1t 的个人博客">r00tk1t</a></p>
+        <p><span>发布时间:</span>2017年10月25日 - 20时21分</p>
+        <p><span>最后更新:</span>2020年10月20日 - 21时01分</p>
+        <p>
+            <span>原始链接:</span><a class="post-url" href="/2017/10/25/Linux内存管理-非连续内存区管理/" title="Linux内核学习——内存管理之非连续内存区管理">https://r00tk1ts.github.io/2017/10/25/Linux内存管理-非连续内存区管理/</a>
+            <span class="copy-path" data-clipboard-text="原文: https://r00tk1ts.github.io/2017/10/25/Linux内存管理-非连续内存区管理/　　作者: r00tk1t" title="点击复制文章链接"><i class="fa fa-clipboard"></i></span>
+            <script src="/js/clipboard.min.js"></script>
+            <script> var clipboard = new Clipboard('.copy-path'); </script>
+        </p>
+        <p>
+            <span>许可协议:</span><i class="fa fa-creative-commons"></i> <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/3.0/cn/" title="中国大陆 (CC BY-NC-SA 3.0 CN)" target = "_blank">"署名-非商用-相同方式共享 3.0"</a> 转载请保留原文链接及作者。
+        </p>
+    </div>
+
+
+
+<nav id="article-nav">
+  
+    <a href="/2017/10/30/house_of_force.log/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption"><</strong>
+      <div class="article-nav-title">
+        
+          house_of_force log
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2017/10/24/Linux内存管理-内存区管理/" id="article-nav-older" class="article-nav-link-wrap">
+      <div class="article-nav-title">Linux内核学习——内存管理之内存区管理</div>
+      <strong class="article-nav-caption">></strong>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+    <div id="toc" class="toc-article">
+    <strong class="toc-title">文章目录</strong>
+    <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#Linux内存管理-非连续内存区管理"><span class="toc-number">1.</span> <span class="toc-text">Linux内存管理-非连续内存区管理</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#线性地址"><span class="toc-number">1.1.</span> <span class="toc-text">线性地址</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#vm-struct"><span class="toc-number">1.2.</span> <span class="toc-text">vm_struct</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#查找空闲区域"><span class="toc-number">1.3.</span> <span class="toc-text">查找空闲区域</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#分配非连续内存区"><span class="toc-number">1.4.</span> <span class="toc-text">分配非连续内存区</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#释放非连续内存区"><span class="toc-number">1.5.</span> <span class="toc-text">释放非连续内存区</span></a></li></ol></li></ol>
+</div>
+<input type="button" id="tocButton" value="隐藏目录"  title="点击按钮隐藏或者显示文章目录">
+
+<script src="https://7.url.cn/edu/jslib/comb/require-2.1.6,jquery-1.9.1.min.js"></script>
+<script>
+    var valueHide = "隐藏目录";
+    var valueShow = "显示目录";
+
+    if ($(".left-col").is(":hidden")) {
+        $("#tocButton").attr("value", valueShow);
+    }
+    $("#tocButton").click(function() {
+        if ($("#toc").is(":hidden")) {
+            $("#tocButton").attr("value", valueHide);
+            $("#toc").slideDown(320);
+        }
+        else {
+            $("#tocButton").attr("value", valueShow);
+            $("#toc").slideUp(350);
+        }
+    })
+    if ($(".toc").length < 1) {
+        $("#toc, #tocButton").hide();
+    }
+</script>
+
+
+
+
+
+
+
+    
+
+
+
+    <div class="scroll" id="post-nav-button">
+        
+            <a href="/2017/10/30/house_of_force.log/" title="上一篇: house_of_force log">
+                <i class="fa fa-angle-left"></i>
+            </a>
+        
+        <a title="文章列表"><i class="fa fa-bars"></i><i class="fa fa-times"></i></a>
+        
+            <a href="/2017/10/24/Linux内存管理-内存区管理/" title="下一篇: Linux内核学习——内存管理之内存区管理">
+                <i class="fa fa-angle-right"></i>
+            </a>
+        
+    </div>
+    <ul class="post-list"><li class="post-list-item"><a class="post-list-link" href="/2020/10/22/chromium-base库源码解读之引用计数拆解篇/">chromium-base库源码解读之引用计数拆解篇</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/12/16/深入探索禁忌目录之Effective C++篇/">深入探索禁忌目录之Effective C++篇</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/12/10/C++ Primer - 特殊工具与技术/">C++ Primer - 特殊工具与技术</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/12/08/C++ Primer - 用于大型程序的工具/">C++ Primer - 用于大型程序的工具</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/12/06/C++ Primer - 标准库特殊设施/">C++ Primer - 标准库特殊设施</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/12/03/C++ Primer - 模板与泛型编程/">C++ Primer - 模板与泛型编程</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/12/01/C++ Primer - 面向对象程序设计/">C++ Primer - 面向对象程序设计</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/29/C++ Primer - 重载运算与类型转换/">C++ Primer - 重载运算与类型转换</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/29/C++ Primer - 拷贝控制/">C++ Primer - 拷贝控制</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/26/C++ Primer - 动态内存/">C++ Primer - 动态内存</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/26/C++ Primer - 关联容器/">C++ Primer - 关联容器</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/24/C++ Primer - 泛型算法/">C++ Primer - 泛型算法</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/24/C++ Primer - 顺序容器/">C++ Primer - 顺序容器</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/21/C++ Primer - IO库/">C++ Primer - IO库</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/21/C++ Primer - 类/">C++ Primer - 类</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/20/C++ Primer - 函数/">C++ Primer - 函数</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/20/C++ Primer - 语句/">C++ Primer -语句</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/20/C++ Primer - 表达/">C++ Primer - 表达式</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/10/28/C++ Primer - string, vector & array/">C++ Primer - string, vector, array</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/10/28/C++ Primer - 变量和基本类型/">C++ Primer - 变量和基本类型</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/08/25/C++ Templates Note - 类模板/">C++ Templates Note - 类模板</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/08/25/C++ Templates Note - 函数模板/">C++ Templates Note- 函数模板</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/08/13/Linux内存管理-进程地址空间/">Linux内核学习——内存管理之进程地址空间</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/07/07/一次失败的栈溢出(SEH)之GetGo Download Manager/">一次失败的栈溢出(SEH)之GetGo Download Manager</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/06/28/DNSTracer 1.9栈溢出漏洞[CVE-2017-9430]/">DNSTracer 1.9栈溢出漏洞[CVE-2017-9430]</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/06/24/A Tale of Exploit Easy RM 2 MP3 Converter/">A Tale of Exploit "Easy RM 2 MP3</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/06/03/chromium-sandbox-ThreadProcess-analysis/">Chromium-sandbox-ThreadProcess-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/06/03/chromium-sandbox-Filesystem-analysis/">Chromium-sandbox-Filesystem-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/06/03/chromium-sandbox-LowLevelPolicy-analysis/">Chromium-sandbox-LowLevelPolicy-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/26/chromium-sandbox-PolicyEngine-analysis/">Chromium-sandbox-PolicyEngine-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/26/chromium-sandbox-Resolver-analysis/">Chromium-sandbox-Resolver-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/26/chromium-sandbox-Interception/">Chromium-sandbox-Interception-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/21/chromium-sandbox-HandleCloser-analysis/">Chromium-sandbox-HandleCloser-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/20/chromium-sandbox-SharedMemIPC/">Chromium-sandbox-SharedMemIPC-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/19/chromium-sandbox-Crosscall-analysis/">Chromium-sandbox-crosscall-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/19/chromium-sandbox-AlternateDesktop-analysis/">Chromium-sandbox-AlternateDesktop-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/19/chromium-sandbox-Tokens-analysis/">Chromium-sandbox-Tokens-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/14/chromium-sandbox-Job-analysis/">Chromium-sandbox-Job-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/13/chromium-sandbox-TargetPolicy-analysis/">Chromium-sandbox-TargetPolicy-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/13/chromium-sandbox-TargetProcess-analysis/">Chromium-sandbox-TargetProcess-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/13/chromium-sandbox-TargetServices-analysis/">Chromium-sandbox-TargetServices-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/13/chromium-sandbox-BrokerServices/">Chromium-sandbox-BrokerServices-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/04/05/x41-浏览器安全白皮书笔记/">X41-浏览器安全白皮书读书笔记</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/22/Windows系统机制之同步/">Windows系统机制之同步</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/21/Windows系统机制之对象管理器/">Windows系统机制之对象管理器</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/21/Windows系统机制之陷阱分发/">Windows系统机制之陷阱分发</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/21/Bitmaps轶事：Windows 10纪念版前的GDI对象泄露/">Bitmap轶事：Windows 10纪念版后的GDI对象泄露</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/20/理解池污染三部曲/">理解池污染三部曲</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/19/内核利用程序之Razer rzpnk.sys中的逻辑bug/">Windows exploit系列教程第十九篇：内核利用程序之Razer rzpnk.sys中的逻辑bug</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/19/内核利用程序之RS2 Bitmap巫术/">Windows exploit系列教程第十八篇：内核利用程序之RS2 Bitmap巫术</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/15/内核利用程序之滥用GDI Bitmap/">Windows exploit系列教程第十七部分：内核利用程序之任意位置任意写</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/14/内核利用程序之池溢出/">Windows exploit系列教程第十六部分：内核利用程序之池溢出</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/14/内核利用程序之UAF/">Windows exploit系列教程第十五部分：内核利用程序之UAF</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/10/coin1/">Writeup.pwnable.kr系列之coin1</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/10/shellshock/">Writeup.pwnable.kr系列之shellshock</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/09/mistake/">Writeup.pwnable.kr系列之mistake</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/07/leg/">Writeup.pwnable.kr系列之leg</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/06/input/">Writeup.pwnable.kr系列之input</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/05/random/">Writeup.pwnable.kr系列之random</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/05/passcode/">Writeup.pwnable.kr系列之passcode</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/04/flag/">Writeup.pwnable.kr系列之flag</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/04/bof/">Writeup.pwnable.kr系列之bof</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/03/collision/">Writeup.pwnable.kr系列之collision</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/03/fd/">Writeup.pwnable.kr系列之fd</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/02/26/Binary Security Assembly/">Binary-Security-Assembly</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/02/07/内核利用程序之整数溢出/">Windows exploit系列教程第十四部分：内核利用程序之整数溢出</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/02/06/内核利用程序之未初始化栈变量/">Windows exploit系列教程第十三部分：内核利用程序之未初始化栈变量</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/02/06/内核利用程序之空指针引用/">Windows exploit系列教程第十二部分：内核利用程序之空指针引用</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/02/01/内核利用程序之任意位置任意写/">Windows exploit系列教程第十一部分：内核利用程序之任意位置任意写</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/01/15/ring0层exp原语之滥用GDI/">ring0层exp原语之滥用GDI</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/01/14/Windows x64内核提权/">Windows x64内核提权</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/01/14/关键的Windows内核数据结构一览（下）/">关键的Windows内核数据结构一览（下）</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/01/08/关键的Windows内核数据结构一览（上）/">关键的Windows内核数据结构一览（上）</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/01/06/内核利用程序开发之栈溢出/">Windows exploit系列教程第十部分：内核利用程序之栈溢出</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/01/05/堆喷射[第二章：UAF]/">Windows exploit系列教程第九部分：堆喷射[第二章：UAF]</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/12/30/Kernel Driver mmap Handler Exploitation/">内核驱动mmap Handler利用技术</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/12/28/API Interception via DLL Redirection/">通过DLL重定向实现API劫持</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/12/21/Linux中断内幕/">Linux中断内幕</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/12/19/Windows架构设计/">Windows架构设计</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/10/30/house_of_force.log/">house_of_force log</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/10/25/Linux内存管理-非连续内存区管理/">Linux内核学习——内存管理之非连续内存区管理</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/10/24/Linux内存管理-内存区管理/">Linux内核学习——内存管理之内存区管理</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/10/20/Linux内存管理-页框管理/">Linux内核学习——内存管理之页框管理</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/10/19/first_fit.log/">first_fit log</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/10/19/house_of_einherjar.log/">house_of_einherjar log</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/10/18/fastbin_dup_into_stack.log/">fastbin_dup_into_stack log</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/10/12/fastbin_dup.log/">fastbin_dup log</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/09/23/Windows栈溢出之ret eip/">Windows栈溢出之ret eip</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/09/23/Windows栈溢出概述/">Windows栈溢出概述</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/09/16/DEFCON-2015-r0pbaby/">DEFCON-2015-r0pbaby</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/09/11/PWN选手的自我修养/">PWN选手的自我修养</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/08/27/linearsort/">linear sort</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/08/27/quicksort/">quicksort</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/08/27/heapsort&priority-queue/">heapsort & priority-queue</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/08/27/Linux进程的创建与撤销/">Linux内核学习——Linux进程的创建与撤销</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/08/26/Linux进程切换/">Linux内核学习——Linux进程切换</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/08/24/GNU Hash ELF Sections/">GNU Hash ELF Sections</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/08/22/Linux进程概述/">Linux内核学习——Linux进程概述</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/08/18/Linux内存寻址/">Linux内核学习——内存寻址</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/05/15/PlaySms  1.4代码执行漏洞之import csv/">PlaySms 1.4代码执行漏洞之import csv</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/05/15/PlaySms  1.4代码执行漏洞分析/">PlaySms 1.4代码执行漏洞分析</a></li></ul>
+    <script src="https://7.url.cn/edu/jslib/comb/require-2.1.6,jquery-1.9.1.min.js"></script>
+    <script>
+        $(".post-list").addClass("toc-article");
+        $(".post-list-item a").attr("target","_blank");
+        $("#post-nav-button > a:nth-child(2)").click(function() {
+            $(".fa-bars, .fa-times").toggle();
+            $(".post-list").toggle(300);
+            if ($(".toc").length > 0) {
+                $("#toc, #tocButton").toggle(200, function() {
+                    if ($(".switch-area").is(":visible")) {
+                        $("#tocButton").attr("value", valueHide);
+                        }
+                    })
+            }
+            else {
+            }
+        })
+    </script>
+
+
+
+    <script>
+        
+    </script>
+</div>
+      <footer id="footer">
+    <div class="outer">
+        <div id="footer-info">
+            <div class="footer-left">
+                &copy; 2020 r00tk1t
+            </div>
+            <div class="footer-right">
+                <a href="http://hexo.io/" target="_blank">Hexo</a>  Theme <a href="https://github.com/luuman/hexo-theme-spfk" target="_blank">spfk</a> by luuman
+            </div>
+        </div>
+        
+            <div class="visit">
+                
+                    <span id="busuanzi_container_site_pv" style='display:none'>
+                        <span id="site-visit" >访问数量: 
+                            <span id="busuanzi_value_site_uv"></span>
+                        </span>
+                    </span>
+                
+                
+                    <span>, </span>
+                
+                
+                    <span id="busuanzi_container_page_pv" style='display:none'>
+                        <span id="page-visit">本页阅读量: 
+                            <span id="busuanzi_value_page_pv"></span>
+                        </span>
+                    </span>
+                
+            </div>
+        
+    </div>
+</footer>
+
+    </div>
+    <script src="https://7.url.cn/edu/jslib/comb/require-2.1.6,jquery-1.9.1.min.js"></script>
+<script src="/js/main.js"></script>
+
+    <script>
+        $(document).ready(function() {
+            var backgroundnum = 24;
+            var backgroundimg = "url(/background/bg-x.jpg)".replace(/x/gi, Math.ceil(Math.random() * backgroundnum));
+            $("#mobile-nav").css({"background-image": backgroundimg,"background-size": "cover","background-position": "center"});
+            $(".left-col").css({"background-image": backgroundimg,"background-size": "cover","background-position": "center"});
+        })
+    </script>
+
+
+
+
+
+<div class="scroll" id="scroll">
+    <a href="#"><i class="fa fa-arrow-up"></i></a>
+    <a href="#comments"><i class="fa fa-comments-o"></i></a>
+    <a href="#footer"><i class="fa fa-arrow-down"></i></a>
+</div>
+<script>
+    $(document).ready(function() {
+        if ($("#comments").length < 1) {
+            $("#scroll > a:nth-child(2)").hide();
+        };
+    })
+</script>
+
+<script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js">
+</script>
+
+  <script language="javascript">
+    $(function() {
+        $("a[title]").each(function() {
+            var a = $(this);
+            var title = a.attr('title');
+            if (title == undefined || title == "") return;
+            a.data('title', title).removeAttr('title').hover(
+
+            function() {
+                var offset = a.offset();
+                $("<div id=\"anchortitlecontainer\"></div>").appendTo($("body")).html(title).css({
+                    top: offset.top - a.outerHeight() - 15,
+                    left: offset.left + a.outerWidth()/2 + 1
+                }).fadeIn(function() {
+                    var pop = $(this);
+                    setTimeout(function() {
+                        pop.remove();
+                    }, pop.text().length * 800);
+                });
+            }, function() {
+                $("#anchortitlecontainer").remove();
+            });
+        });
+    });
+</script>
+
+
+  </div>
+</body>
+</html>

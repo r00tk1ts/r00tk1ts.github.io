@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>Linux内核学习——Linux进程切换 | r00tk1t&#39;s blog</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="Linux内核的进程切换可谓精彩绝伦，遗憾的是，ULK对此的介绍不够详尽，而毛批中也是一带而过，所以一时云里雾里。本文是我参考了大量资料，反复研磨后对Linux内核中进程切换的一点理解。">
+<meta name="keywords" content="linux-kernel,ulk">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Linux内核学习——Linux进程切换">
+<meta property="og:url" content="https://r00tk1ts.github.io/2017/08/26/Linux进程切换/index.html">
+<meta property="og:site_name" content="r00tk1t&#39;s blog">
+<meta property="og:description" content="Linux内核的进程切换可谓精彩绝伦，遗憾的是，ULK对此的介绍不够详尽，而毛批中也是一带而过，所以一时云里雾里。本文是我参考了大量资料，反复研磨后对Linux内核中进程切换的一点理解。">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="https://r00tk1ts.github.io/images/ulk/20170826_1.jpg">
+<meta property="og:image" content="https://r00tk1ts.github.io/images/ulk/20170826_2.jpg">
+<meta property="og:image" content="https://r00tk1ts.github.io/images/ulk/20170826_3.jpg">
+<meta property="og:updated_time" content="2020-10-20T13:01:02.359Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Linux内核学习——Linux进程切换">
+<meta name="twitter:description" content="Linux内核的进程切换可谓精彩绝伦，遗憾的是，ULK对此的介绍不够详尽，而毛批中也是一带而过，所以一时云里雾里。本文是我参考了大量资料，反复研磨后对Linux内核中进程切换的一点理解。">
+<meta name="twitter:image" content="https://r00tk1ts.github.io/images/ulk/20170826_1.jpg">
+  
+    <link rel="alternative" href="/atom.xml" title="r00tk1t&#39;s blog" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/img/favicon.png">
+  
+  
+      <link rel="stylesheet" href="//cdn.bootcss.com/animate.css/3.5.0/animate.min.css">
+  
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/font-awesome/css/font-awesome.min.css">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  
+  
+      <link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+  
+  <!-- 加载特效 -->
+    <script src="/js/pace.js"></script>
+    <link href="/css/pace/pace-theme-flash.css" rel="stylesheet" />
+  <script>
+      var yiliaConfig = {
+          rootUrl: '/',
+          fancybox: true,
+          animate: true,
+          isHome: false,
+          isPost: true,
+          isArchive: false,
+          isTag: false,
+          isCategory: false,
+          open_in_new: false
+      }
+  </script>
+</head>
+<body>
+  <div id="container">
+    <div class="left-col">
+    <div class="overlay"></div>
+<div class="intrude-less">
+    <header id="header" class="inner">
+        <a href="/" class="profilepic">
+            
+            <img lazy-src="/img/head.jpg" class="js-avatar">
+            
+        </a>
+
+        <hgroup>
+          <h1 class="header-author"><a href="/" title="Hi Mate">r00tk1t</a></h1>
+        </hgroup>
+
+        
+        <p class="header-subtitle">二进制安全 | Web安全 | 伪装成程序员的菜鸡</p>
+        
+        
+        
+            <div id="switch-btn" class="switch-btn">
+                <div class="icon">
+                    <div class="icon-ctn">
+                        <div class="icon-wrap icon-house" data-idx="0">
+                            <div class="birdhouse"></div>
+                            <div class="birdhouse_holes"></div>
+                        </div>
+                        <div class="icon-wrap icon-ribbon hide" data-idx="1">
+                            <div class="ribbon"></div>
+                        </div>
+                        
+                        <div class="icon-wrap icon-link hide" data-idx="2">
+                            <div class="loopback_l"></div>
+                            <div class="loopback_r"></div>
+                        </div>
+                        
+                        
+                        <div class="icon-wrap icon-me hide" data-idx="3">
+                            <div class="user"></div>
+                            <div class="shoulder"></div>
+                        </div>
+                        
+                    </div>
+                    
+                </div>
+                <div class="tips-box hide">
+                    <div class="tips-arrow"></div>
+                    <ul class="tips-inner">
+                        <li>菜单</li>
+                        <li>标签</li>
+                        
+                        <li>友情链接</li>
+                        
+                        
+                        <li>关于我</li>
+                        
+                    </ul>
+                </div>
+            </div>
+        
+
+        <div id="switch-area" class="switch-area">
+            <div class="switch-wrap">
+                <section class="switch-part switch-part1">
+                    <nav class="header-menu">
+                        <ul>
+                        
+                            <li><a href="/">博客首页</a></li>
+                        
+                            <li><a href="/archives">所有文章</a></li>
+                        
+                            <li><a href="/tags">标签</a></li>
+                        
+                        </ul>
+                    </nav>
+                    <nav class="header-nav">
+                        <ul class="social">
+                            
+                                <a class="fl mail" target="_blank" href="mailto: 1903442252@qq.com" title="mail">mail</a>
+                            
+                                <a class="fl github" target="_blank" href="https://github.com/r00tk1ts" title="github">github</a>
+                            
+                                <a class="fl zhihu" target="_blank" href="https://www.zhihu.com/people/r00tk1t-5" title="zhihu">zhihu</a>
+                            
+                                <a class="fl weibo" target="_blank" href="http://weibo.com/2698344533" title="weibo">weibo</a>
+                            
+                                <a class="fl QQ" target="_blank" href="https://user.qzone.qq.com/1903442252" title="QQ">QQ</a>
+                            
+                        </ul>
+                    </nav>
+                </section>
+                
+                
+                <section class="switch-part switch-part2">
+                    <div class="widget tagcloud" id="js-tagcloud">
+                        <a href="/tags/SEH-overwrite/" style="font-size: 10px;">SEH overwrite</a> <a href="/tags/algorithm/" style="font-size: 11.67px;">algorithm</a> <a href="/tags/browser/" style="font-size: 10px;">browser</a> <a href="/tags/chrome/" style="font-size: 16.67px;">chrome</a> <a href="/tags/chrome-sandbox/" style="font-size: 16.67px;">chrome-sandbox</a> <a href="/tags/cpp/" style="font-size: 20px;">cpp</a> <a href="/tags/cpp-primer/" style="font-size: 18.33px;">cpp-primer</a> <a href="/tags/cpp-templates/" style="font-size: 11.67px;">cpp-templates</a> <a href="/tags/dll-hooking/" style="font-size: 10px;">dll hooking</a> <a href="/tags/exploit/" style="font-size: 12.5px;">exploit</a> <a href="/tags/glibc/" style="font-size: 10px;">glibc</a> <a href="/tags/glibc-heap/" style="font-size: 13.33px;">glibc-heap</a> <a href="/tags/linux/" style="font-size: 10.83px;">linux</a> <a href="/tags/linux-kernel/" style="font-size: 14.17px;">linux-kernel</a> <a href="/tags/mmap/" style="font-size: 10px;">mmap</a> <a href="/tags/novice/" style="font-size: 17.5px;">novice</a> <a href="/tags/php/" style="font-size: 10.83px;">php</a> <a href="/tags/pool/" style="font-size: 10px;">pool</a> <a href="/tags/pwn/" style="font-size: 19.17px;">pwn</a> <a href="/tags/pwnable-kr/" style="font-size: 15px;">pwnable.kr</a> <a href="/tags/resources/" style="font-size: 10px;">resources</a> <a href="/tags/stack-overrun/" style="font-size: 11.67px;">stack-overrun</a> <a href="/tags/tutorial/" style="font-size: 10px;">tutorial</a> <a href="/tags/ulk/" style="font-size: 14.17px;">ulk</a> <a href="/tags/web/" style="font-size: 10.83px;">web</a> <a href="/tags/windows/" style="font-size: 15.83px;">windows</a> <a href="/tags/windows-kernel/" style="font-size: 14.17px;">windows-kernel</a> <a href="/tags/writeup/" style="font-size: 10px;">writeup</a> <a href="/tags/wrk/" style="font-size: 12.5px;">wrk</a>
+                    </div>
+                </section>
+                
+                
+                
+                <section class="switch-part switch-part3">
+                    <div id="js-friends">
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://eternalsakura13.com">樱花师傅</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="https://chybeta.github.io/">Chybeta</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://whereisk0shl.top/">k0shl</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://o0xmuhe.github.io/">o0xmuhe</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://bestwing.me/">swing</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://yixuankeer.win/">joker</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://www.hackersb.cn/">王松_Striker</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="https://www.hackfun.org/">4ido10n</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://www.cnblogs.com/iamstudy/">l3m0n</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://www.cnblogs.com/Ox9A82/">Ox9A82</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://mxny.org/">麦香浓郁</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://0x48.pw/">Hcamael</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="https://blog.nuptzj.cn/">画船听雨</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="https://www.bodkin.ren/">老锥</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://www.zerokeeper.com/">ZeroKeeper</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="https://www.ycjcl.cc/">信鑫</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://www.wowotech.net/">wowotech</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://fuzzysecurity.com/">fuzzySecurity</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="https://rootkits.xyz/">rootkits.xyz</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://www.pentestingexperts.com/">pentestingexperts</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="https://blog.skylined.nl/">skylined</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="https://systemk1t.github.io/">systemk1t</a>
+                    
+                    </div>
+                </section>
+                
+
+                
+                
+                <section class="switch-part switch-part4">
+                
+                    <div id="js-aboutme">二进制狗一枚，懂点Web安全，一个伪装成程序员混迹在某公司的菜鸡。</div>
+                </section>
+                
+            </div>
+        </div>
+    </header>                
+</div>
+    </div>
+    <div class="mid-col">
+      <nav id="mobile-nav">
+      <div class="overlay">
+          <div class="slider-trigger"></div>
+          <h1 class="header-author js-mobile-header hide"><a href="/" title="Me">r00tk1t</a></h1>
+      </div>
+    <div class="intrude-less">
+        <header id="header" class="inner">
+            <a href="/" class="profilepic">
+                
+                    <img lazy-src="/img/head.jpg" class="js-avatar">
+                
+            </a>
+            <hgroup>
+              <h1 class="header-author"><a href="/" title="Me">r00tk1t</a></h1>
+            </hgroup>
+            
+            <p class="header-subtitle">二进制安全 | Web安全 | 伪装成程序员的菜鸡</p>
+            
+            <nav class="header-menu">
+                <ul>
+                
+                    <li><a href="/">博客首页</a></li>
+                
+                    <li><a href="/archives">所有文章</a></li>
+                
+                    <li><a href="/tags">标签</a></li>
+                
+                <div class="clearfix"></div>
+                </ul>
+            </nav>
+            <nav class="header-nav">
+                <div class="social">
+                    
+                        <a class="mail" target="_blank" href="mailto: 1903442252@qq.com" title="mail">mail</a>
+                    
+                        <a class="github" target="_blank" href="https://github.com/r00tk1ts" title="github">github</a>
+                    
+                        <a class="zhihu" target="_blank" href="https://www.zhihu.com/people/r00tk1t-5" title="zhihu">zhihu</a>
+                    
+                        <a class="weibo" target="_blank" href="http://weibo.com/2698344533" title="weibo">weibo</a>
+                    
+                        <a class="QQ" target="_blank" href="https://user.qzone.qq.com/1903442252" title="QQ">QQ</a>
+                    
+                </div>
+            </nav>
+        </header>                
+    </div>
+</nav>
+      <div class="body-wrap"><article id="post-Linux进程切换" class="article article-type-post" itemscope itemprop="blogPost">
+  
+    <div class="article-meta">
+      <a href="/2017/08/26/Linux进程切换/" class="article-date">
+      <time datetime="2017-08-26T02:20:11.000Z" itemprop="datePublished">2017-08-26</time>
+</a>
+    </div>
+  
+  <div class="article-inner">
+    
+      <input type="hidden" class="isFancy" />
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      Linux内核学习——Linux进程切换
+    </h1>
+  
+
+      </header>
+      
+      <div class="article-info article-info-post">
+        
+    <div class="article-category tagcloud">
+    <a class="article-category-link" href="/categories/Linux/">Linux</a>
+    </div>
+
+
+        
+    <div class="article-tag tagcloud">
+        <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/linux-kernel/">linux-kernel</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/ulk/">ulk</a></li></ul>
+    </div>
+
+        <div class="clearfix"></div>
+      </div>
+      
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+          
+        <p>Linux内核的进程切换可谓精彩绝伦，遗憾的是，ULK对此的介绍不够详尽，而毛批中也是一带而过，所以一时云里雾里。本文是我参考了大量资料，反复研磨后对Linux内核中进程切换的一点理解。</p>
+<a id="more"></a>
+<h1 id="Linux内核学习——Linux进程切换"><a href="#Linux内核学习——Linux进程切换" class="headerlink" title="Linux内核学习——Linux进程切换"></a>Linux内核学习——Linux进程切换</h1><p>对于Linux这种分时操作系统来说，内核必须有能力挂起CPU正在运行的进程，以复杂的策略调度另外一个进程。这就是进程切换。在Linux中，这也常被称为任务切换或上下文切换。</p>
+<blockquote>
+<p>Linux的进程和任务是一回事，按我的理解，一般内核进程叫任务，用户进程叫进程。</p>
+</blockquote>
+<p>每个进程有自己的地址空间，相互隔离，而CPU是共享的。于是，进程切换时，CPU寄存器的L/S(Load and Save)大法需要内核来谨慎的完成。进一步说，折腾寄存器的这组数据叫硬件上下文，它是进程可执行上下文的一个子集。硬件上下文的一部分放在TSS段，剩余部分放在内核态堆栈。</p>
+<font color="red">进程切换只发生在内核态!</font>
+
+<h2 id="任务状态段"><a href="#任务状态段" class="headerlink" title="任务状态段"></a>任务状态段</h2><p>TSS段在我另一篇文章中简单提到过(Linux内存寻址)，它用来存放硬件上下文。尽管Linux根本不使用硬件上下文切换，但还是强制它为系统中每个不同CPU创建一个TSS，原因有二：</p>
+<ul>
+<li>x86的一个CPU从用户态切换到内核态时，它就从TSS中获取内核态堆栈的地址(中断和异常中的sysenter-&gt;系统调用)。</li>
+<li>用户态进程试图通过in或out指令访问一个I/O端口时，CPU需要访问存在TSS的I/O许可权位图以检查该进程是否有访问端口的权利。</li>
+</ul>
+<p>TSS的结构定义成tss_struct：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 描述TSS的格式</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">tss_struct</span> &#123;</span></span><br><span class="line">	<span class="keyword">unsigned</span> <span class="keyword">short</span>	back_link,__blh;</span><br><span class="line">	<span class="keyword">unsigned</span> <span class="keyword">long</span>	esp0;</span><br><span class="line">	<span class="keyword">unsigned</span> <span class="keyword">short</span>	ss0,__ss0h;</span><br><span class="line">	<span class="keyword">unsigned</span> <span class="keyword">long</span>	esp1;</span><br><span class="line">	<span class="keyword">unsigned</span> <span class="keyword">short</span>	ss1,__ss1h;	<span class="comment">/* ss1 is used to cache MSR_IA32_SYSENTER_CS */</span></span><br><span class="line">	<span class="keyword">unsigned</span> <span class="keyword">long</span>	esp2;</span><br><span class="line">	<span class="keyword">unsigned</span> <span class="keyword">short</span>	ss2,__ss2h;</span><br><span class="line">	<span class="keyword">unsigned</span> <span class="keyword">long</span>	__cr3;</span><br><span class="line">	<span class="keyword">unsigned</span> <span class="keyword">long</span>	eip;</span><br><span class="line">	<span class="keyword">unsigned</span> <span class="keyword">long</span>	eflags;</span><br><span class="line">	<span class="keyword">unsigned</span> <span class="keyword">long</span>	eax,ecx,edx,ebx;</span><br><span class="line">	<span class="keyword">unsigned</span> <span class="keyword">long</span>	esp;</span><br><span class="line">	<span class="keyword">unsigned</span> <span class="keyword">long</span>	ebp;</span><br><span class="line">	<span class="keyword">unsigned</span> <span class="keyword">long</span>	esi;</span><br><span class="line">	<span class="keyword">unsigned</span> <span class="keyword">long</span>	edi;</span><br><span class="line">	<span class="keyword">unsigned</span> <span class="keyword">short</span>	es, __esh;</span><br><span class="line">	<span class="keyword">unsigned</span> <span class="keyword">short</span>	cs, __csh;</span><br><span class="line">	<span class="keyword">unsigned</span> <span class="keyword">short</span>	ss, __ssh;</span><br><span class="line">	<span class="keyword">unsigned</span> <span class="keyword">short</span>	ds, __dsh;</span><br><span class="line">	<span class="keyword">unsigned</span> <span class="keyword">short</span>	fs, __fsh;</span><br><span class="line">	<span class="keyword">unsigned</span> <span class="keyword">short</span>	gs, __gsh;</span><br><span class="line">	<span class="keyword">unsigned</span> <span class="keyword">short</span>	ldt, __ldth;</span><br><span class="line">	<span class="keyword">unsigned</span> <span class="keyword">short</span>	trace, io_bitmap_base;</span><br><span class="line">	<span class="comment">/*</span></span><br><span class="line"><span class="comment">	 * The extra 1 is there because the CPU will access an</span></span><br><span class="line"><span class="comment">	 * additional byte beyond the end of the IO permission</span></span><br><span class="line"><span class="comment">	 * bitmap. The extra byte must be all 1 bits, and must</span></span><br><span class="line"><span class="comment">	 * be within the limit.</span></span><br><span class="line"><span class="comment">	 */</span></span><br><span class="line">	<span class="keyword">unsigned</span> <span class="keyword">long</span>	io_bitmap[IO_BITMAP_LONGS + <span class="number">1</span>];</span><br><span class="line">	<span class="comment">/*</span></span><br><span class="line"><span class="comment">	 * Cache the current maximum and the last task that used the bitmap:</span></span><br><span class="line"><span class="comment">	 */</span></span><br><span class="line">	<span class="keyword">unsigned</span> <span class="keyword">long</span> io_bitmap_max;</span><br><span class="line">	<span class="class"><span class="keyword">struct</span> <span class="title">thread_struct</span> *<span class="title">io_bitmap_owner</span>;</span></span><br><span class="line">	<span class="comment">/*</span></span><br><span class="line"><span class="comment">	 * pads the TSS to be cacheline-aligned (size is 0x100)</span></span><br><span class="line"><span class="comment">	 */</span></span><br><span class="line">	<span class="keyword">unsigned</span> <span class="keyword">long</span> __cacheline_filler[<span class="number">35</span>];</span><br><span class="line">	<span class="comment">/*</span></span><br><span class="line"><span class="comment">	 * .. and then another 0x100 bytes for emergency kernel stack</span></span><br><span class="line"><span class="comment">	 */</span></span><br><span class="line">	<span class="keyword">unsigned</span> <span class="keyword">long</span> <span class="built_in">stack</span>[<span class="number">64</span>];</span><br><span class="line">&#125; __attribute__((packed));</span><br></pre></td></tr></table></figure>
+<p>每次进程切换时，内核更新TSS的某些字段以便相应CPU控制单元可以安全检索到它需要的信息。因此，TSS反映了CPU上当前进程的特权级，但对于没有运行的进程来说，并未保留TSS（TSS跟随CPU而不是进程，这和intel的初衷不同）。</p>
+<p>每个TSS有自己的8字节任务状态段描述符(TSSD)，放在GDT中，CPU的tr寄存器包含相应TSS的TSSD，同时包含两个隐藏的非编程字段：TSSD的Base和Limit域。关于这些的设计，可以参考我之前写的“Linux内存寻址”。</p>
+<p>所以，Linux的TSS跟着CPU走，那么进程切换时，进程的硬件上下文就必须保存在别处。于是，Linux的每个进程描述符包含一个类型为thread_struct的thread字段，只要进程被换出，就把硬件上下文存于此。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 进程被切换出去后，内核把它的硬件上下文保存在这个结构中。</span></span><br><span class="line"><span class="comment"> * 它包含大部分CPU寄存器，但是不包含eax、ebx这样的通用寄存器,他们的值保留在内核堆栈中</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">thread_struct</span> &#123;</span></span><br><span class="line"><span class="comment">/* cached TLS descriptors. */</span></span><br><span class="line">	<span class="class"><span class="keyword">struct</span> <span class="title">desc_struct</span> <span class="title">tls_array</span>[<span class="title">GDT_ENTRY_TLS_ENTRIES</span>];</span></span><br><span class="line">	<span class="keyword">unsigned</span> <span class="keyword">long</span>	esp0;</span><br><span class="line">	<span class="keyword">unsigned</span> <span class="keyword">long</span>	sysenter_cs;</span><br><span class="line">	<span class="keyword">unsigned</span> <span class="keyword">long</span>	eip;</span><br><span class="line">	<span class="keyword">unsigned</span> <span class="keyword">long</span>	esp;</span><br><span class="line">	<span class="keyword">unsigned</span> <span class="keyword">long</span>	fs;</span><br><span class="line">	<span class="keyword">unsigned</span> <span class="keyword">long</span>	gs;</span><br><span class="line"><span class="comment">/* Hardware debugging registers */</span></span><br><span class="line">	<span class="keyword">unsigned</span> <span class="keyword">long</span>	debugreg[<span class="number">8</span>];  <span class="comment">/* %%db0-7 debug registers */</span></span><br><span class="line"><span class="comment">/* fault info */</span></span><br><span class="line">	<span class="keyword">unsigned</span> <span class="keyword">long</span>	cr2, trap_no, error_code;</span><br><span class="line"><span class="comment">/* floating point info */</span></span><br><span class="line">	<span class="comment">/**</span></span><br><span class="line"><span class="comment">	 * 为支持选择性装入FPU、MMX和XMM寄存器，引入此结构。</span></span><br><span class="line"><span class="comment">	 * 当切换进程时，将进程的这些寄存器保存在i387结构中。</span></span><br><span class="line"><span class="comment">	 */</span></span><br><span class="line">	<span class="keyword">union</span> i387_union	i387;</span><br><span class="line"><span class="comment">/* virtual 86 mode info */</span></span><br><span class="line">	<span class="class"><span class="keyword">struct</span> <span class="title">vm86_struct</span> __<span class="title">user</span> * <span class="title">vm86_info</span>;</span></span><br><span class="line">	<span class="keyword">unsigned</span> <span class="keyword">long</span>		screen_bitmap;</span><br><span class="line">	<span class="keyword">unsigned</span> <span class="keyword">long</span>		v86flags, v86mask, saved_esp0;</span><br><span class="line">	<span class="keyword">unsigned</span> <span class="keyword">int</span>		saved_fs, saved_gs;</span><br><span class="line"><span class="comment">/* IO permissions */</span></span><br><span class="line">	<span class="keyword">unsigned</span> <span class="keyword">long</span>	*io_bitmap_ptr;</span><br><span class="line"><span class="comment">/* max allowed port in the bitmap, in bytes: */</span></span><br><span class="line">	<span class="keyword">unsigned</span> <span class="keyword">long</span>	io_bitmap_max;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> INIT_THREAD  &#123;							\</span></span><br><span class="line">	.vm86_info = <span class="literal">NULL</span>,						\</span><br><span class="line">	.sysenter_cs = __KERNEL_CS,					\</span><br><span class="line">	.io_bitmap_ptr = <span class="literal">NULL</span>,						\</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>可以看到诸如eip，esp，fs，gs等寄存器放在了这里，但是一些通用的eax等寄存器却不在这里（他们在内核堆栈）。</p>
+<h2 id="进程切换的入口"><a href="#进程切换的入口" class="headerlink" title="进程切换的入口"></a>进程切换的入口</h2><p>进程切换只可能发生在schedule()函数中，这个函数涉及了复杂的调度策略，在选出一个合适的待换入进程后，执行进程切换。<br>本节，我们只关心进程切换。</p>
+<p>进程切换本质上由两步组成：切换页全局目录以安装一个新的地址空间；切换内核态堆栈和硬件上下文。</p>
+<p>忽略调度策略，schedule()对进程切换的处理：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br></pre></td><td class="code"><pre><span class="line">switch_tasks:</span><br><span class="line">	<span class="comment">/**</span></span><br><span class="line"><span class="comment">	 * 运行到这里，开始进行进程切换了。</span></span><br><span class="line"><span class="comment">	 */</span></span><br><span class="line">	<span class="keyword">if</span> (next == rq-&gt;idle)</span><br><span class="line">		schedstat_inc(rq, sched_goidle);</span><br><span class="line">	<span class="comment">/**</span></span><br><span class="line"><span class="comment">	 * prefetch提示CPU控制单元把next的进程描述符的第一部分字段的内容装入硬件高速缓存。</span></span><br><span class="line"><span class="comment">	 * 这改善了schedule的性能。</span></span><br><span class="line"><span class="comment">	 */</span></span><br><span class="line">	prefetch(next);</span><br><span class="line">	<span class="comment">/**</span></span><br><span class="line"><span class="comment">	 * 清除TIF_NEED_RESCHED标志。</span></span><br><span class="line"><span class="comment">	 */</span></span><br><span class="line">	clear_tsk_need_resched(prev);</span><br><span class="line">	<span class="comment">/**</span></span><br><span class="line"><span class="comment">	 * 记录CPU正在经历静止状态。主要与RCU相关。</span></span><br><span class="line"><span class="comment">	 */</span></span><br><span class="line">	rcu_qsctr_inc(task_cpu(prev));</span><br><span class="line"></span><br><span class="line">	<span class="comment">/**</span></span><br><span class="line"><span class="comment">	 * 减少prev的平均睡眠时间</span></span><br><span class="line"><span class="comment">	 */</span></span><br><span class="line">	prev-&gt;sleep_avg -= run_time;</span><br><span class="line">	<span class="keyword">if</span> ((<span class="keyword">long</span>)prev-&gt;sleep_avg &lt;= <span class="number">0</span>)</span><br><span class="line">		prev-&gt;sleep_avg = <span class="number">0</span>;</span><br><span class="line">	<span class="comment">/**</span></span><br><span class="line"><span class="comment">	 * 更新进程的时间戳</span></span><br><span class="line"><span class="comment">	 */</span></span><br><span class="line">	prev-&gt;timestamp = prev-&gt;last_ran = now;</span><br><span class="line"></span><br><span class="line">	sched_info_switch(prev, next);</span><br><span class="line">	<span class="keyword">if</span> (likely(prev != next)) &#123;<span class="comment">/* prev和next不同，需要切换 */</span></span><br><span class="line">		next-&gt;timestamp = now;</span><br><span class="line">		rq-&gt;nr_switches++;</span><br><span class="line">		rq-&gt;curr = next;</span><br><span class="line">		++*switch_count;</span><br><span class="line"></span><br><span class="line">		prepare_arch_switch(rq, next);</span><br><span class="line">		<span class="comment">/**</span></span><br><span class="line"><span class="comment">		 * context_switch执行真正的进程切换</span></span><br><span class="line"><span class="comment">		 */</span></span><br><span class="line">		prev = context_switch(rq, prev, next);</span><br><span class="line"></span><br><span class="line">		<span class="comment">/**</span></span><br><span class="line"><span class="comment">		 * 当进程再次被切换进来后，以下代码被接着运行。</span></span><br><span class="line"><span class="comment">		 * 但是此时prev并不指向当前进程，而是指代码从哪一个进程切换到本进程。</span></span><br><span class="line"><span class="comment">		 * 由于此时已经进行了进程空间的切换，寄存器中缓存的变量等都不再有效，所以用barrier产生一个优化屏障。</span></span><br><span class="line"><span class="comment">		 */</span></span><br><span class="line">		barrier();</span><br><span class="line"></span><br><span class="line">		<span class="comment">/**</span></span><br><span class="line"><span class="comment">		 * 对前一个进程进行一些收尾工作，比如减少它的mm_struct,task_struct的引用计数等。</span></span><br><span class="line"><span class="comment">		 */</span></span><br><span class="line">		finish_task_switch(prev);</span><br><span class="line">	&#125; <span class="keyword">else</span><span class="comment">/* 如果prev和next是同一个进程，就不做进程切换。当prev仍然是当前活动集合中的最高优先级进程时，这是有可能发生的。 */</span></span><br><span class="line">		spin_unlock_irq(&amp;rq-&gt;lock);</span><br><span class="line"></span><br><span class="line">	<span class="comment">/**</span></span><br><span class="line"><span class="comment">	 * 在前几句中(context_switch之后)，prev代表的是从哪个进程切换到本进程。</span></span><br><span class="line"><span class="comment">	 * 在继续进行调度之前(因此在context_switch中开了中断，可能刚切回本进程就来了中断，并需要重新调度)，将prev设置成当前进程。</span></span><br><span class="line"><span class="comment">	 */</span></span><br><span class="line">	prev = current;</span><br><span class="line">	<span class="comment">/**</span></span><br><span class="line"><span class="comment">	 * 重新获得大内核锁。</span></span><br><span class="line"><span class="comment">	 */</span></span><br><span class="line">	<span class="keyword">if</span> (unlikely(reacquire_kernel_lock(prev) &lt; <span class="number">0</span>))</span><br><span class="line">		<span class="keyword">goto</span> need_resched_nonpreemptible;</span><br><span class="line">	<span class="comment">/**</span></span><br><span class="line"><span class="comment">	 * 打开抢占，并检查是否需要重新调度。</span></span><br><span class="line"><span class="comment">	 */</span></span><br><span class="line">	preempt_enable_no_resched();</span><br><span class="line"></span><br><span class="line">	<span class="comment">/*</span></span><br><span class="line"><span class="comment">	 * 同时检查其他进程是否设置了当前进程的TIF_NEED_RESCHED标志，</span></span><br><span class="line"><span class="comment">	 * 如果是，则整个schedule()函数重新开始执行，否则函数结束</span></span><br><span class="line"><span class="comment">	 */</span></span><br><span class="line">	<span class="keyword">if</span> (unlikely(test_thread_flag(TIF_NEED_RESCHED)))</span><br><span class="line">		<span class="keyword">goto</span> need_resched;</span><br></pre></td></tr></table></figure>
+<p>此时prev和next指向换出和换入的进程，进入context_switch函数：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment"> * context_switch - switch to the new MM and the new</span></span><br><span class="line"><span class="comment"> * thread's register state.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 建立next的地址空间</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">static</span> <span class="keyword">inline</span></span><br><span class="line"><span class="keyword">task_t</span> * context_switch(<span class="keyword">runqueue_t</span> *rq, <span class="keyword">task_t</span> *prev, <span class="keyword">task_t</span> *next)</span><br><span class="line">&#123;</span><br><span class="line">	<span class="class"><span class="keyword">struct</span> <span class="title">mm_struct</span> *<span class="title">mm</span> = <span class="title">next</span>-&gt;<span class="title">mm</span>;</span></span><br><span class="line">	<span class="class"><span class="keyword">struct</span> <span class="title">mm_struct</span> *<span class="title">oldmm</span> = <span class="title">prev</span>-&gt;<span class="title">active_mm</span>;</span></span><br><span class="line"></span><br><span class="line">	<span class="comment">/**</span></span><br><span class="line"><span class="comment">	 * 如果是切换到一个内核线程，新进程就使用pre的地址空间，避免了TLB的切换</span></span><br><span class="line"><span class="comment">	 */</span></span><br><span class="line">	<span class="keyword">if</span> (unlikely(!mm)) &#123;</span><br><span class="line">		next-&gt;active_mm = oldmm;</span><br><span class="line">		atomic_inc(&amp;oldmm-&gt;mm_count);</span><br><span class="line">		<span class="comment">/**</span></span><br><span class="line"><span class="comment">		 * 作为更进一步的优化措施，如果新进程是内核线程，就将进程设置为懒惰TLB模式</span></span><br><span class="line"><span class="comment">		 * xie.baoyou注：请想一下，如果内核线程切换出去后，可能又会回到上一个进程，此时就根本不需要切换地址空间。</span></span><br><span class="line"><span class="comment">		 * 皆大欢喜，大家都省事了，这叫“懒人有懒福”</span></span><br><span class="line"><span class="comment">		 */</span></span><br><span class="line">		enter_lazy_tlb(oldmm, next);</span><br><span class="line">	&#125; <span class="keyword">else</span><span class="comment">/* 否则就需要切换内地址空间。 */</span></span><br><span class="line">		switch_mm(oldmm, mm, next);</span><br><span class="line"></span><br><span class="line">	<span class="comment">/**</span></span><br><span class="line"><span class="comment">	 * 如果上一个线程是内核线程或正在退出的进程，就把prev内存描述符的指针保存到运行队列的prev_mm中。</span></span><br><span class="line"><span class="comment">	 * 并清空rq-&gt;prev_mm</span></span><br><span class="line"><span class="comment">	 */</span></span><br><span class="line">	<span class="keyword">if</span> (unlikely(!prev-&gt;mm)) &#123;</span><br><span class="line">		prev-&gt;active_mm = <span class="literal">NULL</span>;</span><br><span class="line">		WARN_ON(rq-&gt;prev_mm);</span><br><span class="line">		rq-&gt;prev_mm = oldmm;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="comment">/* Here we just switch the register state and the stack. */</span></span><br><span class="line">	<span class="comment">/**</span></span><br><span class="line"><span class="comment">	 * 终于可以真正的切换了。</span></span><br><span class="line"><span class="comment">	 */</span>	</span><br><span class="line">	switch_to(prev, next, prev);</span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span> prev;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="晦涩的switch-to"><a href="#晦涩的switch-to" class="headerlink" title="晦涩的switch_to"></a>晦涩的switch_to</h2><p>这个switch_to是个宏，它很有意思，因为除了prev和next外，还有个last参数：<br><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 进程切换时，切换内核态堆栈和硬件上下文。</span></span><br><span class="line"><span class="comment"> * prev-被替换的进程</span></span><br><span class="line"><span class="comment"> * next-新进程</span></span><br><span class="line"><span class="comment"> * last-在任何进程切换中，到三个进程而不是两个。假设内核决定暂停A而激活B，那么在schedule函数中，prev指向A而next指向B。</span></span><br><span class="line"><span class="comment"> *      当切换回A后，就必须暂停另外一个进程C。而LAST则指向C进程。</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> switch_to(prev,next,last) do &#123;					\</span></span><br><span class="line">	<span class="keyword">unsigned</span> <span class="keyword">long</span> esi,edi;						\</span><br><span class="line">	<span class="comment">/**</span></span><br><span class="line"><span class="comment">	 * 在真正执行汇编代码前，已经将prev存入eax，next存入edx中了。</span></span><br><span class="line"><span class="comment">	 */</span></span><br><span class="line"></span><br><span class="line">				<span class="comment">/**</span></span><br><span class="line"><span class="comment">				 * 保存eflags和ebp到内核栈中。必须保存是因为编译器认为在switch_to结束前，</span></span><br><span class="line"><span class="comment">				 * 它们的值应当保持不变。</span></span><br><span class="line"><span class="comment">				 */</span></span><br><span class="line">	<span class="function"><span class="keyword">asm</span> <span class="title">volatile</span><span class="params">(<span class="string">"pushfl\n\t"</span>					\</span></span></span><br><span class="line"><span class="function"><span class="params">		     <span class="string">"pushl %%ebp\n\t"</span>					\</span></span></span><br><span class="line"><span class="function"><span class="params">		     <span class="comment">/**</span></span></span></span><br><span class="line"><span class="function"><span class="params"><span class="comment">		      * 把esp的内容保存到prev-&gt;thread.esp中</span></span></span></span><br><span class="line"><span class="function"><span class="params"><span class="comment">		      * 这样该字段指向prev内核栈的栈顶。</span></span></span></span><br><span class="line"><span class="function"><span class="params"><span class="comment">		      */</span></span></span></span><br><span class="line"><span class="function"><span class="params">		     <span class="string">"movl %%esp,%0\n\t"</span>	<span class="comment">/* save ESP */</span>		\</span></span></span><br><span class="line"><span class="function"><span class="params">		     <span class="comment">/**</span></span></span></span><br><span class="line"><span class="function"><span class="params"><span class="comment">		      * 将next-&gt;thread.esp装入到esp.</span></span></span></span><br><span class="line"><span class="function"><span class="params"><span class="comment">		      * 此时，内核开始在next的栈上进行操作。这条指令实际上完成了从prev到next的切换。</span></span></span></span><br><span class="line"><span class="function"><span class="params"><span class="comment">		      * 由于进程描述符的地址和内核栈的地址紧挨着，所以改变内核栈意味着改变当前进程。</span></span></span></span><br><span class="line"><span class="function"><span class="params"><span class="comment">		      */</span></span></span></span><br><span class="line"><span class="function"><span class="params">		     <span class="string">"movl %5,%%esp\n\t"</span>	<span class="comment">/* restore ESP */</span>	\</span></span></span><br><span class="line"><span class="function"><span class="params">		     <span class="comment">/**</span></span></span></span><br><span class="line"><span class="function"><span class="params"><span class="comment">		      * 将标记为1f的地址存入prev-&gt;thread.eip.</span></span></span></span><br><span class="line"><span class="function"><span class="params"><span class="comment">		      * 当被替换的进程重新恢复执行时，进程执行被标记为1f的那条指令。</span></span></span></span><br><span class="line"><span class="function"><span class="params"><span class="comment">		      */</span></span></span></span><br><span class="line"><span class="function"><span class="params">		     <span class="string">"movl $1f,%1\n\t"</span>		<span class="comment">/* save EIP */</span>		\</span></span></span><br><span class="line"><span class="function"><span class="params">		     <span class="comment">/**</span></span></span></span><br><span class="line"><span class="function"><span class="params"><span class="comment">		      * 将next-&gt;thread.eip的值保存到next的内核栈中。</span></span></span></span><br><span class="line"><span class="function"><span class="params"><span class="comment">		      * 这样，_switch_to调用ret返回时，就会跳转到next-&gt;thread.eip执行。</span></span></span></span><br><span class="line"><span class="function"><span class="params"><span class="comment">		      * 这个地址一般情况下就会是1f.</span></span></span></span><br><span class="line"><span class="function"><span class="params"><span class="comment">		      */</span></span></span></span><br><span class="line"><span class="function"><span class="params">		     <span class="string">"pushl %6\n\t"</span>		<span class="comment">/* restore EIP */</span>	\</span></span></span><br><span class="line"><span class="function"><span class="params">		     <span class="comment">/**</span></span></span></span><br><span class="line"><span class="function"><span class="params"><span class="comment">		      * 注意，这里不是用call，是jmp，这样，上一条语句中压入的eip地址就可以执行了。</span></span></span></span><br><span class="line"><span class="function"><span class="params"><span class="comment">		      */</span></span></span></span><br><span class="line"><span class="function"><span class="params">		     <span class="string">"jmp __switch_to\n"</span>				\</span></span></span><br><span class="line"><span class="function"><span class="params">		     <span class="comment">/**</span></span></span></span><br><span class="line"><span class="function"><span class="params"><span class="comment">		      * 到这里，进程A再次获得CPU。它从栈中弹出ebp和eflags。</span></span></span></span><br><span class="line"><span class="function"><span class="params"><span class="comment">		      */</span></span></span></span><br><span class="line"><span class="function"><span class="params">		     <span class="string">"1:\t"</span>						\</span></span></span><br><span class="line"><span class="function"><span class="params">		     <span class="string">"popl %%ebp\n\t"</span>					\</span></span></span><br><span class="line"><span class="function"><span class="params">		     <span class="string">"popfl"</span>						\</span></span></span><br><span class="line">		     :"=m" (prev-&gt;thread.esp),"=m" (prev-&gt;thread.eip),	\</span><br><span class="line">		     <span class="comment">/* last被作为输出参数，它的值会由eax赋给它。 */</span></span><br><span class="line">		      <span class="string">"=a"</span> (last),<span class="string">"=S"</span> (esi),<span class="string">"=D"</span> (edi)			\</span><br><span class="line">		     :<span class="string">"m"</span> (next-&gt;thread.esp),<span class="string">"m"</span> (next-&gt;thread.eip),	\</span><br><span class="line">		      <span class="string">"2"</span> (prev), <span class="string">"d"</span> (next));				\</span><br><span class="line">&#125; <span class="keyword">while</span> (<span class="number">0</span>)</span><br></pre></td></tr></table></figure></p>
+<p>这个宏是用AT&amp;T汇编语法写的，不是很好理解，虽然上述代码根据ULK的描述，已一一按桩插入，但我们还是展开成最终反汇编码说明。</p>
+<blockquote>
+<p>AT&amp;T汇编语法的基础知识，可以参考毛批的第一章。</p>
+</blockquote>
+<ol>
+<li><p>eax和edx分别保存prev和next:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">movl prev, %eax</span><br><span class="line">movl next, %edx</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>eflags和ebp保存到prev的内核堆栈：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">pushfl</span><br><span class="line">pushl %ebp</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>把esp的内容保存到prev-&gt;thread.esp中使得该字段指向prev内核堆栈栈顶：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">movl %esp, 484(%eax)</span><br></pre></td></tr></table></figure>
+</li>
+</ol>
+<p>484(%eax)表示内存单元地址为eax+484，也就是prev-&gt;thread.esp。</p>
+<ol start="4">
+<li><p>把next-&gt;thread.esp装入esp。esp指向了next的内核栈，就代表此时内核切换到了next的内核栈。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">movl 484(%edx), %esp</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>把标记为1的地址放入prev-&gt;thread.eip，这表示替换的进程再次恢复执行时，restore出eip，从1处继续执行：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">movl $1f, 480(%eax)</span><br></pre></td></tr></table></figure>
+</li>
+</ol>
+<p>480(%eax)就是prev-&gt;thread.eip</p>
+<ol start="6">
+<li><p>对称的，把next-&gt;thread.eip的值（大概率就是上一次压入的1的地址，如果它未被换出过，那情况要复杂一些）压入next内核栈：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">pushl 480(%edx)</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>跳到__switch_to() C函数：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">jmp __switch_to</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>从<strong>switch_to回来后，实际上已经变成了next进程，而</strong>switch_to实际上内部是通过ret返回的，那么返回地址也就刚好是push的next-&gt;thread.eip。玩安全的想必非常熟悉，这是经典的push+jmp+ret伪造call指令。于是，next执行从1标签开始的指令，进行restore，而此时因为堆栈早已换成next自己的，所以pop出来的也就是上一次被换出时保存的ebp和eflags。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">1:</span><br><span class="line">popl %ebp</span><br><span class="line">popfl</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>拷贝eax的内容到switch_to的第三个参数last标记的内存区域中：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">movl %eax, last</span><br></pre></td></tr></table></figure>
+</li>
+</ol>
+<p>prev和next是进程堆栈中的两个局部变量，那么对于两个进程来说，我们把prev标志的称为A，next标志的称为B。A的进程堆栈中有着prev和next，在切换前夕，prev是A，next是B。当跳到__switch_to后，ret回来，此时就是进程B的堆栈，而B的堆栈中同样有上一次的prev和next，B的prev应该是B本身，而B的next应该是上一次B切换到C时的C。而我们设计上，希望从A切换到B时，不仅能够保证A的prev和next正确，还要保证切换到B后，B的prev也是正确的。<br>如果只是单纯的A-&gt;B-&gt;A在不会有问题，他们的prev和next都是正确的，但是如果A-&gt;B，C-&gt;A就会有问题:（注意，这里换入的进程的prev还没有被eax重置，这一忽略曾让我怀疑人生）</p>
+<p><img src="/images/ulk/20170826_1.jpg" alt=""></p>
+<p>由于A此前在切换到B时，堆栈上prev和next保存的分别是A和B，那么如果我们从C到A时，A的prev依然是A，这就有问题了。A的prev明明应该是C才对（这就是前面说的我们不仅要保证换出的C的prev和next正确，换入的A的prev也应该正确，至于A的next，who care?等它再次切换时自己就处理好了）。本质上来讲，这其实就是堆栈切换后，局部变量因为他的含义需要相应调整的故事。<br>所以switch_to宏多引入了一个last变量，last实际上就是prev，<strong>switch_to返回值eax实际上就是A的prev，因为执行</strong>switch_to时prev变量指向的还是A的prev，而ret回去后，prev变量就是B的堆栈上的prev。因此，借由__switch_to前传递A的prev，ret后再返回这个A的prev值给B，用于覆盖B的prev，那么B的prev由谁覆盖？答案就是last，eax值返回给last，用last覆盖B的prev，从而保持了prev的字面意义。</p>
+<p>如果说prev和next是变化的状态量，随着进程切换而改变意义，那么这个一开始和prev一致的last就是个过程量，用于切换后以A的prev正确的重置B的prev。prev和next是输入型变量，last是输出型变量，用于指明切换后被覆盖的地址。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">movl %eax, last</span><br></pre></td></tr></table></figure></p>
+<p>这一过程非常的复杂，我自己也是研究了好久才弄明白，但是当我捋清了整个流程，便惊叹于内核设计的绝伦精妙。</p>
+<p>我在网上淘金时，挖到了描述这一过程不错的图例：</p>
+<p><img src="/images/ulk/20170826_2.jpg" alt=""><br><img src="/images/ulk/20170826_3.jpg" alt=""></p>
+<h2 id="switch-to函数"><a href="#switch-to函数" class="headerlink" title="__switch_to函数"></a>__switch_to函数</h2><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * __switch_to函数执行大多数进程切换的工作。</span></span><br><span class="line"><span class="comment"> * 进程切换的工作开始于switch_to宏，但是它的主要工作还是由__switch_to完成。</span></span><br><span class="line"><span class="comment"> * 这个函数是寄存器传参的函数。在switch_to宏中，参数已经保存在eax和edx中了.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">task_struct</span> <span class="title">fastcall</span> * __<span class="title">switch_to</span>(<span class="title">struct</span> <span class="title">task_struct</span> *<span class="title">prev_p</span>, <span class="title">struct</span> <span class="title">task_struct</span> *<span class="title">next_p</span>)</span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line">	<span class="class"><span class="keyword">struct</span> <span class="title">thread_struct</span> *<span class="title">prev</span> = &amp;<span class="title">prev_p</span>-&gt;<span class="title">thread</span>,</span></span><br><span class="line"><span class="class">				 *<span class="title">next</span> = &amp;<span class="title">next_p</span>-&gt;<span class="title">thread</span>;</span></span><br><span class="line">	<span class="comment">/**</span></span><br><span class="line"><span class="comment">	 * 通过读取current_thread_info()-&gt;cpu,获得当前进程在哪个CPU上运行.</span></span><br><span class="line"><span class="comment">	 * 因为在schedule函数中已经调用了禁用抢占,所以这里可以直接使用smp_processor_id()</span></span><br><span class="line"><span class="comment">	 */</span></span><br><span class="line">	<span class="keyword">int</span> cpu = smp_processor_id();</span><br><span class="line">	<span class="class"><span class="keyword">struct</span> <span class="title">tss_struct</span> *<span class="title">tss</span> = &amp;<span class="title">per_cpu</span>(<span class="title">init_tss</span>, <span class="title">cpu</span>);</span></span><br><span class="line"></span><br><span class="line">	<span class="comment">/* never put a printk in __switch_to... printk() calls wake_up*() indirectly */</span></span><br><span class="line">	<span class="comment">/**</span></span><br><span class="line"><span class="comment">	 * __unlazy_fpu宏有选择的保存FPU\MMX\XMM寄存器的内容.</span></span><br><span class="line"><span class="comment">	 * 它可能会延后保存这些寄存器的内容.</span></span><br><span class="line"><span class="comment">	 */</span></span><br><span class="line">	__unlazy_fpu(prev_p);</span><br><span class="line"></span><br><span class="line">	<span class="comment">/*</span></span><br><span class="line"><span class="comment">	 * Reload esp0, LDT and the page table pointer:</span></span><br><span class="line"><span class="comment">	 */</span></span><br><span class="line">	<span class="comment">/**</span></span><br><span class="line"><span class="comment">	 * 把next_p-&gt;thread.esp0装入本地CPU的TSS的esp0字段.</span></span><br><span class="line"><span class="comment">	 * 任何由sysenter汇编指令产生的从用户态到内核态的特权级转换将把这个地址复制到esp寄存器.</span></span><br><span class="line"><span class="comment">	 */</span></span><br><span class="line">	load_esp0(tss, next);</span><br><span class="line"></span><br><span class="line">	<span class="comment">/*</span></span><br><span class="line"><span class="comment">	 * Load the per-thread Thread-Local Storage descriptor.</span></span><br><span class="line"><span class="comment">	 */</span></span><br><span class="line">	<span class="comment">/**</span></span><br><span class="line"><span class="comment">	 * 将next_p进程使用的线程局部存储(TLS)段装入本地CPU的全局描述符表.</span></span><br><span class="line"><span class="comment">	 */</span></span><br><span class="line">	load_TLS(next, cpu);</span><br><span class="line"></span><br><span class="line">	<span class="comment">/*</span></span><br><span class="line"><span class="comment">	 * Save away %fs and %gs. No need to save %es and %ds, as</span></span><br><span class="line"><span class="comment">	 * those are always kernel segments while inside the kernel.</span></span><br><span class="line"><span class="comment">	 */</span></span><br><span class="line">	<span class="comment">/**</span></span><br><span class="line"><span class="comment">	 * 把fs和gs段寄存器的内容分别存放在prev_p-&gt;thread.fs和prev_p-&gt;thread.gs中.</span></span><br><span class="line"><span class="comment">	 */</span></span><br><span class="line">	asm volatile("movl %%fs,%0":"=m" (*(int *)&amp;prev-&gt;fs));</span><br><span class="line">	asm volatile("movl %%gs,%0":"=m" (*(int *)&amp;prev-&gt;gs));</span><br><span class="line"></span><br><span class="line">	<span class="comment">/*</span></span><br><span class="line"><span class="comment">	 * Restore %fs and %gs if needed.</span></span><br><span class="line"><span class="comment">	 */</span></span><br><span class="line">	<span class="comment">/**</span></span><br><span class="line"><span class="comment">	 * 不管是prev还是next,只要他们使用了fs和gs,那么,都需要将next中的fs,gs更新到段寄存器.</span></span><br><span class="line"><span class="comment">	 * 即使next并不使用fs,但是只要prev使用了,也需要更新.这样可以防止next通过fs,gs访问prev的数据.</span></span><br><span class="line"><span class="comment">	 */</span></span><br><span class="line">	<span class="keyword">if</span> (unlikely(prev-&gt;fs | prev-&gt;gs | next-&gt;fs | next-&gt;gs)) &#123;</span><br><span class="line">		<span class="comment">/**</span></span><br><span class="line"><span class="comment">		 * loadsegment可能会装载一个无效的段寄存器.CPU可能会产生一个异常.</span></span><br><span class="line"><span class="comment">		 * 但是loadsegment会采用代码修正技术来处理这种情况.</span></span><br><span class="line"><span class="comment">		 */</span></span><br><span class="line">		loadsegment(fs, next-&gt;fs);</span><br><span class="line">		loadsegment(gs, next-&gt;gs);</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="comment">/*</span></span><br><span class="line"><span class="comment">	 * Now maybe reload the debug registers</span></span><br><span class="line"><span class="comment">	 */</span></span><br><span class="line">	<span class="comment">/**</span></span><br><span class="line"><span class="comment">	 * 用debugreg数组的内容dr0..dr7中的6个调试寄存器.这允许定义四个断点区域.</span></span><br><span class="line"><span class="comment">	 */</span></span><br><span class="line">	<span class="keyword">if</span> (unlikely(next-&gt;debugreg[<span class="number">7</span>])) &#123;</span><br><span class="line">		loaddebug(next, <span class="number">0</span>);</span><br><span class="line">		loaddebug(next, <span class="number">1</span>);</span><br><span class="line">		loaddebug(next, <span class="number">2</span>);</span><br><span class="line">		loaddebug(next, <span class="number">3</span>);</span><br><span class="line">		<span class="comment">/* no 4 and 5 */</span></span><br><span class="line">		loaddebug(next, <span class="number">6</span>);</span><br><span class="line">		loaddebug(next, <span class="number">7</span>);</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="comment">/**</span></span><br><span class="line"><span class="comment">	 * 如果必要,更新TSS中的IO位图.当next或者prev有其自己的定制IO权限位图时必须这么做.</span></span><br><span class="line"><span class="comment">	 */</span></span><br><span class="line">	<span class="keyword">if</span> (unlikely(prev-&gt;io_bitmap_ptr || next-&gt;io_bitmap_ptr))</span><br><span class="line">		<span class="comment">/**</span></span><br><span class="line"><span class="comment">		 * handle_io_bitmap并不立即更新位图,而是采用一种懒模式的方法.</span></span><br><span class="line"><span class="comment">		 */</span></span><br><span class="line">		handle_io_bitmap(next, tss);</span><br><span class="line"></span><br><span class="line">	<span class="comment">/**</span></span><br><span class="line"><span class="comment">	 * return产生的汇编指令是movl %edi, %eax,ret.</span></span><br><span class="line"><span class="comment">	 * 这里有保护eax和返回地址的问题.请仔细理解.</span></span><br><span class="line"><span class="comment">	 * 除了需要理解switch_to宏中的jmp指令外,对于没有产生切换,而是第一次开始执行的进程.</span></span><br><span class="line"><span class="comment">	 * 它并不会跳回switch_to,而是找到ret_from_fork函数的超始地址.</span></span><br><span class="line"><span class="comment">	 */</span></span><br><span class="line">	<span class="keyword">return</span> prev_p;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>可以看到，进程切换中硬件上下文的实质性工作都是在这里处理的，而<strong>switch_to返回值就是传入的prev_p，也就是switch_to中的prev局部变量，这个变量在执行jmp </strong>switch_to之前代表着A的prev。</p>
+<p>值得一提的是，<strong>switch_to的函数参数不是通过栈传递的，而是指定了eax和edx寄存器，</strong>switch_to什么都没有做，只是在对应Makefile中写上了<code>KBUILD_CFLAGS += -msoft-float -mregparm=3 -freg-struct-return</code>，-mregparm=3表示默认使用3个寄存器传参。</p>
+<font color="red">一言以蔽之，进程切换的关键操作无非就是切换地址空间、切换内核堆栈、切换内核控制流程以及必要寄存器的现场保护与还原。</font>
+
+<h2 id="参考文献"><a href="#参考文献" class="headerlink" title="参考文献"></a>参考文献</h2><ul>
+<li><a href="http://home.ustc.edu.cn/~hchunhui/linux_sched.html" target="_blank" rel="noopener">x86体系结构下Linux-2.6.26的进程调度和切换</a></li>
+<li><a href="http://blog.csdn.net/titer1/article/details/45289159" target="_blank" rel="noopener">linux 进程调度switch_to宏浅析+系统执行过程总结</a></li>
+<li><a href="http://www.cnblogs.com/visayafan/archive/2011/12/10/2283660.html" target="_blank" rel="noopener">【内核】进程切换 switch_to 与 __switch_to</a></li>
+<li>《深入理解Linux内核》</li>
+<li>《Linux内核源代码情景分析(上)》</li>
+</ul>
+
+      
+      
+    </div>
+    
+  </div>
+  
+    
+    <div class="copyright">
+        <p><span>本文标题:</span><a href="/2017/08/26/Linux进程切换/">Linux内核学习——Linux进程切换</a></p>
+        <p><span>文章作者:</span><a href="/" title="访问 r00tk1t 的个人博客">r00tk1t</a></p>
+        <p><span>发布时间:</span>2017年08月26日 - 10时20分</p>
+        <p><span>最后更新:</span>2020年10月20日 - 21时01分</p>
+        <p>
+            <span>原始链接:</span><a class="post-url" href="/2017/08/26/Linux进程切换/" title="Linux内核学习——Linux进程切换">https://r00tk1ts.github.io/2017/08/26/Linux进程切换/</a>
+            <span class="copy-path" data-clipboard-text="原文: https://r00tk1ts.github.io/2017/08/26/Linux进程切换/　　作者: r00tk1t" title="点击复制文章链接"><i class="fa fa-clipboard"></i></span>
+            <script src="/js/clipboard.min.js"></script>
+            <script> var clipboard = new Clipboard('.copy-path'); </script>
+        </p>
+        <p>
+            <span>许可协议:</span><i class="fa fa-creative-commons"></i> <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/3.0/cn/" title="中国大陆 (CC BY-NC-SA 3.0 CN)" target = "_blank">"署名-非商用-相同方式共享 3.0"</a> 转载请保留原文链接及作者。
+        </p>
+    </div>
+
+
+
+<nav id="article-nav">
+  
+    <a href="/2017/08/27/Linux进程的创建与撤销/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption"><</strong>
+      <div class="article-nav-title">
+        
+          Linux内核学习——Linux进程的创建与撤销
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2017/08/24/GNU Hash ELF Sections/" id="article-nav-older" class="article-nav-link-wrap">
+      <div class="article-nav-title">GNU Hash ELF Sections</div>
+      <strong class="article-nav-caption">></strong>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+    <div id="toc" class="toc-article">
+    <strong class="toc-title">文章目录</strong>
+    <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#Linux内核学习——Linux进程切换"><span class="toc-number">1.</span> <span class="toc-text">Linux内核学习——Linux进程切换</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#任务状态段"><span class="toc-number">1.1.</span> <span class="toc-text">任务状态段</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#进程切换的入口"><span class="toc-number">1.2.</span> <span class="toc-text">进程切换的入口</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#晦涩的switch-to"><span class="toc-number">1.3.</span> <span class="toc-text">晦涩的switch_to</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#switch-to函数"><span class="toc-number">1.4.</span> <span class="toc-text">__switch_to函数</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#参考文献"><span class="toc-number">1.5.</span> <span class="toc-text">参考文献</span></a></li></ol></li></ol>
+</div>
+<input type="button" id="tocButton" value="隐藏目录"  title="点击按钮隐藏或者显示文章目录">
+
+<script src="https://7.url.cn/edu/jslib/comb/require-2.1.6,jquery-1.9.1.min.js"></script>
+<script>
+    var valueHide = "隐藏目录";
+    var valueShow = "显示目录";
+
+    if ($(".left-col").is(":hidden")) {
+        $("#tocButton").attr("value", valueShow);
+    }
+    $("#tocButton").click(function() {
+        if ($("#toc").is(":hidden")) {
+            $("#tocButton").attr("value", valueHide);
+            $("#toc").slideDown(320);
+        }
+        else {
+            $("#tocButton").attr("value", valueShow);
+            $("#toc").slideUp(350);
+        }
+    })
+    if ($(".toc").length < 1) {
+        $("#toc, #tocButton").hide();
+    }
+</script>
+
+
+
+
+
+
+
+    
+
+
+
+    <div class="scroll" id="post-nav-button">
+        
+            <a href="/2017/08/27/Linux进程的创建与撤销/" title="上一篇: Linux内核学习——Linux进程的创建与撤销">
+                <i class="fa fa-angle-left"></i>
+            </a>
+        
+        <a title="文章列表"><i class="fa fa-bars"></i><i class="fa fa-times"></i></a>
+        
+            <a href="/2017/08/24/GNU Hash ELF Sections/" title="下一篇: GNU Hash ELF Sections">
+                <i class="fa fa-angle-right"></i>
+            </a>
+        
+    </div>
+    <ul class="post-list"><li class="post-list-item"><a class="post-list-link" href="/2020/10/22/chromium-base库源码解读之引用计数拆解篇/">chromium-base库源码解读之引用计数拆解篇</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/12/16/深入探索禁忌目录之Effective C++篇/">深入探索禁忌目录之Effective C++篇</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/12/10/C++ Primer - 特殊工具与技术/">C++ Primer - 特殊工具与技术</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/12/08/C++ Primer - 用于大型程序的工具/">C++ Primer - 用于大型程序的工具</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/12/06/C++ Primer - 标准库特殊设施/">C++ Primer - 标准库特殊设施</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/12/03/C++ Primer - 模板与泛型编程/">C++ Primer - 模板与泛型编程</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/12/01/C++ Primer - 面向对象程序设计/">C++ Primer - 面向对象程序设计</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/29/C++ Primer - 重载运算与类型转换/">C++ Primer - 重载运算与类型转换</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/29/C++ Primer - 拷贝控制/">C++ Primer - 拷贝控制</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/26/C++ Primer - 动态内存/">C++ Primer - 动态内存</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/26/C++ Primer - 关联容器/">C++ Primer - 关联容器</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/24/C++ Primer - 泛型算法/">C++ Primer - 泛型算法</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/24/C++ Primer - 顺序容器/">C++ Primer - 顺序容器</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/21/C++ Primer - IO库/">C++ Primer - IO库</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/21/C++ Primer - 类/">C++ Primer - 类</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/20/C++ Primer - 函数/">C++ Primer - 函数</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/20/C++ Primer - 语句/">C++ Primer -语句</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/20/C++ Primer - 表达/">C++ Primer - 表达式</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/10/28/C++ Primer - string, vector & array/">C++ Primer - string, vector, array</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/10/28/C++ Primer - 变量和基本类型/">C++ Primer - 变量和基本类型</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/08/25/C++ Templates Note - 类模板/">C++ Templates Note - 类模板</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/08/25/C++ Templates Note - 函数模板/">C++ Templates Note- 函数模板</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/08/13/Linux内存管理-进程地址空间/">Linux内核学习——内存管理之进程地址空间</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/07/07/一次失败的栈溢出(SEH)之GetGo Download Manager/">一次失败的栈溢出(SEH)之GetGo Download Manager</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/06/28/DNSTracer 1.9栈溢出漏洞[CVE-2017-9430]/">DNSTracer 1.9栈溢出漏洞[CVE-2017-9430]</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/06/24/A Tale of Exploit Easy RM 2 MP3 Converter/">A Tale of Exploit "Easy RM 2 MP3</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/06/03/chromium-sandbox-ThreadProcess-analysis/">Chromium-sandbox-ThreadProcess-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/06/03/chromium-sandbox-Filesystem-analysis/">Chromium-sandbox-Filesystem-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/06/03/chromium-sandbox-LowLevelPolicy-analysis/">Chromium-sandbox-LowLevelPolicy-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/26/chromium-sandbox-PolicyEngine-analysis/">Chromium-sandbox-PolicyEngine-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/26/chromium-sandbox-Resolver-analysis/">Chromium-sandbox-Resolver-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/26/chromium-sandbox-Interception/">Chromium-sandbox-Interception-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/21/chromium-sandbox-HandleCloser-analysis/">Chromium-sandbox-HandleCloser-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/20/chromium-sandbox-SharedMemIPC/">Chromium-sandbox-SharedMemIPC-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/19/chromium-sandbox-Crosscall-analysis/">Chromium-sandbox-crosscall-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/19/chromium-sandbox-AlternateDesktop-analysis/">Chromium-sandbox-AlternateDesktop-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/19/chromium-sandbox-Tokens-analysis/">Chromium-sandbox-Tokens-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/14/chromium-sandbox-Job-analysis/">Chromium-sandbox-Job-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/13/chromium-sandbox-TargetPolicy-analysis/">Chromium-sandbox-TargetPolicy-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/13/chromium-sandbox-TargetProcess-analysis/">Chromium-sandbox-TargetProcess-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/13/chromium-sandbox-TargetServices-analysis/">Chromium-sandbox-TargetServices-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/13/chromium-sandbox-BrokerServices/">Chromium-sandbox-BrokerServices-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/04/05/x41-浏览器安全白皮书笔记/">X41-浏览器安全白皮书读书笔记</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/22/Windows系统机制之同步/">Windows系统机制之同步</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/21/Windows系统机制之对象管理器/">Windows系统机制之对象管理器</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/21/Windows系统机制之陷阱分发/">Windows系统机制之陷阱分发</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/21/Bitmaps轶事：Windows 10纪念版前的GDI对象泄露/">Bitmap轶事：Windows 10纪念版后的GDI对象泄露</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/20/理解池污染三部曲/">理解池污染三部曲</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/19/内核利用程序之Razer rzpnk.sys中的逻辑bug/">Windows exploit系列教程第十九篇：内核利用程序之Razer rzpnk.sys中的逻辑bug</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/19/内核利用程序之RS2 Bitmap巫术/">Windows exploit系列教程第十八篇：内核利用程序之RS2 Bitmap巫术</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/15/内核利用程序之滥用GDI Bitmap/">Windows exploit系列教程第十七部分：内核利用程序之任意位置任意写</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/14/内核利用程序之池溢出/">Windows exploit系列教程第十六部分：内核利用程序之池溢出</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/14/内核利用程序之UAF/">Windows exploit系列教程第十五部分：内核利用程序之UAF</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/10/coin1/">Writeup.pwnable.kr系列之coin1</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/10/shellshock/">Writeup.pwnable.kr系列之shellshock</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/09/mistake/">Writeup.pwnable.kr系列之mistake</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/07/leg/">Writeup.pwnable.kr系列之leg</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/06/input/">Writeup.pwnable.kr系列之input</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/05/random/">Writeup.pwnable.kr系列之random</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/05/passcode/">Writeup.pwnable.kr系列之passcode</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/04/flag/">Writeup.pwnable.kr系列之flag</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/04/bof/">Writeup.pwnable.kr系列之bof</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/03/collision/">Writeup.pwnable.kr系列之collision</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/03/fd/">Writeup.pwnable.kr系列之fd</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/02/26/Binary Security Assembly/">Binary-Security-Assembly</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/02/07/内核利用程序之整数溢出/">Windows exploit系列教程第十四部分：内核利用程序之整数溢出</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/02/06/内核利用程序之未初始化栈变量/">Windows exploit系列教程第十三部分：内核利用程序之未初始化栈变量</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/02/06/内核利用程序之空指针引用/">Windows exploit系列教程第十二部分：内核利用程序之空指针引用</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/02/01/内核利用程序之任意位置任意写/">Windows exploit系列教程第十一部分：内核利用程序之任意位置任意写</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/01/15/ring0层exp原语之滥用GDI/">ring0层exp原语之滥用GDI</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/01/14/Windows x64内核提权/">Windows x64内核提权</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/01/14/关键的Windows内核数据结构一览（下）/">关键的Windows内核数据结构一览（下）</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/01/08/关键的Windows内核数据结构一览（上）/">关键的Windows内核数据结构一览（上）</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/01/06/内核利用程序开发之栈溢出/">Windows exploit系列教程第十部分：内核利用程序之栈溢出</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/01/05/堆喷射[第二章：UAF]/">Windows exploit系列教程第九部分：堆喷射[第二章：UAF]</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/12/30/Kernel Driver mmap Handler Exploitation/">内核驱动mmap Handler利用技术</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/12/28/API Interception via DLL Redirection/">通过DLL重定向实现API劫持</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/12/21/Linux中断内幕/">Linux中断内幕</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/12/19/Windows架构设计/">Windows架构设计</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/10/30/house_of_force.log/">house_of_force log</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/10/25/Linux内存管理-非连续内存区管理/">Linux内核学习——内存管理之非连续内存区管理</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/10/24/Linux内存管理-内存区管理/">Linux内核学习——内存管理之内存区管理</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/10/20/Linux内存管理-页框管理/">Linux内核学习——内存管理之页框管理</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/10/19/first_fit.log/">first_fit log</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/10/19/house_of_einherjar.log/">house_of_einherjar log</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/10/18/fastbin_dup_into_stack.log/">fastbin_dup_into_stack log</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/10/12/fastbin_dup.log/">fastbin_dup log</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/09/23/Windows栈溢出之ret eip/">Windows栈溢出之ret eip</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/09/23/Windows栈溢出概述/">Windows栈溢出概述</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/09/16/DEFCON-2015-r0pbaby/">DEFCON-2015-r0pbaby</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/09/11/PWN选手的自我修养/">PWN选手的自我修养</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/08/27/linearsort/">linear sort</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/08/27/quicksort/">quicksort</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/08/27/heapsort&priority-queue/">heapsort & priority-queue</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/08/27/Linux进程的创建与撤销/">Linux内核学习——Linux进程的创建与撤销</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/08/26/Linux进程切换/">Linux内核学习——Linux进程切换</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/08/24/GNU Hash ELF Sections/">GNU Hash ELF Sections</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/08/22/Linux进程概述/">Linux内核学习——Linux进程概述</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/08/18/Linux内存寻址/">Linux内核学习——内存寻址</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/05/15/PlaySms  1.4代码执行漏洞之import csv/">PlaySms 1.4代码执行漏洞之import csv</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/05/15/PlaySms  1.4代码执行漏洞分析/">PlaySms 1.4代码执行漏洞分析</a></li></ul>
+    <script src="https://7.url.cn/edu/jslib/comb/require-2.1.6,jquery-1.9.1.min.js"></script>
+    <script>
+        $(".post-list").addClass("toc-article");
+        $(".post-list-item a").attr("target","_blank");
+        $("#post-nav-button > a:nth-child(2)").click(function() {
+            $(".fa-bars, .fa-times").toggle();
+            $(".post-list").toggle(300);
+            if ($(".toc").length > 0) {
+                $("#toc, #tocButton").toggle(200, function() {
+                    if ($(".switch-area").is(":visible")) {
+                        $("#tocButton").attr("value", valueHide);
+                        }
+                    })
+            }
+            else {
+            }
+        })
+    </script>
+
+
+
+    <script>
+        
+    </script>
+</div>
+      <footer id="footer">
+    <div class="outer">
+        <div id="footer-info">
+            <div class="footer-left">
+                &copy; 2020 r00tk1t
+            </div>
+            <div class="footer-right">
+                <a href="http://hexo.io/" target="_blank">Hexo</a>  Theme <a href="https://github.com/luuman/hexo-theme-spfk" target="_blank">spfk</a> by luuman
+            </div>
+        </div>
+        
+            <div class="visit">
+                
+                    <span id="busuanzi_container_site_pv" style='display:none'>
+                        <span id="site-visit" >访问数量: 
+                            <span id="busuanzi_value_site_uv"></span>
+                        </span>
+                    </span>
+                
+                
+                    <span>, </span>
+                
+                
+                    <span id="busuanzi_container_page_pv" style='display:none'>
+                        <span id="page-visit">本页阅读量: 
+                            <span id="busuanzi_value_page_pv"></span>
+                        </span>
+                    </span>
+                
+            </div>
+        
+    </div>
+</footer>
+
+    </div>
+    <script src="https://7.url.cn/edu/jslib/comb/require-2.1.6,jquery-1.9.1.min.js"></script>
+<script src="/js/main.js"></script>
+
+    <script>
+        $(document).ready(function() {
+            var backgroundnum = 24;
+            var backgroundimg = "url(/background/bg-x.jpg)".replace(/x/gi, Math.ceil(Math.random() * backgroundnum));
+            $("#mobile-nav").css({"background-image": backgroundimg,"background-size": "cover","background-position": "center"});
+            $(".left-col").css({"background-image": backgroundimg,"background-size": "cover","background-position": "center"});
+        })
+    </script>
+
+
+
+
+
+<div class="scroll" id="scroll">
+    <a href="#"><i class="fa fa-arrow-up"></i></a>
+    <a href="#comments"><i class="fa fa-comments-o"></i></a>
+    <a href="#footer"><i class="fa fa-arrow-down"></i></a>
+</div>
+<script>
+    $(document).ready(function() {
+        if ($("#comments").length < 1) {
+            $("#scroll > a:nth-child(2)").hide();
+        };
+    })
+</script>
+
+<script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js">
+</script>
+
+  <script language="javascript">
+    $(function() {
+        $("a[title]").each(function() {
+            var a = $(this);
+            var title = a.attr('title');
+            if (title == undefined || title == "") return;
+            a.data('title', title).removeAttr('title').hover(
+
+            function() {
+                var offset = a.offset();
+                $("<div id=\"anchortitlecontainer\"></div>").appendTo($("body")).html(title).css({
+                    top: offset.top - a.outerHeight() - 15,
+                    left: offset.left + a.outerWidth()/2 + 1
+                }).fadeIn(function() {
+                    var pop = $(this);
+                    setTimeout(function() {
+                        pop.remove();
+                    }, pop.text().length * 800);
+                });
+            }, function() {
+                $("#anchortitlecontainer").remove();
+            });
+        });
+    });
+</script>
+
+
+  </div>
+</body>
+</html>

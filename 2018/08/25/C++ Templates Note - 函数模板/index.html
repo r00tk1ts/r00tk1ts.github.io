@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>C++ Templates Note- 函数模板 | r00tk1t&#39;s blog</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="《C++ Templates》更新了第二版，内容上更新了C++ 11/15/17标准中模板元编程的大量内容。本文是阅读第一章“函数模板”时做的笔记。">
+<meta name="keywords" content="cpp,cpp-templates">
+<meta property="og:type" content="article">
+<meta property="og:title" content="C++ Templates Note- 函数模板">
+<meta property="og:url" content="https://r00tk1ts.github.io/2018/08/25/C++ Templates Note - 函数模板/index.html">
+<meta property="og:site_name" content="r00tk1t&#39;s blog">
+<meta property="og:description" content="《C++ Templates》更新了第二版，内容上更新了C++ 11/15/17标准中模板元编程的大量内容。本文是阅读第一章“函数模板”时做的笔记。">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:updated_time" content="2020-10-20T13:01:02.350Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="C++ Templates Note- 函数模板">
+<meta name="twitter:description" content="《C++ Templates》更新了第二版，内容上更新了C++ 11/15/17标准中模板元编程的大量内容。本文是阅读第一章“函数模板”时做的笔记。">
+  
+    <link rel="alternative" href="/atom.xml" title="r00tk1t&#39;s blog" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/img/favicon.png">
+  
+  
+      <link rel="stylesheet" href="//cdn.bootcss.com/animate.css/3.5.0/animate.min.css">
+  
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/font-awesome/css/font-awesome.min.css">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  
+  
+      <link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+  
+  <!-- 加载特效 -->
+    <script src="/js/pace.js"></script>
+    <link href="/css/pace/pace-theme-flash.css" rel="stylesheet" />
+  <script>
+      var yiliaConfig = {
+          rootUrl: '/',
+          fancybox: true,
+          animate: true,
+          isHome: false,
+          isPost: true,
+          isArchive: false,
+          isTag: false,
+          isCategory: false,
+          open_in_new: false
+      }
+  </script>
+</head>
+<body>
+  <div id="container">
+    <div class="left-col">
+    <div class="overlay"></div>
+<div class="intrude-less">
+    <header id="header" class="inner">
+        <a href="/" class="profilepic">
+            
+            <img lazy-src="/img/head.jpg" class="js-avatar">
+            
+        </a>
+
+        <hgroup>
+          <h1 class="header-author"><a href="/" title="Hi Mate">r00tk1t</a></h1>
+        </hgroup>
+
+        
+        <p class="header-subtitle">二进制安全 | Web安全 | 伪装成程序员的菜鸡</p>
+        
+        
+        
+            <div id="switch-btn" class="switch-btn">
+                <div class="icon">
+                    <div class="icon-ctn">
+                        <div class="icon-wrap icon-house" data-idx="0">
+                            <div class="birdhouse"></div>
+                            <div class="birdhouse_holes"></div>
+                        </div>
+                        <div class="icon-wrap icon-ribbon hide" data-idx="1">
+                            <div class="ribbon"></div>
+                        </div>
+                        
+                        <div class="icon-wrap icon-link hide" data-idx="2">
+                            <div class="loopback_l"></div>
+                            <div class="loopback_r"></div>
+                        </div>
+                        
+                        
+                        <div class="icon-wrap icon-me hide" data-idx="3">
+                            <div class="user"></div>
+                            <div class="shoulder"></div>
+                        </div>
+                        
+                    </div>
+                    
+                </div>
+                <div class="tips-box hide">
+                    <div class="tips-arrow"></div>
+                    <ul class="tips-inner">
+                        <li>菜单</li>
+                        <li>标签</li>
+                        
+                        <li>友情链接</li>
+                        
+                        
+                        <li>关于我</li>
+                        
+                    </ul>
+                </div>
+            </div>
+        
+
+        <div id="switch-area" class="switch-area">
+            <div class="switch-wrap">
+                <section class="switch-part switch-part1">
+                    <nav class="header-menu">
+                        <ul>
+                        
+                            <li><a href="/">博客首页</a></li>
+                        
+                            <li><a href="/archives">所有文章</a></li>
+                        
+                            <li><a href="/tags">标签</a></li>
+                        
+                        </ul>
+                    </nav>
+                    <nav class="header-nav">
+                        <ul class="social">
+                            
+                                <a class="fl mail" target="_blank" href="mailto: 1903442252@qq.com" title="mail">mail</a>
+                            
+                                <a class="fl github" target="_blank" href="https://github.com/r00tk1ts" title="github">github</a>
+                            
+                                <a class="fl zhihu" target="_blank" href="https://www.zhihu.com/people/r00tk1t-5" title="zhihu">zhihu</a>
+                            
+                                <a class="fl weibo" target="_blank" href="http://weibo.com/2698344533" title="weibo">weibo</a>
+                            
+                                <a class="fl QQ" target="_blank" href="https://user.qzone.qq.com/1903442252" title="QQ">QQ</a>
+                            
+                        </ul>
+                    </nav>
+                </section>
+                
+                
+                <section class="switch-part switch-part2">
+                    <div class="widget tagcloud" id="js-tagcloud">
+                        <a href="/tags/SEH-overwrite/" style="font-size: 10px;">SEH overwrite</a> <a href="/tags/algorithm/" style="font-size: 11.67px;">algorithm</a> <a href="/tags/browser/" style="font-size: 10px;">browser</a> <a href="/tags/chrome/" style="font-size: 16.67px;">chrome</a> <a href="/tags/chrome-sandbox/" style="font-size: 16.67px;">chrome-sandbox</a> <a href="/tags/cpp/" style="font-size: 20px;">cpp</a> <a href="/tags/cpp-primer/" style="font-size: 18.33px;">cpp-primer</a> <a href="/tags/cpp-templates/" style="font-size: 11.67px;">cpp-templates</a> <a href="/tags/dll-hooking/" style="font-size: 10px;">dll hooking</a> <a href="/tags/exploit/" style="font-size: 12.5px;">exploit</a> <a href="/tags/glibc/" style="font-size: 10px;">glibc</a> <a href="/tags/glibc-heap/" style="font-size: 13.33px;">glibc-heap</a> <a href="/tags/linux/" style="font-size: 10.83px;">linux</a> <a href="/tags/linux-kernel/" style="font-size: 14.17px;">linux-kernel</a> <a href="/tags/mmap/" style="font-size: 10px;">mmap</a> <a href="/tags/novice/" style="font-size: 17.5px;">novice</a> <a href="/tags/php/" style="font-size: 10.83px;">php</a> <a href="/tags/pool/" style="font-size: 10px;">pool</a> <a href="/tags/pwn/" style="font-size: 19.17px;">pwn</a> <a href="/tags/pwnable-kr/" style="font-size: 15px;">pwnable.kr</a> <a href="/tags/resources/" style="font-size: 10px;">resources</a> <a href="/tags/stack-overrun/" style="font-size: 11.67px;">stack-overrun</a> <a href="/tags/tutorial/" style="font-size: 10px;">tutorial</a> <a href="/tags/ulk/" style="font-size: 14.17px;">ulk</a> <a href="/tags/web/" style="font-size: 10.83px;">web</a> <a href="/tags/windows/" style="font-size: 15.83px;">windows</a> <a href="/tags/windows-kernel/" style="font-size: 14.17px;">windows-kernel</a> <a href="/tags/writeup/" style="font-size: 10px;">writeup</a> <a href="/tags/wrk/" style="font-size: 12.5px;">wrk</a>
+                    </div>
+                </section>
+                
+                
+                
+                <section class="switch-part switch-part3">
+                    <div id="js-friends">
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://eternalsakura13.com">樱花师傅</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="https://chybeta.github.io/">Chybeta</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://whereisk0shl.top/">k0shl</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://o0xmuhe.github.io/">o0xmuhe</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://bestwing.me/">swing</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://yixuankeer.win/">joker</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://www.hackersb.cn/">王松_Striker</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="https://www.hackfun.org/">4ido10n</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://www.cnblogs.com/iamstudy/">l3m0n</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://www.cnblogs.com/Ox9A82/">Ox9A82</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://mxny.org/">麦香浓郁</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://0x48.pw/">Hcamael</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="https://blog.nuptzj.cn/">画船听雨</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="https://www.bodkin.ren/">老锥</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://www.zerokeeper.com/">ZeroKeeper</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="https://www.ycjcl.cc/">信鑫</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://www.wowotech.net/">wowotech</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://fuzzysecurity.com/">fuzzySecurity</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="https://rootkits.xyz/">rootkits.xyz</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://www.pentestingexperts.com/">pentestingexperts</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="https://blog.skylined.nl/">skylined</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="https://systemk1t.github.io/">systemk1t</a>
+                    
+                    </div>
+                </section>
+                
+
+                
+                
+                <section class="switch-part switch-part4">
+                
+                    <div id="js-aboutme">二进制狗一枚，懂点Web安全，一个伪装成程序员混迹在某公司的菜鸡。</div>
+                </section>
+                
+            </div>
+        </div>
+    </header>                
+</div>
+    </div>
+    <div class="mid-col">
+      <nav id="mobile-nav">
+      <div class="overlay">
+          <div class="slider-trigger"></div>
+          <h1 class="header-author js-mobile-header hide"><a href="/" title="Me">r00tk1t</a></h1>
+      </div>
+    <div class="intrude-less">
+        <header id="header" class="inner">
+            <a href="/" class="profilepic">
+                
+                    <img lazy-src="/img/head.jpg" class="js-avatar">
+                
+            </a>
+            <hgroup>
+              <h1 class="header-author"><a href="/" title="Me">r00tk1t</a></h1>
+            </hgroup>
+            
+            <p class="header-subtitle">二进制安全 | Web安全 | 伪装成程序员的菜鸡</p>
+            
+            <nav class="header-menu">
+                <ul>
+                
+                    <li><a href="/">博客首页</a></li>
+                
+                    <li><a href="/archives">所有文章</a></li>
+                
+                    <li><a href="/tags">标签</a></li>
+                
+                <div class="clearfix"></div>
+                </ul>
+            </nav>
+            <nav class="header-nav">
+                <div class="social">
+                    
+                        <a class="mail" target="_blank" href="mailto: 1903442252@qq.com" title="mail">mail</a>
+                    
+                        <a class="github" target="_blank" href="https://github.com/r00tk1ts" title="github">github</a>
+                    
+                        <a class="zhihu" target="_blank" href="https://www.zhihu.com/people/r00tk1t-5" title="zhihu">zhihu</a>
+                    
+                        <a class="weibo" target="_blank" href="http://weibo.com/2698344533" title="weibo">weibo</a>
+                    
+                        <a class="QQ" target="_blank" href="https://user.qzone.qq.com/1903442252" title="QQ">QQ</a>
+                    
+                </div>
+            </nav>
+        </header>                
+    </div>
+</nav>
+      <div class="body-wrap"><article id="post-C++ Templates Note - 函数模板" class="article article-type-post" itemscope itemprop="blogPost">
+  
+    <div class="article-meta">
+      <a href="/2018/08/25/C++ Templates Note - 函数模板/" class="article-date">
+      <time datetime="2018-08-25T04:29:11.000Z" itemprop="datePublished">2018-08-25</time>
+</a>
+    </div>
+  
+  <div class="article-inner">
+    
+      <input type="hidden" class="isFancy" />
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      C++ Templates Note- 函数模板
+    </h1>
+  
+
+      </header>
+      
+      <div class="article-info article-info-post">
+        
+    <div class="article-category tagcloud">
+    <a class="article-category-link" href="/categories/programming-language/">programming-language</a>
+    </div>
+
+
+        
+    <div class="article-tag tagcloud">
+        <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/cpp/">cpp</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/cpp-templates/">cpp-templates</a></li></ul>
+    </div>
+
+        <div class="clearfix"></div>
+      </div>
+      
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+          
+        <p>《C++ Templates》更新了第二版，内容上更新了C++ 11/15/17标准中模板元编程的大量内容。本文是阅读第一章“函数模板”时做的笔记。</p>
+<a id="more"></a>
+<p>#C++ Templates Note- 函数模板</p>
+<p>函数模板是模板元编程部分最简单的内容了。函数模板是一个函数族，它可以被不同类型的参数调用，长相酷似普通函数，但其某些参数是未决的，需要被函数实例参数化。</p>
+<h2 id="初探函数模板"><a href="#初探函数模板" class="headerlink" title="初探函数模板"></a>初探函数模板</h2><h3 id="定义函数模板"><a href="#定义函数模板" class="headerlink" title="定义函数模板"></a>定义函数模板</h3><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">template</span>&lt;<span class="keyword">typename</span> T&gt;</span><br><span class="line"><span class="function">T <span class="title">max</span><span class="params">(T a, T b)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  	<span class="comment">// if b &lt; a then yield a else yield b</span></span><br><span class="line">    <span class="keyword">return</span> b &lt; a ? a : b;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>定义函数模板需要在函数头前加一行<code>template&lt; comma-separated-list-of-parameters&gt;</code>。<code>typename</code>是关键字，<code>T</code>是类型参数，名称随意。只要某种类型支持<code>&lt;</code>操作符就可以去适配模板的<code>T</code>类型。</p>
+<blockquote>
+<p>历史原因，<code>class</code>关键字可以替代<code>typename</code>，<code>typename</code>是C++98标准引入的，此前是<code>class</code>。</p>
+</blockquote>
+<h3 id="使用函数模板"><a href="#使用函数模板" class="headerlink" title="使用函数模板"></a>使用函数模板</h3><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">"max1.hpp"</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;iostream&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;string&gt;</span></span></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  <span class="keyword">int</span> i = <span class="number">42</span>;</span><br><span class="line">  <span class="built_in">std</span>::<span class="built_in">cout</span> &lt;&lt; <span class="string">"max(7,i): "</span> &lt;&lt; ::max(<span class="number">7</span>,i) &lt;&lt; ’\n’;</span><br><span class="line">  <span class="keyword">double</span> f1 = <span class="number">3.4</span>; <span class="keyword">double</span> f2 = <span class="number">-6.7</span>;</span><br><span class="line">  <span class="built_in">std</span>::<span class="built_in">cout</span> &lt;&lt; <span class="string">"max(f1,f2): "</span> &lt;&lt; ::max(f1,f2) &lt;&lt; ’\n’;</span><br><span class="line">  <span class="built_in">std</span>::<span class="built_in">string</span> s1 = <span class="string">"mathematics"</span>; <span class="built_in">std</span>::<span class="built_in">string</span> s2 = <span class="string">"math"</span>;</span><br><span class="line">  <span class="built_in">std</span>::<span class="built_in">cout</span> &lt;&lt; <span class="string">"max(s1,s2): "</span> &lt;&lt; ::max(s1,s2) &lt;&lt; ’\n’;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>此<code>::max</code>非彼<code>std::max</code>，是我们上面自己定义的。</p>
+<p>函数模板不会为每一种类型都编译出函数实体，而是用到了哪个就编译出哪个。对上面的例子，会编译出三个函数：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">max</span><span class="params">(<span class="keyword">int</span>, <span class="keyword">int</span>)</span></span>;</span><br><span class="line"><span class="function"><span class="keyword">double</span> <span class="title">max</span><span class="params">(<span class="keyword">double</span>, <span class="keyword">double</span>)</span></span>;</span><br><span class="line"><span class="built_in">std</span>::<span class="function"><span class="built_in">string</span> <span class="title">max</span><span class="params">(<span class="built_in">std</span>::<span class="built_in">string</span>, <span class="built_in">std</span>::<span class="built_in">string</span>)</span></span>;</span><br></pre></td></tr></table></figure>
+<h3 id="两阶段转译"><a href="#两阶段转译" class="headerlink" title="两阶段转译"></a>两阶段转译</h3><p>如果某种类型不支持模板内定义的某个操作，但程序中却使用了这种类型作为参数调用模板函数，那么编译时会报错。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">std</span>::<span class="keyword">complex</span>&lt;<span class="keyword">float</span>&gt; c1, c2;	<span class="comment">//doesn't provide operator &lt;</span></span><br><span class="line">...</span><br><span class="line">::max(c1,c2);	<span class="comment">// ERROR at compile time</span></span><br></pre></td></tr></table></figure>
+<p>模板在编译时有两个阶段：</p>
+<ol>
+<li>定义时不会实例化，模板代码本身会检查忽略模板参数以外的正确性，这包括：<ol>
+<li>语法错误，比如缺少符号。</li>
+<li>使用不识别的名称且不依赖于模板参数。</li>
+<li>不依赖模板参数的静态断言会被检查。</li>
+</ol>
+</li>
+<li>在实例化阶段，模板代码会检查是否所有的代码都是有效的。也就是说，所有依赖模板参数的部分都会被第二次检查。</li>
+</ol>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">template</span>&lt;<span class="keyword">typename</span> T&gt;</span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">foo</span><span class="params">(T t)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	undeclared(); <span class="comment">// first-phase compile-time error ifundeclared() unknown</span></span><br><span class="line">	undeclared(t); <span class="comment">// second-phase compile-time error if undeclared(T) unknown</span></span><br><span class="line">	<span class="keyword">static_assert</span>(<span class="keyword">sizeof</span>(<span class="keyword">int</span>) &gt; <span class="number">10</span>, <span class="string">"int too small"</span>); <span class="comment">// always fails if sizeof(int)&lt;=10 </span></span><br><span class="line">	<span class="keyword">static_assert</span>(<span class="keyword">sizeof</span>(T) &gt; <span class="number">10</span>, <span class="string">"T too small"</span>); <span class="comment">//fails if instantiated for T with size &lt;=10</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>某些编译器不会在第一阶段进行完整的检查。所以在模板代码至少实例化一次之前可能不会发现错误。</p>
+</blockquote>
+<p>两阶段转译引入了一个严重的问题：函数模板实例化时编译器需要找到模板的定义，而普通函数编译时仅仅需要声明即可，其定义是链接阶段的事儿。所以如果模板实现不是简单的在一个头文件内部而是分散到了其他源文件中，那么编译时就会有问题。这一问题有着数种方法来解决，以后再了解。</p>
+<h2 id="模板参数推导"><a href="#模板参数推导" class="headerlink" title="模板参数推导"></a>模板参数推导</h2><p>根据使用时传入参数的类型，编译器会自动推导模板参数类型。对于简单的情形当然一目了然。然而，当类型推导存在类型转换时问题就复杂多了。</p>
+<p>对模板来说，自动类型转换在类型推导时是有以下限制的：</p>
+<ul>
+<li>如果调用参数被声明为引用类型，那么类型推导时不会进行类型转换（即使是无关紧要的转换也不行），两个使用同一个模板参数T的参数必须严格一致。</li>
+<li>如果按值声明参数，那么推导时仅支持无关紧要的类型转换（decay）：const或volatile会被忽略，引用会转换为引用类型，原生数组或函数会转换成对应的指针类型。两个使用同一模板参数T的参数，其decayed类型必须一致。</li>
+</ul>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">template</span>&lt;<span class="keyword">typename</span> T&gt;</span><br><span class="line"><span class="function">T <span class="title">max</span> <span class="params">(T a, T b)</span></span>;</span><br><span class="line">… </span><br><span class="line"><span class="keyword">int</span> <span class="keyword">const</span> c = <span class="number">42</span>;</span><br><span class="line">max(i, c); <span class="comment">// OK: T is deduced as int</span></span><br><span class="line">max(c, c); <span class="comment">// OK: T is deduced as int</span></span><br><span class="line"><span class="keyword">int</span>&amp; ir = i;</span><br><span class="line">max(i, ir); <span class="comment">// OK: T is deduced as int</span></span><br><span class="line"><span class="keyword">int</span> arr[<span class="number">4</span>];</span><br><span class="line">foo(&amp;i, arr); <span class="comment">// OK: T is deduced as int*</span></span><br><span class="line">max(<span class="number">4</span>, <span class="number">7.2</span>);	<span class="comment">//ERROR: T can be deduced as int or double</span></span><br><span class="line"><span class="built_in">std</span>::<span class="built_in">string</span> s;</span><br><span class="line">foo(<span class="string">"hello"</span>, s); <span class="comment">//ERROR: T can be deduced as char const[6] or std::string</span></span><br></pre></td></tr></table></figure>
+<p>有三种方法来处理这些错误：</p>
+<ol>
+<li>做参数类型转换，使二者一致：<code>max(static_cast&lt;double&gt;(4), 7.2); //OK</code></li>
+<li>显式指定T的类型来阻止编译器做自动类型推导：<code>max&lt;double&gt;(4, 7.2); //OK</code></li>
+<li>指定参数可以使用不同类型。</li>
+</ol>
+<p>==============================================</p>
+<p>类型推导对默认调用参数并不起作用。例如：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">template</span>&lt;<span class="keyword">typename</span> T&gt;</span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">f</span><span class="params">(T = <span class="string">""</span>)</span></span>;</span><br><span class="line">...</span><br><span class="line">f(<span class="number">1</span>);	<span class="comment">//OK: deduced T to be int, so that it calls f&lt;int&gt;(1)</span></span><br><span class="line">f();	<span class="comment">// ERROR: cannot deduce T</span></span><br></pre></td></tr></table></figure>
+<p>如果想要模板去支持默认参数，也是有办法的：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">template</span>&lt;<span class="keyword">typename</span> T = <span class="built_in">std</span>::<span class="built_in">string</span>&gt;</span><br><span class="line"><span class="keyword">void</span> f(T = <span class="string">""</span>);</span><br><span class="line">...</span><br><span class="line">f();	<span class="comment">//OK</span></span><br></pre></td></tr></table></figure>
+<h2 id="多重模板参数"><a href="#多重模板参数" class="headerlink" title="多重模板参数"></a>多重模板参数</h2><p>模板参数可以有多个，类型也可以不一致。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">template</span>&lt;<span class="keyword">typename</span> T1, <span class="keyword">typename</span> T2&gt;</span><br><span class="line"><span class="function">T1 <span class="title">max</span> <span class="params">(T1 a, T2 b)</span></span></span><br><span class="line"><span class="function"></span>&#123;  </span><br><span class="line">  <span class="keyword">return</span> b &lt; a ? a : b;</span><br><span class="line">&#125;</span><br><span class="line">...</span><br><span class="line"><span class="keyword">auto</span> m = ::max(<span class="number">4</span>, <span class="number">7.2</span>);	<span class="comment">// OK, but type of first argument defines return type</span></span><br></pre></td></tr></table></figure>
+<p>虽然看起来不错但实际上引入了问题，因为a和b类型并不一致，如果返回类型被强制设定成和a一致，那么返回类型永远是a的类型，即使返回了b，也会被自动转换成a的类型。</p>
+<p>C++的处理方式：</p>
+<ul>
+<li>为返回类型引入第三个模板参数类型</li>
+<li>让编译器决定返回类型</li>
+<li>声明返回类型为两个参数类型的“通用类型”</li>
+</ul>
+<h3 id="返回类型的模板参数"><a href="#返回类型的模板参数" class="headerlink" title="返回类型的模板参数"></a>返回类型的模板参数</h3><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">template</span>&lt;<span class="keyword">typename</span> T1， <span class="keyword">typename</span> T2, <span class="keyword">typename</span> RT&gt;</span><br><span class="line"><span class="function">RT <span class="title">max</span><span class="params">(T1 a, T2 b)</span></span>;</span><br></pre></td></tr></table></figure>
+<p>看起来很美好，但实际上这种不负责任的写法编译器根本无法推导出RT是什么，因为没有任何线索可循。</p>
+<p>所以一旦如此定义，那么调用时就必须显式的指定RT的类型。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">::max&lt;<span class="keyword">int</span>, <span class="keyword">double</span>, <span class="keyword">double</span>&gt;(<span class="number">4</span>, <span class="number">7.2</span>);	<span class="comment">// OK, but tedious</span></span><br></pre></td></tr></table></figure>
+<p>这种写法比较啰嗦，可以在定义时利用一点小技巧遮丑：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">template</span>&lt;<span class="keyword">typename</span> RT, <span class="keyword">typename</span> T1, <span class="keyword">typename</span> T2&gt;</span><br><span class="line"><span class="function">RT <span class="title">max</span><span class="params">(T1 a, T2 b)</span></span>;</span><br><span class="line">...</span><br><span class="line">::max&lt;<span class="keyword">double</span>&gt;(<span class="number">4</span>, <span class="number">7.2</span>)	<span class="comment">// OK: return type is doublke, T1 and T2 are deduced</span></span><br></pre></td></tr></table></figure>
+<p>此时RT被显式指定，T1和T2由编译器推导。</p>
+<h3 id="推导返回类型"><a href="#推导返回类型" class="headerlink" title="推导返回类型"></a>推导返回类型</h3><p>也可以全权交给编译器来仲裁：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">template</span>&lt;<span class="keyword">typename</span> T1, <span class="keyword">typename</span> T2&gt;</span><br><span class="line"><span class="function"><span class="keyword">auto</span> <span class="title">max</span><span class="params">(T1 a, T2 b)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">return</span> b &lt; a ? a : b;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>利用了这个自作聪明的关键字<code>auto</code>。它会根据函数体内的返回语句来推导其类型。</p>
+<p>可以利用C++11的trailing return type语法来使用调用参数。可以声明返回类型继承自operator?:。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">template</span>&lt;<span class="keyword">typename</span> T1, <span class="keyword">typename</span> T2&gt;</span><br><span class="line">auto max(T1 a, T2 b) -&gt; decltype(b&lt;a?a:b)</span><br><span class="line">&#123;  </span><br><span class="line">  <span class="keyword">return</span> b &lt; a ? a : b;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>如此，返回类型会由operator ?:来决定，以返回一个直观上期望的结果。</p>
+<p>注意，</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">template</span>&lt;<span class="keyword">typename</span> T1, <span class="keyword">typename</span> T2&gt;</span><br><span class="line">auto max(T1 a, T2 b) -&gt; decltype(b&lt;a?a:b);</span><br></pre></td></tr></table></figure>
+<p>仅仅只是声明，编译器会使用operator ?:来决定返回类型，但函数实现体内不一定非要使用operator ?:来返回。写成<code>decltype(true?a:b)</code>其实是一样的。</p>
+<p>然而，在一些情况下这种定义有一个显著的缺点：返回类型可能是个引用类型，因为一些条件下T可能是个引用类型。因此你应该返回T的decayed类型。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;type_traits&gt;</span></span></span><br><span class="line"><span class="keyword">template</span>&lt;<span class="keyword">typename</span> T1, <span class="keyword">typename</span> T2&gt;</span><br><span class="line">auto max(T1 a, T2 b) -&gt; typename std::decay&lt;decltype(true?a:b)&gt;::type</span><br><span class="line">&#123;</span><br><span class="line">  <span class="keyword">return</span> b &lt; a ? a : b;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><code>std::decay&lt;&gt;::type</code>用来返回decayed类型，它在标准库的<code>&lt;type_trait&gt;</code>中定义。</p>
+<p>另外auto的初始化总是会decay。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">int</span> i = <span class="number">42</span>;</span><br><span class="line"><span class="keyword">int</span> <span class="keyword">const</span> &amp; ir = i;	<span class="comment">// ir refers to i</span></span><br><span class="line"><span class="keyword">auto</span> a = ir;		<span class="comment">// a is declared as new object of type int</span></span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>初始化总是会decay，但模板函数定义却未必使用auto初始化，所以才要<code>std::decay&lt;decltype(true?a:b)&gt;::type</code> ？</p>
+</blockquote>
+<h3 id="返回通用类型"><a href="#返回通用类型" class="headerlink" title="返回通用类型"></a>返回通用类型</h3><p>C++11以后，C++标准库提供了一种方法来指定更为通用的类型。<code>std::common_type&lt;&gt;::type</code>会返回两到多个不同类型的通用类型并以此作为模板参数。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;type_traits&gt;</span></span></span><br><span class="line"><span class="keyword">template</span>&lt;<span class="keyword">typename</span> T1, <span class="keyword">typename</span> T2&gt;</span><br><span class="line"><span class="built_in">std</span>::<span class="keyword">common_type_t</span>&lt;T1, T2&gt; max(T1 a, T2 b)</span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">return</span> b &lt; a ? a : b;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><code>std::common_type</code>是一个<code>type trait</code>，在<code>&lt;type_traits&gt;</code>中定义。</p>
+<blockquote>
+<p>C++ 11中需要写成<code>typename std::common_type&lt;T1,T2&gt;::type</code>，但是C++14中可以简化为<code>std::common_type_t&lt;T1,T2&gt;</code>。</p>
+</blockquote>
+<p>关于<code>std::common_type_t&lt;&gt;</code>的实现机制，着实好奇。</p>
+<h2 id="默认模板参数"><a href="#默认模板参数" class="headerlink" title="默认模板参数"></a>默认模板参数</h2><p>模板参数也可以有默认值。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;type_traits&gt;</span></span></span><br><span class="line"><span class="keyword">template</span>&lt;<span class="keyword">typename</span> T1, <span class="keyword">typename</span> T2,</span><br><span class="line">		<span class="keyword">typename</span> RT = <span class="built_in">std</span>::<span class="keyword">decay_t</span>&lt;<span class="keyword">decltype</span>(<span class="literal">true</span> ? T1():T2())&gt;&gt;</span><br><span class="line">RT max(T1 a, T2 b)</span><br><span class="line">&#123;</span><br><span class="line">	<span class="keyword">return</span> b &lt; a ? a : b;          </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>除了<code>std::decay_t&lt;&gt;</code>用来屏蔽返回引用类型以外，对这个例子来说还需要有能力调用T1和T2的默认构造器（另一个解决方案是使用<code>std::declval</code>，但这更为复杂）。</p>
+<p>也可以用<code>std::common_type&lt;&gt;</code>来指定返回类型的默认值。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;type_traits&gt;</span></span></span><br><span class="line"><span class="keyword">template</span>&lt;<span class="keyword">typename</span> T1, <span class="keyword">typename</span> T2,</span><br><span class="line">		<span class="keyword">typename</span> RT = <span class="built_in">std</span>::<span class="keyword">common_type_t</span>&lt;T1,T2&gt;&gt;</span><br><span class="line">RT max(T1 a, T2 b)</span><br><span class="line">&#123;</span><br><span class="line">     <span class="keyword">return</span> b &lt; a ? a : b;             </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><strong>综合来说，1.3.2的方法“推导返回类型”是最佳的。</strong></p>
+<h2 id="重载函数模板"><a href="#重载函数模板" class="headerlink" title="重载函数模板"></a>重载函数模板</h2><p>函数模板也可以重载，即所谓的同名异构。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// maximum of two int values:</span></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">max</span><span class="params">(<span class="keyword">int</span> a, <span class="keyword">int</span> b)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">return</span> b &lt; a ? a : b;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// maximum of two values of any type:</span></span><br><span class="line"><span class="keyword">template</span>&lt;<span class="keyword">typename</span> T&gt;</span><br><span class="line"><span class="function">T <span class="title">max</span><span class="params">(T a, Tb)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">return</span> b &lt; a : a : b;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    ::max(<span class="number">7</span>, <span class="number">42</span>);	<span class="comment">// calls the nontemplate for two ints</span></span><br><span class="line">  	::max(<span class="number">7.0</span>, <span class="number">42.0</span>);	<span class="comment">// calls max&lt;double&gt; (by argument deduction)</span></span><br><span class="line">  	::max&lt;&gt;(<span class="number">7</span>, <span class="number">42</span>);	<span class="comment">// calls max&lt;int&gt; (by argument deduction)</span></span><br><span class="line">  	::max&lt;<span class="keyword">double</span>&gt;(<span class="number">7</span>, <span class="number">42</span>);	<span class="comment">// calls max&lt;double&gt; (no argument deduction)</span></span><br><span class="line">  	::max(<span class="string">'a'</span>, <span class="number">42.7</span>);	<span class="comment">// calls the nontemplate for two ints</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>非模板函数可以和模板函数混用。如果参数类型完全匹配，非模板比模板生成函数更优先，如果不完全匹配则优先考虑是否可以推导模板，如果模板推导不成再考虑类型转换适配非模板函数。</p>
+<blockquote>
+<p>归根结底，非模板函数可以做自动类型转换，但模板参数推导却不行。</p>
+</blockquote>
+<p>重载模板函数有一个特例，可以仅仅改变返回类型：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">template</span>&lt;<span class="keyword">typename</span> T1, <span class="keyword">typename</span> T2&gt;</span><br><span class="line"><span class="function"><span class="keyword">auto</span> <span class="title">max</span><span class="params">(T1 a, T2 b)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">return</span> b &lt; a ? a : b;</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">template</span>&lt;<span class="keyword">typename</span> RT, <span class="keyword">typename</span> T1, <span class="keyword">typename</span> T2&gt;</span><br><span class="line"><span class="function">RT <span class="title">max</span><span class="params">(T1 a, T2 b)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">return</span> b &lt; a ? a : b;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">auto</span> a = ::max(<span class="number">4</span>, <span class="number">7.2</span>);	<span class="comment">// uses first template</span></span><br><span class="line"><span class="keyword">auto</span> b = ::max&lt;<span class="keyword">long</span> <span class="keyword">double</span>&gt;(<span class="number">7.2</span>, <span class="number">4</span>);	<span class="comment">// uses second template</span></span><br><span class="line"><span class="keyword">auto</span> c = ::max&lt;<span class="keyword">int</span>&gt;(<span class="number">4</span>, <span class="number">7.2</span>);	<span class="comment">// ERROR: both function templates match</span></span><br></pre></td></tr></table></figure>
+<p>依我看，这纯粹是比较二逼的用法，写这种重载就是坑自己。</p>
+<p>为指针和C字符串重载模板函数的例子：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;cstring&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;string&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="comment">// maximum of two values of any type:</span></span><br><span class="line"><span class="keyword">template</span>&lt;<span class="keyword">typename</span> T&gt;</span><br><span class="line"><span class="function">T <span class="title">max</span><span class="params">(T a, T b)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">return</span> b &lt; a ? a : b;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// maximum of two pointers:</span></span><br><span class="line"><span class="keyword">template</span>&lt;<span class="keyword">typename</span> T&gt;</span><br><span class="line"><span class="function">T *<span class="title">max</span><span class="params">(T *a, T *b)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">return</span> *b &lt; *a ? a : b;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// maximum of two C-strings:</span></span><br><span class="line"><span class="function"><span class="keyword">char</span> <span class="keyword">const</span> *<span class="title">max</span><span class="params">(<span class="keyword">char</span> <span class="keyword">const</span> *a, <span class="keyword">char</span> <span class="keyword">const</span> *b)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">std</span>::<span class="built_in">strcmp</span>(b,a) &lt; <span class="number">0</span> : a : b;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">int</span> a = <span class="number">7</span>;</span><br><span class="line">  	<span class="keyword">int</span> b = <span class="number">42</span>;</span><br><span class="line">  	<span class="keyword">auto</span> m1 = ::max(a,b);	<span class="comment">// max() for two values of type int</span></span><br><span class="line">  	<span class="built_in">std</span>::<span class="built_in">string</span> s1 = <span class="string">"hey"</span>;</span><br><span class="line">  	<span class="built_in">std</span>::<span class="built_in">string</span> s2 = <span class="string">"you"</span>;</span><br><span class="line"> 	<span class="keyword">auto</span> m2 = ::max(s1, s2);	<span class="comment">// max() for two values of type std::string</span></span><br><span class="line">  </span><br><span class="line">  	<span class="keyword">int</span> *p1 = &amp;b;</span><br><span class="line">  	<span class="keyword">int</span> *p2 = &amp;a;</span><br><span class="line">  	<span class="keyword">auto</span> m3 = ::max(p1, p2);	<span class="comment">// max() for two pointers</span></span><br><span class="line">  </span><br><span class="line">  	<span class="keyword">char</span> <span class="keyword">const</span> *x = <span class="string">"hello"</span>;</span><br><span class="line">  	<span class="keyword">char</span> <span class="keyword">const</span> *y = <span class="string">"world"</span>;</span><br><span class="line">  	<span class="keyword">auto</span> m4 = ::max(x,y);	<span class="comment">// max() for two C-Strings</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>所有的重载都是按值传递。通常来说，重载函数模板时尽可能避免修改并限制参数数量的改动以及显式化指定模板参数。</p>
+<p>一个经典的错误范例：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;cstring&gt;</span></span></span><br><span class="line"><span class="comment">// maximum of two values of any type (call-by-reference)</span></span><br><span class="line"><span class="keyword">template</span>&lt;<span class="keyword">typename</span> T&gt;</span><br><span class="line"><span class="function">T <span class="keyword">const</span> &amp;<span class="title">max</span><span class="params">(T <span class="keyword">const</span> &amp;a, T <span class="keyword">const</span> &amp;b)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">return</span> b &lt; a ? a : b;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// maximum of two C-Strings (call-by-value)</span></span><br><span class="line"><span class="function"><span class="keyword">char</span> <span class="keyword">const</span> *<span class="title">max</span><span class="params">(<span class="keyword">char</span> <span class="keyword">const</span> *a, <span class="keyword">char</span> <span class="keyword">const</span> *b)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">std</span>::<span class="built_in">strcmp</span>(b, a) &lt; <span class="number">0</span> ? a : b;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// maximum of three values of any type (call-by-reference)</span></span><br><span class="line"><span class="keyword">template</span>&lt;<span class="keyword">typename</span> T&gt;</span><br><span class="line"><span class="function">T <span class="keyword">const</span> &amp;<span class="title">max</span><span class="params">(T <span class="keyword">const</span> &amp;a, T <span class="keyword">const</span> &amp;b, T <span class="keyword">const</span> &amp;c)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">return</span> max(max(a,b),c);	<span class="comment">//error if max(a,b) uses call-by-value</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">auto</span> m1 = ::max(<span class="number">7</span>, <span class="number">42</span>, <span class="number">68</span>);		<span class="comment">//OK</span></span><br><span class="line">  	<span class="keyword">char</span> <span class="keyword">const</span> *s1 = <span class="string">"frederic"</span>;</span><br><span class="line">  	<span class="keyword">char</span> <span class="keyword">const</span> *s2 = <span class="string">"anica"</span>;</span><br><span class="line">  	<span class="keyword">char</span> <span class="keyword">const</span> *s3 = <span class="string">"lucas"</span>;</span><br><span class="line">  	<span class="keyword">auto</span> m2 = ::max(s1, s2, s3);	<span class="comment">//run-time ERROR</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>因为对于C字符串来说，<code>max(a, b)</code>创建一个新的临时的局部变量并按引用返回，但是该局部变量在return语句执行后返回到main中就生命期失效了（它是调用者一层max的局部变量）。这种错误非常难以鉴别。而<code>::max(7, 42, 68)</code>之所以正确是因为这三个临时局部变量生命周期在main中。</p>
+<h2 id="用法忌讳"><a href="#用法忌讳" class="headerlink" title="用法忌讳"></a>用法忌讳</h2><h3 id="传值还是传引用？"><a href="#传值还是传引用？" class="headerlink" title="传值还是传引用？"></a>传值还是传引用？</h3><p>为什么一定要传值而不是传引用。通常来说，对基本类型以外的类型传引用都是被推崇的，因为这可以省去无谓的copy。</p>
+<p>然而，对于模板来说，传值更好，有以下几个原因：</p>
+<ul>
+<li>语法简单。</li>
+<li>编译器优化的更好。</li>
+<li>move语法使得拷贝变得cheap。</li>
+<li>有些时候根本就没有拷贝和移动。</li>
+</ul>
+<h3 id="为什么不能用inline？"><a href="#为什么不能用inline？" class="headerlink" title="为什么不能用inline？"></a>为什么不能用inline？</h3><p>模板函数无需inline。我们可以在头文件中定义非inline模板函数，在多个源文件中include该头文件也不会有问题。</p>
+<blockquote>
+<p>对指定类型完全特化的模板函数则比较特别，因为它的返回值不再是可生成的（所有模板参数都被定义过了）。</p>
+</blockquote>
+<p>inline仅仅意味着函数可以多次在同一个应用程序中出现。然而，对编译器来说这意味着调用该函数需要展开函数体。对特定情境inline具有更高的效率，但是很多时候也会让代码变得低效。对当代编译器来说，编译器决定是否应用inline关键字比程序员本身更为可靠，所以请相信编译器！</p>
+<h3 id="为什么不能用constexpr"><a href="#为什么不能用constexpr" class="headerlink" title="为什么不能用constexpr?"></a>为什么不能用constexpr?</h3><p>C++11中可以用<code>constexpr</code>来提供一种能力——在编译期计算某些值。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">template</span>&lt;<span class="keyword">typename</span> T1, <span class="keyword">typename</span> T2&gt;</span><br><span class="line"><span class="function"><span class="keyword">constexpr</span> <span class="keyword">auto</span> <span class="title">max</span><span class="params">(T1 a, T2 b)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">return</span> b &lt; a ? a : b;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>如此，你可以声明这样一个尺寸的原生数组或<code>std::array&lt;&gt;</code>：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">int</span> a[::max(<span class="keyword">sizeof</span>(<span class="keyword">char</span>),<span class="number">1000u</span>)];</span><br><span class="line"><span class="built_in">std</span>::<span class="built_in">array</span>&lt;<span class="built_in">std</span>::<span class="built_in">string</span>, ::max(<span class="keyword">sizeof</span>(<span class="keyword">char</span>), 1000u)&gt; arr;</span><br></pre></td></tr></table></figure>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><ul>
+<li>函数模板为不同类型模板参数定义了一个函数族。</li>
+<li>函数模板按照传递的参数类型，推导出对应的实例化函数，其参数类型与传入类型保持一致。</li>
+<li>可以显式化限定模板参数。</li>
+<li>模板参数可以有默认参数。</li>
+<li>函数模板可以被重载。</li>
+<li>使用其他函数模板重载函数模板时，需要保证使用时只有一个会匹配。</li>
+<li>重载函数模板时，改动限制在：显式地指定模板参数。</li>
+<li>函数模板的所有重载版本都要在使用位置前声明，确保编译器可以看到。</li>
+</ul>
+
+      
+      
+    </div>
+    
+  </div>
+  
+    
+    <div class="copyright">
+        <p><span>本文标题:</span><a href="/2018/08/25/C++ Templates Note - 函数模板/">C++ Templates Note- 函数模板</a></p>
+        <p><span>文章作者:</span><a href="/" title="访问 r00tk1t 的个人博客">r00tk1t</a></p>
+        <p><span>发布时间:</span>2018年08月25日 - 12时29分</p>
+        <p><span>最后更新:</span>2020年10月20日 - 21时01分</p>
+        <p>
+            <span>原始链接:</span><a class="post-url" href="/2018/08/25/C++ Templates Note - 函数模板/" title="C++ Templates Note- 函数模板">https://r00tk1ts.github.io/2018/08/25/C++ Templates Note - 函数模板/</a>
+            <span class="copy-path" data-clipboard-text="原文: https://r00tk1ts.github.io/2018/08/25/C++ Templates Note - 函数模板/　　作者: r00tk1t" title="点击复制文章链接"><i class="fa fa-clipboard"></i></span>
+            <script src="/js/clipboard.min.js"></script>
+            <script> var clipboard = new Clipboard('.copy-path'); </script>
+        </p>
+        <p>
+            <span>许可协议:</span><i class="fa fa-creative-commons"></i> <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/3.0/cn/" title="中国大陆 (CC BY-NC-SA 3.0 CN)" target = "_blank">"署名-非商用-相同方式共享 3.0"</a> 转载请保留原文链接及作者。
+        </p>
+    </div>
+
+
+
+<nav id="article-nav">
+  
+    <a href="/2018/08/25/C++ Templates Note - 类模板/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption"><</strong>
+      <div class="article-nav-title">
+        
+          C++ Templates Note - 类模板
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2018/08/13/Linux内存管理-进程地址空间/" id="article-nav-older" class="article-nav-link-wrap">
+      <div class="article-nav-title">Linux内核学习——内存管理之进程地址空间</div>
+      <strong class="article-nav-caption">></strong>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+    <div id="toc" class="toc-article">
+    <strong class="toc-title">文章目录</strong>
+    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#初探函数模板"><span class="toc-number">1.</span> <span class="toc-text">初探函数模板</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#定义函数模板"><span class="toc-number">1.1.</span> <span class="toc-text">定义函数模板</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#使用函数模板"><span class="toc-number">1.2.</span> <span class="toc-text">使用函数模板</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#两阶段转译"><span class="toc-number">1.3.</span> <span class="toc-text">两阶段转译</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#模板参数推导"><span class="toc-number">2.</span> <span class="toc-text">模板参数推导</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#多重模板参数"><span class="toc-number">3.</span> <span class="toc-text">多重模板参数</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#返回类型的模板参数"><span class="toc-number">3.1.</span> <span class="toc-text">返回类型的模板参数</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#推导返回类型"><span class="toc-number">3.2.</span> <span class="toc-text">推导返回类型</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#返回通用类型"><span class="toc-number">3.3.</span> <span class="toc-text">返回通用类型</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#默认模板参数"><span class="toc-number">4.</span> <span class="toc-text">默认模板参数</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#重载函数模板"><span class="toc-number">5.</span> <span class="toc-text">重载函数模板</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#用法忌讳"><span class="toc-number">6.</span> <span class="toc-text">用法忌讳</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#传值还是传引用？"><span class="toc-number">6.1.</span> <span class="toc-text">传值还是传引用？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#为什么不能用inline？"><span class="toc-number">6.2.</span> <span class="toc-text">为什么不能用inline？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#为什么不能用constexpr"><span class="toc-number">6.3.</span> <span class="toc-text">为什么不能用constexpr?</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#总结"><span class="toc-number">7.</span> <span class="toc-text">总结</span></a></li></ol>
+</div>
+<input type="button" id="tocButton" value="隐藏目录"  title="点击按钮隐藏或者显示文章目录">
+
+<script src="https://7.url.cn/edu/jslib/comb/require-2.1.6,jquery-1.9.1.min.js"></script>
+<script>
+    var valueHide = "隐藏目录";
+    var valueShow = "显示目录";
+
+    if ($(".left-col").is(":hidden")) {
+        $("#tocButton").attr("value", valueShow);
+    }
+    $("#tocButton").click(function() {
+        if ($("#toc").is(":hidden")) {
+            $("#tocButton").attr("value", valueHide);
+            $("#toc").slideDown(320);
+        }
+        else {
+            $("#tocButton").attr("value", valueShow);
+            $("#toc").slideUp(350);
+        }
+    })
+    if ($(".toc").length < 1) {
+        $("#toc, #tocButton").hide();
+    }
+</script>
+
+
+
+
+
+
+
+    
+
+
+
+    <div class="scroll" id="post-nav-button">
+        
+            <a href="/2018/08/25/C++ Templates Note - 类模板/" title="上一篇: C++ Templates Note - 类模板">
+                <i class="fa fa-angle-left"></i>
+            </a>
+        
+        <a title="文章列表"><i class="fa fa-bars"></i><i class="fa fa-times"></i></a>
+        
+            <a href="/2018/08/13/Linux内存管理-进程地址空间/" title="下一篇: Linux内核学习——内存管理之进程地址空间">
+                <i class="fa fa-angle-right"></i>
+            </a>
+        
+    </div>
+    <ul class="post-list"><li class="post-list-item"><a class="post-list-link" href="/2020/10/22/chromium-base库源码解读之引用计数拆解篇/">chromium-base库源码解读之引用计数拆解篇</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/12/16/深入探索禁忌目录之Effective C++篇/">深入探索禁忌目录之Effective C++篇</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/12/10/C++ Primer - 特殊工具与技术/">C++ Primer - 特殊工具与技术</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/12/08/C++ Primer - 用于大型程序的工具/">C++ Primer - 用于大型程序的工具</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/12/06/C++ Primer - 标准库特殊设施/">C++ Primer - 标准库特殊设施</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/12/03/C++ Primer - 模板与泛型编程/">C++ Primer - 模板与泛型编程</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/12/01/C++ Primer - 面向对象程序设计/">C++ Primer - 面向对象程序设计</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/29/C++ Primer - 重载运算与类型转换/">C++ Primer - 重载运算与类型转换</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/29/C++ Primer - 拷贝控制/">C++ Primer - 拷贝控制</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/26/C++ Primer - 动态内存/">C++ Primer - 动态内存</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/26/C++ Primer - 关联容器/">C++ Primer - 关联容器</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/24/C++ Primer - 泛型算法/">C++ Primer - 泛型算法</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/24/C++ Primer - 顺序容器/">C++ Primer - 顺序容器</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/21/C++ Primer - IO库/">C++ Primer - IO库</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/21/C++ Primer - 类/">C++ Primer - 类</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/20/C++ Primer - 函数/">C++ Primer - 函数</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/20/C++ Primer - 语句/">C++ Primer -语句</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/20/C++ Primer - 表达/">C++ Primer - 表达式</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/10/28/C++ Primer - string, vector & array/">C++ Primer - string, vector, array</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/10/28/C++ Primer - 变量和基本类型/">C++ Primer - 变量和基本类型</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/08/25/C++ Templates Note - 类模板/">C++ Templates Note - 类模板</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/08/25/C++ Templates Note - 函数模板/">C++ Templates Note- 函数模板</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/08/13/Linux内存管理-进程地址空间/">Linux内核学习——内存管理之进程地址空间</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/07/07/一次失败的栈溢出(SEH)之GetGo Download Manager/">一次失败的栈溢出(SEH)之GetGo Download Manager</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/06/28/DNSTracer 1.9栈溢出漏洞[CVE-2017-9430]/">DNSTracer 1.9栈溢出漏洞[CVE-2017-9430]</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/06/24/A Tale of Exploit Easy RM 2 MP3 Converter/">A Tale of Exploit "Easy RM 2 MP3</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/06/03/chromium-sandbox-ThreadProcess-analysis/">Chromium-sandbox-ThreadProcess-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/06/03/chromium-sandbox-Filesystem-analysis/">Chromium-sandbox-Filesystem-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/06/03/chromium-sandbox-LowLevelPolicy-analysis/">Chromium-sandbox-LowLevelPolicy-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/26/chromium-sandbox-PolicyEngine-analysis/">Chromium-sandbox-PolicyEngine-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/26/chromium-sandbox-Resolver-analysis/">Chromium-sandbox-Resolver-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/26/chromium-sandbox-Interception/">Chromium-sandbox-Interception-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/21/chromium-sandbox-HandleCloser-analysis/">Chromium-sandbox-HandleCloser-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/20/chromium-sandbox-SharedMemIPC/">Chromium-sandbox-SharedMemIPC-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/19/chromium-sandbox-Crosscall-analysis/">Chromium-sandbox-crosscall-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/19/chromium-sandbox-AlternateDesktop-analysis/">Chromium-sandbox-AlternateDesktop-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/19/chromium-sandbox-Tokens-analysis/">Chromium-sandbox-Tokens-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/14/chromium-sandbox-Job-analysis/">Chromium-sandbox-Job-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/13/chromium-sandbox-TargetPolicy-analysis/">Chromium-sandbox-TargetPolicy-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/13/chromium-sandbox-TargetProcess-analysis/">Chromium-sandbox-TargetProcess-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/13/chromium-sandbox-TargetServices-analysis/">Chromium-sandbox-TargetServices-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/13/chromium-sandbox-BrokerServices/">Chromium-sandbox-BrokerServices-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/04/05/x41-浏览器安全白皮书笔记/">X41-浏览器安全白皮书读书笔记</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/22/Windows系统机制之同步/">Windows系统机制之同步</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/21/Windows系统机制之对象管理器/">Windows系统机制之对象管理器</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/21/Windows系统机制之陷阱分发/">Windows系统机制之陷阱分发</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/21/Bitmaps轶事：Windows 10纪念版前的GDI对象泄露/">Bitmap轶事：Windows 10纪念版后的GDI对象泄露</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/20/理解池污染三部曲/">理解池污染三部曲</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/19/内核利用程序之Razer rzpnk.sys中的逻辑bug/">Windows exploit系列教程第十九篇：内核利用程序之Razer rzpnk.sys中的逻辑bug</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/19/内核利用程序之RS2 Bitmap巫术/">Windows exploit系列教程第十八篇：内核利用程序之RS2 Bitmap巫术</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/15/内核利用程序之滥用GDI Bitmap/">Windows exploit系列教程第十七部分：内核利用程序之任意位置任意写</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/14/内核利用程序之池溢出/">Windows exploit系列教程第十六部分：内核利用程序之池溢出</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/14/内核利用程序之UAF/">Windows exploit系列教程第十五部分：内核利用程序之UAF</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/10/coin1/">Writeup.pwnable.kr系列之coin1</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/10/shellshock/">Writeup.pwnable.kr系列之shellshock</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/09/mistake/">Writeup.pwnable.kr系列之mistake</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/07/leg/">Writeup.pwnable.kr系列之leg</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/06/input/">Writeup.pwnable.kr系列之input</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/05/random/">Writeup.pwnable.kr系列之random</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/05/passcode/">Writeup.pwnable.kr系列之passcode</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/04/flag/">Writeup.pwnable.kr系列之flag</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/04/bof/">Writeup.pwnable.kr系列之bof</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/03/collision/">Writeup.pwnable.kr系列之collision</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/03/fd/">Writeup.pwnable.kr系列之fd</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/02/26/Binary Security Assembly/">Binary-Security-Assembly</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/02/07/内核利用程序之整数溢出/">Windows exploit系列教程第十四部分：内核利用程序之整数溢出</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/02/06/内核利用程序之未初始化栈变量/">Windows exploit系列教程第十三部分：内核利用程序之未初始化栈变量</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/02/06/内核利用程序之空指针引用/">Windows exploit系列教程第十二部分：内核利用程序之空指针引用</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/02/01/内核利用程序之任意位置任意写/">Windows exploit系列教程第十一部分：内核利用程序之任意位置任意写</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/01/15/ring0层exp原语之滥用GDI/">ring0层exp原语之滥用GDI</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/01/14/Windows x64内核提权/">Windows x64内核提权</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/01/14/关键的Windows内核数据结构一览（下）/">关键的Windows内核数据结构一览（下）</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/01/08/关键的Windows内核数据结构一览（上）/">关键的Windows内核数据结构一览（上）</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/01/06/内核利用程序开发之栈溢出/">Windows exploit系列教程第十部分：内核利用程序之栈溢出</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/01/05/堆喷射[第二章：UAF]/">Windows exploit系列教程第九部分：堆喷射[第二章：UAF]</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/12/30/Kernel Driver mmap Handler Exploitation/">内核驱动mmap Handler利用技术</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/12/28/API Interception via DLL Redirection/">通过DLL重定向实现API劫持</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/12/21/Linux中断内幕/">Linux中断内幕</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/12/19/Windows架构设计/">Windows架构设计</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/10/30/house_of_force.log/">house_of_force log</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/10/25/Linux内存管理-非连续内存区管理/">Linux内核学习——内存管理之非连续内存区管理</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/10/24/Linux内存管理-内存区管理/">Linux内核学习——内存管理之内存区管理</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/10/20/Linux内存管理-页框管理/">Linux内核学习——内存管理之页框管理</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/10/19/first_fit.log/">first_fit log</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/10/19/house_of_einherjar.log/">house_of_einherjar log</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/10/18/fastbin_dup_into_stack.log/">fastbin_dup_into_stack log</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/10/12/fastbin_dup.log/">fastbin_dup log</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/09/23/Windows栈溢出之ret eip/">Windows栈溢出之ret eip</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/09/23/Windows栈溢出概述/">Windows栈溢出概述</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/09/16/DEFCON-2015-r0pbaby/">DEFCON-2015-r0pbaby</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/09/11/PWN选手的自我修养/">PWN选手的自我修养</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/08/27/linearsort/">linear sort</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/08/27/quicksort/">quicksort</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/08/27/heapsort&priority-queue/">heapsort & priority-queue</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/08/27/Linux进程的创建与撤销/">Linux内核学习——Linux进程的创建与撤销</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/08/26/Linux进程切换/">Linux内核学习——Linux进程切换</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/08/24/GNU Hash ELF Sections/">GNU Hash ELF Sections</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/08/22/Linux进程概述/">Linux内核学习——Linux进程概述</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/08/18/Linux内存寻址/">Linux内核学习——内存寻址</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/05/15/PlaySms  1.4代码执行漏洞之import csv/">PlaySms 1.4代码执行漏洞之import csv</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/05/15/PlaySms  1.4代码执行漏洞分析/">PlaySms 1.4代码执行漏洞分析</a></li></ul>
+    <script src="https://7.url.cn/edu/jslib/comb/require-2.1.6,jquery-1.9.1.min.js"></script>
+    <script>
+        $(".post-list").addClass("toc-article");
+        $(".post-list-item a").attr("target","_blank");
+        $("#post-nav-button > a:nth-child(2)").click(function() {
+            $(".fa-bars, .fa-times").toggle();
+            $(".post-list").toggle(300);
+            if ($(".toc").length > 0) {
+                $("#toc, #tocButton").toggle(200, function() {
+                    if ($(".switch-area").is(":visible")) {
+                        $("#tocButton").attr("value", valueHide);
+                        }
+                    })
+            }
+            else {
+            }
+        })
+    </script>
+
+
+
+    <script>
+        
+    </script>
+</div>
+      <footer id="footer">
+    <div class="outer">
+        <div id="footer-info">
+            <div class="footer-left">
+                &copy; 2020 r00tk1t
+            </div>
+            <div class="footer-right">
+                <a href="http://hexo.io/" target="_blank">Hexo</a>  Theme <a href="https://github.com/luuman/hexo-theme-spfk" target="_blank">spfk</a> by luuman
+            </div>
+        </div>
+        
+            <div class="visit">
+                
+                    <span id="busuanzi_container_site_pv" style='display:none'>
+                        <span id="site-visit" >访问数量: 
+                            <span id="busuanzi_value_site_uv"></span>
+                        </span>
+                    </span>
+                
+                
+                    <span>, </span>
+                
+                
+                    <span id="busuanzi_container_page_pv" style='display:none'>
+                        <span id="page-visit">本页阅读量: 
+                            <span id="busuanzi_value_page_pv"></span>
+                        </span>
+                    </span>
+                
+            </div>
+        
+    </div>
+</footer>
+
+    </div>
+    <script src="https://7.url.cn/edu/jslib/comb/require-2.1.6,jquery-1.9.1.min.js"></script>
+<script src="/js/main.js"></script>
+
+    <script>
+        $(document).ready(function() {
+            var backgroundnum = 24;
+            var backgroundimg = "url(/background/bg-x.jpg)".replace(/x/gi, Math.ceil(Math.random() * backgroundnum));
+            $("#mobile-nav").css({"background-image": backgroundimg,"background-size": "cover","background-position": "center"});
+            $(".left-col").css({"background-image": backgroundimg,"background-size": "cover","background-position": "center"});
+        })
+    </script>
+
+
+
+
+
+<div class="scroll" id="scroll">
+    <a href="#"><i class="fa fa-arrow-up"></i></a>
+    <a href="#comments"><i class="fa fa-comments-o"></i></a>
+    <a href="#footer"><i class="fa fa-arrow-down"></i></a>
+</div>
+<script>
+    $(document).ready(function() {
+        if ($("#comments").length < 1) {
+            $("#scroll > a:nth-child(2)").hide();
+        };
+    })
+</script>
+
+<script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js">
+</script>
+
+  <script language="javascript">
+    $(function() {
+        $("a[title]").each(function() {
+            var a = $(this);
+            var title = a.attr('title');
+            if (title == undefined || title == "") return;
+            a.data('title', title).removeAttr('title').hover(
+
+            function() {
+                var offset = a.offset();
+                $("<div id=\"anchortitlecontainer\"></div>").appendTo($("body")).html(title).css({
+                    top: offset.top - a.outerHeight() - 15,
+                    left: offset.left + a.outerWidth()/2 + 1
+                }).fadeIn(function() {
+                    var pop = $(this);
+                    setTimeout(function() {
+                        pop.remove();
+                    }, pop.text().length * 800);
+                });
+            }, function() {
+                $("#anchortitlecontainer").remove();
+            });
+        });
+    });
+</script>
+
+
+  </div>
+</body>
+</html>

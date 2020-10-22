@@ -1,0 +1,832 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>C++ Primer - string, vector, array | r00tk1t&#39;s blog</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="《C++ Primer》第五版引入了11标准相关内容，我早年在初学C++时还只有第四版，近来想对C++做一个整体的复习+版本升级，借此机会过一遍第五版。本文是阅读第三章“string, vector, array”时所做的笔记。">
+<meta name="keywords" content="cpp,cpp-primer">
+<meta property="og:type" content="article">
+<meta property="og:title" content="C++ Primer - string, vector, array">
+<meta property="og:url" content="https://r00tk1ts.github.io/2018/10/28/C++ Primer - string, vector & array/index.html">
+<meta property="og:site_name" content="r00tk1t&#39;s blog">
+<meta property="og:description" content="《C++ Primer》第五版引入了11标准相关内容，我早年在初学C++时还只有第四版，近来想对C++做一个整体的复习+版本升级，借此机会过一遍第五版。本文是阅读第三章“string, vector, array”时所做的笔记。">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:updated_time" content="2020-10-20T13:01:02.341Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="C++ Primer - string, vector, array">
+<meta name="twitter:description" content="《C++ Primer》第五版引入了11标准相关内容，我早年在初学C++时还只有第四版，近来想对C++做一个整体的复习+版本升级，借此机会过一遍第五版。本文是阅读第三章“string, vector, array”时所做的笔记。">
+  
+    <link rel="alternative" href="/atom.xml" title="r00tk1t&#39;s blog" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/img/favicon.png">
+  
+  
+      <link rel="stylesheet" href="//cdn.bootcss.com/animate.css/3.5.0/animate.min.css">
+  
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/font-awesome/css/font-awesome.min.css">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  
+  
+      <link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+  
+  <!-- 加载特效 -->
+    <script src="/js/pace.js"></script>
+    <link href="/css/pace/pace-theme-flash.css" rel="stylesheet" />
+  <script>
+      var yiliaConfig = {
+          rootUrl: '/',
+          fancybox: true,
+          animate: true,
+          isHome: false,
+          isPost: true,
+          isArchive: false,
+          isTag: false,
+          isCategory: false,
+          open_in_new: false
+      }
+  </script>
+</head>
+<body>
+  <div id="container">
+    <div class="left-col">
+    <div class="overlay"></div>
+<div class="intrude-less">
+    <header id="header" class="inner">
+        <a href="/" class="profilepic">
+            
+            <img lazy-src="/img/head.jpg" class="js-avatar">
+            
+        </a>
+
+        <hgroup>
+          <h1 class="header-author"><a href="/" title="Hi Mate">r00tk1t</a></h1>
+        </hgroup>
+
+        
+        <p class="header-subtitle">二进制安全 | Web安全 | 伪装成程序员的菜鸡</p>
+        
+        
+        
+            <div id="switch-btn" class="switch-btn">
+                <div class="icon">
+                    <div class="icon-ctn">
+                        <div class="icon-wrap icon-house" data-idx="0">
+                            <div class="birdhouse"></div>
+                            <div class="birdhouse_holes"></div>
+                        </div>
+                        <div class="icon-wrap icon-ribbon hide" data-idx="1">
+                            <div class="ribbon"></div>
+                        </div>
+                        
+                        <div class="icon-wrap icon-link hide" data-idx="2">
+                            <div class="loopback_l"></div>
+                            <div class="loopback_r"></div>
+                        </div>
+                        
+                        
+                        <div class="icon-wrap icon-me hide" data-idx="3">
+                            <div class="user"></div>
+                            <div class="shoulder"></div>
+                        </div>
+                        
+                    </div>
+                    
+                </div>
+                <div class="tips-box hide">
+                    <div class="tips-arrow"></div>
+                    <ul class="tips-inner">
+                        <li>菜单</li>
+                        <li>标签</li>
+                        
+                        <li>友情链接</li>
+                        
+                        
+                        <li>关于我</li>
+                        
+                    </ul>
+                </div>
+            </div>
+        
+
+        <div id="switch-area" class="switch-area">
+            <div class="switch-wrap">
+                <section class="switch-part switch-part1">
+                    <nav class="header-menu">
+                        <ul>
+                        
+                            <li><a href="/">博客首页</a></li>
+                        
+                            <li><a href="/archives">所有文章</a></li>
+                        
+                            <li><a href="/tags">标签</a></li>
+                        
+                        </ul>
+                    </nav>
+                    <nav class="header-nav">
+                        <ul class="social">
+                            
+                                <a class="fl mail" target="_blank" href="mailto: 1903442252@qq.com" title="mail">mail</a>
+                            
+                                <a class="fl github" target="_blank" href="https://github.com/r00tk1ts" title="github">github</a>
+                            
+                                <a class="fl zhihu" target="_blank" href="https://www.zhihu.com/people/r00tk1t-5" title="zhihu">zhihu</a>
+                            
+                                <a class="fl weibo" target="_blank" href="http://weibo.com/2698344533" title="weibo">weibo</a>
+                            
+                                <a class="fl QQ" target="_blank" href="https://user.qzone.qq.com/1903442252" title="QQ">QQ</a>
+                            
+                        </ul>
+                    </nav>
+                </section>
+                
+                
+                <section class="switch-part switch-part2">
+                    <div class="widget tagcloud" id="js-tagcloud">
+                        <a href="/tags/SEH-overwrite/" style="font-size: 10px;">SEH overwrite</a> <a href="/tags/algorithm/" style="font-size: 11.67px;">algorithm</a> <a href="/tags/browser/" style="font-size: 10px;">browser</a> <a href="/tags/chrome/" style="font-size: 16.67px;">chrome</a> <a href="/tags/chrome-sandbox/" style="font-size: 16.67px;">chrome-sandbox</a> <a href="/tags/cpp/" style="font-size: 20px;">cpp</a> <a href="/tags/cpp-primer/" style="font-size: 18.33px;">cpp-primer</a> <a href="/tags/cpp-templates/" style="font-size: 11.67px;">cpp-templates</a> <a href="/tags/dll-hooking/" style="font-size: 10px;">dll hooking</a> <a href="/tags/exploit/" style="font-size: 12.5px;">exploit</a> <a href="/tags/glibc/" style="font-size: 10px;">glibc</a> <a href="/tags/glibc-heap/" style="font-size: 13.33px;">glibc-heap</a> <a href="/tags/linux/" style="font-size: 10.83px;">linux</a> <a href="/tags/linux-kernel/" style="font-size: 14.17px;">linux-kernel</a> <a href="/tags/mmap/" style="font-size: 10px;">mmap</a> <a href="/tags/novice/" style="font-size: 17.5px;">novice</a> <a href="/tags/php/" style="font-size: 10.83px;">php</a> <a href="/tags/pool/" style="font-size: 10px;">pool</a> <a href="/tags/pwn/" style="font-size: 19.17px;">pwn</a> <a href="/tags/pwnable-kr/" style="font-size: 15px;">pwnable.kr</a> <a href="/tags/resources/" style="font-size: 10px;">resources</a> <a href="/tags/stack-overrun/" style="font-size: 11.67px;">stack-overrun</a> <a href="/tags/tutorial/" style="font-size: 10px;">tutorial</a> <a href="/tags/ulk/" style="font-size: 14.17px;">ulk</a> <a href="/tags/web/" style="font-size: 10.83px;">web</a> <a href="/tags/windows/" style="font-size: 15.83px;">windows</a> <a href="/tags/windows-kernel/" style="font-size: 14.17px;">windows-kernel</a> <a href="/tags/writeup/" style="font-size: 10px;">writeup</a> <a href="/tags/wrk/" style="font-size: 12.5px;">wrk</a>
+                    </div>
+                </section>
+                
+                
+                
+                <section class="switch-part switch-part3">
+                    <div id="js-friends">
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://eternalsakura13.com">樱花师傅</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="https://chybeta.github.io/">Chybeta</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://whereisk0shl.top/">k0shl</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://o0xmuhe.github.io/">o0xmuhe</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://bestwing.me/">swing</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://yixuankeer.win/">joker</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://www.hackersb.cn/">王松_Striker</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="https://www.hackfun.org/">4ido10n</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://www.cnblogs.com/iamstudy/">l3m0n</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://www.cnblogs.com/Ox9A82/">Ox9A82</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://mxny.org/">麦香浓郁</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://0x48.pw/">Hcamael</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="https://blog.nuptzj.cn/">画船听雨</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="https://www.bodkin.ren/">老锥</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://www.zerokeeper.com/">ZeroKeeper</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="https://www.ycjcl.cc/">信鑫</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://www.wowotech.net/">wowotech</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://fuzzysecurity.com/">fuzzySecurity</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="https://rootkits.xyz/">rootkits.xyz</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://www.pentestingexperts.com/">pentestingexperts</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="https://blog.skylined.nl/">skylined</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="https://systemk1t.github.io/">systemk1t</a>
+                    
+                    </div>
+                </section>
+                
+
+                
+                
+                <section class="switch-part switch-part4">
+                
+                    <div id="js-aboutme">二进制狗一枚，懂点Web安全，一个伪装成程序员混迹在某公司的菜鸡。</div>
+                </section>
+                
+            </div>
+        </div>
+    </header>                
+</div>
+    </div>
+    <div class="mid-col">
+      <nav id="mobile-nav">
+      <div class="overlay">
+          <div class="slider-trigger"></div>
+          <h1 class="header-author js-mobile-header hide"><a href="/" title="Me">r00tk1t</a></h1>
+      </div>
+    <div class="intrude-less">
+        <header id="header" class="inner">
+            <a href="/" class="profilepic">
+                
+                    <img lazy-src="/img/head.jpg" class="js-avatar">
+                
+            </a>
+            <hgroup>
+              <h1 class="header-author"><a href="/" title="Me">r00tk1t</a></h1>
+            </hgroup>
+            
+            <p class="header-subtitle">二进制安全 | Web安全 | 伪装成程序员的菜鸡</p>
+            
+            <nav class="header-menu">
+                <ul>
+                
+                    <li><a href="/">博客首页</a></li>
+                
+                    <li><a href="/archives">所有文章</a></li>
+                
+                    <li><a href="/tags">标签</a></li>
+                
+                <div class="clearfix"></div>
+                </ul>
+            </nav>
+            <nav class="header-nav">
+                <div class="social">
+                    
+                        <a class="mail" target="_blank" href="mailto: 1903442252@qq.com" title="mail">mail</a>
+                    
+                        <a class="github" target="_blank" href="https://github.com/r00tk1ts" title="github">github</a>
+                    
+                        <a class="zhihu" target="_blank" href="https://www.zhihu.com/people/r00tk1t-5" title="zhihu">zhihu</a>
+                    
+                        <a class="weibo" target="_blank" href="http://weibo.com/2698344533" title="weibo">weibo</a>
+                    
+                        <a class="QQ" target="_blank" href="https://user.qzone.qq.com/1903442252" title="QQ">QQ</a>
+                    
+                </div>
+            </nav>
+        </header>                
+    </div>
+</nav>
+      <div class="body-wrap"><article id="post-C++ Primer - string, vector &amp; array" class="article article-type-post" itemscope itemprop="blogPost">
+  
+    <div class="article-meta">
+      <a href="/2018/10/28/C++ Primer - string, vector & array/" class="article-date">
+      <time datetime="2018-10-28T11:58:11.000Z" itemprop="datePublished">2018-10-28</time>
+</a>
+    </div>
+  
+  <div class="article-inner">
+    
+      <input type="hidden" class="isFancy" />
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      C++ Primer - string, vector, array
+    </h1>
+  
+
+      </header>
+      
+      <div class="article-info article-info-post">
+        
+    <div class="article-category tagcloud">
+    <a class="article-category-link" href="/categories/programming-language/">programming-language</a>
+    </div>
+
+
+        
+    <div class="article-tag tagcloud">
+        <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/cpp/">cpp</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/cpp-primer/">cpp-primer</a></li></ul>
+    </div>
+
+        <div class="clearfix"></div>
+      </div>
+      
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+          
+        <p>《C++ Primer》第五版引入了11标准相关内容，我早年在初学C++时还只有第四版，近来想对C++做一个整体的复习+版本升级，借此机会过一遍第五版。本文是阅读第三章“string, vector, array”时所做的笔记。</p>
+<a id="more"></a>
+<h1 id="string-vector-array"><a href="#string-vector-array" class="headerlink" title="string, vector, array"></a>string, vector, array</h1><h2 id="命名空间的using声明"><a href="#命名空间的using声明" class="headerlink" title="命名空间的using声明"></a>命名空间的using声明</h2><p>使用库函数时都需要加上它的命名空间前缀，如<code>std::cin</code>。</p>
+<p>显然如果对于所有使用了某库函数的地方都需要这样写的话，势必导致语法又臭又长。C++提供了一种简化方式——使用using。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">using</span> <span class="keyword">namespace</span>::name;</span><br></pre></td></tr></table></figure>
+<p>比如写</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">using</span> <span class="built_in">std</span>::<span class="built_in">cin</span>;</span><br><span class="line"><span class="keyword">using</span> <span class="built_in">std</span>::<span class="built_in">cout</span>;</span><br></pre></td></tr></table></figure>
+<p>在同一文件中，就可以直接使用<code>cin</code>和<code>cout</code>而无需命名空间前缀。这些语句不应出现在头文件，当工程较大引用较多时可能会引起名字冲突。</p>
+<p><strong>这种办法是最为推荐的，不建议直接<code>using namespace xxx;</code></strong></p>
+<p>头文件中通常不应包含using声明，而应在源文件中独立使用时引入using声明。</p>
+<h2 id="string"><a href="#string" class="headerlink" title="string"></a>string</h2><p>C++标准库定义的类型，使用起来比从C继承来的<code>char[]</code>在语法上要舒服一些，但实际算法操作细节处理上往往感觉四处碰壁。使用需包含<code>&lt;string&gt;</code>。</p>
+<p><code>string</code>并非基本类型，它是标准库内置的一种复合类型，所以定义、初始化、赋值等操作不能按狭义的基本类型理解，它所应用的操作符亦是如此。刷到<code>class</code>时自然懂，所以这里先绕过遮遮掩掩的描述。</p>
+<p>###定义和初始化string对象</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">string</span> s1;			<span class="comment">//默认初始化，s1是一个空串</span></span><br><span class="line"><span class="function"><span class="built_in">string</span> <span class="title">s2</span><span class="params">(s1)</span></span>;		<span class="comment">//s2是s1的副本</span></span><br><span class="line"><span class="built_in">string</span> s2 = s1;		<span class="comment">//等价于s2(s1)，s2是s1的副本</span></span><br><span class="line"><span class="function"><span class="built_in">string</span> <span class="title">s3</span><span class="params">(<span class="string">"value"</span>)</span></span>;	<span class="comment">//s3是字面值"value"的副本，除了字面值最后的那个空字符外</span></span><br><span class="line"><span class="function"><span class="built_in">string</span> <span class="title">s4</span><span class="params">(n, <span class="string">'c'</span>)</span></span>;	<span class="comment">//把s4初始化为由连续n个字符c组成的串</span></span><br></pre></td></tr></table></figure>
+<p>###string对象上的操作</p>
+<p>支持一堆操作，耳熟能详。</p>
+<table>
+<thead>
+<tr>
+<th>-</th>
+<th>-</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>os &lt;&lt; s</td>
+<td>将s写到输出流os当中，返回os</td>
+</tr>
+<tr>
+<td>is &gt;&gt; s</td>
+<td>从is中读取字符串赋给s，字符串以空白分割，返回is</td>
+</tr>
+<tr>
+<td>getline(is, s)</td>
+<td>从is中读取一行赋给s，返回is</td>
+</tr>
+<tr>
+<td>s.empty()</td>
+<td>s为空返回true，否则返回false</td>
+</tr>
+<tr>
+<td>s.size()</td>
+<td>返回s中字符的个数</td>
+</tr>
+<tr>
+<td>s[n]</td>
+<td>返回s中第n个字符的引用，位置n从0计起</td>
+</tr>
+<tr>
+<td>s1 + s2</td>
+<td>返回s1和s2连接后的结果</td>
+</tr>
+<tr>
+<td>s1 = s2</td>
+<td>用s2的副本代替s1中原来的字符</td>
+</tr>
+<tr>
+<td>s1 == s2, s1 != s2</td>
+<td>如果s1和s2中所含的字符完全一样，则它们相等；string对象的相等性判断在对字母的大小写敏感</td>
+</tr>
+<tr>
+<td>&lt;, &lt;=, &gt;, &gt;=</td>
+<td>利用字符在字典中的顺序进行比较，且对字母的大小写敏感</td>
+</tr>
+</tbody>
+</table>
+<p>为了与C兼容，C++语言中的字符串字面值并不是标准库string的对象。 </p>
+<h3 id="处理string对象中的字符"><a href="#处理string对象中的字符" class="headerlink" title="处理string对象中的字符"></a>处理string对象中的字符</h3><p>头文件cctype定义了一组标准库函数单独处理string中的字符。</p>
+<table>
+<thead>
+<tr>
+<th>-</th>
+<th>-</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>isalnum(c)</td>
+<td>当c是字母或数字时为真</td>
+</tr>
+<tr>
+<td>isalpha(c)</td>
+<td>当c是字母时为真</td>
+</tr>
+<tr>
+<td>iscntrl(c)</td>
+<td>当c是控制字符时为真</td>
+</tr>
+<tr>
+<td>isdigit(c)</td>
+<td>当c是数字时为真</td>
+</tr>
+<tr>
+<td>isgraph(c)</td>
+<td>当c不是空格但可以打印时为真</td>
+</tr>
+<tr>
+<td>islower(c)</td>
+<td>当c是小写字母时为真</td>
+</tr>
+<tr>
+<td>isprint(c)</td>
+<td>当c是可打印字符时为真(即c是空格或c具有可视形式)</td>
+</tr>
+<tr>
+<td>ispunct(c)</td>
+<td>当c是标点符号时为真(即c不是控制字符、数字、字母、可打印空白中的一种)</td>
+</tr>
+<tr>
+<td>isspace(c)</td>
+<td>当c是空白时为真(即c是空格、横向制表符、纵向制表符、回车符、换行符、进纸符中的一种)</td>
+</tr>
+<tr>
+<td>isupper(c)</td>
+<td>当c是大写字母时为真</td>
+</tr>
+<tr>
+<td>isxdigit(c)</td>
+<td>当c是十六进制数字时为真</td>
+</tr>
+<tr>
+<td>tolower(c)</td>
+<td>如果c是大写字母，输出对应的小写字母；否则原样输出c</td>
+</tr>
+<tr>
+<td>toupper(c)</td>
+<td>如果c是小写字母，输出对应的大写字母；否则原样输出c</td>
+</tr>
+</tbody>
+</table>
+<h2 id="vector"><a href="#vector" class="headerlink" title="vector"></a>vector</h2><p>C++标准库定义的类型，是个对象的集合。初学者可以理解成高级的动态数组。顺序容器的一种，实际上是标准库STL设计的类模板，对于不理解模板语法的初学者在使用容器时会感到困惑。无需困惑，学到模板、泛型，自然懂。</p>
+<p>因为引用不是对象，所以不存在包含引用的vector。</p>
+<p>使用时包含<code>&lt;vector&gt;</code>。</p>
+<p>类模板实例化之后依然是个类类型，所以去掉最上层包装，它的定义、初始化和string这种类类型没什么区别。</p>
+<p>C++11标准引入的列表初始化语法对类类型也适用，只是在一些有歧义的语法冲突时，会放弃该种列表初始化语法，例如：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">vector</span>&lt;<span class="built_in">string</span>&gt; v1&#123;<span class="string">"a"</span>,<span class="string">"an"</span>,<span class="string">"the"</span>&#125;;		<span class="comment">//列表初始化</span></span><br><span class="line"><span class="built_in">vector</span>&lt;<span class="built_in">string</span>&gt; v1 = &#123;<span class="string">"a"</span>,<span class="string">"an"</span>,<span class="string">"the"</span>&#125;;	<span class="comment">//列表初始化</span></span><br><span class="line"><span class="built_in">vector</span>&lt;<span class="built_in">string</span>&gt; v2(<span class="string">"a"</span>,<span class="string">"an"</span>,<span class="string">"the"</span>);		<span class="comment">//错误，跟构造函数语法有歧义</span></span><br></pre></td></tr></table></figure>
+<p>在早期的C++标准中，如果vector的元素还是vector，定义时必须在外层vector对象的右尖括号和其元素类型之间添加一个空格，如vector\&lt;vector\&lt;int> >。但是在C++11标准中，可以直接写成vector\&lt;vector\&lt;int>>，不需要添加空格。</p>
+<h3 id="定义和初始化vector对象"><a href="#定义和初始化vector对象" class="headerlink" title="定义和初始化vector对象"></a>定义和初始化vector对象</h3><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">vector</span>&lt;T&gt; v1;				<span class="comment">//v1是一个空vector，它潜在的元素是T类型的，执行默认初始化</span></span><br><span class="line"><span class="built_in">vector</span>&lt;T&gt; v2(v1);			<span class="comment">//v2中包含v1所有元素的副本</span></span><br><span class="line"><span class="built_in">vector</span>&lt;T&gt; v2 = v1;			<span class="comment">//等价于v2(v1)，v2中包含由v1所有元素的副本</span></span><br><span class="line"><span class="built_in">vector</span>&lt;T&gt; v3(n, val);		<span class="comment">//v3包含了n个重复的元素，每个元素值都是val</span></span><br><span class="line"><span class="built_in">vector</span>&lt;T&gt; v4(n);			<span class="comment">//v4包含了那个重复执行了值初始化的对象</span></span><br><span class="line"><span class="built_in">vector</span>&lt;T&gt; v5&#123;a,b,c...&#125;;		<span class="comment">//v5包含了初始值个数的元素，每个元素被赋予相应的初始值</span></span><br><span class="line"><span class="built_in">vector</span>&lt;T&gt; v5=&#123;a,b,c...&#125;;	<span class="comment">//等价于v5&#123;a,b,c...&#125;;</span></span><br></pre></td></tr></table></figure>
+<h3 id="vector相关操作"><a href="#vector相关操作" class="headerlink" title="vector相关操作"></a>vector相关操作</h3><p>同样支持一堆操作，耳熟能详。</p>
+<table>
+<thead>
+<tr>
+<th>-</th>
+<th>-</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>v.empty()</td>
+<td>如果v不含有任何元素，返回真；否则返回假</td>
+</tr>
+<tr>
+<td>v.size()</td>
+<td>返回v中元素的个数</td>
+</tr>
+<tr>
+<td>v.push_back(t)</td>
+<td>向v的尾端添加一个值为t的元素</td>
+</tr>
+<tr>
+<td>v[n]</td>
+<td>返回v中第n个位置上元素的引用</td>
+</tr>
+<tr>
+<td>v1 = v2</td>
+<td>用v2中元素的拷贝替换v1中的元素</td>
+</tr>
+<tr>
+<td>v1 = {a, b, c…}</td>
+<td>用列表中元素的拷贝替换v1中的元素</td>
+</tr>
+<tr>
+<td>v1 == v2</td>
+<td>v1和v2相等当且仅当它们的元素数量相同且对应位置的元素值都相同</td>
+</tr>
+<tr>
+<td>&lt;, &lt;=, &gt;, &gt;=</td>
+<td>顾名思义，以字典顺序进行比较</td>
+</tr>
+</tbody>
+</table>
+<p>注意不能用下标形式添加元素。</p>
+<h2 id="迭代器"><a href="#迭代器" class="headerlink" title="迭代器"></a>迭代器</h2><p>每种可迭代的类型对象都可以有自己的iterator，用于遍历访问，实际上对iterator的支持与否取决于具体类型的实现。初学者可以简单的理解成被封装的指针，目的都是间接访问。iterator本身是个抽象的概念，它按继承关系分成5类，每一种class的iterator都是一种类型。</p>
+<p>定义了迭代器的类型都拥有<code>begin</code>和<code>end</code>两个成员函数。begin函数返回指向第一个元素的迭代器，end函数返回指向容器“尾元素的下一位置（one past the end）”的迭代器，通常被称作尾后迭代器（off-the-end iterator）或者简称为尾迭代器（end iterator）。尾后迭代器仅是个标记，表示程序已经处理完了容器中的所有元素。</p>
+<p>标准容器迭代器的运算符：</p>
+<table>
+<thead>
+<tr>
+<th>-</th>
+<th>-</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>*iter</td>
+<td>返回迭代器iter所指元素的引用</td>
+</tr>
+<tr>
+<td>iter-&gt;mem</td>
+<td>解引用iter并获取该元素的名为mem的成员，等价于(*iter).mem</td>
+</tr>
+<tr>
+<td>++iter</td>
+<td>令iter指示容器中的下一个元素</td>
+</tr>
+<tr>
+<td>–iter</td>
+<td>令iter指示容器中的上一个元素</td>
+</tr>
+<tr>
+<td>iter1 == iter2  iter1!= iter2</td>
+<td>判断两个迭代器是否相等(不相等)，如果两个迭代器指示的是同一个元素或者他们是同一个容器的尾后迭代器，则相等；反之，不相等</td>
+</tr>
+</tbody>
+</table>
+<p>在for或者其他循环语句的判断条件中，最好使用<code>!=</code>而不是<code>&lt;</code>。所有标准库容器的迭代器都定义了<code>==</code>和<code>!=</code>，但是只有其中少数同时定义了<code>&lt;</code>运算符。</p>
+<p>如果vector或string对象是常量，则只能使用<code>const_iterator</code>迭代器，该迭代器只能读元素，不能写元素。begin和end返回的迭代器具体类型由对象是否是常量决定，如果对象是常量，则返回const_iterator；如果对象不是常量，则返回iterator。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">vector</span>&lt;<span class="keyword">int</span>&gt; v;</span><br><span class="line"><span class="keyword">const</span> <span class="built_in">vector</span>&lt;<span class="keyword">int</span>&gt; cv;</span><br><span class="line"><span class="keyword">auto</span> it1 = v.begin();	<span class="comment">// it1类型为vector&lt;int&gt;::iterator</span></span><br><span class="line"><span class="keyword">auto</span> it2 = cv.begin();	<span class="comment">// it2类型为vector&lt;int&gt;::const_iterator</span></span><br></pre></td></tr></table></figure>
+<p>C++11中新增了cbegin和cend，无论vector或string对象是否为常量，都返回const_iterator。</p>
+<p>任何可能改变容器对象容量的操作，都会使该对象的迭代器失效。 </p>
+<blockquote>
+<p>常见的坑就是循环时erase元素，导致可能误操作已失效的迭代器。</p>
+</blockquote>
+<h3 id="迭代器运算"><a href="#迭代器运算" class="headerlink" title="迭代器运算"></a>迭代器运算</h3><p>迭代器实际上是分类的，string和vector的迭代器是随机访问迭代器，它提供了额外的一些操作：</p>
+<table>
+<thead>
+<tr>
+<th>-</th>
+<th>-</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>iter + n</td>
+<td>迭代器加上一个整数值仍得一个迭代器，迭代器指示的新位置与原来相比向前移动了若干个元素。结果迭代器或者指示容器内的一个元素，或者指示容器尾元素的下一位置</td>
+</tr>
+<tr>
+<td>iter - n</td>
+<td>迭代器减去一个整数值仍得一个迭代器，迭代器指示的新位置与原来相比向后移动了若干个元素。结果迭代器或者指示容器内的一个元素，或者指示容器尾元素的下一位置</td>
+</tr>
+<tr>
+<td>iter1 += n</td>
+<td>迭代器加法的复合赋值语句，将iter1加n的结果赋给iter1</td>
+</tr>
+<tr>
+<td>iter1 -= n</td>
+<td>迭代器减法的复合赋值语句，将iter1减n的结果赋给iter1</td>
+</tr>
+<tr>
+<td>iter1 - iter2</td>
+<td>两个迭代器相减的结果是它们之间的距离，也就是说，将运算符右侧的迭代器向前移动差值个元素后将得到左侧的迭代器。参与运算的两个迭代器必须指向的是同一个容器中的元素或者尾元素的下一位置</td>
+</tr>
+<tr>
+<td>&gt;, &gt;=, &lt;, &lt;=</td>
+<td>迭代器的关系运算符，如果某迭代器指向的容器位置在两一个迭代器所指位置之前，则说前者小于后者。参与运算的两个迭代器必须指向的是同一个容器中的元素或者尾元素的下一位置</td>
+</tr>
+</tbody>
+</table>
+<p><code>difference_type</code>类型用来表示两个迭代器间的距离，这是一种带符号整数类型。 </p>
+<p>掌握iterator，要读STL源码。</p>
+<h2 id="数组"><a href="#数组" class="headerlink" title="数组"></a>数组</h2><p>C已经有了，C++继承过来，没什么变化，但由于C++有引用语法，所以派生了一些复杂的写法。</p>
+<p>###定义和初始化内置数组</p>
+<p>定义数组的时候必须指定数组的类型，不允许用auto关键字由初始值列表推断类型。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//定义</span></span><br><span class="line"><span class="keyword">unsigned</span> cnt = <span class="number">42</span>;	<span class="comment">//非常量表达式</span></span><br><span class="line"><span class="keyword">constexpr</span> <span class="keyword">unsigned</span> sz = <span class="number">42</span>;	<span class="comment">//常量表达式</span></span><br><span class="line"><span class="keyword">int</span> arr[<span class="number">10</span>];	<span class="comment">//含有10个整数的数组</span></span><br><span class="line"><span class="keyword">int</span> *parr[sz];	<span class="comment">//含有42个整型指针的数组</span></span><br><span class="line"><span class="built_in">string</span> bad[cnt];	<span class="comment">//错误：cnt不是常量表达式</span></span><br><span class="line"><span class="built_in">string</span> strs[get_size()];	<span class="comment">//如果get_size是constexpr就正确</span></span><br><span class="line"></span><br><span class="line"><span class="comment">//初始化</span></span><br><span class="line"><span class="keyword">const</span> <span class="keyword">unsigned</span> sz = <span class="number">3</span>;</span><br><span class="line"><span class="keyword">int</span> ial[sz] = &#123;<span class="number">0</span>, <span class="number">1</span>, <span class="number">2</span>&#125;;	<span class="comment">//含有3个元素的数组，分别为0,1,2</span></span><br><span class="line"><span class="keyword">int</span> a2[] = &#123;<span class="number">0</span>, <span class="number">1</span>, <span class="number">2</span>&#125;;		<span class="comment">//3个元素的数组，显示初始化定义可以省略sz</span></span><br><span class="line"><span class="keyword">int</span> a3[<span class="number">5</span>] = &#123;<span class="number">0</span>, <span class="number">1</span>, <span class="number">2</span>&#125;;		<span class="comment">//等价于a3[] = &#123;0,1,2,0,0&#125;</span></span><br><span class="line"><span class="built_in">string</span> a4[<span class="number">3</span>] = &#123;<span class="string">"hi"</span>, <span class="string">"bye"</span>&#125;;	<span class="comment">//等价于a4[] = &#123;"hi", "bye", ""&#125;;</span></span><br><span class="line"><span class="keyword">int</span> a5[<span class="number">2</span>] = &#123;<span class="number">0</span>,<span class="number">1</span>,<span class="number">2</span>&#125;;		<span class="comment">//错误</span></span><br></pre></td></tr></table></figure>
+<p>字符数组比较特别，从C开始就对其语法进行了简化，不过这也导致了很多新手字符常量和字符数组傻傻分不清楚。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">char</span> a1[] = &#123;<span class="string">'C'</span>,<span class="string">'+'</span>,<span class="string">'+'</span>&#125;;	<span class="comment">// 列表初始化，没有空字符</span></span><br><span class="line"><span class="keyword">char</span> a2[] = &#123;<span class="string">'C'</span>,<span class="string">'+'</span>,<span class="string">'+'</span>,<span class="string">'\0'</span>&#125;;	<span class="comment">// 列表初始化，含有显式的空字符</span></span><br><span class="line"><span class="keyword">char</span> a3[] = <span class="string">"C++"</span>;			<span class="comment">// 自动添加表示字符串结束的空字符</span></span><br><span class="line"><span class="keyword">const</span> <span class="keyword">char</span> a4[<span class="number">6</span>] = <span class="string">"Daniel"</span>;	<span class="comment">// 错误：空间不足</span></span><br></pre></td></tr></table></figure>
+<p>数组不能直接拷贝和赋值，嗯，毕竟沿用C。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">int</span> a[] = &#123;<span class="number">0</span>, <span class="number">1</span>, <span class="number">2</span>&#125;;	</span><br><span class="line"><span class="keyword">int</span> a2 = a;	<span class="comment">// 错误：不能用一个数组初始化另一个数组</span></span><br><span class="line">a2 = a;		<span class="comment">// 错误：不能把一个数组赋值给另一个数组</span></span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>关于这一点，新人可能对string之类的复合类型可以拷贝初始化以及赋值复制的欣慰有所困惑，实际上那都是由其class背后的显式或隐式的拷贝构造器和赋值操作符完成的。而数组是个很特别的东西，游离于三界之外，有自己继承自C的一套语法，不能直接套基础类型和复合类型的使用范式。</p>
+</blockquote>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">int</span> *ptrs[<span class="number">10</span>];	<span class="comment">//ptrs数组有10个整型指针</span></span><br><span class="line"><span class="keyword">int</span> &amp;refs[<span class="number">10</span>] = <span class="comment">/* ? */</span>; <span class="comment">//错误：不存在引用的数组</span></span><br><span class="line"><span class="keyword">int</span> (*Parray)[<span class="number">10</span>] = &amp;arr;	<span class="comment">// Parray指向一个含有10个整数的数组</span></span><br><span class="line"><span class="keyword">int</span> (&amp;arrRef)[<span class="number">10</span>] = arr;	<span class="comment">// arrRef引用一个含有10个整数的数组</span></span><br></pre></td></tr></table></figure>
+<p>数组的迭代器就是原生的指针，数组和指针就是容器和迭代器的原始模型。</p>
+<p>C++11在头文件<em>iterator</em>中定义了两个名为<code>begin</code>和<code>end</code>的函数，功能与容器中的两个同名成员函数类似，参数是一个数组。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">int</span> ia[] = &#123;<span class="number">0</span>,<span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span>,<span class="number">4</span>,<span class="number">5</span>,<span class="number">6</span>,<span class="number">7</span>,<span class="number">8</span>,<span class="number">9</span>&#125;;	<span class="comment">// ia是个包含了10个int的数组</span></span><br><span class="line"><span class="keyword">int</span> *beg = begin(ia);	<span class="comment">// 指向ia的第一个元素</span></span><br><span class="line"><span class="keyword">int</span> *last = end(ia);	<span class="comment">// 指向ia的最后一个元素</span></span><br></pre></td></tr></table></figure>
+<p>两个指针相减的结果类型是<code>ptrdiff_t</code>，这是一种定义在头文件<em>cstddef</em>中的带符号类型。</p>
+<p>###C风格字符串</p>
+<p>C风格字符串和string的混用也是经常性的，一般来说哪种便于处理，就用哪种形式处理。</p>
+<p>string具有通过C风格字符串作为参数的构造器，所以<code>string s(&quot;Hello World&quot;);</code>这种写法是可以的，但是反过来，<code>char *str = s;</code>就不行了，因为基础类型背后可没有所谓的拷贝构造来支持。</p>
+<blockquote>
+<p>对应<code>string s = &quot;Hello World&quot;;</code>这种写法，实际上是拷贝初始化，而拷贝初始化会先调用参数为char*的构造器来生成临时的string对象，然后临时对象再传给s的拷贝构造器。</p>
+</blockquote>
+<p>那么对于string到C风格字符串的转换，是由string的成员函数<code>c_str()</code>来完成的：<code>const char *str = s.c_str();</code>。</p>
+<p>从C++的设计者角度来说，是想让玩家尽量不使用C的数组啊、C风格字符串啊、指针啊等东西，但是实际上这么多年过去了，从标准库的设计到C++的整个生态环境都不尽人意，有些东西还是避不开，样样具备的实验室需要你对每一种语法糖的底层机理都了如指掌才能在使用时左右逢源，这也是C++为什么难用的原因。</p>
+<p>##多维数组</p>
+<p>除了一维数组以外，还可以有多维数组，和C一样，不过是数组嵌套数组罢了。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">int</span> ia[<span class="number">3</span>][<span class="number">4</span>] = </span><br><span class="line">&#123;   <span class="comment">// 三个元素，每个元素都是一个尺寸为4的数组</span></span><br><span class="line">    &#123;<span class="number">0</span>, <span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>&#125;,   <span class="comment">// 行索引0的初始化</span></span><br><span class="line">    &#123;<span class="number">4</span>, <span class="number">5</span>, <span class="number">6</span>, <span class="number">7</span>&#125;,   <span class="comment">// 行索引1的初始化</span></span><br><span class="line">    &#123;<span class="number">8</span>, <span class="number">9</span>, <span class="number">10</span>, <span class="number">11</span>&#125;  <span class="comment">// 行索引2的初始化</span></span><br><span class="line">&#125;;</span><br><span class="line"><span class="comment">// 不使用可选的嵌套花括号的初始化方式，与上面是等价的</span></span><br><span class="line"><span class="keyword">int</span> ib[<span class="number">3</span>][<span class="number">4</span>] = &#123;<span class="number">0</span>, <span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>, <span class="number">6</span>, <span class="number">7</span>, <span class="number">8</span>, <span class="number">9</span>, <span class="number">10</span>, <span class="number">11</span>&#125;;</span><br><span class="line"><span class="comment">// 显示初始化每个数组元素的第一个元素</span></span><br><span class="line"><span class="keyword">int</span> ic[<span class="number">3</span>][<span class="number">4</span>] = &#123;&#123; <span class="number">0</span> &#125;, &#123; <span class="number">4</span> &#125;, &#123; <span class="number">8</span> &#125;&#125;;</span><br><span class="line"><span class="comment">// 显示初始化第一个数组元素，其他数组元素会被默认初始化</span></span><br><span class="line"><span class="keyword">int</span> id[<span class="number">3</span>][<span class="number">4</span>] = &#123;<span class="number">0</span>, <span class="number">3</span>, <span class="number">6</span>, <span class="number">9</span>&#125;;</span><br></pre></td></tr></table></figure>
+<p>多维数组的寻址，不过是在上一个维度基础上追加乘法偏移而已。</p>
+<p>使用范围for语句处理多维数组时，为了避免数组被自动转换成指针，语句中的外层循环控制变量必须声明成引用类型。 </p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">for</span>(<span class="keyword">const</span> <span class="keyword">auto</span> &amp;row : ia)</span><br><span class="line">  <span class="keyword">for</span>(<span class="keyword">auto</span> col : row)</span><br><span class="line">    <span class="built_in">cout</span> &lt;&lt; col &lt;&lt; <span class="built_in">endl</span>;</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>也算是历史遗留问题了，因为数组这种设计在C++里总显得格格不入。</p>
+</blockquote>
+<p>如果<em>row</em>不是引用类型，编译器初始化<em>row</em>时会自动将数组形式的元素转换成指向该数组内首元素的指针，这样得到的<em>row</em>就是int*类型，而之后的内层循环则试图在一个int*内遍历，程序将无法通过编译。 </p>
+<p>声明指向数组类型的指针时，必须带有圆括号（因为优先级的问题）。 </p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">int</span> *ip[<span class="number">4</span>];     <span class="comment">// ip是包含4个int指针类型的数组</span></span><br><span class="line"><span class="keyword">int</span> (*ip)[<span class="number">4</span>];   <span class="comment">// ip是指向四个int元素的数组的指针</span></span><br></pre></td></tr></table></figure>
+<p>使用auto和decltype能省略复杂的指针定义。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 输出ia中每个元素的值，每个内层数组各占一行</span></span><br><span class="line"><span class="comment">// p指向含有4个int的数组</span></span><br><span class="line"><span class="keyword">for</span> (<span class="keyword">auto</span> p = ia; p != ia + <span class="number">3</span>; ++p) </span><br><span class="line">&#123;</span><br><span class="line">    <span class="comment">// q指向4个int数组的首元素，也就是说，q指向一个int</span></span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">auto</span> q = *p; q != *p + <span class="number">4</span>; ++q)</span><br><span class="line">        <span class="built_in">cout</span> &lt;&lt; *q &lt;&lt; <span class="string">' '</span>;</span><br><span class="line">    <span class="built_in">cout</span> &lt;&lt; <span class="built_in">endl</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>选用begin和end替换：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// p指向ia的第一个数组</span></span><br><span class="line"><span class="keyword">for</span>(<span class="keyword">auto</span> p = begin(ia);p!=end(ia);++p)&#123;</span><br><span class="line">    <span class="comment">// q指向内层数组的首元素</span></span><br><span class="line">  	<span class="keyword">for</span>(<span class="keyword">auto</span> q = begin(*p);q!=end(*p);++q)&#123;</span><br><span class="line">        <span class="built_in">cout</span> &lt;&lt; *q &lt;&lt; <span class="string">' '</span>; <span class="comment">// 输出q所指的int值</span></span><br><span class="line">    &#125;</span><br><span class="line">  	<span class="built_in">cout</span> &lt;&lt; <span class="built_in">endl</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>再通过类型别名简化：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">using</span> int_array = <span class="keyword">int</span>[<span class="number">4</span>];	<span class="comment">//新标准下类型别名的声明</span></span><br><span class="line"><span class="keyword">typedef</span> <span class="keyword">int</span> int_array[<span class="number">4</span>];	<span class="comment">//等价的typedef声明</span></span><br><span class="line"></span><br><span class="line"><span class="comment">//输出ia中每个元素的值，每个内层数组各占一行</span></span><br><span class="line"><span class="keyword">for</span>(int_array *p = ia;p != ia+<span class="number">3</span>;++p)&#123;</span><br><span class="line">    <span class="keyword">for</span>(<span class="keyword">int</span> *q = *p; q != *p + <span class="number">4</span>; ++q)</span><br><span class="line">      <span class="built_in">cout</span> &lt;&lt; *q &lt;&lt; <span class="string">' '</span>;</span><br><span class="line">  <span class="built_in">cout</span> &lt;&lt; <span class="built_in">endl</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+      
+      
+    </div>
+    
+  </div>
+  
+    
+    <div class="copyright">
+        <p><span>本文标题:</span><a href="/2018/10/28/C++ Primer - string, vector & array/">C++ Primer - string, vector, array</a></p>
+        <p><span>文章作者:</span><a href="/" title="访问 r00tk1t 的个人博客">r00tk1t</a></p>
+        <p><span>发布时间:</span>2018年10月28日 - 19时58分</p>
+        <p><span>最后更新:</span>2020年10月20日 - 21时01分</p>
+        <p>
+            <span>原始链接:</span><a class="post-url" href="/2018/10/28/C++ Primer - string, vector & array/" title="C++ Primer - string, vector, array">https://r00tk1ts.github.io/2018/10/28/C++ Primer - string, vector &amp; array/</a>
+            <span class="copy-path" data-clipboard-text="原文: https://r00tk1ts.github.io/2018/10/28/C++ Primer - string, vector &amp; array/　　作者: r00tk1t" title="点击复制文章链接"><i class="fa fa-clipboard"></i></span>
+            <script src="/js/clipboard.min.js"></script>
+            <script> var clipboard = new Clipboard('.copy-path'); </script>
+        </p>
+        <p>
+            <span>许可协议:</span><i class="fa fa-creative-commons"></i> <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/3.0/cn/" title="中国大陆 (CC BY-NC-SA 3.0 CN)" target = "_blank">"署名-非商用-相同方式共享 3.0"</a> 转载请保留原文链接及作者。
+        </p>
+    </div>
+
+
+
+<nav id="article-nav">
+  
+    <a href="/2018/11/20/C++ Primer - 表达/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption"><</strong>
+      <div class="article-nav-title">
+        
+          C++ Primer - 表达式
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2018/10/28/C++ Primer - 变量和基本类型/" id="article-nav-older" class="article-nav-link-wrap">
+      <div class="article-nav-title">C++ Primer - 变量和基本类型</div>
+      <strong class="article-nav-caption">></strong>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+    <div id="toc" class="toc-article">
+    <strong class="toc-title">文章目录</strong>
+    <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#string-vector-array"><span class="toc-number">1.</span> <span class="toc-text">string, vector, array</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#命名空间的using声明"><span class="toc-number">1.1.</span> <span class="toc-text">命名空间的using声明</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#string"><span class="toc-number">1.2.</span> <span class="toc-text">string</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#处理string对象中的字符"><span class="toc-number">1.2.1.</span> <span class="toc-text">处理string对象中的字符</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#vector"><span class="toc-number">1.3.</span> <span class="toc-text">vector</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#定义和初始化vector对象"><span class="toc-number">1.3.1.</span> <span class="toc-text">定义和初始化vector对象</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#vector相关操作"><span class="toc-number">1.3.2.</span> <span class="toc-text">vector相关操作</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#迭代器"><span class="toc-number">1.4.</span> <span class="toc-text">迭代器</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#迭代器运算"><span class="toc-number">1.4.1.</span> <span class="toc-text">迭代器运算</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#数组"><span class="toc-number">1.5.</span> <span class="toc-text">数组</span></a></li></ol></li></ol>
+</div>
+<input type="button" id="tocButton" value="隐藏目录"  title="点击按钮隐藏或者显示文章目录">
+
+<script src="https://7.url.cn/edu/jslib/comb/require-2.1.6,jquery-1.9.1.min.js"></script>
+<script>
+    var valueHide = "隐藏目录";
+    var valueShow = "显示目录";
+
+    if ($(".left-col").is(":hidden")) {
+        $("#tocButton").attr("value", valueShow);
+    }
+    $("#tocButton").click(function() {
+        if ($("#toc").is(":hidden")) {
+            $("#tocButton").attr("value", valueHide);
+            $("#toc").slideDown(320);
+        }
+        else {
+            $("#tocButton").attr("value", valueShow);
+            $("#toc").slideUp(350);
+        }
+    })
+    if ($(".toc").length < 1) {
+        $("#toc, #tocButton").hide();
+    }
+</script>
+
+
+
+
+
+
+
+    
+
+
+
+    <div class="scroll" id="post-nav-button">
+        
+            <a href="/2018/11/20/C++ Primer - 表达/" title="上一篇: C++ Primer - 表达式">
+                <i class="fa fa-angle-left"></i>
+            </a>
+        
+        <a title="文章列表"><i class="fa fa-bars"></i><i class="fa fa-times"></i></a>
+        
+            <a href="/2018/10/28/C++ Primer - 变量和基本类型/" title="下一篇: C++ Primer - 变量和基本类型">
+                <i class="fa fa-angle-right"></i>
+            </a>
+        
+    </div>
+    <ul class="post-list"><li class="post-list-item"><a class="post-list-link" href="/2020/10/22/chromium-base库源码解读之引用计数拆解篇/">chromium-base库源码解读之引用计数拆解篇</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/12/16/深入探索禁忌目录之Effective C++篇/">深入探索禁忌目录之Effective C++篇</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/12/10/C++ Primer - 特殊工具与技术/">C++ Primer - 特殊工具与技术</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/12/08/C++ Primer - 用于大型程序的工具/">C++ Primer - 用于大型程序的工具</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/12/06/C++ Primer - 标准库特殊设施/">C++ Primer - 标准库特殊设施</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/12/03/C++ Primer - 模板与泛型编程/">C++ Primer - 模板与泛型编程</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/12/01/C++ Primer - 面向对象程序设计/">C++ Primer - 面向对象程序设计</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/29/C++ Primer - 重载运算与类型转换/">C++ Primer - 重载运算与类型转换</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/29/C++ Primer - 拷贝控制/">C++ Primer - 拷贝控制</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/26/C++ Primer - 动态内存/">C++ Primer - 动态内存</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/26/C++ Primer - 关联容器/">C++ Primer - 关联容器</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/24/C++ Primer - 泛型算法/">C++ Primer - 泛型算法</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/24/C++ Primer - 顺序容器/">C++ Primer - 顺序容器</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/21/C++ Primer - IO库/">C++ Primer - IO库</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/21/C++ Primer - 类/">C++ Primer - 类</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/20/C++ Primer - 函数/">C++ Primer - 函数</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/20/C++ Primer - 语句/">C++ Primer -语句</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/20/C++ Primer - 表达/">C++ Primer - 表达式</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/10/28/C++ Primer - string, vector & array/">C++ Primer - string, vector, array</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/10/28/C++ Primer - 变量和基本类型/">C++ Primer - 变量和基本类型</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/08/25/C++ Templates Note - 类模板/">C++ Templates Note - 类模板</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/08/25/C++ Templates Note - 函数模板/">C++ Templates Note- 函数模板</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/08/13/Linux内存管理-进程地址空间/">Linux内核学习——内存管理之进程地址空间</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/07/07/一次失败的栈溢出(SEH)之GetGo Download Manager/">一次失败的栈溢出(SEH)之GetGo Download Manager</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/06/28/DNSTracer 1.9栈溢出漏洞[CVE-2017-9430]/">DNSTracer 1.9栈溢出漏洞[CVE-2017-9430]</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/06/24/A Tale of Exploit Easy RM 2 MP3 Converter/">A Tale of Exploit "Easy RM 2 MP3</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/06/03/chromium-sandbox-ThreadProcess-analysis/">Chromium-sandbox-ThreadProcess-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/06/03/chromium-sandbox-Filesystem-analysis/">Chromium-sandbox-Filesystem-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/06/03/chromium-sandbox-LowLevelPolicy-analysis/">Chromium-sandbox-LowLevelPolicy-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/26/chromium-sandbox-PolicyEngine-analysis/">Chromium-sandbox-PolicyEngine-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/26/chromium-sandbox-Resolver-analysis/">Chromium-sandbox-Resolver-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/26/chromium-sandbox-Interception/">Chromium-sandbox-Interception-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/21/chromium-sandbox-HandleCloser-analysis/">Chromium-sandbox-HandleCloser-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/20/chromium-sandbox-SharedMemIPC/">Chromium-sandbox-SharedMemIPC-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/19/chromium-sandbox-Crosscall-analysis/">Chromium-sandbox-crosscall-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/19/chromium-sandbox-AlternateDesktop-analysis/">Chromium-sandbox-AlternateDesktop-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/19/chromium-sandbox-Tokens-analysis/">Chromium-sandbox-Tokens-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/14/chromium-sandbox-Job-analysis/">Chromium-sandbox-Job-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/13/chromium-sandbox-TargetPolicy-analysis/">Chromium-sandbox-TargetPolicy-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/13/chromium-sandbox-TargetProcess-analysis/">Chromium-sandbox-TargetProcess-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/13/chromium-sandbox-TargetServices-analysis/">Chromium-sandbox-TargetServices-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/13/chromium-sandbox-BrokerServices/">Chromium-sandbox-BrokerServices-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/04/05/x41-浏览器安全白皮书笔记/">X41-浏览器安全白皮书读书笔记</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/22/Windows系统机制之同步/">Windows系统机制之同步</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/21/Windows系统机制之对象管理器/">Windows系统机制之对象管理器</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/21/Windows系统机制之陷阱分发/">Windows系统机制之陷阱分发</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/21/Bitmaps轶事：Windows 10纪念版前的GDI对象泄露/">Bitmap轶事：Windows 10纪念版后的GDI对象泄露</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/20/理解池污染三部曲/">理解池污染三部曲</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/19/内核利用程序之Razer rzpnk.sys中的逻辑bug/">Windows exploit系列教程第十九篇：内核利用程序之Razer rzpnk.sys中的逻辑bug</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/19/内核利用程序之RS2 Bitmap巫术/">Windows exploit系列教程第十八篇：内核利用程序之RS2 Bitmap巫术</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/15/内核利用程序之滥用GDI Bitmap/">Windows exploit系列教程第十七部分：内核利用程序之任意位置任意写</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/14/内核利用程序之池溢出/">Windows exploit系列教程第十六部分：内核利用程序之池溢出</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/14/内核利用程序之UAF/">Windows exploit系列教程第十五部分：内核利用程序之UAF</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/10/coin1/">Writeup.pwnable.kr系列之coin1</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/10/shellshock/">Writeup.pwnable.kr系列之shellshock</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/09/mistake/">Writeup.pwnable.kr系列之mistake</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/07/leg/">Writeup.pwnable.kr系列之leg</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/06/input/">Writeup.pwnable.kr系列之input</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/05/random/">Writeup.pwnable.kr系列之random</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/05/passcode/">Writeup.pwnable.kr系列之passcode</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/04/flag/">Writeup.pwnable.kr系列之flag</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/04/bof/">Writeup.pwnable.kr系列之bof</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/03/collision/">Writeup.pwnable.kr系列之collision</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/03/fd/">Writeup.pwnable.kr系列之fd</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/02/26/Binary Security Assembly/">Binary-Security-Assembly</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/02/07/内核利用程序之整数溢出/">Windows exploit系列教程第十四部分：内核利用程序之整数溢出</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/02/06/内核利用程序之未初始化栈变量/">Windows exploit系列教程第十三部分：内核利用程序之未初始化栈变量</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/02/06/内核利用程序之空指针引用/">Windows exploit系列教程第十二部分：内核利用程序之空指针引用</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/02/01/内核利用程序之任意位置任意写/">Windows exploit系列教程第十一部分：内核利用程序之任意位置任意写</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/01/15/ring0层exp原语之滥用GDI/">ring0层exp原语之滥用GDI</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/01/14/Windows x64内核提权/">Windows x64内核提权</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/01/14/关键的Windows内核数据结构一览（下）/">关键的Windows内核数据结构一览（下）</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/01/08/关键的Windows内核数据结构一览（上）/">关键的Windows内核数据结构一览（上）</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/01/06/内核利用程序开发之栈溢出/">Windows exploit系列教程第十部分：内核利用程序之栈溢出</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/01/05/堆喷射[第二章：UAF]/">Windows exploit系列教程第九部分：堆喷射[第二章：UAF]</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/12/30/Kernel Driver mmap Handler Exploitation/">内核驱动mmap Handler利用技术</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/12/28/API Interception via DLL Redirection/">通过DLL重定向实现API劫持</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/12/21/Linux中断内幕/">Linux中断内幕</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/12/19/Windows架构设计/">Windows架构设计</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/10/30/house_of_force.log/">house_of_force log</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/10/25/Linux内存管理-非连续内存区管理/">Linux内核学习——内存管理之非连续内存区管理</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/10/24/Linux内存管理-内存区管理/">Linux内核学习——内存管理之内存区管理</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/10/20/Linux内存管理-页框管理/">Linux内核学习——内存管理之页框管理</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/10/19/first_fit.log/">first_fit log</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/10/19/house_of_einherjar.log/">house_of_einherjar log</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/10/18/fastbin_dup_into_stack.log/">fastbin_dup_into_stack log</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/10/12/fastbin_dup.log/">fastbin_dup log</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/09/23/Windows栈溢出之ret eip/">Windows栈溢出之ret eip</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/09/23/Windows栈溢出概述/">Windows栈溢出概述</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/09/16/DEFCON-2015-r0pbaby/">DEFCON-2015-r0pbaby</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/09/11/PWN选手的自我修养/">PWN选手的自我修养</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/08/27/linearsort/">linear sort</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/08/27/quicksort/">quicksort</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/08/27/heapsort&priority-queue/">heapsort & priority-queue</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/08/27/Linux进程的创建与撤销/">Linux内核学习——Linux进程的创建与撤销</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/08/26/Linux进程切换/">Linux内核学习——Linux进程切换</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/08/24/GNU Hash ELF Sections/">GNU Hash ELF Sections</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/08/22/Linux进程概述/">Linux内核学习——Linux进程概述</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/08/18/Linux内存寻址/">Linux内核学习——内存寻址</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/05/15/PlaySms  1.4代码执行漏洞之import csv/">PlaySms 1.4代码执行漏洞之import csv</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/05/15/PlaySms  1.4代码执行漏洞分析/">PlaySms 1.4代码执行漏洞分析</a></li></ul>
+    <script src="https://7.url.cn/edu/jslib/comb/require-2.1.6,jquery-1.9.1.min.js"></script>
+    <script>
+        $(".post-list").addClass("toc-article");
+        $(".post-list-item a").attr("target","_blank");
+        $("#post-nav-button > a:nth-child(2)").click(function() {
+            $(".fa-bars, .fa-times").toggle();
+            $(".post-list").toggle(300);
+            if ($(".toc").length > 0) {
+                $("#toc, #tocButton").toggle(200, function() {
+                    if ($(".switch-area").is(":visible")) {
+                        $("#tocButton").attr("value", valueHide);
+                        }
+                    })
+            }
+            else {
+            }
+        })
+    </script>
+
+
+
+    <script>
+        
+    </script>
+</div>
+      <footer id="footer">
+    <div class="outer">
+        <div id="footer-info">
+            <div class="footer-left">
+                &copy; 2020 r00tk1t
+            </div>
+            <div class="footer-right">
+                <a href="http://hexo.io/" target="_blank">Hexo</a>  Theme <a href="https://github.com/luuman/hexo-theme-spfk" target="_blank">spfk</a> by luuman
+            </div>
+        </div>
+        
+            <div class="visit">
+                
+                    <span id="busuanzi_container_site_pv" style='display:none'>
+                        <span id="site-visit" >访问数量: 
+                            <span id="busuanzi_value_site_uv"></span>
+                        </span>
+                    </span>
+                
+                
+                    <span>, </span>
+                
+                
+                    <span id="busuanzi_container_page_pv" style='display:none'>
+                        <span id="page-visit">本页阅读量: 
+                            <span id="busuanzi_value_page_pv"></span>
+                        </span>
+                    </span>
+                
+            </div>
+        
+    </div>
+</footer>
+
+    </div>
+    <script src="https://7.url.cn/edu/jslib/comb/require-2.1.6,jquery-1.9.1.min.js"></script>
+<script src="/js/main.js"></script>
+
+    <script>
+        $(document).ready(function() {
+            var backgroundnum = 24;
+            var backgroundimg = "url(/background/bg-x.jpg)".replace(/x/gi, Math.ceil(Math.random() * backgroundnum));
+            $("#mobile-nav").css({"background-image": backgroundimg,"background-size": "cover","background-position": "center"});
+            $(".left-col").css({"background-image": backgroundimg,"background-size": "cover","background-position": "center"});
+        })
+    </script>
+
+
+
+
+
+<div class="scroll" id="scroll">
+    <a href="#"><i class="fa fa-arrow-up"></i></a>
+    <a href="#comments"><i class="fa fa-comments-o"></i></a>
+    <a href="#footer"><i class="fa fa-arrow-down"></i></a>
+</div>
+<script>
+    $(document).ready(function() {
+        if ($("#comments").length < 1) {
+            $("#scroll > a:nth-child(2)").hide();
+        };
+    })
+</script>
+
+<script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js">
+</script>
+
+  <script language="javascript">
+    $(function() {
+        $("a[title]").each(function() {
+            var a = $(this);
+            var title = a.attr('title');
+            if (title == undefined || title == "") return;
+            a.data('title', title).removeAttr('title').hover(
+
+            function() {
+                var offset = a.offset();
+                $("<div id=\"anchortitlecontainer\"></div>").appendTo($("body")).html(title).css({
+                    top: offset.top - a.outerHeight() - 15,
+                    left: offset.left + a.outerWidth()/2 + 1
+                }).fadeIn(function() {
+                    var pop = $(this);
+                    setTimeout(function() {
+                        pop.remove();
+                    }, pop.text().length * 800);
+                });
+            }, function() {
+                $("#anchortitlecontainer").remove();
+            });
+        });
+    });
+</script>
+
+
+  </div>
+</body>
+</html>

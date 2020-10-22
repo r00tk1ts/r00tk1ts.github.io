@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>理解池污染三部曲 | r00tk1t&#39;s blog</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="msdn上关于池污染的官方说明。  Understanding Pool Corruption Part 1 (MSDN) - here Understanding Pool Corruption Part 2 (MSDN) - here Understanding Pool Corruption Part 3 (MSDN) - here">
+<meta name="keywords" content="novice,pool">
+<meta property="og:type" content="article">
+<meta property="og:title" content="理解池污染三部曲">
+<meta property="og:url" content="https://r00tk1ts.github.io/2018/03/20/理解池污染三部曲/index.html">
+<meta property="og:site_name" content="r00tk1t&#39;s blog">
+<meta property="og:description" content="msdn上关于池污染的官方说明。  Understanding Pool Corruption Part 1 (MSDN) - here Understanding Pool Corruption Part 2 (MSDN) - here Understanding Pool Corruption Part 3 (MSDN) - here">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="https://r00tk1ts.github.io/images/exploit/misc/20180320_1.jpg">
+<meta property="og:image" content="https://r00tk1ts.github.io/images/exploit/misc/20180320_2.jpg">
+<meta property="og:image" content="https://r00tk1ts.github.io/images/exploit/misc/20180320_3.jpg">
+<meta property="og:image" content="https://r00tk1ts.github.io/images/exploit/misc/20180320_4.jpg">
+<meta property="og:image" content="https://r00tk1ts.github.io/images/exploit/misc/20180320_5.jpg">
+<meta property="og:updated_time" content="2020-10-20T13:01:02.396Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="理解池污染三部曲">
+<meta name="twitter:description" content="msdn上关于池污染的官方说明。  Understanding Pool Corruption Part 1 (MSDN) - here Understanding Pool Corruption Part 2 (MSDN) - here Understanding Pool Corruption Part 3 (MSDN) - here">
+<meta name="twitter:image" content="https://r00tk1ts.github.io/images/exploit/misc/20180320_1.jpg">
+  
+    <link rel="alternative" href="/atom.xml" title="r00tk1t&#39;s blog" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/img/favicon.png">
+  
+  
+      <link rel="stylesheet" href="//cdn.bootcss.com/animate.css/3.5.0/animate.min.css">
+  
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/font-awesome/css/font-awesome.min.css">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  
+  
+      <link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+  
+  <!-- 加载特效 -->
+    <script src="/js/pace.js"></script>
+    <link href="/css/pace/pace-theme-flash.css" rel="stylesheet" />
+  <script>
+      var yiliaConfig = {
+          rootUrl: '/',
+          fancybox: true,
+          animate: true,
+          isHome: false,
+          isPost: true,
+          isArchive: false,
+          isTag: false,
+          isCategory: false,
+          open_in_new: false
+      }
+  </script>
+</head>
+<body>
+  <div id="container">
+    <div class="left-col">
+    <div class="overlay"></div>
+<div class="intrude-less">
+    <header id="header" class="inner">
+        <a href="/" class="profilepic">
+            
+            <img lazy-src="/img/head.jpg" class="js-avatar">
+            
+        </a>
+
+        <hgroup>
+          <h1 class="header-author"><a href="/" title="Hi Mate">r00tk1t</a></h1>
+        </hgroup>
+
+        
+        <p class="header-subtitle">二进制安全 | Web安全 | 伪装成程序员的菜鸡</p>
+        
+        
+        
+            <div id="switch-btn" class="switch-btn">
+                <div class="icon">
+                    <div class="icon-ctn">
+                        <div class="icon-wrap icon-house" data-idx="0">
+                            <div class="birdhouse"></div>
+                            <div class="birdhouse_holes"></div>
+                        </div>
+                        <div class="icon-wrap icon-ribbon hide" data-idx="1">
+                            <div class="ribbon"></div>
+                        </div>
+                        
+                        <div class="icon-wrap icon-link hide" data-idx="2">
+                            <div class="loopback_l"></div>
+                            <div class="loopback_r"></div>
+                        </div>
+                        
+                        
+                        <div class="icon-wrap icon-me hide" data-idx="3">
+                            <div class="user"></div>
+                            <div class="shoulder"></div>
+                        </div>
+                        
+                    </div>
+                    
+                </div>
+                <div class="tips-box hide">
+                    <div class="tips-arrow"></div>
+                    <ul class="tips-inner">
+                        <li>菜单</li>
+                        <li>标签</li>
+                        
+                        <li>友情链接</li>
+                        
+                        
+                        <li>关于我</li>
+                        
+                    </ul>
+                </div>
+            </div>
+        
+
+        <div id="switch-area" class="switch-area">
+            <div class="switch-wrap">
+                <section class="switch-part switch-part1">
+                    <nav class="header-menu">
+                        <ul>
+                        
+                            <li><a href="/">博客首页</a></li>
+                        
+                            <li><a href="/archives">所有文章</a></li>
+                        
+                            <li><a href="/tags">标签</a></li>
+                        
+                        </ul>
+                    </nav>
+                    <nav class="header-nav">
+                        <ul class="social">
+                            
+                                <a class="fl mail" target="_blank" href="mailto: 1903442252@qq.com" title="mail">mail</a>
+                            
+                                <a class="fl github" target="_blank" href="https://github.com/r00tk1ts" title="github">github</a>
+                            
+                                <a class="fl zhihu" target="_blank" href="https://www.zhihu.com/people/r00tk1t-5" title="zhihu">zhihu</a>
+                            
+                                <a class="fl weibo" target="_blank" href="http://weibo.com/2698344533" title="weibo">weibo</a>
+                            
+                                <a class="fl QQ" target="_blank" href="https://user.qzone.qq.com/1903442252" title="QQ">QQ</a>
+                            
+                        </ul>
+                    </nav>
+                </section>
+                
+                
+                <section class="switch-part switch-part2">
+                    <div class="widget tagcloud" id="js-tagcloud">
+                        <a href="/tags/SEH-overwrite/" style="font-size: 10px;">SEH overwrite</a> <a href="/tags/algorithm/" style="font-size: 11.67px;">algorithm</a> <a href="/tags/browser/" style="font-size: 10px;">browser</a> <a href="/tags/chrome/" style="font-size: 16.67px;">chrome</a> <a href="/tags/chrome-sandbox/" style="font-size: 16.67px;">chrome-sandbox</a> <a href="/tags/cpp/" style="font-size: 20px;">cpp</a> <a href="/tags/cpp-primer/" style="font-size: 18.33px;">cpp-primer</a> <a href="/tags/cpp-templates/" style="font-size: 11.67px;">cpp-templates</a> <a href="/tags/dll-hooking/" style="font-size: 10px;">dll hooking</a> <a href="/tags/exploit/" style="font-size: 12.5px;">exploit</a> <a href="/tags/glibc/" style="font-size: 10px;">glibc</a> <a href="/tags/glibc-heap/" style="font-size: 13.33px;">glibc-heap</a> <a href="/tags/linux/" style="font-size: 10.83px;">linux</a> <a href="/tags/linux-kernel/" style="font-size: 14.17px;">linux-kernel</a> <a href="/tags/mmap/" style="font-size: 10px;">mmap</a> <a href="/tags/novice/" style="font-size: 17.5px;">novice</a> <a href="/tags/php/" style="font-size: 10.83px;">php</a> <a href="/tags/pool/" style="font-size: 10px;">pool</a> <a href="/tags/pwn/" style="font-size: 19.17px;">pwn</a> <a href="/tags/pwnable-kr/" style="font-size: 15px;">pwnable.kr</a> <a href="/tags/resources/" style="font-size: 10px;">resources</a> <a href="/tags/stack-overrun/" style="font-size: 11.67px;">stack-overrun</a> <a href="/tags/tutorial/" style="font-size: 10px;">tutorial</a> <a href="/tags/ulk/" style="font-size: 14.17px;">ulk</a> <a href="/tags/web/" style="font-size: 10.83px;">web</a> <a href="/tags/windows/" style="font-size: 15.83px;">windows</a> <a href="/tags/windows-kernel/" style="font-size: 14.17px;">windows-kernel</a> <a href="/tags/writeup/" style="font-size: 10px;">writeup</a> <a href="/tags/wrk/" style="font-size: 12.5px;">wrk</a>
+                    </div>
+                </section>
+                
+                
+                
+                <section class="switch-part switch-part3">
+                    <div id="js-friends">
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://eternalsakura13.com">樱花师傅</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="https://chybeta.github.io/">Chybeta</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://whereisk0shl.top/">k0shl</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://o0xmuhe.github.io/">o0xmuhe</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://bestwing.me/">swing</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://yixuankeer.win/">joker</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://www.hackersb.cn/">王松_Striker</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="https://www.hackfun.org/">4ido10n</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://www.cnblogs.com/iamstudy/">l3m0n</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://www.cnblogs.com/Ox9A82/">Ox9A82</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://mxny.org/">麦香浓郁</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://0x48.pw/">Hcamael</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="https://blog.nuptzj.cn/">画船听雨</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="https://www.bodkin.ren/">老锥</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://www.zerokeeper.com/">ZeroKeeper</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="https://www.ycjcl.cc/">信鑫</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://www.wowotech.net/">wowotech</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://fuzzysecurity.com/">fuzzySecurity</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="https://rootkits.xyz/">rootkits.xyz</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://www.pentestingexperts.com/">pentestingexperts</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="https://blog.skylined.nl/">skylined</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="https://systemk1t.github.io/">systemk1t</a>
+                    
+                    </div>
+                </section>
+                
+
+                
+                
+                <section class="switch-part switch-part4">
+                
+                    <div id="js-aboutme">二进制狗一枚，懂点Web安全，一个伪装成程序员混迹在某公司的菜鸡。</div>
+                </section>
+                
+            </div>
+        </div>
+    </header>                
+</div>
+    </div>
+    <div class="mid-col">
+      <nav id="mobile-nav">
+      <div class="overlay">
+          <div class="slider-trigger"></div>
+          <h1 class="header-author js-mobile-header hide"><a href="/" title="Me">r00tk1t</a></h1>
+      </div>
+    <div class="intrude-less">
+        <header id="header" class="inner">
+            <a href="/" class="profilepic">
+                
+                    <img lazy-src="/img/head.jpg" class="js-avatar">
+                
+            </a>
+            <hgroup>
+              <h1 class="header-author"><a href="/" title="Me">r00tk1t</a></h1>
+            </hgroup>
+            
+            <p class="header-subtitle">二进制安全 | Web安全 | 伪装成程序员的菜鸡</p>
+            
+            <nav class="header-menu">
+                <ul>
+                
+                    <li><a href="/">博客首页</a></li>
+                
+                    <li><a href="/archives">所有文章</a></li>
+                
+                    <li><a href="/tags">标签</a></li>
+                
+                <div class="clearfix"></div>
+                </ul>
+            </nav>
+            <nav class="header-nav">
+                <div class="social">
+                    
+                        <a class="mail" target="_blank" href="mailto: 1903442252@qq.com" title="mail">mail</a>
+                    
+                        <a class="github" target="_blank" href="https://github.com/r00tk1ts" title="github">github</a>
+                    
+                        <a class="zhihu" target="_blank" href="https://www.zhihu.com/people/r00tk1t-5" title="zhihu">zhihu</a>
+                    
+                        <a class="weibo" target="_blank" href="http://weibo.com/2698344533" title="weibo">weibo</a>
+                    
+                        <a class="QQ" target="_blank" href="https://user.qzone.qq.com/1903442252" title="QQ">QQ</a>
+                    
+                </div>
+            </nav>
+        </header>                
+    </div>
+</nav>
+      <div class="body-wrap"><article id="post-理解池污染三部曲" class="article article-type-post" itemscope itemprop="blogPost">
+  
+    <div class="article-meta">
+      <a href="/2018/03/20/理解池污染三部曲/" class="article-date">
+      <time datetime="2018-03-20T12:20:11.000Z" itemprop="datePublished">2018-03-20</time>
+</a>
+    </div>
+  
+  <div class="article-inner">
+    
+      <input type="hidden" class="isFancy" />
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      理解池污染三部曲
+    </h1>
+  
+
+      </header>
+      
+      <div class="article-info article-info-post">
+        
+    <div class="article-category tagcloud">
+    <a class="article-category-link" href="/categories/windows-kernel/">windows-kernel</a>
+    </div>
+
+
+        
+    <div class="article-tag tagcloud">
+        <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/novice/">novice</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/pool/">pool</a></li></ul>
+    </div>
+
+        <div class="clearfix"></div>
+      </div>
+      
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+          
+        <p>msdn上关于池污染的官方说明。</p>
+<ul>
+<li>Understanding Pool Corruption Part 1 (MSDN) - <a href="https://blogs.msdn.microsoft.com/ntdebugging/2013/06/14/understanding-pool-corruption-part-1-buffer-overflows/" target="_blank" rel="noopener">here</a></li>
+<li>Understanding Pool Corruption Part 2 (MSDN) - <a href="https://blogs.msdn.microsoft.com/ntdebugging/2013/08/22/understanding-pool-corruption-part-2-special-pool-for-buffer-overruns/" target="_blank" rel="noopener">here</a></li>
+<li>Understanding Pool Corruption Part 3 (MSDN) - <a href="https://blogs.msdn.microsoft.com/ntdebugging/2013/12/31/understanding-pool-corruption-part-3-special-pool-for-double-frees/" target="_blank" rel="noopener">here</a></li>
+</ul>
+<a id="more"></a>
+<h1 id="理解池污染三部曲"><a href="#理解池污染三部曲" class="headerlink" title="理解池污染三部曲"></a>理解池污染三部曲</h1><h2 id="Understanding-Pool-Corruption-Part-1-–-Buffer-Overflows"><a href="#Understanding-Pool-Corruption-Part-1-–-Buffer-Overflows" class="headerlink" title="Understanding Pool Corruption Part 1 – Buffer Overflows"></a>Understanding Pool Corruption Part 1 – Buffer Overflows</h2><h2 id="理解池污染第一部分：缓冲区溢出"><a href="#理解池污染第一部分：缓冲区溢出" class="headerlink" title="理解池污染第一部分：缓冲区溢出"></a>理解池污染第一部分：缓冲区溢出</h2><p>Before we can discuss pool corruption we must understand what pool is.  Pool is kernel mode memory used as a storage space for drivers.  Pool is organized in a similar way to how you might use a notepad when taking notes from a lecture or a book.  Some notes may be 1 line, others may be many lines.  Many different notes are on the same page.</p>
+<p>在我们讨论池污染之前必须先理解什么是池。池是内核模式下为驱动程序所需的存储空间而准备的内存。池的组织结构和我们日常使用记事本的方式很像，比如你从一本书或文献中摘取一段内容。某段内容可能只有一行，某段则可能有多行。多段不同的内容可以在同一页上。</p>
+<p>Memory is also organized into pages, typically a page of memory is 4KB.  The Windows memory manager breaks up this 4KB page into smaller blocks.  One block may be as small as 8 bytes or possibly much larger.  Each of these blocks exists side by side with other blocks.</p>
+<p>内存也被组织成页，典型的页内存大小为4KB。Windows内存管理器把4K的页拆分成较小的块。每个块的大小至少是8字节，也可能更大一些。这些块彼此相互毗邻。</p>
+<p>The !pool command can be used to see the pool blocks stored in a page.</p>
+<p><code>!pool</code>命令可以列出单个页上存储的池块。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><span class="line">kd&gt; !pool fffffa8003f42000</span><br><span class="line"></span><br><span class="line">Pool page fffffa8003f42000 region is Nonpaged pool</span><br><span class="line"></span><br><span class="line">*fffffa8003f42000 size:  410 previous size:    0  (Free)      *Irp</span><br><span class="line"></span><br><span class="line">            Pooltag Irp  : Io, IRP packets</span><br><span class="line"></span><br><span class="line">fffffa8003f42410 size:   40 previous size:  410  (Allocated)  MmSe</span><br><span class="line"></span><br><span class="line">fffffa8003f42450 size:  150 previous size:   40  (Allocated)  File</span><br><span class="line"></span><br><span class="line">fffffa8003f425a0 size:   80 previous size:  150  (Allocated)  Even</span><br><span class="line"></span><br><span class="line">fffffa8003f42620 size:   c0 previous size:   80  (Allocated)  EtwR</span><br><span class="line"></span><br><span class="line">fffffa8003f426e0 size:   d0 previous size:   c0  (Allocated)  CcBc</span><br><span class="line"></span><br><span class="line">fffffa8003f427b0 size:   d0 previous size:   d0  (Allocated)  CcBc</span><br><span class="line"></span><br><span class="line">fffffa8003f42880 size:   20 previous size:   d0  (Free)       Free</span><br><span class="line"></span><br><span class="line">fffffa8003f428a0 size:   d0 previous size:   20  (Allocated)  Wait</span><br><span class="line"></span><br><span class="line">fffffa8003f42970 size:   80 previous size:   d0  (Allocated)  CM44</span><br><span class="line"></span><br><span class="line">fffffa8003f429f0 size:   80 previous size:   80  (Allocated)  Even</span><br><span class="line"></span><br><span class="line">fffffa8003f42a70 size:   80 previous size:   80  (Allocated)  Even</span><br><span class="line"></span><br><span class="line">fffffa8003f42af0 size:   d0 previous size:   80  (Allocated)  Wait</span><br><span class="line"></span><br><span class="line">fffffa8003f42bc0 size:   80 previous size:   d0  (Allocated)  CM44</span><br><span class="line"></span><br><span class="line">fffffa8003f42c40 size:   d0 previous size:   80  (Allocated)  Wait</span><br><span class="line"></span><br><span class="line">fffffa8003f42d10 size:  230 previous size:   d0  (Allocated)  ALPC</span><br><span class="line"></span><br><span class="line">fffffa8003f42f40 size:   c0 previous size:  230  (Allocated)  EtwR</span><br></pre></td></tr></table></figure>
+<p>Because many pool allocations are stored in the same page, it is critical that every driver only use the space they have allocated.  If DriverA uses more space than it allocated they will write into the next driver’s space (DriverB) and corrupt DriverB’s data.  This overwrite into the next driver’s space is called a buffer overflow.  Later either the memory manager or DriverB will attempt to use this corrupted memory and will encounter unexpected information.  This unexpected information typically results in a blue screen.</p>
+<p>因为大多数分配的池块都在同一页上，所以每个驱动程序只能使用自己分配的空间。如果DriverA使用了超出自身分配的内存空间，就有可能把数据写入到下一个驱动程序空间（DriverB）并污染DriverB的数据。这种写入到下一个驱动空间的行为被称为池溢出。此后内存管理器或DriverB可能会尝试使用这块被污染的内存并遭遇未曾料到的问题。该问题一个典型的表现就是引起蓝屏。</p>
+<p>The NotMyFault application from Sysinternals has an option to force a buffer overflow.  This can be used to demonstrate pool corruption.  Choosing the “Buffer overflow” option and clicking “Crash” will cause a buffer overflow in pool.  The system may not immediately blue screen after clicking the Crash button.  The system will remain stable until something attempts to use the corrupted memory.  Using the system will often eventually result in a blue screen.</p>
+<p>Sysinternals工具集中的NotMyFault程序有一个强制触发缓冲区溢出的选项。它可以用来演示如何触发池污染。选择”Buffer overflow”选项并单击Crash按钮来引起池中的缓冲区溢出。按下Crash按钮后，系统不会立即蓝屏。系统会稳定运行一段时间，直到有什么尝试去使用这块被污染的内存。最终的结果一般是触发蓝屏。</p>
+<p><img src="/images/exploit/misc/20180320_1.jpg" alt=""></p>
+<p>Often pool corruption appears as a stop 0x19 BAD_POOL_HEADER or stop 0xC2 BAD_POOL_CALLER.  These stop codes make it easy to determine that pool corruption is involved in the crash.  However, the results of accessing unexpected memory can vary widely, as a result pool corruption can result in many different types of bugchecks.</p>
+<p>通常池污染表现为停止码0x19 BAD_POOL_HEADER或0xC2 BAD_POOL_CALLER。这些停止码简化了本次崩溃是由于池污染这一原因的判断。然而，可观察的非期望内存一般每次都不同，毕竟池污染可以引起多种不同类型的bugcheck。</p>
+<p>As with any blue screen dump analysis the best place to start is with !analyze -v.  This command will display the stop code and parameters, and do some basic interpretation of the crash.</p>
+<p>分析任何的蓝屏转储，一开始最有效的方法就是执行<code>!analyze -v</code>命令。该命令会展示停止码以及参数，并做一些基本的崩溃解读。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line">kd&gt; !analyze -v</span><br><span class="line"></span><br><span class="line">*******************************************************************************</span><br><span class="line"></span><br><span class="line">*                                                                             *</span><br><span class="line"></span><br><span class="line">*                        Bugcheck Analysis                                    *</span><br><span class="line"></span><br><span class="line">*                                                                             *</span><br><span class="line"></span><br><span class="line">*******************************************************************************</span><br><span class="line"></span><br><span class="line"> </span><br><span class="line"></span><br><span class="line">SYSTEM_SERVICE_EXCEPTION (3b)</span><br><span class="line"></span><br><span class="line">An exception happened while executing a system service routine.</span><br><span class="line"></span><br><span class="line">Arguments:</span><br><span class="line"></span><br><span class="line">Arg1: 00000000c0000005, Exception code that caused the bugcheck</span><br><span class="line"></span><br><span class="line">Arg2: fffff8009267244a, Address of the instruction which caused the bugcheck</span><br><span class="line"></span><br><span class="line">Arg3: fffff88004763560, Address of the context record for the exception that caused the bugcheck</span><br><span class="line"></span><br><span class="line">Arg4: 0000000000000000, zero.</span><br></pre></td></tr></table></figure>
+<p>In my example the bugcheck was a stop 0x3B SYSTEM_SERVICE_EXCEPTION.  The first parameter of this stop code is c0000005, which is a status code for an access violation.  An access violation is an attempt to access invalid memory (this error is not related to permissions).  Status codes can be looked up in the WDK header ntstatus.h.</p>
+<p>在我的例子中，bugcheck停止码是0x3B SYSTEM_SERVICE_EXCEPTION。停止码的第一个参数是c0000005，这是一个访问违例的状态码。访问违例是指尝试访问不合法的内存（该错误与权限许可相关）。状态码可以在WDK的头文件ntstatus.h中查到。</p>
+<p>The !analyze -v command also provides a helpful shortcut to get into the context of the failure.</p>
+<p><code>!analyze -v</code>命令也提供了获取失败上下文的有效捷径。</p>
+<p>CONTEXT:  fffff88004763560 – (.cxr 0xfffff88004763560;r)</p>
+<p>Running this command shows us the registers at the time of the crash.</p>
+<p>运行该命令，显示崩溃时的寄存器。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">kd&gt; .cxr 0xfffff88004763560</span><br><span class="line"></span><br><span class="line">rax=4f4f4f4f4f4f4f4f rbx=fffff80092690460 rcx=fffff800926fbc60</span><br><span class="line"></span><br><span class="line">rdx=0000000000000000 rsi=0000000000001000 rdi=0000000000000000</span><br><span class="line"></span><br><span class="line">rip=fffff8009267244a rsp=fffff88004763f60 rbp=fffff8009268fb40</span><br><span class="line"></span><br><span class="line">r8=fffffa8001a1b820  r9=0000000000000001 r10=fffff800926fbc60</span><br><span class="line"></span><br><span class="line">r11=0000000000000011 r12=0000000000000000 r13=fffff8009268fb48</span><br><span class="line"></span><br><span class="line">r14=0000000000000012 r15=000000006374504d</span><br><span class="line"></span><br><span class="line">iopl=0         nv up ei pl nz na po nc</span><br><span class="line"></span><br><span class="line">cs=0010  ss=0018  ds=002b  es=002b  fs=0053  gs=002b             efl=00010206</span><br><span class="line"></span><br><span class="line">nt!ExAllocatePoolWithTag+0x442:</span><br><span class="line"></span><br><span class="line">fffff800`9267244a 4c8b4808        mov     r9,qword ptr [rax+8] ds:002b:4f4f4f4f`4f4f4f57=????????????????</span><br></pre></td></tr></table></figure>
+<p>From the above output we can see that the crash occurred in ExAllocatePoolWithTag, which is a good indication that the crash is due to pool corruption.  Often an engineer looking at a dump will stop at this point and conclude that a crash was caused by corruption, however we can go further.</p>
+<p>从上面的输出可以看到，崩溃发生在ExAllocatePoolWithTag中，这是个很好的标志用以说明本次崩溃和池污染有关。通常如果工程师分析转储时会在这里停下并大胆推断该崩溃是由污染引起，不过我们要更深入下去。</p>
+<p>The instruction that we failed on was dereferencing rax+8.  The rax register contains 4f4f4f4f4f4f4f4f, which does not fit with the canonical form required for pointers on x64 systems.  This tells us that the system crashed because the data in rax is expected to be a pointer but it is not one.</p>
+<p>引起错误的命令是去解引用rax+8。rax寄存器的值为0x4f4f4f4f4f4f4f4f，这和x64系统上的所需指针规格有所出入。也就是说系统崩溃是因为rax中的数据本应是个指针而这一次并不是。</p>
+<p>To determine why rax does not contain the expected data we must examine the instructions prior to where the failure occurred.</p>
+<p>想要了解rax为何没有包含一个期望的值，我们需要看看失败位置前面的指令。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">kd&gt; ub .</span><br><span class="line"></span><br><span class="line">nt!KzAcquireQueuedSpinLock [inlined in nt!ExAllocatePoolWithTag+0x421]:</span><br><span class="line"></span><br><span class="line">fffff800`92672429 488d542440      lea     rdx,[rsp+40h]</span><br><span class="line"></span><br><span class="line">fffff800`9267242e 49875500        xchg    rdx,qword ptr [r13]</span><br><span class="line"></span><br><span class="line">fffff800`92672432 4885d2          test    rdx,rdx</span><br><span class="line"></span><br><span class="line">fffff800`92672435 0f85c3030000    jne     nt!ExAllocatePoolWithTag+0x7ec (fffff800`926727fe)</span><br><span class="line"></span><br><span class="line">fffff800`9267243b 48391b          cmp     qword ptr [rbx],rbx</span><br><span class="line"></span><br><span class="line">fffff800`9267243e 0f8464060000    je      nt!ExAllocatePoolWithTag+0xa94 (fffff800`92672aa8)</span><br><span class="line"></span><br><span class="line">fffff800`92672444 4c8b03          mov     r8,qword ptr [rbx]</span><br><span class="line"></span><br><span class="line">fffff800`92672447 498b00          mov     rax,qword ptr [r8]</span><br></pre></td></tr></table></figure>
+<p>The assembly shows that rax originated from the data pointed to by r8.  The .cxr command we ran earlier shows that r8 is fffffa8001a1b820.  If we examine the data at fffffa8001a1b820 we see that it matches the contents of rax, which confirms this memory is the source of the unexpected data in rax.</p>
+<p>汇编代码显示了rax源于r8指向的数据。<code>.cxr</code>命令可以显示出r8是fffffa8001a1b820。如果查看fffffa8001a1b820处的数据会发现它和rax值相同，这证实了该内存就是rax中非期望的数据源头。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">kd&gt; dq fffffa8001a1b820 l1</span><br><span class="line"></span><br><span class="line">fffffa80`01a1b820  4f4f4f4f`4f4f4f4f</span><br></pre></td></tr></table></figure>
+<p>To determine if this unexpected data is caused by pool corruption we can use the !pool command.</p>
+<p>为了确定这一非期望数据是由池污染所引起，我们可以用<code>!pool</code>命令。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br></pre></td><td class="code"><pre><span class="line">kd&gt; !pool fffffa8001a1b820</span><br><span class="line"></span><br><span class="line">Pool page fffffa8001a1b820 region is Nonpaged pool</span><br><span class="line"></span><br><span class="line"> fffffa8001a1b000 size:  810 previous size:    0  (Allocated)  None</span><br><span class="line"></span><br><span class="line"> </span><br><span class="line"></span><br><span class="line">fffffa8001a1b810 doesn&apos;t look like a valid small pool allocation, checking to see</span><br><span class="line"></span><br><span class="line">if the entire page is actually part of a large page allocation...</span><br><span class="line"></span><br><span class="line"> </span><br><span class="line"></span><br><span class="line">fffffa8001a1b810 is not a valid large pool allocation, checking large session pool...</span><br><span class="line"></span><br><span class="line">fffffa8001a1b810 is freed (or corrupt) pool</span><br><span class="line"></span><br><span class="line">Bad previous allocation size @fffffa8001a1b810, last size was 81</span><br><span class="line"></span><br><span class="line"> </span><br><span class="line"></span><br><span class="line">***</span><br><span class="line"></span><br><span class="line">*** An error (or corruption) in the pool was detected;</span><br><span class="line"></span><br><span class="line">*** Attempting to diagnose the problem.</span><br><span class="line"></span><br><span class="line">***</span><br><span class="line"></span><br><span class="line">*** Use !poolval fffffa8001a1b000 for more details.</span><br><span class="line"></span><br><span class="line"> </span><br><span class="line"></span><br><span class="line"> </span><br><span class="line"></span><br><span class="line">Pool page [ fffffa8001a1b000 ] is __inVALID.</span><br><span class="line"></span><br><span class="line"> </span><br><span class="line"></span><br><span class="line">Analyzing linked list...</span><br><span class="line"></span><br><span class="line">[ fffffa8001a1b000 --&gt; fffffa8001a1b010 (size = 0x10 bytes)]: Corrupt region</span><br><span class="line"></span><br><span class="line"> </span><br><span class="line"></span><br><span class="line"> </span><br><span class="line"></span><br><span class="line">Scanning for single bit errors...</span><br><span class="line"></span><br><span class="line"> </span><br><span class="line"></span><br><span class="line">None found</span><br></pre></td></tr></table></figure>
+<p>The above output does not look like the !pool command we used earlier.   This output shows corruption to the pool header which prevented the command from walking the chain of allocations.</p>
+<p>上面的输出看起来和之前的<code>!pool</code>不太像。这一输出展示了池头的污染，它阻断了遍历分配链的命令。</p>
+<p>The above output shows that there is an allocation at fffffa8001a1b000 of size 810.  If we look at this memory we should see a pool header.  Instead what we see is a pattern of 4f4f4f4f`4f4f4f4f.</p>
+<p>上面的输出显示，在fffffa8001a1b000处有一个810大小的分配。如果我们查看该内存地址的话，本应看到一个池头。然而，我们这里看到的却是4f4f4f4f`4f4f4f4f。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">kd&gt; dq fffffa8001a1b000 + 810</span><br><span class="line"></span><br><span class="line">fffffa80`01a1b810  4f4f4f4f`4f4f4f4f 4f4f4f4f`4f4f4f4f</span><br><span class="line"></span><br><span class="line">fffffa80`01a1b820  4f4f4f4f`4f4f4f4f 4f4f4f4f`4f4f4f4f</span><br><span class="line"></span><br><span class="line">fffffa80`01a1b830  4f4f4f4f`4f4f4f4f 00574f4c`46524556</span><br><span class="line"></span><br><span class="line">fffffa80`01a1b840  00000000`00000000 00000000`00000000</span><br><span class="line"></span><br><span class="line">fffffa80`01a1b850  00000000`00000000 00000000`00000000</span><br><span class="line"></span><br><span class="line">fffffa80`01a1b860  00000000`00000000 00000000`00000000</span><br><span class="line"></span><br><span class="line">fffffa80`01a1b870  00000000`00000000 00000000`00000000</span><br><span class="line"></span><br><span class="line">fffffa80`01a1b880  00000000`00000000 00000000`00000000</span><br></pre></td></tr></table></figure>
+<p>At this point we can be confident that the system crashed because of pool corruption.</p>
+<p>到此，我们可以确认系统崩溃的原因是池污染。</p>
+<p>Because the corruption occurred in the past, and a dump is a snapshot of the current state of the system, there is no concrete evidence to indicate how the memory came to be corrupted.  It is possible the driver that allocated the pool block immediately preceding the corruption is the one that wrote to the wrong location and caused this corruption.  This pool block is marked with the tag “None”, we can search for this tag in memory to determine which drivers use it.</p>
+<p>由于污染发生在过去，而转储只是当前系统状态的一个快照，没有具体的证据来指出内存是如何被污染的。可能是驱动在分配池块前，有谁在错误的位置写了数据并引起污染。该池块被标记为”None”标签，我们可以在内存中搜索这一标签来找出哪个驱动程序用了它。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">kd&gt; !for_each_module s -a @#Base @#End &quot;None&quot;</span><br><span class="line"></span><br><span class="line">fffff800`92411bc2  4e 6f 6e 65 e9 45 04 26-00 90 90 90 90 90 90 90  None.E.&amp;........</span><br><span class="line"></span><br><span class="line">kd&gt; u fffff800`92411bc2-1</span><br><span class="line"></span><br><span class="line">nt!ExAllocatePool+0x1:</span><br><span class="line"></span><br><span class="line">fffff800`92411bc1 b84e6f6e65      mov     eax,656E6F4Eh</span><br><span class="line"></span><br><span class="line">fffff800`92411bc6 e945042600      jmp     nt!ExAllocatePoolWithTag (fffff800`92672010)</span><br><span class="line"></span><br><span class="line">fffff800`92411bcb 90              nop</span><br></pre></td></tr></table></figure>
+<p>The file <em>Pooltag.txt</em> lists the pool tags used for pool allocations by kernel-mode components and drivers supplied with Windows, the associated file or component (if known), and the name of the component. <em>Pooltag.txt</em> is installed with Debugging Tools for Windows (in the triage folder) and with the Windows WDK (in \tools\other*platform*\poolmon).  Pooltag.txt shows the following for this tag:</p>
+<p> 文件Pooltag.txt列举了Windows支持的内核模式组件和驱动所用到的池分配标签、关联的文件或组件（如果知道的话）以及组件的名称。Pooltag.txt内置在Debugging Tools中（在triage目录），在Windows WDK中也有(\tools\other*platform*\poolmon)。Pooltag.txt显示了该标签：</p>
+<p>None - <unknown>    - call to ExAllocatePool</unknown></p>
+<p>Unfortunately what we find is that this tag is used when a driver calls ExAllocatePool, which does not specify a tag.  This does not allow us to determine what driver allocated the block prior to the corruption.  Even if we could tie the tag back to a driver it may not be sufficient to conclude that the driver using this tag is the one that corrupted the memory.</p>
+<p>不幸的是，我们找到的标签是在驱动调用ExAllocatePool时不指定标签时所用。这让我们无法判断到底是哪个驱动分配了污染前的块。即使我们可以将该标签与驱动绑定，想要推断驱动使用的标签就是被污染的那一个，也缺少证据。</p>
+<p>The next step should be to enable special pool and hope to catch the corruptor in the act.  We will discuss special pool in our next article.</p>
+<p>下一步我们会通过激活特殊池来抓到污染源。我们会在下篇文章中讨论特殊池。</p>
+<h2 id="Understanding-Pool-Corruption-Part-2-–-Special-Pool-for-Buffer-Overruns"><a href="#Understanding-Pool-Corruption-Part-2-–-Special-Pool-for-Buffer-Overruns" class="headerlink" title="Understanding Pool Corruption Part 2 – Special Pool for Buffer Overruns"></a>Understanding Pool Corruption Part 2 – Special Pool for Buffer Overruns</h2><p>##理解池污染第二部分：特殊池下的缓冲区溢出                        </p>
+<p>In our <a href="http://blogs.msdn.com/b/ntdebugging/archive/2013/06/14/understanding-pool-corruption-part-1-buffer-overflows.aspx" target="_blank" rel="noopener">previous article</a> we discussed pool corruption that occurs when a driver writes too much data in a buffer.  In this article we will discuss how special pool can help identify the driver that writes too much data.</p>
+<p>在上文中我们讨论了池污染发生的场景——某个驱动写缓冲区时写了太多数据而越界。本文中我们会讨论特殊池是如何鉴别真凶的。</p>
+<p>Pool is typically organized to allow multiple drivers to store data in the same page of memory, as shown in Figure 1.  By allowing multiple drivers to share the same page, pool provides for an efficient use of the available kernel memory space.  However this sharing requires that each driver be careful in how it uses pool, any bugs where the driver uses pool improperly may corrupt the pool of other drivers and cause a crash.</p>
+<p>池经常被典型的组织成，允许多个驱动在同一内存页上保存数据，如下图。为了支持多个驱动共享同一页，池提供了一种可用内核内存空间的有效用法。然而这一共享需要每个驱动小心翼翼的使用自己的池，驱动程序的池相关bug会污染其他驱动的池并引起崩溃。</p>
+<p><img src="/images/exploit/misc/20180320_2.jpg" alt="Uncorrupted Pool"></p>
+<p>With pool organized as shown in Figure 1, if DriverA allocates 100 bytes but writes 120 bytes it will overwrite the pool header and data stored by DriverB.  In Part 1 we demonstrated this type of buffer overflow using NotMyFault, but we were not able to identify which code had corrupted the pool.</p>
+<p>如上图显示的池结构，如果DriverA分配了100字节但是却写入了200字节，他就会覆盖掉DriverB的池块的头部和数据。在第一部分中，我们用NotMyFault展示了这种缓冲区溢出，但是我们无法找出污染池的是哪些代码。</p>
+<p><img src="/images/exploit/misc/20180320_3.jpg" alt="Corrupted Pool"></p>
+<p>To catch the driver that corrupted pool we can use special pool.  Special pool changes the organization of the pool so that each driver’s allocation is in a separate page of memory.  This helps prevent drivers from accidentally writing to another driver’s memory.  Special pool also configures the driver’s allocation at the end of the page and sets the next virtual page as a guard page by marking it as invalid.  The guard page causes an attempt to write past the end of the allocation to result in an immediate bugcheck.</p>
+<p>为了抓住污染池的真凶，我们可以使用特殊池。特殊池修改了池的组织结构以至于每个驱动的池块都分配在一个独立的内存页上。这阻止了驱动意外的写入到另一个驱动的内存空间。特殊池同时也配置了驱动会分配在页的尾部，同时会通过将下一个虚拟页标记为非法来将其设定为守护页。当写入的数据位置超过了分配尾端并试图向守护页写入时，会立即引起一个bugcheck。</p>
+<p>Special pool also fills the unused portion of the page with a repeating pattern, referred to as “slop bytes”.  These slop bytes will be checked when the page is freed, if any errors are found in the pattern a bugcheck will be generated to indicate that the memory was corrupted.  This type of corruption is not a buffer overflow, it may be an underflow or some other form of corruption.</p>
+<p>特殊池也同时用一个重复的pattern填充了页未使用的部分，作为”溢出字节”。这些溢出字节会在页被释放时检测到，如果发现了任何错误就会生成一个bugcheck来指示内存被污染了。这一污染不是缓冲区溢出，他可能是个下溢或者其他形式的污染。</p>
+<p><img src="/images/exploit/misc/20180320_4.jpg" alt="Special Pool"></p>
+<p>Because special pool stores each pool allocation in its own 4KB page, it causes an increase in memory usage.  When special pool is enabled the memory manager will configure a limit of how much special pool may be allocated on the system, when this limit is reached the normal pools will be used instead.  This limitation may be especially pronounced on 32-bit systems which have less kernel space than 64-bit systems.</p>
+<p>因为特殊池把自身的每个池分配都存储在自己的4K页上，它会引起内存使用上的增加。当特殊池被启用时，内存管理器会配置一个系统上可被分配的特殊池的上限，当上限值达到时，就会使用普通的池取而代之。这一限制尤其在32位系统上声明，它比64位系统的内核空间小太多了。</p>
+<p>Now that we have explained how special pool works, we should use it.</p>
+<p>现在我们解释过了特殊池是如何工作的，我们现在使用它。</p>
+<p>There are two methods to enable special pool.  Driver verifier allows special pool to be enabled on specific drivers.  The PoolTag registry value described in <a href="http://support.microsoft.com/kb/188831" target="_blank" rel="noopener">KB188831</a> allows special pool to be enabled for a particular pool tag.  Starting in Windows Vista and Windows Server 2008, driver verifier captures additional information for special pool allocations so this is typically the recommended method.</p>
+<p>有两种方法来启用特殊池。Driver verifier可以在特定驱动上启用特殊池。在 <a href="http://support.microsoft.com/kb/188831" target="_blank" rel="noopener">KB188831</a>中描述的PoolTag注册的值允许特殊池以一个特定的池标签来启用。从Windows Vista和Server 2008开始，driver verifier还会捕获特殊池分配额外的信息，所以这种方法极为推荐。</p>
+<p>To enable special pool using driver verifier use the following command line, or choose the option from the verifier GUI.  Use the /driver flag to specify drivers you want to verify, this is the place to list drivers you suspect as the cause of the problem.  You may want to verify drivers you have written and want to test or drivers you have recently updated on the system.  In the command line below I am only verifying myfault.sys.  A reboot is required to enable special pool.</p>
+<p>使用driver verifier启用特殊池要用下面的命令行，或者用verifier GUI配置选项。使用<code>/driver</code>来指定驱动，它用于列举你怀疑可能引起问题的驱动程序。你可能想要核查你写过的驱动或者系统上最近更新过的驱动。在下面的命令行中我仅仅核查myfault.sys。激活特殊池需要重启。</p>
+<p>verifier /flags 1 /driver myfault.sys</p>
+<p>After enabling verifier and rebooting the system, repeat the activity that causes the crash.  For some problems the activity may just be to wait for a period of time.  For our demonstration we are running NotMyFault (see Part 1 for details).</p>
+<p>激活并重启后，重复上文中引起崩溃的操作。由于一些原因，我们需要等待一段时间。为了演示我们运行NotMyFault(更多细节参考第一部分)。</p>
+<p>The crash resulting from a buffer overflow in special pool will be a stop 0xD6, DRIVER_PAGE_FAULT_BEYOND_END_OF_ALLOCATION.</p>
+<p>在特殊池中由于缓冲区溢出而崩溃，停止码为0xD6 DRIVER_PAGE_FAULT_BEYOND_END_OF_ALLOCATION。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line">kd&gt; !analyze -v</span><br><span class="line"></span><br><span class="line">*******************************************************************************</span><br><span class="line"></span><br><span class="line">*                                                                             *</span><br><span class="line"></span><br><span class="line">*                        Bugcheck Analysis                                    *</span><br><span class="line"></span><br><span class="line">*                                                                             *</span><br><span class="line"></span><br><span class="line">*******************************************************************************</span><br><span class="line"></span><br><span class="line"> </span><br><span class="line"></span><br><span class="line">DRIVER_PAGE_FAULT_BEYOND_END_OF_ALLOCATION (d6)</span><br><span class="line"></span><br><span class="line">N bytes of memory was allocated and more than N bytes are being referenced.</span><br><span class="line"></span><br><span class="line">This cannot be protected by try-except.</span><br><span class="line"></span><br><span class="line">When possible, the guilty driver&apos;s name (Unicode string) is printed on</span><br><span class="line"></span><br><span class="line">the bugcheck screen and saved in KiBugCheckDriver.</span><br><span class="line"></span><br><span class="line">Arguments:</span><br><span class="line"></span><br><span class="line">Arg1: fffff9800b5ff000, memory referenced</span><br><span class="line"></span><br><span class="line">Arg2: 0000000000000001, value 0 = read operation, 1 = write operation</span><br><span class="line"></span><br><span class="line">Arg3: fffff88004f834eb, if non-zero, the address which referenced memory.</span><br><span class="line"></span><br><span class="line">Arg4: 0000000000000000, (reserved)</span><br></pre></td></tr></table></figure>
+<p>We can debug this crash and determine that notmyfault.sys wrote beyond its pool buffer.</p>
+<p>我们可以调试这一崩溃，判断notmyfault.sys执行了越界写。</p>
+<p>The call stack shows that myfault.sys accessed invalid memory and this generated a page fault.</p>
+<p>栈回溯显示了myfault.sys访问了非法的内存，导致了一个页错误。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">kd&gt; k</span><br><span class="line"></span><br><span class="line">Child-SP          RetAddr           Call Site</span><br><span class="line"></span><br><span class="line">fffff880`04822658 fffff803`721333f1 nt!KeBugCheckEx</span><br><span class="line"></span><br><span class="line">fffff880`04822660 fffff803`720acacb nt! ?? ::FNODOBFM::`string&apos;+0x33c2b</span><br><span class="line"></span><br><span class="line">fffff880`04822700 fffff803`7206feee nt!MmAccessFault+0x55b</span><br><span class="line"></span><br><span class="line">fffff880`04822840 fffff880`04f834eb nt!KiPageFault+0x16e</span><br><span class="line"></span><br><span class="line">fffff880`048229d0 fffff880`04f83727 myfault+0x14eb</span><br><span class="line"></span><br><span class="line">fffff880`04822b20 fffff803`72658a4a myfault+0x1727</span><br><span class="line"></span><br><span class="line">fffff880`04822b80 fffff803`724476c7 nt!IovCallDriver+0xba</span><br><span class="line"></span><br><span class="line">fffff880`04822bd0 fffff803`7245c8a6 nt!IopXxxControlFile+0x7e5</span><br><span class="line"></span><br><span class="line">fffff880`04822d60 fffff803`72071453 nt!NtDeviceIoControlFile+0x56</span><br><span class="line"></span><br><span class="line">fffff880`04822dd0 000007fc`4fe22c5a nt!KiSystemServiceCopyEnd+0x13</span><br><span class="line"></span><br><span class="line">00000000`004debb8 00000000`00000000 0x000007fc`4fe22c5a</span><br></pre></td></tr></table></figure>
+<p>The !pool command shows that the address being referenced by myfault.sys is special pool.</p>
+<p><code>!pool</code>命令显示了myfault.sys引用的内存是特殊池。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">kd&gt; !pool fffff9800b5ff000</span><br><span class="line"></span><br><span class="line">Pool page fffff9800b5ff000 region is Special pool</span><br><span class="line"></span><br><span class="line">fffff9800b5ff000: Unable to get contents of special pool block</span><br></pre></td></tr></table></figure>
+<p>The page table entry shows that the address is not valid.  This is the guard page used by special pool to catch overruns.</p>
+<p>页表项显示了这一地址是非法的。这是特殊池用于捕捉溢出的守护页。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">kd&gt; !pte fffff9800b5ff000</span><br><span class="line"></span><br><span class="line">                                           VA fffff9800b5ff000</span><br><span class="line"></span><br><span class="line">PXE at FFFFF6FB7DBEDF98    PPE at FFFFF6FB7DBF3000    PDE at FFFFF6FB7E6002D0    PTE at FFFFF6FCC005AFF8</span><br><span class="line"></span><br><span class="line">contains 0000000001B8F863  contains 000000000138E863  contains 000000001A6A1863  contains 0000000000000000</span><br><span class="line"></span><br><span class="line">pfn 1b8f      ---DA--KWEV  pfn 138e      ---DA--KWEV  pfn 1a6a1     ---DA--KWEV  not valid</span><br></pre></td></tr></table></figure>
+<p>The allocation prior to this memory is an 800 byte block of non paged pool tagged as “Wrap”.  “Wrap” is the tag used by verifier when pool is allocated without a tag, it is the equivalent to the “None” tag we saw in Part 1.</p>
+<p>该段内存前的800字节非分页内存池块被标记为”Wrap”。”Wrap”是verifier在分配未使用标签时，使用的标签，它和第一部分看到的”None”标签是等价的。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">kd&gt; !pool fffff9800b5ff000-1000</span><br><span class="line"></span><br><span class="line">Pool page fffff9800b5fe000 region is Special pool</span><br><span class="line"></span><br><span class="line">*fffff9800b5fe000 size:  800 data: fffff9800b5fe800 (NonPaged) *Wrap</span><br><span class="line"></span><br><span class="line">            Owning component : Unknown (update pooltag.txt)</span><br></pre></td></tr></table></figure>
+<p>Special pool is an effective mechanism to track down buffer overflow pool corruption.  It can also be used to catch other types of pool corruption which we will discuss in future articles.</p>
+<p>特殊池是一个追溯缓冲区溢出污染的有效机制。他也可以用于捕捉其他类型的池污染，我们会在下文中说明。</p>
+<h2 id="Understanding-Pool-Corruption-Part-3-–-Special-Pool-for-Double-Frees"><a href="#Understanding-Pool-Corruption-Part-3-–-Special-Pool-for-Double-Frees" class="headerlink" title="Understanding Pool Corruption Part 3 – Special Pool for Double Frees"></a>Understanding Pool Corruption Part 3 – Special Pool for Double Frees</h2><h2 id="理解池污染第三部分：特殊池下的Double-Free"><a href="#理解池污染第三部分：特殊池下的Double-Free" class="headerlink" title="理解池污染第三部分：特殊池下的Double Free"></a>理解池污染第三部分：特殊池下的Double Free</h2><p>In <a href="http://blogs.msdn.com/b/ntdebugging/archive/2013/06/14/understanding-pool-corruption-part-1-buffer-overflows.aspx" target="_blank" rel="noopener">Part 1</a> and <a href="http://blogs.msdn.com/b/ntdebugging/archive/2013/08/22/understanding-pool-corruption-part-2-special-pool-for-buffer-overruns.aspx" target="_blank" rel="noopener">Part 2</a> of this series we discussed pool corruption and how special pool can be used to identify the cause of such corruption.  In today’s article we will use special pool to catch a double free of pool memory.</p>
+<p>在第一和第二部分我们讨论了池污染以及如何使用特殊池来侦测池污染的真凶。今天我们将使用特殊池来捕捉池内存的二次释放。</p>
+<p>A double free of pool will cause a system to blue screen, however the resulting crash may vary.  In the most obvious scenario a driver that frees a pool allocation twice will cause the system to immediately crash with a stop code of C2 BAD_POOL_CALLER, and the first parameter will be 7 to indicate “Attempt to free pool which was already freed”.  If you experience such a crash, enabling special pool should be high on your list of troubleshooting steps.</p>
+<p>池的二次释放会引起一个系统蓝屏，然而导致崩溃的结果多种多样。最明显的就是一个驱动释放了同一个池块两次，此时立即引起系统崩溃，停止码为0xC2 BAD_POOL_CALLER，第一个参数是7，表示“试图释放已经释放的池块”。如果你遇到过这样的崩溃，启用特殊池应该是定位问题的不二手段。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">BAD_POOL_CALLER (c2)</span><br><span class="line"></span><br><span class="line">The current thread is making a bad pool request.  Typically this is at a bad IRQL level or double freeing the same allocation, etc.</span><br><span class="line"></span><br><span class="line">Arguments:</span><br><span class="line"></span><br><span class="line">Arg1: 0000000000000007, Attempt to free pool which was already freed</span><br><span class="line"></span><br><span class="line">Arg2: 00000000000011c1, (reserved)</span><br><span class="line"></span><br><span class="line">Arg3: 0000000004810007, Memory contents of the pool block</span><br><span class="line"></span><br><span class="line">Arg4: fffffa8001b10800, Address of the block of pool being deallocated</span><br></pre></td></tr></table></figure>
+<p>A less obvious crash would be if the pool has been reallocated.  As we showed in Part 2, pool is structured so that multiple drivers share a page.  When DriverA calls ExFreePool to free its pool block the block is made available for other drivers.  If memory manager gives this memory to DriverF, and then DriverA frees it a second time, a crash may occur in DriverF when the pool allocation no longer contains the expected data.  Such a problem may be difficult for the developer of DriverF to identify without special pool.</p>
+<p>如果该池块被重新分配过了，那么崩溃现场不是那么显而易见。如在第二部分中描述的，池是一个被多个驱动共享同一页的结构。当DriverA调用ExFreePool来释放池块时，该池块对其他驱动来说就变成可用的。如果内存管理器把这段内存给了DriverF，而DriverA在此后二次释放它的话，就会引起DriverF的崩溃，该池块不再包含期望的数据。如果不用特殊池，这样一个问题对DriverF的开发者来说难以甄别原因。</p>
+<p><img src="/images/exploit/misc/20180320_5.jpg" alt=""></p>
+<p>Special pool will place each driver’s allocation in a separate page of memory (as discussed in Part 2).  When a driver frees a pool block in special pool the whole page will be freed, and any access to a free page will cause an immediate bugcheck.  Additionally, special pool will place this page on the tail of the list of pages to be used again.  This increases the likelihood that the page will still be free when it is freed a second time, decreasing the likelihood of the DriverA/DriverF scenario shown above.</p>
+<p>特殊池会把每个驱动的分配块都放在独立的内存页上（第二部分已讨论过）。当某驱动在特殊池释放池块时，整个页都会被释放，任何访问该页的操作都会立即引起bugcheck。此外，特殊池会把这些页放在页链表的最后以重复使用。这会增加页被二次释放时仍然处于空闲态的可能性，降低上面描述的DriverA/DriverF经典情景发生的可能性。</p>
+<p>To demonstrate this failure we will once again use the Sysinternals tool <a href="http://download.sysinternals.com/files/NotMyFault.zip" target="_blank" rel="noopener">NotMyFault</a>.  Choose the “Double free” option and click “Crash”.  Most likely you will get the stop C2 bugcheck mentioned above.  Enable special pool and reboot to get a more informative error.</p>
+<p>为了演示我们再次使用Sysinternals工具NotMyFault。选择“Double free“选项并单击Crash。极大可能的，你会看到如上面描述般C2停止码的bugcheck。激活特殊池并重启以获取更有信息量的错误。</p>
+<p>verifier /flags 1 /driver myfault.sys</p>
+<p>Choosing the “Double free” option with special pool enabled resulted in the following crash.  The bugcheck code PAGE_FAULT_IN_NONPAGED_AREA means some driver tried to access memory that was not valid.  This invalid memory was the freed special pool page.</p>
+<p>激活特殊池并选择”Double free”选项，崩溃结果如下。BugCheck码为PAGE_FAULT_IN_NONPAGED_AREA，这意味着某个驱动正在试图访问非法的内存。该非法内存时一个释放了的特殊池页。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">PAGE_FAULT_IN_NONPAGED_AREA (50)</span><br><span class="line"></span><br><span class="line">Invalid system memory was referenced.  This cannot be protected by try-except,</span><br><span class="line"></span><br><span class="line">it must be protected by a Probe.  Typically the address is just plain bad or it</span><br><span class="line"></span><br><span class="line">is pointing at freed memory.</span><br><span class="line"></span><br><span class="line">Arguments:</span><br><span class="line"></span><br><span class="line">Arg1: fffff9800a7fe7f0, memory referenced.</span><br><span class="line"></span><br><span class="line">Arg2: 0000000000000000, value 0 = read operation, 1 = write operation.</span><br><span class="line"></span><br><span class="line">Arg3: fffff80060263888, If non-zero, the instruction address which referenced the bad memory address.</span><br><span class="line"></span><br><span class="line">Arg4: 0000000000000002, (reserved)</span><br></pre></td></tr></table></figure>
+<p>Looking at the call stack we can see myfault.sys was freeing pool and ExFreePoolSanityChecks took a page fault that lead to the crash.</p>
+<p>看看栈回溯，我们可以发现myfault.sys在释放池块，ExFreePoolSanityChecks引起了一个缺页异常并最终导致崩溃。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line">kd&gt; kn</span><br><span class="line"></span><br><span class="line"># Child-SP          RetAddr           Call Site</span><br><span class="line"></span><br><span class="line">00 fffff880`0419fe28 fffff800`5fd7e28a nt!DbgBreakPointWithStatus</span><br><span class="line"></span><br><span class="line">01 fffff880`0419fe30 fffff800`5fd7d8de nt!KiBugCheckDebugBreak+0x12</span><br><span class="line"></span><br><span class="line">02 fffff880`0419fe90 fffff800`5fc5b544 nt!KeBugCheck2+0x79f</span><br><span class="line"></span><br><span class="line">03 fffff880`041a05b0 fffff800`5fd1c5bc nt!KeBugCheckEx+0x104</span><br><span class="line"></span><br><span class="line">04 fffff880`041a05f0 fffff800`5fc95acb nt! ?? ::FNODOBFM::`string&apos;+0x33e2a</span><br><span class="line"></span><br><span class="line">05 fffff880`041a0690 fffff800`5fc58eee nt!MmAccessFault+0x55b</span><br><span class="line"></span><br><span class="line">06 fffff880`041a07d0 fffff800`60263888 nt!KiPageFault+0x16e</span><br><span class="line"></span><br><span class="line">07 fffff880`041a0960 fffff800`6024258c nt!ExFreePoolSanityChecks+0xe8</span><br><span class="line"></span><br><span class="line">08 fffff880`041a09a0 fffff880`04c9b5d9 nt!VerifierExFreePoolWithTag+0x3c</span><br><span class="line"></span><br><span class="line">09 fffff880`041a09d0 fffff880`04c9b727 myfault!MyfaultDeviceControl+0x2fd</span><br><span class="line"></span><br><span class="line">0a fffff880`041a0b20 fffff800`60241a4a myfault!MyfaultDispatch+0xb7</span><br><span class="line"></span><br><span class="line">0b fffff880`041a0b80 fffff800`600306c7 nt!IovCallDriver+0xba</span><br><span class="line"></span><br><span class="line">0c fffff880`041a0bd0 fffff800`600458a6 nt!IopXxxControlFile+0x7e5</span><br><span class="line"></span><br><span class="line">0d fffff880`041a0d60 fffff800`5fc5a453 nt!NtDeviceIoControlFile+0x56</span><br><span class="line"></span><br><span class="line">0e fffff880`041a0dd0 000007fd`ea212c5a nt!KiSystemServiceCopyEnd+0x13</span><br></pre></td></tr></table></figure>
+<p>Using the address from the bugcheck code, we can verify that the memory is in fact not valid:</p>
+<p>使用bugcheck码处的地址，可以核实该段内存是非法的：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line">kd&gt; dd fffff9800a7fe7f0</span><br><span class="line"></span><br><span class="line">fffff980`0a7fe7f0  ???????? ???????? ???????? ????????</span><br><span class="line"></span><br><span class="line">fffff980`0a7fe800  ???????? ???????? ???????? ????????</span><br><span class="line"></span><br><span class="line">fffff980`0a7fe810  ???????? ???????? ???????? ????????</span><br><span class="line"></span><br><span class="line">fffff980`0a7fe820  ???????? ???????? ???????? ????????</span><br><span class="line"></span><br><span class="line">fffff980`0a7fe830  ???????? ???????? ???????? ????????</span><br><span class="line"></span><br><span class="line">fffff980`0a7fe840  ???????? ???????? ???????? ????????</span><br><span class="line"></span><br><span class="line">fffff980`0a7fe850  ???????? ???????? ???????? ????????</span><br><span class="line"></span><br><span class="line">fffff980`0a7fe860  ???????? ???????? ???????? ????????</span><br><span class="line"></span><br><span class="line">kd&gt; !pte fffff9800a7fe7f0</span><br><span class="line"></span><br><span class="line">                                           VA fffff9800a7fe7f0</span><br><span class="line"></span><br><span class="line">PXE at FFFFF6FB7DBEDF98    PPE at FFFFF6FB7DBF3000    PDE at FFFFF6FB7E600298    PTE at FFFFF6FCC0053FF0</span><br><span class="line"></span><br><span class="line">contains 0000000002A91863  contains 0000000002A10863  contains 0000000000000000</span><br><span class="line"></span><br><span class="line">pfn 2a91      ---DA--KWEV  pfn 2a10      ---DA--KWEV  not valid</span><br></pre></td></tr></table></figure>
+<p>So far we have enough evidence to prove that myfault.sys was freeing invalid memory, but how to we know this memory is being freed twice?  If there was a double free we need to determine if the first or second call to ExFreePool was incorrect.  To this so we need to determine what code freed the memory first.</p>
+<p>到此我们已经有了足够的证据来证实myfault.sys在释放一段非法的内存，但是要如何知道这段内存被释放了两次呢？如果是二次释放的话我们需要判断第一次或第二次对ExFreePool的调用是有误的。因此我们需要判断该内存第一次释放时的代码。</p>
+<p>Driver Verifier special pool keeps track of the last 0x10000 calls to allocate and free pool.  You can dump this database with the !verifier 80 command.  To limit the data output you can also pass this command the address of the memory you suspect was double freed.</p>
+<p>Driver verifier特殊池保留了最后的0x10000个分配和释放池块调用的回溯。你可以通过<code>!verifier 80</code>命令将其转储成数据库。你也可以通过传递该疑似二次释放的内存地址作为参数来限制输出的数据。</p>
+<p>Don’t assume the address in the bugcheck code is the address being freed, go get the address from the function that called VerifierExFreePoolWithTag.</p>
+<p>不要假定bugcheck码就是被释放的地址，从VerifierExFreePoolWithTag的调用处获取地址。</p>
+<p>In the above call stack the call below VerifierExFreePoolWithTag is frame 9 (start counting with 0, or use kn).</p>
+<p>上面的栈回溯中，VerifierExFreePoolWithTag下面的调用是帧9（从0开始数，或者使用kn命令）。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">kd&gt; .frame /r 9</span><br><span class="line"></span><br><span class="line">09 fffff880`041a09d0 fffff880`04c9b727 myfault+0x15d9</span><br><span class="line"></span><br><span class="line">rax=0000000000000000 rbx=fffff9800a7fe800 rcx=fffff9800a7fe800</span><br><span class="line"></span><br><span class="line">rdx=fffffa8001a37fa0 rsi=fffffa80035975e0 rdi=fffffa8003597610</span><br><span class="line"></span><br><span class="line">rip=fffff88004c9b5d9 rsp=fffff880041a09d0 rbp=fffffa80034568d0</span><br><span class="line"></span><br><span class="line">r8=fffff9800a7fe801  r9=fffff9800a7fe7f0 r10=fffff9800a7fe800</span><br><span class="line"></span><br><span class="line">r11=0000000000000000 r12=0000000000000000 r13=0000000000000000</span><br><span class="line"></span><br><span class="line">r14=fffff800600306c7 r15=fffffa8004381b80</span><br><span class="line"></span><br><span class="line">iopl=0         nv up ei ng nz na po nc</span><br><span class="line"></span><br><span class="line">cs=0010  ss=0018  ds=002b  es=002b  fs=0053  gs=002b             efl=00000286</span><br><span class="line"></span><br><span class="line">myfault+0x15d9:</span><br><span class="line"></span><br><span class="line">fffff880`04c9b5d9 eb7a            jmp     myfault+0x1655 (fffff880`04c9b655)</span><br></pre></td></tr></table></figure>
+<p>On x64 systems the first parameter is passed in rcx.  The below assembly shows that rcx originated from rbx.</p>
+<p>x64系统上第一个参数由rcx传递。下面的汇编显示了rcx从rbx获取。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">kd&gt; ub fffff880`04c9b5d9</span><br><span class="line"></span><br><span class="line">myfault+0x15ba:</span><br><span class="line"></span><br><span class="line">fffff880`04c9b5ba ff15a80a0000    call    qword ptr [myfault+0x2068 (fffff880`04c9c068)]</span><br><span class="line"></span><br><span class="line">fffff880`04c9b5c0 33d2            xor     edx,edx</span><br><span class="line"></span><br><span class="line">fffff880`04c9b5c2 488bc8          mov     rcx,rax</span><br><span class="line"></span><br><span class="line">fffff880`04c9b5c5 488bd8          mov     rbx,rax</span><br><span class="line"></span><br><span class="line">fffff880`04c9b5c8 ff154a0a0000    call    qword ptr [myfault+0x2018 (fffff880`04c9c018)]</span><br><span class="line"></span><br><span class="line">fffff880`04c9b5ce 33d2            xor     edx,edx</span><br><span class="line"></span><br><span class="line">fffff880`04c9b5d0 488bcb          mov    rcx,rbx</span><br><span class="line"></span><br><span class="line">fffff880`04c9b5d3 ff153f0a0000    call    qword ptr [myfault+0x2018 (fffff880`04c9c018)]</span><br></pre></td></tr></table></figure>
+<p>Run !verifier 80 using the address from rbx:</p>
+<p>运行<code>!verifier 80</code>，使用rbx中的地址。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br></pre></td><td class="code"><pre><span class="line">kd&gt; !verifier 80 fffff9800a7fe800</span><br><span class="line"></span><br><span class="line"> </span><br><span class="line"></span><br><span class="line">Log of recent kernel pool Allocate and Free operations:</span><br><span class="line"></span><br><span class="line"> </span><br><span class="line"></span><br><span class="line">There are up to 0x10000 entries in the log.</span><br><span class="line"></span><br><span class="line"> </span><br><span class="line"></span><br><span class="line">Parsing 0x0000000000010000 log entries, searching for address 0xfffff9800a7fe800.</span><br><span class="line"></span><br><span class="line"> </span><br><span class="line"></span><br><span class="line"> </span><br><span class="line"></span><br><span class="line">======================================================================</span><br><span class="line"></span><br><span class="line">Pool block fffff9800a7fe800, Size 0000000000000800, Thread fffffa80046ce4c0</span><br><span class="line"></span><br><span class="line">fffff80060251a32 nt!VfFreePoolNotification+0x4a</span><br><span class="line"></span><br><span class="line">fffff8005fe736c9 nt!ExFreePool+0x595</span><br><span class="line"></span><br><span class="line">fffff80060242597 nt!VerifierExFreePoolWithTag+0x47</span><br><span class="line"></span><br><span class="line">fffff88004c9b5ce myfault!MyfaultDeviceControl+0x2f2</span><br><span class="line"></span><br><span class="line">fffff88004c9b727 myfault!MyfaultDispatch+0xb7</span><br><span class="line"></span><br><span class="line">fffff80060241a4a nt!IovCallDriver+0xba</span><br><span class="line"></span><br><span class="line">fffff800600306c7 nt!IopXxxControlFile+0x7e5</span><br><span class="line"></span><br><span class="line">fffff800600458a6 nt!NtDeviceIoControlFile+0x56</span><br><span class="line"></span><br><span class="line">fffff8005fc5a453 nt!KiSystemServiceCopyEnd+0x13</span><br><span class="line"></span><br><span class="line">======================================================================</span><br><span class="line"></span><br><span class="line">Pool block fffff9800a7fe800, Size 0000000000000800, Thread fffffa80046ce4c0</span><br><span class="line"></span><br><span class="line">fffff80060242a5d nt!VeAllocatePoolWithTagPriority+0x2d1</span><br><span class="line"></span><br><span class="line">fffff8006024b20e nt!XdvExAllocatePoolInternal+0x12</span><br><span class="line"></span><br><span class="line">fffff80060242f69 nt!VerifierExAllocatePool+0x61</span><br><span class="line"></span><br><span class="line">fffff88004c9b5c0 myfault!MyfaultDeviceControl+0x2e4</span><br><span class="line"></span><br><span class="line">fffff88004c9b727 myfault!MyfaultDispatch+0xb7</span><br><span class="line"></span><br><span class="line">fffff80060241a4a nt!IovCallDriver+0xba</span><br><span class="line"></span><br><span class="line">fffff800600306c7 nt!IopXxxControlFile+0x7e5</span><br><span class="line"></span><br><span class="line">fffff800600458a6 nt!NtDeviceIoControlFile+0x56</span><br><span class="line"></span><br><span class="line">fffff8005fc5a453 nt!KiSystemServiceCopyEnd+0x13</span><br></pre></td></tr></table></figure>
+<p>The above output shows the pool block being allocated by myfault.sys and then freed by myfault.sys.  If we combine this information with the call stack leading up to our bugcheck we can conclude that the pool was freed once in MyfaultDeviceControl at offset 0x2f2, then freed again in MyfaultDeviceControl at offset 0x2fd.</p>
+<p>上面的输出显示myfault.sys分配了池块，后来又释放了池块。如果我们组合栈回溯和bugcheck的信息，就可以推断出池块被第一次释放是在MyfaultDeviceControl偏移0x2f2处，第二次释放是在MyfaultDeviceControl偏移0x2fd处。</p>
+<p>Now we know which driver is causing the problem, and if this is our driver we know which area of the code to investigate.</p>
+<p>现在我们知道了到底是哪个驱动引起的问题，如果这是我们的驱动我们就知道该去调查哪段代码了。</p>
+
+      
+      
+    </div>
+    
+  </div>
+  
+    
+    <div class="copyright">
+        <p><span>本文标题:</span><a href="/2018/03/20/理解池污染三部曲/">理解池污染三部曲</a></p>
+        <p><span>文章作者:</span><a href="/" title="访问 r00tk1t 的个人博客">r00tk1t</a></p>
+        <p><span>发布时间:</span>2018年03月20日 - 20时20分</p>
+        <p><span>最后更新:</span>2020年10月20日 - 21时01分</p>
+        <p>
+            <span>原始链接:</span><a class="post-url" href="/2018/03/20/理解池污染三部曲/" title="理解池污染三部曲">https://r00tk1ts.github.io/2018/03/20/理解池污染三部曲/</a>
+            <span class="copy-path" data-clipboard-text="原文: https://r00tk1ts.github.io/2018/03/20/理解池污染三部曲/　　作者: r00tk1t" title="点击复制文章链接"><i class="fa fa-clipboard"></i></span>
+            <script src="/js/clipboard.min.js"></script>
+            <script> var clipboard = new Clipboard('.copy-path'); </script>
+        </p>
+        <p>
+            <span>许可协议:</span><i class="fa fa-creative-commons"></i> <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/3.0/cn/" title="中国大陆 (CC BY-NC-SA 3.0 CN)" target = "_blank">"署名-非商用-相同方式共享 3.0"</a> 转载请保留原文链接及作者。
+        </p>
+    </div>
+
+
+
+<nav id="article-nav">
+  
+    <a href="/2018/03/21/Bitmaps轶事：Windows 10纪念版前的GDI对象泄露/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption"><</strong>
+      <div class="article-nav-title">
+        
+          Bitmap轶事：Windows 10纪念版后的GDI对象泄露
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2018/03/19/内核利用程序之Razer rzpnk.sys中的逻辑bug/" id="article-nav-older" class="article-nav-link-wrap">
+      <div class="article-nav-title">Windows exploit系列教程第十九篇：内核利用程序之Razer rzpnk.sys中的逻辑bug</div>
+      <strong class="article-nav-caption">></strong>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+    <div id="toc" class="toc-article">
+    <strong class="toc-title">文章目录</strong>
+    <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#理解池污染三部曲"><span class="toc-number">1.</span> <span class="toc-text">理解池污染三部曲</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#Understanding-Pool-Corruption-Part-1-–-Buffer-Overflows"><span class="toc-number">1.1.</span> <span class="toc-text">Understanding Pool Corruption Part 1 – Buffer Overflows</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#理解池污染第一部分：缓冲区溢出"><span class="toc-number">1.2.</span> <span class="toc-text">理解池污染第一部分：缓冲区溢出</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Understanding-Pool-Corruption-Part-2-–-Special-Pool-for-Buffer-Overruns"><span class="toc-number">1.3.</span> <span class="toc-text">Understanding Pool Corruption Part 2 – Special Pool for Buffer Overruns</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Understanding-Pool-Corruption-Part-3-–-Special-Pool-for-Double-Frees"><span class="toc-number">1.4.</span> <span class="toc-text">Understanding Pool Corruption Part 3 – Special Pool for Double Frees</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#理解池污染第三部分：特殊池下的Double-Free"><span class="toc-number">1.5.</span> <span class="toc-text">理解池污染第三部分：特殊池下的Double Free</span></a></li></ol></li></ol>
+</div>
+<input type="button" id="tocButton" value="隐藏目录"  title="点击按钮隐藏或者显示文章目录">
+
+<script src="https://7.url.cn/edu/jslib/comb/require-2.1.6,jquery-1.9.1.min.js"></script>
+<script>
+    var valueHide = "隐藏目录";
+    var valueShow = "显示目录";
+
+    if ($(".left-col").is(":hidden")) {
+        $("#tocButton").attr("value", valueShow);
+    }
+    $("#tocButton").click(function() {
+        if ($("#toc").is(":hidden")) {
+            $("#tocButton").attr("value", valueHide);
+            $("#toc").slideDown(320);
+        }
+        else {
+            $("#tocButton").attr("value", valueShow);
+            $("#toc").slideUp(350);
+        }
+    })
+    if ($(".toc").length < 1) {
+        $("#toc, #tocButton").hide();
+    }
+</script>
+
+
+
+
+
+
+
+    
+
+
+
+    <div class="scroll" id="post-nav-button">
+        
+            <a href="/2018/03/21/Bitmaps轶事：Windows 10纪念版前的GDI对象泄露/" title="上一篇: Bitmap轶事：Windows 10纪念版后的GDI对象泄露">
+                <i class="fa fa-angle-left"></i>
+            </a>
+        
+        <a title="文章列表"><i class="fa fa-bars"></i><i class="fa fa-times"></i></a>
+        
+            <a href="/2018/03/19/内核利用程序之Razer rzpnk.sys中的逻辑bug/" title="下一篇: Windows exploit系列教程第十九篇：内核利用程序之Razer rzpnk.sys中的逻辑bug">
+                <i class="fa fa-angle-right"></i>
+            </a>
+        
+    </div>
+    <ul class="post-list"><li class="post-list-item"><a class="post-list-link" href="/2020/10/22/chromium-base库源码解读之引用计数拆解篇/">chromium-base库源码解读之引用计数拆解篇</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/12/16/深入探索禁忌目录之Effective C++篇/">深入探索禁忌目录之Effective C++篇</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/12/10/C++ Primer - 特殊工具与技术/">C++ Primer - 特殊工具与技术</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/12/08/C++ Primer - 用于大型程序的工具/">C++ Primer - 用于大型程序的工具</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/12/06/C++ Primer - 标准库特殊设施/">C++ Primer - 标准库特殊设施</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/12/03/C++ Primer - 模板与泛型编程/">C++ Primer - 模板与泛型编程</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/12/01/C++ Primer - 面向对象程序设计/">C++ Primer - 面向对象程序设计</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/29/C++ Primer - 重载运算与类型转换/">C++ Primer - 重载运算与类型转换</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/29/C++ Primer - 拷贝控制/">C++ Primer - 拷贝控制</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/26/C++ Primer - 动态内存/">C++ Primer - 动态内存</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/26/C++ Primer - 关联容器/">C++ Primer - 关联容器</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/24/C++ Primer - 泛型算法/">C++ Primer - 泛型算法</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/24/C++ Primer - 顺序容器/">C++ Primer - 顺序容器</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/21/C++ Primer - IO库/">C++ Primer - IO库</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/21/C++ Primer - 类/">C++ Primer - 类</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/20/C++ Primer - 函数/">C++ Primer - 函数</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/20/C++ Primer - 语句/">C++ Primer -语句</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/20/C++ Primer - 表达/">C++ Primer - 表达式</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/10/28/C++ Primer - string, vector & array/">C++ Primer - string, vector, array</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/10/28/C++ Primer - 变量和基本类型/">C++ Primer - 变量和基本类型</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/08/25/C++ Templates Note - 类模板/">C++ Templates Note - 类模板</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/08/25/C++ Templates Note - 函数模板/">C++ Templates Note- 函数模板</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/08/13/Linux内存管理-进程地址空间/">Linux内核学习——内存管理之进程地址空间</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/07/07/一次失败的栈溢出(SEH)之GetGo Download Manager/">一次失败的栈溢出(SEH)之GetGo Download Manager</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/06/28/DNSTracer 1.9栈溢出漏洞[CVE-2017-9430]/">DNSTracer 1.9栈溢出漏洞[CVE-2017-9430]</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/06/24/A Tale of Exploit Easy RM 2 MP3 Converter/">A Tale of Exploit "Easy RM 2 MP3</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/06/03/chromium-sandbox-ThreadProcess-analysis/">Chromium-sandbox-ThreadProcess-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/06/03/chromium-sandbox-Filesystem-analysis/">Chromium-sandbox-Filesystem-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/06/03/chromium-sandbox-LowLevelPolicy-analysis/">Chromium-sandbox-LowLevelPolicy-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/26/chromium-sandbox-PolicyEngine-analysis/">Chromium-sandbox-PolicyEngine-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/26/chromium-sandbox-Resolver-analysis/">Chromium-sandbox-Resolver-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/26/chromium-sandbox-Interception/">Chromium-sandbox-Interception-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/21/chromium-sandbox-HandleCloser-analysis/">Chromium-sandbox-HandleCloser-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/20/chromium-sandbox-SharedMemIPC/">Chromium-sandbox-SharedMemIPC-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/19/chromium-sandbox-Crosscall-analysis/">Chromium-sandbox-crosscall-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/19/chromium-sandbox-AlternateDesktop-analysis/">Chromium-sandbox-AlternateDesktop-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/19/chromium-sandbox-Tokens-analysis/">Chromium-sandbox-Tokens-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/14/chromium-sandbox-Job-analysis/">Chromium-sandbox-Job-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/13/chromium-sandbox-TargetPolicy-analysis/">Chromium-sandbox-TargetPolicy-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/13/chromium-sandbox-TargetProcess-analysis/">Chromium-sandbox-TargetProcess-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/13/chromium-sandbox-TargetServices-analysis/">Chromium-sandbox-TargetServices-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/13/chromium-sandbox-BrokerServices/">Chromium-sandbox-BrokerServices-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/04/05/x41-浏览器安全白皮书笔记/">X41-浏览器安全白皮书读书笔记</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/22/Windows系统机制之同步/">Windows系统机制之同步</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/21/Windows系统机制之对象管理器/">Windows系统机制之对象管理器</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/21/Windows系统机制之陷阱分发/">Windows系统机制之陷阱分发</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/21/Bitmaps轶事：Windows 10纪念版前的GDI对象泄露/">Bitmap轶事：Windows 10纪念版后的GDI对象泄露</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/20/理解池污染三部曲/">理解池污染三部曲</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/19/内核利用程序之Razer rzpnk.sys中的逻辑bug/">Windows exploit系列教程第十九篇：内核利用程序之Razer rzpnk.sys中的逻辑bug</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/19/内核利用程序之RS2 Bitmap巫术/">Windows exploit系列教程第十八篇：内核利用程序之RS2 Bitmap巫术</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/15/内核利用程序之滥用GDI Bitmap/">Windows exploit系列教程第十七部分：内核利用程序之任意位置任意写</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/14/内核利用程序之池溢出/">Windows exploit系列教程第十六部分：内核利用程序之池溢出</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/14/内核利用程序之UAF/">Windows exploit系列教程第十五部分：内核利用程序之UAF</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/10/coin1/">Writeup.pwnable.kr系列之coin1</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/10/shellshock/">Writeup.pwnable.kr系列之shellshock</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/09/mistake/">Writeup.pwnable.kr系列之mistake</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/07/leg/">Writeup.pwnable.kr系列之leg</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/06/input/">Writeup.pwnable.kr系列之input</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/05/random/">Writeup.pwnable.kr系列之random</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/05/passcode/">Writeup.pwnable.kr系列之passcode</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/04/flag/">Writeup.pwnable.kr系列之flag</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/04/bof/">Writeup.pwnable.kr系列之bof</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/03/collision/">Writeup.pwnable.kr系列之collision</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/03/fd/">Writeup.pwnable.kr系列之fd</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/02/26/Binary Security Assembly/">Binary-Security-Assembly</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/02/07/内核利用程序之整数溢出/">Windows exploit系列教程第十四部分：内核利用程序之整数溢出</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/02/06/内核利用程序之未初始化栈变量/">Windows exploit系列教程第十三部分：内核利用程序之未初始化栈变量</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/02/06/内核利用程序之空指针引用/">Windows exploit系列教程第十二部分：内核利用程序之空指针引用</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/02/01/内核利用程序之任意位置任意写/">Windows exploit系列教程第十一部分：内核利用程序之任意位置任意写</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/01/15/ring0层exp原语之滥用GDI/">ring0层exp原语之滥用GDI</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/01/14/Windows x64内核提权/">Windows x64内核提权</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/01/14/关键的Windows内核数据结构一览（下）/">关键的Windows内核数据结构一览（下）</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/01/08/关键的Windows内核数据结构一览（上）/">关键的Windows内核数据结构一览（上）</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/01/06/内核利用程序开发之栈溢出/">Windows exploit系列教程第十部分：内核利用程序之栈溢出</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/01/05/堆喷射[第二章：UAF]/">Windows exploit系列教程第九部分：堆喷射[第二章：UAF]</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/12/30/Kernel Driver mmap Handler Exploitation/">内核驱动mmap Handler利用技术</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/12/28/API Interception via DLL Redirection/">通过DLL重定向实现API劫持</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/12/21/Linux中断内幕/">Linux中断内幕</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/12/19/Windows架构设计/">Windows架构设计</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/10/30/house_of_force.log/">house_of_force log</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/10/25/Linux内存管理-非连续内存区管理/">Linux内核学习——内存管理之非连续内存区管理</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/10/24/Linux内存管理-内存区管理/">Linux内核学习——内存管理之内存区管理</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/10/20/Linux内存管理-页框管理/">Linux内核学习——内存管理之页框管理</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/10/19/first_fit.log/">first_fit log</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/10/19/house_of_einherjar.log/">house_of_einherjar log</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/10/18/fastbin_dup_into_stack.log/">fastbin_dup_into_stack log</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/10/12/fastbin_dup.log/">fastbin_dup log</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/09/23/Windows栈溢出之ret eip/">Windows栈溢出之ret eip</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/09/23/Windows栈溢出概述/">Windows栈溢出概述</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/09/16/DEFCON-2015-r0pbaby/">DEFCON-2015-r0pbaby</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/09/11/PWN选手的自我修养/">PWN选手的自我修养</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/08/27/linearsort/">linear sort</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/08/27/quicksort/">quicksort</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/08/27/heapsort&priority-queue/">heapsort & priority-queue</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/08/27/Linux进程的创建与撤销/">Linux内核学习——Linux进程的创建与撤销</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/08/26/Linux进程切换/">Linux内核学习——Linux进程切换</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/08/24/GNU Hash ELF Sections/">GNU Hash ELF Sections</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/08/22/Linux进程概述/">Linux内核学习——Linux进程概述</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/08/18/Linux内存寻址/">Linux内核学习——内存寻址</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/05/15/PlaySms  1.4代码执行漏洞之import csv/">PlaySms 1.4代码执行漏洞之import csv</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/05/15/PlaySms  1.4代码执行漏洞分析/">PlaySms 1.4代码执行漏洞分析</a></li></ul>
+    <script src="https://7.url.cn/edu/jslib/comb/require-2.1.6,jquery-1.9.1.min.js"></script>
+    <script>
+        $(".post-list").addClass("toc-article");
+        $(".post-list-item a").attr("target","_blank");
+        $("#post-nav-button > a:nth-child(2)").click(function() {
+            $(".fa-bars, .fa-times").toggle();
+            $(".post-list").toggle(300);
+            if ($(".toc").length > 0) {
+                $("#toc, #tocButton").toggle(200, function() {
+                    if ($(".switch-area").is(":visible")) {
+                        $("#tocButton").attr("value", valueHide);
+                        }
+                    })
+            }
+            else {
+            }
+        })
+    </script>
+
+
+
+    <script>
+        
+    </script>
+</div>
+      <footer id="footer">
+    <div class="outer">
+        <div id="footer-info">
+            <div class="footer-left">
+                &copy; 2020 r00tk1t
+            </div>
+            <div class="footer-right">
+                <a href="http://hexo.io/" target="_blank">Hexo</a>  Theme <a href="https://github.com/luuman/hexo-theme-spfk" target="_blank">spfk</a> by luuman
+            </div>
+        </div>
+        
+            <div class="visit">
+                
+                    <span id="busuanzi_container_site_pv" style='display:none'>
+                        <span id="site-visit" >访问数量: 
+                            <span id="busuanzi_value_site_uv"></span>
+                        </span>
+                    </span>
+                
+                
+                    <span>, </span>
+                
+                
+                    <span id="busuanzi_container_page_pv" style='display:none'>
+                        <span id="page-visit">本页阅读量: 
+                            <span id="busuanzi_value_page_pv"></span>
+                        </span>
+                    </span>
+                
+            </div>
+        
+    </div>
+</footer>
+
+    </div>
+    <script src="https://7.url.cn/edu/jslib/comb/require-2.1.6,jquery-1.9.1.min.js"></script>
+<script src="/js/main.js"></script>
+
+    <script>
+        $(document).ready(function() {
+            var backgroundnum = 24;
+            var backgroundimg = "url(/background/bg-x.jpg)".replace(/x/gi, Math.ceil(Math.random() * backgroundnum));
+            $("#mobile-nav").css({"background-image": backgroundimg,"background-size": "cover","background-position": "center"});
+            $(".left-col").css({"background-image": backgroundimg,"background-size": "cover","background-position": "center"});
+        })
+    </script>
+
+
+
+
+
+<div class="scroll" id="scroll">
+    <a href="#"><i class="fa fa-arrow-up"></i></a>
+    <a href="#comments"><i class="fa fa-comments-o"></i></a>
+    <a href="#footer"><i class="fa fa-arrow-down"></i></a>
+</div>
+<script>
+    $(document).ready(function() {
+        if ($("#comments").length < 1) {
+            $("#scroll > a:nth-child(2)").hide();
+        };
+    })
+</script>
+
+<script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js">
+</script>
+
+  <script language="javascript">
+    $(function() {
+        $("a[title]").each(function() {
+            var a = $(this);
+            var title = a.attr('title');
+            if (title == undefined || title == "") return;
+            a.data('title', title).removeAttr('title').hover(
+
+            function() {
+                var offset = a.offset();
+                $("<div id=\"anchortitlecontainer\"></div>").appendTo($("body")).html(title).css({
+                    top: offset.top - a.outerHeight() - 15,
+                    left: offset.left + a.outerWidth()/2 + 1
+                }).fadeIn(function() {
+                    var pop = $(this);
+                    setTimeout(function() {
+                        pop.remove();
+                    }, pop.text().length * 800);
+                });
+            }, function() {
+                $("#anchortitlecontainer").remove();
+            });
+        });
+    });
+</script>
+
+
+  </div>
+</body>
+</html>

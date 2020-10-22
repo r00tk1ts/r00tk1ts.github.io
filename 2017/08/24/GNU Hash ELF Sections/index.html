@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>GNU Hash ELF Sections | r00tk1t&#39;s blog</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="最近一直在研究ELF，期间看了很多优质的资源，这一篇文章是我从oracle的博客上翻译过来的。这是我近期见过的讲解最细致、五脏皆全的关于.gnu.hash的文章。我将它翻译了过来，鉴于本人英语渣渣，词不达意处，诸君海涵。 原文链接 还要感谢0xmuhe师傅，在学习Linux PWN相关的姿势时，在muhe师傅的github上发现了大量优质资源，果断fork。也希望自己能够像muhe师傅一样，在调研">
+<meta name="keywords" content="linux,glibc">
+<meta property="og:type" content="article">
+<meta property="og:title" content="GNU Hash ELF Sections">
+<meta property="og:url" content="https://r00tk1ts.github.io/2017/08/24/GNU Hash ELF Sections/index.html">
+<meta property="og:site_name" content="r00tk1t&#39;s blog">
+<meta property="og:description" content="最近一直在研究ELF，期间看了很多优质的资源，这一篇文章是我从oracle的博客上翻译过来的。这是我近期见过的讲解最细致、五脏皆全的关于.gnu.hash的文章。我将它翻译了过来，鉴于本人英语渣渣，词不达意处，诸君海涵。 原文链接 还要感谢0xmuhe师傅，在学习Linux PWN相关的姿势时，在muhe师傅的github上发现了大量优质资源，果断fork。也希望自己能够像muhe师傅一样，在调研">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:updated_time" content="2020-10-20T13:01:02.352Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="GNU Hash ELF Sections">
+<meta name="twitter:description" content="最近一直在研究ELF，期间看了很多优质的资源，这一篇文章是我从oracle的博客上翻译过来的。这是我近期见过的讲解最细致、五脏皆全的关于.gnu.hash的文章。我将它翻译了过来，鉴于本人英语渣渣，词不达意处，诸君海涵。 原文链接 还要感谢0xmuhe师傅，在学习Linux PWN相关的姿势时，在muhe师傅的github上发现了大量优质资源，果断fork。也希望自己能够像muhe师傅一样，在调研">
+  
+    <link rel="alternative" href="/atom.xml" title="r00tk1t&#39;s blog" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/img/favicon.png">
+  
+  
+      <link rel="stylesheet" href="//cdn.bootcss.com/animate.css/3.5.0/animate.min.css">
+  
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/font-awesome/css/font-awesome.min.css">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  
+  
+      <link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+  
+  <!-- 加载特效 -->
+    <script src="/js/pace.js"></script>
+    <link href="/css/pace/pace-theme-flash.css" rel="stylesheet" />
+  <script>
+      var yiliaConfig = {
+          rootUrl: '/',
+          fancybox: true,
+          animate: true,
+          isHome: false,
+          isPost: true,
+          isArchive: false,
+          isTag: false,
+          isCategory: false,
+          open_in_new: false
+      }
+  </script>
+</head>
+<body>
+  <div id="container">
+    <div class="left-col">
+    <div class="overlay"></div>
+<div class="intrude-less">
+    <header id="header" class="inner">
+        <a href="/" class="profilepic">
+            
+            <img lazy-src="/img/head.jpg" class="js-avatar">
+            
+        </a>
+
+        <hgroup>
+          <h1 class="header-author"><a href="/" title="Hi Mate">r00tk1t</a></h1>
+        </hgroup>
+
+        
+        <p class="header-subtitle">二进制安全 | Web安全 | 伪装成程序员的菜鸡</p>
+        
+        
+        
+            <div id="switch-btn" class="switch-btn">
+                <div class="icon">
+                    <div class="icon-ctn">
+                        <div class="icon-wrap icon-house" data-idx="0">
+                            <div class="birdhouse"></div>
+                            <div class="birdhouse_holes"></div>
+                        </div>
+                        <div class="icon-wrap icon-ribbon hide" data-idx="1">
+                            <div class="ribbon"></div>
+                        </div>
+                        
+                        <div class="icon-wrap icon-link hide" data-idx="2">
+                            <div class="loopback_l"></div>
+                            <div class="loopback_r"></div>
+                        </div>
+                        
+                        
+                        <div class="icon-wrap icon-me hide" data-idx="3">
+                            <div class="user"></div>
+                            <div class="shoulder"></div>
+                        </div>
+                        
+                    </div>
+                    
+                </div>
+                <div class="tips-box hide">
+                    <div class="tips-arrow"></div>
+                    <ul class="tips-inner">
+                        <li>菜单</li>
+                        <li>标签</li>
+                        
+                        <li>友情链接</li>
+                        
+                        
+                        <li>关于我</li>
+                        
+                    </ul>
+                </div>
+            </div>
+        
+
+        <div id="switch-area" class="switch-area">
+            <div class="switch-wrap">
+                <section class="switch-part switch-part1">
+                    <nav class="header-menu">
+                        <ul>
+                        
+                            <li><a href="/">博客首页</a></li>
+                        
+                            <li><a href="/archives">所有文章</a></li>
+                        
+                            <li><a href="/tags">标签</a></li>
+                        
+                        </ul>
+                    </nav>
+                    <nav class="header-nav">
+                        <ul class="social">
+                            
+                                <a class="fl mail" target="_blank" href="mailto: 1903442252@qq.com" title="mail">mail</a>
+                            
+                                <a class="fl github" target="_blank" href="https://github.com/r00tk1ts" title="github">github</a>
+                            
+                                <a class="fl zhihu" target="_blank" href="https://www.zhihu.com/people/r00tk1t-5" title="zhihu">zhihu</a>
+                            
+                                <a class="fl weibo" target="_blank" href="http://weibo.com/2698344533" title="weibo">weibo</a>
+                            
+                                <a class="fl QQ" target="_blank" href="https://user.qzone.qq.com/1903442252" title="QQ">QQ</a>
+                            
+                        </ul>
+                    </nav>
+                </section>
+                
+                
+                <section class="switch-part switch-part2">
+                    <div class="widget tagcloud" id="js-tagcloud">
+                        <a href="/tags/SEH-overwrite/" style="font-size: 10px;">SEH overwrite</a> <a href="/tags/algorithm/" style="font-size: 11.67px;">algorithm</a> <a href="/tags/browser/" style="font-size: 10px;">browser</a> <a href="/tags/chrome/" style="font-size: 16.67px;">chrome</a> <a href="/tags/chrome-sandbox/" style="font-size: 16.67px;">chrome-sandbox</a> <a href="/tags/cpp/" style="font-size: 20px;">cpp</a> <a href="/tags/cpp-primer/" style="font-size: 18.33px;">cpp-primer</a> <a href="/tags/cpp-templates/" style="font-size: 11.67px;">cpp-templates</a> <a href="/tags/dll-hooking/" style="font-size: 10px;">dll hooking</a> <a href="/tags/exploit/" style="font-size: 12.5px;">exploit</a> <a href="/tags/glibc/" style="font-size: 10px;">glibc</a> <a href="/tags/glibc-heap/" style="font-size: 13.33px;">glibc-heap</a> <a href="/tags/linux/" style="font-size: 10.83px;">linux</a> <a href="/tags/linux-kernel/" style="font-size: 14.17px;">linux-kernel</a> <a href="/tags/mmap/" style="font-size: 10px;">mmap</a> <a href="/tags/novice/" style="font-size: 17.5px;">novice</a> <a href="/tags/php/" style="font-size: 10.83px;">php</a> <a href="/tags/pool/" style="font-size: 10px;">pool</a> <a href="/tags/pwn/" style="font-size: 19.17px;">pwn</a> <a href="/tags/pwnable-kr/" style="font-size: 15px;">pwnable.kr</a> <a href="/tags/resources/" style="font-size: 10px;">resources</a> <a href="/tags/stack-overrun/" style="font-size: 11.67px;">stack-overrun</a> <a href="/tags/tutorial/" style="font-size: 10px;">tutorial</a> <a href="/tags/ulk/" style="font-size: 14.17px;">ulk</a> <a href="/tags/web/" style="font-size: 10.83px;">web</a> <a href="/tags/windows/" style="font-size: 15.83px;">windows</a> <a href="/tags/windows-kernel/" style="font-size: 14.17px;">windows-kernel</a> <a href="/tags/writeup/" style="font-size: 10px;">writeup</a> <a href="/tags/wrk/" style="font-size: 12.5px;">wrk</a>
+                    </div>
+                </section>
+                
+                
+                
+                <section class="switch-part switch-part3">
+                    <div id="js-friends">
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://eternalsakura13.com">樱花师傅</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="https://chybeta.github.io/">Chybeta</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://whereisk0shl.top/">k0shl</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://o0xmuhe.github.io/">o0xmuhe</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://bestwing.me/">swing</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://yixuankeer.win/">joker</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://www.hackersb.cn/">王松_Striker</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="https://www.hackfun.org/">4ido10n</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://www.cnblogs.com/iamstudy/">l3m0n</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://www.cnblogs.com/Ox9A82/">Ox9A82</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://mxny.org/">麦香浓郁</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://0x48.pw/">Hcamael</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="https://blog.nuptzj.cn/">画船听雨</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="https://www.bodkin.ren/">老锥</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://www.zerokeeper.com/">ZeroKeeper</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="https://www.ycjcl.cc/">信鑫</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://www.wowotech.net/">wowotech</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://fuzzysecurity.com/">fuzzySecurity</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="https://rootkits.xyz/">rootkits.xyz</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="http://www.pentestingexperts.com/">pentestingexperts</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="https://blog.skylined.nl/">skylined</a>
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="https://systemk1t.github.io/">systemk1t</a>
+                    
+                    </div>
+                </section>
+                
+
+                
+                
+                <section class="switch-part switch-part4">
+                
+                    <div id="js-aboutme">二进制狗一枚，懂点Web安全，一个伪装成程序员混迹在某公司的菜鸡。</div>
+                </section>
+                
+            </div>
+        </div>
+    </header>                
+</div>
+    </div>
+    <div class="mid-col">
+      <nav id="mobile-nav">
+      <div class="overlay">
+          <div class="slider-trigger"></div>
+          <h1 class="header-author js-mobile-header hide"><a href="/" title="Me">r00tk1t</a></h1>
+      </div>
+    <div class="intrude-less">
+        <header id="header" class="inner">
+            <a href="/" class="profilepic">
+                
+                    <img lazy-src="/img/head.jpg" class="js-avatar">
+                
+            </a>
+            <hgroup>
+              <h1 class="header-author"><a href="/" title="Me">r00tk1t</a></h1>
+            </hgroup>
+            
+            <p class="header-subtitle">二进制安全 | Web安全 | 伪装成程序员的菜鸡</p>
+            
+            <nav class="header-menu">
+                <ul>
+                
+                    <li><a href="/">博客首页</a></li>
+                
+                    <li><a href="/archives">所有文章</a></li>
+                
+                    <li><a href="/tags">标签</a></li>
+                
+                <div class="clearfix"></div>
+                </ul>
+            </nav>
+            <nav class="header-nav">
+                <div class="social">
+                    
+                        <a class="mail" target="_blank" href="mailto: 1903442252@qq.com" title="mail">mail</a>
+                    
+                        <a class="github" target="_blank" href="https://github.com/r00tk1ts" title="github">github</a>
+                    
+                        <a class="zhihu" target="_blank" href="https://www.zhihu.com/people/r00tk1t-5" title="zhihu">zhihu</a>
+                    
+                        <a class="weibo" target="_blank" href="http://weibo.com/2698344533" title="weibo">weibo</a>
+                    
+                        <a class="QQ" target="_blank" href="https://user.qzone.qq.com/1903442252" title="QQ">QQ</a>
+                    
+                </div>
+            </nav>
+        </header>                
+    </div>
+</nav>
+      <div class="body-wrap"><article id="post-GNU Hash ELF Sections" class="article article-type-post" itemscope itemprop="blogPost">
+  
+    <div class="article-meta">
+      <a href="/2017/08/24/GNU Hash ELF Sections/" class="article-date">
+      <time datetime="2017-08-24T11:27:11.000Z" itemprop="datePublished">2017-08-24</time>
+</a>
+    </div>
+  
+  <div class="article-inner">
+    
+      <input type="hidden" class="isFancy" />
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      GNU Hash ELF Sections
+    </h1>
+  
+
+      </header>
+      
+      <div class="article-info article-info-post">
+        
+    <div class="article-category tagcloud">
+    <a class="article-category-link" href="/categories/glibc/">glibc</a>
+    </div>
+
+
+        
+    <div class="article-tag tagcloud">
+        <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/glibc/">glibc</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/linux/">linux</a></li></ul>
+    </div>
+
+        <div class="clearfix"></div>
+      </div>
+      
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+          
+        <p>最近一直在研究ELF，期间看了很多优质的资源，这一篇文章是我从oracle的博客上翻译过来的。这是我近期见过的讲解最细致、五脏皆全的关于.gnu.hash的文章。我将它翻译了过来，鉴于本人英语渣渣，词不达意处，诸君海涵。</p>
+<p><a href="https://blogs.oracle.com/ali/entry/gnu_hash_elf_sections" target="_blank" rel="noopener">原文链接</a></p>
+<p>还要感谢0xmuhe师傅，在学习Linux PWN相关的姿势时，在muhe师傅的github上发现了大量优质资源，果断fork。也希望自己能够像muhe师傅一样，在调研过后，写几篇干货。<br><a href="https://github.com/o0xmuhe/pwn2exploit" target="_blank" rel="noopener">0xmuhe师傅的钻石矿</a></p>
+<a id="more"></a>
+<h1 id="GNU-Hash-ELF-Sections"><a href="#GNU-Hash-ELF-Sections" class="headerlink" title="GNU Hash ELF Sections"></a>GNU Hash ELF Sections</h1><p>By: Ali Bahrami | Principal Software Engineer</p>
+<p>ELF对象格式在多个不同的操作系统中使用，它们虽同享一个通用的基本设计，但各自又做了自身的扩展。在ELF设计中，有一个很好的特点促进了扩展：它定义一个通用核心，同时储备了空间使得每个实现体可以定义自身的扩展。我们在ELF团体中尝试相互流通，作为新的想法和灵感的源泉，以便于避免重复造轮子，以及失去好奇。</p>
+<p>近期，GNU linker开发者为他们的对象增加了一种新风格hash section，并且我已通过优良的详细说明中学习了他们。在完成这样的工作时，我仅仅想要把它写下来并分享。</p>
+<p>该文章描述了GNU ELF hash sections的布局和解释。GNU hash section为ELF对象提供了新的hash section，较之原始的SYSV hash具有更好的性能。</p>
+<p>这里收集的信息来源如下：</p>
+<ul>
+<li>Jakub Jelinek’s posting to the <a href="mailto:binutils@sourceware.org" target="_blank" rel="noopener">binutils@sourceware.org</a> mailing list for the binutils project: <a href="http://sourceware.org/ml/binutils/2006-10/msg00377.html" target="_blank" rel="noopener">http://sourceware.org/ml/binutils/2006-10/msg00377.html</a>.</li>
+<li>Ulrich Drepper’s document How To Write Shared Libraries.</li>
+<li>Email correspondence with Jakub and Ulrich. They were very generous with their time, and filled in details I couldn’t intuit from the above.</li>
+</ul>
+<p>收集这些信息时，我没有看过GNU binutils源码。</p>
+<p>如果你发现了一个错误，发送邮件（<a href="mailto:First.Last@Oracle.COM" target="_blank" rel="noopener">First.Last@Oracle.COM</a>, First和Last替换成我的姓名）给我，我会修正它。</p>
+<h2 id="Hash-函数"><a href="#Hash-函数" class="headerlink" title="Hash 函数"></a>Hash 函数</h2><p>GNU哈希函数使用DJB(Daniel J Bernstein)哈希，该哈希算法由Bernstein教授在多年以前发表在comp.lang.c 世界性新闻组网络新闻组:</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">uint32_t</span></span><br><span class="line">dl_new_hash (<span class="keyword">const</span> <span class="keyword">char</span> *s)</span><br><span class="line">&#123;</span><br><span class="line">        <span class="keyword">uint32_t</span> h = <span class="number">5381</span>;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">unsigned</span> <span class="keyword">char</span> c = *s; c != <span class="string">'\0'</span>; c = *++s)</span><br><span class="line">                h = h * <span class="number">33</span> + c;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> h;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>如果你在线查找该算法，你会找到该哈希表达式：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">h = h * <span class="number">33</span> + c</span><br></pre></td></tr></table></figure>
+<p>经常被编码成：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">h = ((h &lt;&lt; <span class="number">5</span>) + h) + c</span><br></pre></td></tr></table></figure>
+<p>它们是等价的语句，将整型乘法运算替换成成本更低的移位及加法运算。实际中是否能够降低成本取决于使用的CPU。对旧机器来说这是个具有象征意义的差异，但是对当代机器来说整型乘法运算相当的快。</p>
+<p>另一个算法的变化围绕着一个31位的返回值。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">return</span> h &amp; <span class="number">0x7fffffff</span>;</span><br></pre></td></tr></table></figure>
+<p>然而，GNU哈希使用完全的无符号32位整型数作为结果。</p>
+<p>GNU binutils implementation利用<code>uint_fast32_t</code>类型来计算哈希。这一类型被定义成最快的可用整型——当前系统上机器至少能表示32位。它可以用更宽的类型实现，结果在返回前被显式的修剪成一个32位无符号值。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">static</span> <span class="keyword">uint_fast32_t</span></span><br><span class="line">dl_new_hash (<span class="keyword">const</span> <span class="keyword">char</span> *s)</span><br><span class="line">&#123;</span><br><span class="line">        <span class="keyword">uint_fast32_t</span> h = <span class="number">5381</span>;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">unsigned</span> <span class="keyword">char</span> c = *s; c != <span class="string">'\0'</span>; c = *++s)</span><br><span class="line">                h = h * <span class="number">33</span> + c;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> h &amp; <span class="number">0xffffffff</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="Dynamic-Section-需求"><a href="#Dynamic-Section-需求" class="headerlink" title="Dynamic Section 需求"></a>Dynamic Section 需求</h2><p>GNU hash sections在动态符号表中放置了一些额外的有序需求。这和标准的SVR4 hash sections形成对照，SVR4允许符号以任意顺序放置，这被ELF标准所允许。</p>
+<p>对一个标准的SVR4 hash table来说，动态符号表中包含其所有符号。然而，动态符号表中的某些符号在哈希表中永远找不到：</p>
+<ul>
+<li>LOCAL符号，除非通过重定向引用（在某些架构）</li>
+<li>FILE符号</li>
+<li>共享对象: 所有UNDEF符号</li>
+<li>可执行：任何未在PLT引用的UNDEF符号</li>
+<li>特殊索引0符号（UNDEF的特殊情况）</li>
+</ul>
+<p>哈希表节忽略这些符号对于正确性来说没有任何影响，且结果上来看还会减轻哈希表的拥塞，缩短哈希链，达成更好的哈希性能。</p>
+<p>有了GNU哈希，动态符号表被分割成两部分。第一部分接受那些哈希表可以忽略的符号。GNU哈希不会对这一部分符号强加某种特定的顺序。</p>
+<p>第二部分接受可从哈希表访问的符号。这些符号需要升序排列（hash % nbuckets），用上面描述的GNU hash函数。哈希桶(nbuckets)的个数在GNU hash section中记录，下面会有所描述。结果上来看，在单一哈希链中找到的符号在内存中是毗邻的，这也是为了更好的缓存性能。</p>
+<h2 id="GNU-HASH-section"><a href="#GNU-HASH-section" class="headerlink" title="GNU_HASH section"></a>GNU_HASH section</h2><p>一个GNU_HASH节由四个分离的部分组成，按顺序如下：</p>
+<ul>
+<li><p>Header<br>32位字数组(4)提供节参数：</p>
+<ul>
+<li>nbuckets<br>哈希桶个数</li>
+<li>symndx<br>动态符号表有dynsymcount数量的符号。symndx是动态符号表中可被访问的第一个符号的索引。这意味着有(dynsymcount-symndx)个符号可以通过哈希表访问到。</li>
+<li><p>maskwords<br>在哈希表节的Bloom filter部分中，ELFCLASS单位大小的掩码个数（每个掩码可以为32位或64位）。这个值必须非零，同时必须是一个2的幂次数，见下面的描述。</p>
+<p>注意到值0可以被解释成哈希节中不存在Bloom filter。然而，GNU linkers不会做此处理——GNU哈希节永远至少包含1个掩码。</p>
+</li>
+<li>shift2<br>Bloom filter使用的位移计数</li>
+</ul>
+</li>
+<li>Bloom Filter<br>GNU_HASH sections包含一个Bloom filter。该过滤器用于快速拒绝在对象中不存在的符号查找。对ELFCLASS32对象来说，Bloom filter的掩码是32位的，ELFCLASS64则是64位。</li>
+<li>Hash Buckets<br>nbuckets长度的32位哈希桶数组。</li>
+<li>Hash Values<br>32位哈希链值的数组，长度为(dynsymcount-symndx)，每个符号都源自动态符号表的第二部分。</li>
+</ul>
+<p>Header，哈希桶以及哈希链永远都是32位字，而Bloom filter可能是32或64位，这取决于对象的类别。这意味着ELFCLASS32 GNU_HASH节仅包含32位字，因此他们节头的sh_entsize域被设置为4。ELFCLASS64 GNU_HASH节包含混合元素尺寸，因此sh_entsize被设置成0。</p>
+<p>假设哈希节是对齐的、可正确访问ELFCLASS尺寸的字，在Bloom filter前面的(4)32位字直接确保了filter的掩码永远是对齐的，并且可以在内存中被正确的直接访问。</p>
+<h2 id="Bloom-Filter"><a href="#Bloom-Filter" class="headerlink" title="Bloom Filter"></a>Bloom Filter</h2><p>GNU hash sections包含一个Bloom filter。Bloom filters是概率性的，意味着可能会错检，但是不可能误检（简单来说，就是通过布隆过滤器的不一定在hash表中，但不通过的一定不在表中）。filter用来快速拒绝不在对象中的符号名，避免更多昂贵的哈希查找操作。通常地，只有一个对象在进程中拥有给定的符号。跳过对其他所有对象的哈希操作可以显著地增快符号查询。</p>
+<p>filter由maskwords个字组成，每一个字都是32位（ELFCLASS32）或64位(ELFCLASS64)，这取决于对象的类别。在下面的讨论中，C将被用来表示一个掩码的尺寸，单位是位(bits)。所有掩码共同组成一个逻辑的(C * maskwords)的bitmask。</p>
+<p>GNU hash使用一个k=2的Bloom filter，这意味着会有两个独立的哈希函数为每个符号所使用。Bloom filter参考包含下面的陈述：</p>
+<blockquote>
+<p>设计k个不同的独立哈希函数的需求，当k较大时应被禁止。对一个良好的具有宽输出的哈希函数来说，哈希的不同bit-fields之间的关联应该很小，所以这类哈希可以用来生成多重“不同的”哈希函数，其通过对输出进行切片操作做成多重位域。</p>
+</blockquote>
+<p>GNU哈希使用的哈希函数具有这一特性。事实上，正是利用上面描述的单一哈希函数生成了两个Bloom filter所需要的哈希函数。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">H1 = dl_new_hash(name);</span><br><span class="line">H2 = H1 &gt;&gt; shift2;</span><br></pre></td></tr></table></figure>
+<p>如上面讨论，链接编辑器决定使用多少个掩码（maskwords），以及第一个哈希结果右移产生的第二个哈希(shift2)的量。掩码用得越多，hash section就越大、漏检率越低。在私人email中我被告知GNU linker首先从哈希表（dynsymcount-symndx）符号数以2为底的对数得到shift2，对ELFCLASS32最小值为5，对ELFCLASS64最小值为6。这些值显式的记录在hash section中，以便于让链接编辑器可以在未来灵活的修改它们，应更好的去实现启发式。</p>
+<p>Bloom filter掩码对两个哈希值的每一个都设置一位。基于Bloom filter参考，该字包含每一位，设置位的计算方法应该如下：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">N1 = ((H1 / C) % maskwords);</span><br><span class="line">N2 = ((H2 / C) % maskwords);</span><br><span class="line"></span><br><span class="line">B1 = H1 % C;</span><br><span class="line">B2 = H2 % C;</span><br></pre></td></tr></table></figure>
+<p>构筑filter时构造位：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">bloom[N1] |= (<span class="number">1</span> &lt;&lt; B1);</span><br><span class="line">bloom[N2] |= (<span class="number">1</span> &lt;&lt; B2);</span><br></pre></td></tr></table></figure>
+<p>并且在随后的测试filter：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">(bloom[N1] &amp; (<span class="number">1</span> &lt;&lt; B1)) &amp;&amp; (bloom[N2] &amp; (<span class="number">1</span> &lt;&lt; B2))</span><br></pre></td></tr></table></figure>
+<p>GNU hash以一种有意义的方式偏离了上述的定义。并非分别计算N1和N2，而是使用单一掩码计算的和前者中N1一致的值。这是个清醒的决定，GNU hash开发组旨在优化缓存表现：</p>
+<p><em>比起使用两个不同的Ns，这使得Bloom filter的2个哈希函数依赖性更强，但在我们的测算中对于那些该拒绝的查询仍然具有非常好的拒绝率，且缓存更加友好。在查找中我们尽可能的触碰最少的缓存行，这一点尤为重要。</em></p>
+<p>因此，在GNU hash中，单一掩码实际上计算如此：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">N = ((H1 / C) % maskwords);</span><br></pre></td></tr></table></figure>
+<p>Bloom filter掩码N的两个位设置如下：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">BITMASK = (<span class="number">1</span> &lt;&lt; (H1 % C)) | (<span class="number">1</span> &lt;&lt; (H2 % C));</span><br></pre></td></tr></table></figure>
+<p>链接编辑器设置这些位的方法：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">bloom[N] |= BITMASK;</span><br></pre></td></tr></table></figure>
+<p>运行时链接器使用的测试如下：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">(bloom[N] &amp; BITMASK) == BITMASK;</span><br></pre></td></tr></table></figure>
+<h2 id="Bit-Fiddling-为何掩码数应为2的幂次数"><a href="#Bit-Fiddling-为何掩码数应为2的幂次数" class="headerlink" title="Bit Fiddling: 为何掩码数应为2的幂次数"></a>Bit Fiddling: 为何掩码数应为2的幂次数</h2><p>通常来讲，一个Bloom filter可以使用一个任意的字数构成。然而，如同前面提到的，GNU hash的maskwords必须是2的幂次数。这一需求允许下面的模操作：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">N = ((H1 / C) % maskwords);</span><br></pre></td></tr></table></figure>
+<p>可以写成简单的掩码操作替代：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">N = ((H1 / C) &amp; (maskwords<span class="number">-1</span>));</span><br></pre></td></tr></table></figure>
+<p>注意到(maskwords-1)可以预计算一次</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">MASKWORDS_BITMASK = maskwords - <span class="number">1</span>;</span><br></pre></td></tr></table></figure>
+<p>且被每个哈希使用：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">N = ((H1 / C) &amp; MASKWORDS_BITMASK);</span><br></pre></td></tr></table></figure>
+<h2 id="Bloom-Filter特殊情况"><a href="#Bloom-Filter特殊情况" class="headerlink" title="Bloom Filter特殊情况"></a>Bloom Filter特殊情况</h2><p>Bloom filters有一对有趣的特殊情况：</p>
+<ul>
+<li>当一个Bloom filter所有位均置位时，所有的测试结果都是True(accept)值。GNU linker利用这一优势设定所有位均置位的单字Bloom filter为“disable”态。filter仍然在那里，也仍然在使用，作为最小限度的上限，它允许所有事物通过。</li>
+<li>Bloom filter所有位均未置位时，测试结果全部返回False。这种情况在ELF文件中相当少见，毕竟一个没有导出任何符号的对象具有有限的应用性。然而，有时候对象就是以这种方式构造，依赖于init/fini节来引起对象代码的执行。</li>
+</ul>
+<h2 id="Hash-Buckets"><a href="#Hash-Buckets" class="headerlink" title="Hash Buckets"></a>Hash Buckets</h2><p>跟随Bloom filter的是哈希桶(nbuckets个)，以32位为单位。数组中第N位置处的值是到动态符号表最低的索引：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">(dl_new_hash(symname) % nbuckets) == N</span><br></pre></td></tr></table></figure>
+<p>既然动态符号表由相同的键排序（hash % nbuckets），那么dynsym[buckets[N]]就是哈希链中的第一个符号，哈希链将包含所期望的符号如果存在的话。</p>
+<p>一个桶元素会包含索引0如果在哈希表中对于给定的值N没有任何符号。dynsym的索引0是一个保留值，该索引在一个合法的符号上不会出现，也因此没有歧义。</p>
+<h2 id="Hash-Values"><a href="#Hash-Values" class="headerlink" title="Hash Values"></a>Hash Values</h2><p>GNU hash section的最后一部分包含(dynsymcount-symndx)个32位字，每个条目都是动态符号表第二部分中的每个符号。每个字的前31位包含和符号表值一致的31位值。最后一位用做阻塞位。当符号是给定哈希链中最后一个或者两个桶的边界时其置1。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">lsb = (N == dynsymcount - <span class="number">1</span>) ||</span><br><span class="line">	((dl_new_hash(name[N]) % nbuckets)</span><br><span class="line">	!= (dl_new_hash(name[N + <span class="number">1</span>]) % nbuckets))</span><br><span class="line"></span><br><span class="line">hashval = (dl_new_hash(name) &amp; ~<span class="number">1</span>) | lsb;</span><br></pre></td></tr></table></figure>
+<h3 id="使用GNU-Hash查询符号"><a href="#使用GNU-Hash查询符号" class="headerlink" title="使用GNU Hash查询符号"></a>使用GNU Hash查询符号</h3><p>下列展示了一个符号怎样在使用了GNU hash section的对象中查找的过程。我们假设包含需要信息的内存记录是存在的。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> &#123;</span></span><br><span class="line">        <span class="keyword">const</span> <span class="keyword">char</span>      *os_dynstr;      <span class="comment">/* Dynamic string table */</span></span><br><span class="line">        Sym             *os_dynsym;      <span class="comment">/* Dynamic symbol table */</span></span><br><span class="line">        Word            os_nbuckets;     <span class="comment">/* # hash buckets */</span></span><br><span class="line">        Word            os_symndx;       <span class="comment">/* Index of 1st dynsym in hash */</span></span><br><span class="line">        Word            os_maskwords_bm; <span class="comment">/* # Bloom filter words, minus 1 */</span></span><br><span class="line">        Word            os_shift2;       <span class="comment">/* Bloom filter hash shift */</span></span><br><span class="line">        <span class="keyword">const</span> BloomWord *os_bloom;       <span class="comment">/* Bloom filter words */</span></span><br><span class="line">        <span class="keyword">const</span> Word      *os_buckets;     <span class="comment">/* Hash buckets */</span></span><br><span class="line">        <span class="keyword">const</span> Word      *os_hashval;     <span class="comment">/* Hash value array */</span></span><br><span class="line">&#125; <span class="keyword">obj_state_t</span>;</span><br></pre></td></tr></table></figure>
+<p>为了简化因素，我们省略控制不同ELF classes的细节。上面的情景中，Word是32位无符号数，BloomWord是32或64位数，取决于ELFCLASS，Sym相应就是Elf32_Sym和Elf64_Sym。</p>
+<p>把包含上述信息的变量给一个对象，下列的伪代码返回一个指针，如果对象中期望的符号存在，则指向它，否则指向NULL。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br></pre></td><td class="code"><pre><span class="line">Sym *</span><br><span class="line">symhash(<span class="keyword">obj_state_t</span> *os, <span class="keyword">const</span> <span class="keyword">char</span> *symname)</span><br><span class="line">&#123;</span><br><span class="line">        Word            c;</span><br><span class="line">        Word            h1, h2;</span><br><span class="line">        Word            n;</span><br><span class="line">        Word            bitmask; </span><br><span class="line">        <span class="keyword">const</span> Sym       *sym;</span><br><span class="line">        Word            *hashval;</span><br><span class="line"></span><br><span class="line">        <span class="comment">/*</span></span><br><span class="line"><span class="comment">         * Hash the name, generate the "second" hash</span></span><br><span class="line"><span class="comment">         * from it for the Bloom filter.</span></span><br><span class="line"><span class="comment">         */</span></span><br><span class="line">        h1 = dl_new_hash(symname);</span><br><span class="line">        h2 = h1 &gt;&gt; os-&gt;os_shift2;</span><br><span class="line"></span><br><span class="line">        <span class="comment">/* Test against the Bloom filter */</span></span><br><span class="line">        c = <span class="keyword">sizeof</span> (BloomWord) * <span class="number">8</span>;</span><br><span class="line">        n = (h1 / c) &amp; os-&gt;os_maskwords_bm;</span><br><span class="line">        bitmask = (<span class="number">1</span> &lt;&lt; (h1 % c)) | (<span class="number">1</span> &lt;&lt; (h2 % c));</span><br><span class="line">        <span class="keyword">if</span> ((os-&gt;os_bloom[n] &amp; bitmask) != bitmask)</span><br><span class="line">                <span class="keyword">return</span> (<span class="literal">NULL</span>);</span><br><span class="line"></span><br><span class="line">        <span class="comment">/* Locate the hash chain, and corresponding hash value element */</span></span><br><span class="line">        n = os-&gt;os_buckets[h1 % os-&gt;os_nbuckets];</span><br><span class="line">        <span class="keyword">if</span> (n == <span class="number">0</span>)    <span class="comment">/* Empty hash chain, symbol not present */</span></span><br><span class="line">                <span class="keyword">return</span> (<span class="literal">NULL</span>);</span><br><span class="line">        sym = &amp;os-&gt;os_dynsym[n];</span><br><span class="line">        hashval = &amp;os-&gt;os_hashval[n - os-&gt;os_symndx];</span><br><span class="line"></span><br><span class="line">        <span class="comment">/*</span></span><br><span class="line"><span class="comment">         * Walk the chain until the symbol is found or</span></span><br><span class="line"><span class="comment">         * the chain is exhausted.</span></span><br><span class="line"><span class="comment">         */</span></span><br><span class="line">        <span class="keyword">for</span> (h1 &amp;= ~<span class="number">1</span>; <span class="number">1</span>; sym++) &#123;</span><br><span class="line">                h2 = *hashval++;</span><br><span class="line"></span><br><span class="line">                <span class="comment">/*</span></span><br><span class="line"><span class="comment">                 * Compare the strings to verify match. Note that</span></span><br><span class="line"><span class="comment">                 * a given hash chain can contain different hash</span></span><br><span class="line"><span class="comment">                 * values. We'd get the right result by comparing every</span></span><br><span class="line"><span class="comment">                 * string, but comparing the hash values first lets us</span></span><br><span class="line"><span class="comment">                 * screen obvious mismatches at very low cost and avoid</span></span><br><span class="line"><span class="comment">                 * the relatively expensive string compare.</span></span><br><span class="line"><span class="comment">                 *</span></span><br><span class="line"><span class="comment">                 * We are intentionally glossing over some things here:</span></span><br><span class="line"><span class="comment">                 *</span></span><br><span class="line"><span class="comment">                 * - We could test sym-&gt;st_name for 0, which indicates</span></span><br><span class="line"><span class="comment">                 *   a NULL string, and avoid a strcmp() in that case.</span></span><br><span class="line"><span class="comment">                 *</span></span><br><span class="line"><span class="comment">                 * - The real runtime linker must also take symbol</span></span><br><span class="line"><span class="comment">                 *   versioning into account. This is an orthogonal</span></span><br><span class="line"><span class="comment">                 *   issue to hashing, and is left out of this</span></span><br><span class="line"><span class="comment">                 *    example for simplicity.</span></span><br><span class="line"><span class="comment">                 *</span></span><br><span class="line"><span class="comment">                 * A real implementation might test (h1 == (h2 &amp; ~1), and then</span></span><br><span class="line"><span class="comment">                 * call a (possibly inline) function to validate the rest.</span></span><br><span class="line"><span class="comment">                 */</span></span><br><span class="line">                 <span class="keyword">if</span> ((h1 == (h2 &amp; ~<span class="number">1</span>)) &amp;&amp;</span><br><span class="line">                     !<span class="built_in">strcmp</span>(symname, os-&gt;os_dynstr + sym-&gt;st_name))</span><br><span class="line">                         <span class="keyword">return</span> (sym);</span><br><span class="line"></span><br><span class="line">                 <span class="comment">/* Done if at end of chain */</span></span><br><span class="line">                 <span class="keyword">if</span> (h2 &amp; <span class="number">1</span>)</span><br><span class="line">                         <span class="keyword">break</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">/* This object does not have the desired symbol */</span></span><br><span class="line">        <span class="keyword">return</span> (<span class="literal">NULL</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="更新"><a href="#更新" class="headerlink" title="更新"></a>更新</h3><p>2010年8月26日<br>Per Lidén 指出上面例子的一些错误。有3处”sizeof(BloomWord)”的使用应为”sizeof(BloomWord)*8”，因为我们处理的是位，而不是字节。并且，在for()循环中有个打字错误。谢谢你的更正。</p>
+<p>2011年9月19日<br>Subin Gangadharan告诉我另外一个打字错误。在文末的代码实例中，我写了：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">h1 = dl_new_hash(symname);</span><br><span class="line">h2 = h2 &gt;&gt; os-&gt;os_shift2;</span><br></pre></td></tr></table></figure>
+<p>第二行应该是<code>h2 = h1 &gt;&gt; os-&gt;os_shift2;</code>。</p>
+<p>在翻阅这篇旧文章时，我发现了一些’<em>‘字符被转义成了’\</em>‘。我仅能推测这是当Oracle转换我们Sun的博文时发生的。我修复了原本的字符。我也借此机会更新了我的邮箱地址成当前的Oracle.COM格式。</p>
+<p>2013年8月15日<br>Mikael Vidstedt指出另一个小打字错误。在讨论GNU hash如何计算单一N，而不是N1和N2时，我做了如下的总结：</p>
+<p>运行时连接器使用的测试如下：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">(bloom[N1] &amp; BITMASK) == BITMASK;</span><br></pre></td></tr></table></figure>
+<p>N1应该是简单的N:</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">(bloom[N] &amp; BITMASK) == BNITMASK;</span><br></pre></td></tr></table></figure>
+<p>谢谢你善意的文字。</p>
+
+      
+      
+    </div>
+    
+  </div>
+  
+    
+    <div class="copyright">
+        <p><span>本文标题:</span><a href="/2017/08/24/GNU Hash ELF Sections/">GNU Hash ELF Sections</a></p>
+        <p><span>文章作者:</span><a href="/" title="访问 r00tk1t 的个人博客">r00tk1t</a></p>
+        <p><span>发布时间:</span>2017年08月24日 - 19时27分</p>
+        <p><span>最后更新:</span>2020年10月20日 - 21时01分</p>
+        <p>
+            <span>原始链接:</span><a class="post-url" href="/2017/08/24/GNU Hash ELF Sections/" title="GNU Hash ELF Sections">https://r00tk1ts.github.io/2017/08/24/GNU Hash ELF Sections/</a>
+            <span class="copy-path" data-clipboard-text="原文: https://r00tk1ts.github.io/2017/08/24/GNU Hash ELF Sections/　　作者: r00tk1t" title="点击复制文章链接"><i class="fa fa-clipboard"></i></span>
+            <script src="/js/clipboard.min.js"></script>
+            <script> var clipboard = new Clipboard('.copy-path'); </script>
+        </p>
+        <p>
+            <span>许可协议:</span><i class="fa fa-creative-commons"></i> <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/3.0/cn/" title="中国大陆 (CC BY-NC-SA 3.0 CN)" target = "_blank">"署名-非商用-相同方式共享 3.0"</a> 转载请保留原文链接及作者。
+        </p>
+    </div>
+
+
+
+<nav id="article-nav">
+  
+    <a href="/2017/08/26/Linux进程切换/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption"><</strong>
+      <div class="article-nav-title">
+        
+          Linux内核学习——Linux进程切换
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2017/08/22/Linux进程概述/" id="article-nav-older" class="article-nav-link-wrap">
+      <div class="article-nav-title">Linux内核学习——Linux进程概述</div>
+      <strong class="article-nav-caption">></strong>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+    <div id="toc" class="toc-article">
+    <strong class="toc-title">文章目录</strong>
+    <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#GNU-Hash-ELF-Sections"><span class="toc-number">1.</span> <span class="toc-text">GNU Hash ELF Sections</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#Hash-函数"><span class="toc-number">1.1.</span> <span class="toc-text">Hash 函数</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Dynamic-Section-需求"><span class="toc-number">1.2.</span> <span class="toc-text">Dynamic Section 需求</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#GNU-HASH-section"><span class="toc-number">1.3.</span> <span class="toc-text">GNU_HASH section</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Bloom-Filter"><span class="toc-number">1.4.</span> <span class="toc-text">Bloom Filter</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Bit-Fiddling-为何掩码数应为2的幂次数"><span class="toc-number">1.5.</span> <span class="toc-text">Bit Fiddling: 为何掩码数应为2的幂次数</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Bloom-Filter特殊情况"><span class="toc-number">1.6.</span> <span class="toc-text">Bloom Filter特殊情况</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Hash-Buckets"><span class="toc-number">1.7.</span> <span class="toc-text">Hash Buckets</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Hash-Values"><span class="toc-number">1.8.</span> <span class="toc-text">Hash Values</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#使用GNU-Hash查询符号"><span class="toc-number">1.8.1.</span> <span class="toc-text">使用GNU Hash查询符号</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#更新"><span class="toc-number">1.8.2.</span> <span class="toc-text">更新</span></a></li></ol></li></ol></li></ol>
+</div>
+<input type="button" id="tocButton" value="隐藏目录"  title="点击按钮隐藏或者显示文章目录">
+
+<script src="https://7.url.cn/edu/jslib/comb/require-2.1.6,jquery-1.9.1.min.js"></script>
+<script>
+    var valueHide = "隐藏目录";
+    var valueShow = "显示目录";
+
+    if ($(".left-col").is(":hidden")) {
+        $("#tocButton").attr("value", valueShow);
+    }
+    $("#tocButton").click(function() {
+        if ($("#toc").is(":hidden")) {
+            $("#tocButton").attr("value", valueHide);
+            $("#toc").slideDown(320);
+        }
+        else {
+            $("#tocButton").attr("value", valueShow);
+            $("#toc").slideUp(350);
+        }
+    })
+    if ($(".toc").length < 1) {
+        $("#toc, #tocButton").hide();
+    }
+</script>
+
+
+
+
+
+
+
+    
+
+
+
+    <div class="scroll" id="post-nav-button">
+        
+            <a href="/2017/08/26/Linux进程切换/" title="上一篇: Linux内核学习——Linux进程切换">
+                <i class="fa fa-angle-left"></i>
+            </a>
+        
+        <a title="文章列表"><i class="fa fa-bars"></i><i class="fa fa-times"></i></a>
+        
+            <a href="/2017/08/22/Linux进程概述/" title="下一篇: Linux内核学习——Linux进程概述">
+                <i class="fa fa-angle-right"></i>
+            </a>
+        
+    </div>
+    <ul class="post-list"><li class="post-list-item"><a class="post-list-link" href="/2020/10/22/chromium-base库源码解读之引用计数拆解篇/">chromium-base库源码解读之引用计数拆解篇</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/12/16/深入探索禁忌目录之Effective C++篇/">深入探索禁忌目录之Effective C++篇</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/12/10/C++ Primer - 特殊工具与技术/">C++ Primer - 特殊工具与技术</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/12/08/C++ Primer - 用于大型程序的工具/">C++ Primer - 用于大型程序的工具</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/12/06/C++ Primer - 标准库特殊设施/">C++ Primer - 标准库特殊设施</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/12/03/C++ Primer - 模板与泛型编程/">C++ Primer - 模板与泛型编程</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/12/01/C++ Primer - 面向对象程序设计/">C++ Primer - 面向对象程序设计</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/29/C++ Primer - 重载运算与类型转换/">C++ Primer - 重载运算与类型转换</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/29/C++ Primer - 拷贝控制/">C++ Primer - 拷贝控制</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/26/C++ Primer - 动态内存/">C++ Primer - 动态内存</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/26/C++ Primer - 关联容器/">C++ Primer - 关联容器</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/24/C++ Primer - 泛型算法/">C++ Primer - 泛型算法</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/24/C++ Primer - 顺序容器/">C++ Primer - 顺序容器</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/21/C++ Primer - IO库/">C++ Primer - IO库</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/21/C++ Primer - 类/">C++ Primer - 类</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/20/C++ Primer - 函数/">C++ Primer - 函数</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/20/C++ Primer - 语句/">C++ Primer -语句</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/11/20/C++ Primer - 表达/">C++ Primer - 表达式</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/10/28/C++ Primer - string, vector & array/">C++ Primer - string, vector, array</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/10/28/C++ Primer - 变量和基本类型/">C++ Primer - 变量和基本类型</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/08/25/C++ Templates Note - 类模板/">C++ Templates Note - 类模板</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/08/25/C++ Templates Note - 函数模板/">C++ Templates Note- 函数模板</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/08/13/Linux内存管理-进程地址空间/">Linux内核学习——内存管理之进程地址空间</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/07/07/一次失败的栈溢出(SEH)之GetGo Download Manager/">一次失败的栈溢出(SEH)之GetGo Download Manager</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/06/28/DNSTracer 1.9栈溢出漏洞[CVE-2017-9430]/">DNSTracer 1.9栈溢出漏洞[CVE-2017-9430]</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/06/24/A Tale of Exploit Easy RM 2 MP3 Converter/">A Tale of Exploit "Easy RM 2 MP3</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/06/03/chromium-sandbox-ThreadProcess-analysis/">Chromium-sandbox-ThreadProcess-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/06/03/chromium-sandbox-Filesystem-analysis/">Chromium-sandbox-Filesystem-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/06/03/chromium-sandbox-LowLevelPolicy-analysis/">Chromium-sandbox-LowLevelPolicy-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/26/chromium-sandbox-PolicyEngine-analysis/">Chromium-sandbox-PolicyEngine-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/26/chromium-sandbox-Resolver-analysis/">Chromium-sandbox-Resolver-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/26/chromium-sandbox-Interception/">Chromium-sandbox-Interception-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/21/chromium-sandbox-HandleCloser-analysis/">Chromium-sandbox-HandleCloser-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/20/chromium-sandbox-SharedMemIPC/">Chromium-sandbox-SharedMemIPC-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/19/chromium-sandbox-Crosscall-analysis/">Chromium-sandbox-crosscall-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/19/chromium-sandbox-AlternateDesktop-analysis/">Chromium-sandbox-AlternateDesktop-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/19/chromium-sandbox-Tokens-analysis/">Chromium-sandbox-Tokens-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/14/chromium-sandbox-Job-analysis/">Chromium-sandbox-Job-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/13/chromium-sandbox-TargetPolicy-analysis/">Chromium-sandbox-TargetPolicy-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/13/chromium-sandbox-TargetProcess-analysis/">Chromium-sandbox-TargetProcess-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/13/chromium-sandbox-TargetServices-analysis/">Chromium-sandbox-TargetServices-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/13/chromium-sandbox-BrokerServices/">Chromium-sandbox-BrokerServices-analysis</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/04/05/x41-浏览器安全白皮书笔记/">X41-浏览器安全白皮书读书笔记</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/22/Windows系统机制之同步/">Windows系统机制之同步</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/21/Windows系统机制之对象管理器/">Windows系统机制之对象管理器</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/21/Windows系统机制之陷阱分发/">Windows系统机制之陷阱分发</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/21/Bitmaps轶事：Windows 10纪念版前的GDI对象泄露/">Bitmap轶事：Windows 10纪念版后的GDI对象泄露</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/20/理解池污染三部曲/">理解池污染三部曲</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/19/内核利用程序之Razer rzpnk.sys中的逻辑bug/">Windows exploit系列教程第十九篇：内核利用程序之Razer rzpnk.sys中的逻辑bug</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/19/内核利用程序之RS2 Bitmap巫术/">Windows exploit系列教程第十八篇：内核利用程序之RS2 Bitmap巫术</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/15/内核利用程序之滥用GDI Bitmap/">Windows exploit系列教程第十七部分：内核利用程序之任意位置任意写</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/14/内核利用程序之池溢出/">Windows exploit系列教程第十六部分：内核利用程序之池溢出</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/14/内核利用程序之UAF/">Windows exploit系列教程第十五部分：内核利用程序之UAF</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/10/coin1/">Writeup.pwnable.kr系列之coin1</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/10/shellshock/">Writeup.pwnable.kr系列之shellshock</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/09/mistake/">Writeup.pwnable.kr系列之mistake</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/07/leg/">Writeup.pwnable.kr系列之leg</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/06/input/">Writeup.pwnable.kr系列之input</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/05/random/">Writeup.pwnable.kr系列之random</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/05/passcode/">Writeup.pwnable.kr系列之passcode</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/04/flag/">Writeup.pwnable.kr系列之flag</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/04/bof/">Writeup.pwnable.kr系列之bof</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/03/collision/">Writeup.pwnable.kr系列之collision</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/03/fd/">Writeup.pwnable.kr系列之fd</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/02/26/Binary Security Assembly/">Binary-Security-Assembly</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/02/07/内核利用程序之整数溢出/">Windows exploit系列教程第十四部分：内核利用程序之整数溢出</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/02/06/内核利用程序之未初始化栈变量/">Windows exploit系列教程第十三部分：内核利用程序之未初始化栈变量</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/02/06/内核利用程序之空指针引用/">Windows exploit系列教程第十二部分：内核利用程序之空指针引用</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/02/01/内核利用程序之任意位置任意写/">Windows exploit系列教程第十一部分：内核利用程序之任意位置任意写</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/01/15/ring0层exp原语之滥用GDI/">ring0层exp原语之滥用GDI</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/01/14/Windows x64内核提权/">Windows x64内核提权</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/01/14/关键的Windows内核数据结构一览（下）/">关键的Windows内核数据结构一览（下）</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/01/08/关键的Windows内核数据结构一览（上）/">关键的Windows内核数据结构一览（上）</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/01/06/内核利用程序开发之栈溢出/">Windows exploit系列教程第十部分：内核利用程序之栈溢出</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/01/05/堆喷射[第二章：UAF]/">Windows exploit系列教程第九部分：堆喷射[第二章：UAF]</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/12/30/Kernel Driver mmap Handler Exploitation/">内核驱动mmap Handler利用技术</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/12/28/API Interception via DLL Redirection/">通过DLL重定向实现API劫持</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/12/21/Linux中断内幕/">Linux中断内幕</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/12/19/Windows架构设计/">Windows架构设计</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/10/30/house_of_force.log/">house_of_force log</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/10/25/Linux内存管理-非连续内存区管理/">Linux内核学习——内存管理之非连续内存区管理</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/10/24/Linux内存管理-内存区管理/">Linux内核学习——内存管理之内存区管理</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/10/20/Linux内存管理-页框管理/">Linux内核学习——内存管理之页框管理</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/10/19/first_fit.log/">first_fit log</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/10/19/house_of_einherjar.log/">house_of_einherjar log</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/10/18/fastbin_dup_into_stack.log/">fastbin_dup_into_stack log</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/10/12/fastbin_dup.log/">fastbin_dup log</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/09/23/Windows栈溢出之ret eip/">Windows栈溢出之ret eip</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/09/23/Windows栈溢出概述/">Windows栈溢出概述</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/09/16/DEFCON-2015-r0pbaby/">DEFCON-2015-r0pbaby</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/09/11/PWN选手的自我修养/">PWN选手的自我修养</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/08/27/linearsort/">linear sort</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/08/27/quicksort/">quicksort</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/08/27/heapsort&priority-queue/">heapsort & priority-queue</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/08/27/Linux进程的创建与撤销/">Linux内核学习——Linux进程的创建与撤销</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/08/26/Linux进程切换/">Linux内核学习——Linux进程切换</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/08/24/GNU Hash ELF Sections/">GNU Hash ELF Sections</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/08/22/Linux进程概述/">Linux内核学习——Linux进程概述</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/08/18/Linux内存寻址/">Linux内核学习——内存寻址</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/05/15/PlaySms  1.4代码执行漏洞之import csv/">PlaySms 1.4代码执行漏洞之import csv</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/05/15/PlaySms  1.4代码执行漏洞分析/">PlaySms 1.4代码执行漏洞分析</a></li></ul>
+    <script src="https://7.url.cn/edu/jslib/comb/require-2.1.6,jquery-1.9.1.min.js"></script>
+    <script>
+        $(".post-list").addClass("toc-article");
+        $(".post-list-item a").attr("target","_blank");
+        $("#post-nav-button > a:nth-child(2)").click(function() {
+            $(".fa-bars, .fa-times").toggle();
+            $(".post-list").toggle(300);
+            if ($(".toc").length > 0) {
+                $("#toc, #tocButton").toggle(200, function() {
+                    if ($(".switch-area").is(":visible")) {
+                        $("#tocButton").attr("value", valueHide);
+                        }
+                    })
+            }
+            else {
+            }
+        })
+    </script>
+
+
+
+    <script>
+        
+    </script>
+</div>
+      <footer id="footer">
+    <div class="outer">
+        <div id="footer-info">
+            <div class="footer-left">
+                &copy; 2020 r00tk1t
+            </div>
+            <div class="footer-right">
+                <a href="http://hexo.io/" target="_blank">Hexo</a>  Theme <a href="https://github.com/luuman/hexo-theme-spfk" target="_blank">spfk</a> by luuman
+            </div>
+        </div>
+        
+            <div class="visit">
+                
+                    <span id="busuanzi_container_site_pv" style='display:none'>
+                        <span id="site-visit" >访问数量: 
+                            <span id="busuanzi_value_site_uv"></span>
+                        </span>
+                    </span>
+                
+                
+                    <span>, </span>
+                
+                
+                    <span id="busuanzi_container_page_pv" style='display:none'>
+                        <span id="page-visit">本页阅读量: 
+                            <span id="busuanzi_value_page_pv"></span>
+                        </span>
+                    </span>
+                
+            </div>
+        
+    </div>
+</footer>
+
+    </div>
+    <script src="https://7.url.cn/edu/jslib/comb/require-2.1.6,jquery-1.9.1.min.js"></script>
+<script src="/js/main.js"></script>
+
+    <script>
+        $(document).ready(function() {
+            var backgroundnum = 24;
+            var backgroundimg = "url(/background/bg-x.jpg)".replace(/x/gi, Math.ceil(Math.random() * backgroundnum));
+            $("#mobile-nav").css({"background-image": backgroundimg,"background-size": "cover","background-position": "center"});
+            $(".left-col").css({"background-image": backgroundimg,"background-size": "cover","background-position": "center"});
+        })
+    </script>
+
+
+
+
+
+<div class="scroll" id="scroll">
+    <a href="#"><i class="fa fa-arrow-up"></i></a>
+    <a href="#comments"><i class="fa fa-comments-o"></i></a>
+    <a href="#footer"><i class="fa fa-arrow-down"></i></a>
+</div>
+<script>
+    $(document).ready(function() {
+        if ($("#comments").length < 1) {
+            $("#scroll > a:nth-child(2)").hide();
+        };
+    })
+</script>
+
+<script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js">
+</script>
+
+  <script language="javascript">
+    $(function() {
+        $("a[title]").each(function() {
+            var a = $(this);
+            var title = a.attr('title');
+            if (title == undefined || title == "") return;
+            a.data('title', title).removeAttr('title').hover(
+
+            function() {
+                var offset = a.offset();
+                $("<div id=\"anchortitlecontainer\"></div>").appendTo($("body")).html(title).css({
+                    top: offset.top - a.outerHeight() - 15,
+                    left: offset.left + a.outerWidth()/2 + 1
+                }).fadeIn(function() {
+                    var pop = $(this);
+                    setTimeout(function() {
+                        pop.remove();
+                    }, pop.text().length * 800);
+                });
+            }, function() {
+                $("#anchortitlecontainer").remove();
+            });
+        });
+    });
+</script>
+
+
+  </div>
+</body>
+</html>
