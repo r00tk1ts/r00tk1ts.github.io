@@ -229,6 +229,7 @@ class RefCounted : public subtle::RefCountedBase {
     if (subtle::RefCountedBase::Release()) {
 	  // 返回true表示引用计数归0，调用T的析构器
       // 指向本对象的指针实际上是继承了RefCounted<T>的T对象，所以cast即可
+      // const修饰是为了同时兼容const和非const T对象
       // Traits默认实参是DefaultRefCountedTraits<T>，Destruct是其静态函数
       Traits::Destruct(static_cast<const T*>(this));
     }
@@ -369,7 +370,11 @@ class RefCountedThreadSafeBase {
 
 1. 引用计数器不再是个`uint32_t`，换成了使用原子操作的`AtomicRefCount`。
 
+   线程安全嘛，理所应当。`AtomicRefCount`是chromium-base对标准库`std::atomic_int`的封装，后面展开。
+
 2. 多了一个`AddRefWithCheck`接口。
+
+   这个接口替代了`AddRef`，除了首次增加引用计数的场景，我们可以在`RefCountThreadSafe`类中看到。该接口增强了保护，对previous value做了`CHECK`。
 
 3. 非X86架构因为"size regression"的成本而放弃了inline。
 
@@ -391,11 +396,131 @@ class RefCountedThreadSafeBase {
 
    > 疑点：这里的知识点我并不清楚，以后懂了再做补充。
 
+---
 
+回头看`RefCountThreadSafe`:
 
+```cpp
+template <class T, typename Traits> class RefCountedThreadSafe;
 
+// Default traits for RefCountedThreadSafe<T>.  Deletes the object when its ref
+// count reaches 0.  Overload to delete it on a different thread etc.
+template<typename T>
+struct DefaultRefCountedThreadSafeTraits {
+  static void Destruct(const T* x) {
+    // Delete through RefCountedThreadSafe to make child classes only need to be
+    // friend with RefCountedThreadSafe instead of this struct, which is an
+    // implementation detail.
+    RefCountedThreadSafe<T,
+                         DefaultRefCountedThreadSafeTraits>::DeleteInternal(x);
+  }
+};
 
+// Traits的默认实参实际上只是换了个壳，用以区分线程安全版本
+// 内部还是通过调用RefCountedThreadSafe的static private方法来销毁对象
+template <class T, typename Traits = DefaultRefCountedThreadSafeTraits<T> >
+class RefCountedThreadSafe : public subtle::RefCountedThreadSafeBase {
+ public:
+  static constexpr subtle::StartRefCountFromZeroTag kRefCountPreference =
+      subtle::kStartRefCountFromZeroTag;
 
+  explicit RefCountedThreadSafe()
+      : subtle::RefCountedThreadSafeBase(T::kRefCountPreference) {}
 
+  void AddRef() const { AddRefImpl(T::kRefCountPreference); }
 
+  void Release() const {
+    if (subtle::RefCountedThreadSafeBase::Release()) {
+      Traits::Destruct(static_cast<const T*>(this));
+    }
+  }
 
+ protected:
+  ~RefCountedThreadSafe() = default;
+
+ private:
+  friend struct DefaultRefCountedThreadSafeTraits<T>;
+  template <typename U>
+  static void DeleteInternal(const U* x) {
+    delete x;
+  }
+
+  // 根据两种不同的枚举类型参数做了重载
+  void AddRefImpl(subtle::StartRefCountFromZeroTag) const {
+    subtle::RefCountedThreadSafeBase::AddRef();
+  }
+
+  void AddRefImpl(subtle::StartRefCountFromOneTag) const {
+    subtle::RefCountedThreadSafeBase::AddRefWithCheck();
+  }
+
+  DISALLOW_COPY_AND_ASSIGN(RefCountedThreadSafe);
+};
+```
+
+与非线程安全版本基本一致，只是对`AddRef`加强了保护。
+
+## `AtomicRefCount`
+
+这个类非常简单，包装了`std::atomic_int`。
+
+> 这里用`int`应该是基于以下两种考虑的：
+>
+> 1. 引用计数一般不会太离谱，不会超过int的正数范围
+> 2. 刚好配合`subtle::RefCountedThreadSafeBase::AddRefWithCheck`，用于在add之后检查是否溢出(`CHECK(ref_count_.Increment() > 0);`)。
+
+```cpp
+class AtomicRefCount {
+ public:
+  constexpr AtomicRefCount() : ref_count_(0) {}
+  explicit constexpr AtomicRefCount(int initial_value)
+      : ref_count_(initial_value) {}
+
+  // Increment a reference count.
+  // Returns the previous value of the count.
+  int Increment() { return Increment(1); }
+
+  // Increment a reference count by "increment", which must exceed 0.
+  // Returns the previous value of the count.
+  int Increment(int increment) {
+    return ref_count_.fetch_add(increment, std::memory_order_relaxed);
+  }
+
+  // Decrement a reference count, and return whether the result is non-zero.
+  // Insert barriers to ensure that state written before the reference count
+  // became zero will be visible to a thread that has just made the count zero.
+  bool Decrement() {
+    // TODO(jbroman): Technically this doesn't need to be an acquire operation
+    // unless the result is 1 (i.e., the ref count did indeed reach zero).
+    // However, there are toolchain issues that make that not work as well at
+    // present (notably TSAN doesn't like it).
+    return ref_count_.fetch_sub(1, std::memory_order_acq_rel) != 1;
+  }
+
+  // Return whether the reference count is one.  If the reference count is used
+  // in the conventional way, a refrerence count of 1 implies that the current
+  // thread owns the reference and no other thread shares it.  This call
+  // performs the test for a reference count of one, and performs the memory
+  // barrier needed for the owning thread to act on the object, knowing that it
+  // has exclusive access to the object.
+  bool IsOne() const { return ref_count_.load(std::memory_order_acquire) == 1; }
+
+  // Return whether the reference count is zero.  With conventional object
+  // referencing counting, the object will be destroyed, so the reference count
+  // should never be zero.  Hence this is generally used for a debug check.
+  bool IsZero() const {
+    return ref_count_.load(std::memory_order_acquire) == 0;
+  }
+
+  // Returns the current reference count (with no barriers). This is subtle, and
+  // should be used only for debugging.
+  int SubtleRefCountForDebug() const {
+    return ref_count_.load(std::memory_order_relaxed);
+  }
+
+ private:
+  std::atomic_int ref_count_;
+};
+```
+
+这里考虑CPU架构通用性以及性能，没有使用C++默认的`memory_order_seq_cst`，而是精心设计了恰当的Acquire/Release语义。这些东西是为了防止多线程环境因指令重排序、CPU缓存而导致的依赖关系错乱，详细可以参考该文章：https://zhuanlan.zhihu.com/p/31386431，强烈推荐！
