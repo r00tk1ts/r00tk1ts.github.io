@@ -1,0 +1,624 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/favicon.png">
+  <link rel="icon" href="/img/favicon.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="r00tk1t">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="这一讲系统地讲解了矩阵的四个基本子空间：行空间，列空间，零空间和左零空间。他们关系密切且极其重要，对于每个子空间，我们探索了基和维数并高度概括了其背后的关联性。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="线性代数笔记(十)——四个基本子空间">
+<meta property="og:url" content="https://r00tk1ts.github.io/2022/05/14/%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B0%E7%AC%94%E8%AE%B0(%E5%8D%81)%E2%80%94%E2%80%94%E5%9B%9B%E4%B8%AA%E5%9F%BA%E6%9C%AC%E5%AD%90%E7%A9%BA%E9%97%B4/index.html">
+<meta property="og:site_name" content="r00tk1t&#39;s blog">
+<meta property="og:description" content="这一讲系统地讲解了矩阵的四个基本子空间：行空间，列空间，零空间和左零空间。他们关系密切且极其重要，对于每个子空间，我们探索了基和维数并高度概括了其背后的关联性。">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2022-05-14T07:18:56.000Z">
+<meta property="article:modified_time" content="2022-05-26T12:06:49.277Z">
+<meta property="article:author" content="r00tk1t">
+<meta property="article:tag" content="MIT-18.06-linear_algebra">
+<meta name="twitter:card" content="summary_large_image">
+  
+  
+  <title>线性代数笔记(十)——四个基本子空间 - r00tk1t&#39;s blog</title>
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/css/bootstrap.min.css" />
+
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4/github-markdown.min.css" />
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hint.css@2/hint.min.css" />
+
+  
+    
+    
+      
+      <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@10/styles/github-gist.min.css" />
+    
+  
+
+  
+    <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.css" />
+  
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+<!-- 自定义样式保持在最底部 -->
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    var CONFIG = {"hostname":"r00tk1ts.github.io","root":"/","version":"1.8.14","typing":{"enable":true,"typeSpeed":80,"cursorChar":"_","loop":false},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"copy_btn":true,"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml"};
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+<!-- hexo injector head_end start -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hexo-math@4.0.0/dist/style.css">
+<!-- hexo injector head_end end --><meta name="generator" content="Hexo 6.1.0"></head>
+
+
+<body>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>r00tk1t&#39;s blog</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                分类
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              &nbsp;<i class="iconfont icon-search"></i>&nbsp;
+            </a>
+          </li>
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="banner" id="banner" parallax=true
+         style="background: url('/img/default.png') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+          <div class="page-header text-center fade-in-up">
+            <span class="h2" id="subtitle" title="线性代数笔记(十)——四个基本子空间">
+              
+            </span>
+
+            
+              <div class="mt-3">
+  
+  
+    <span class="post-meta">
+      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+      <time datetime="2022-05-14 15:18" pubdate>
+        2022年5月14日 下午
+      </time>
+    </span>
+  
+</div>
+
+<div class="mt-1">
+  
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-chart"></i>
+      2.6k 字
+    </span>
+  
+
+  
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-clock-fill"></i>
+      
+      
+      22 分钟
+    </span>
+  
+
+  
+  
+</div>
+
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div class="py-5" id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">线性代数笔记(十)——四个基本子空间</h1>
+            
+            <div class="markdown-body">
+              <p>这一讲系统地讲解了矩阵的四个基本子空间：行空间，列空间，零空间和左零空间。他们关系密切且极其重要，对于每个子空间，我们探索了基和维数并高度概括了其背后的关联性。</p>
+<span id="more"></span>
+<h1 id="四个基本子空间">四个基本子空间</h1>
+<p>现有<span class="math inline">\(m \times n\)</span>矩阵<span
+class="math inline">\(A\)</span>，已知<span
+class="math inline">\(rank(A)=r, r\le min(n,m)\)</span>，则有： *
+行空间<span class="math inline">\(C(A^T) \in \mathbb{R}^n, dim
+C(A^T)=r\)</span>。 * 零空间<span class="math inline">\(N(A) \in
+\mathbb{R}^n, dim N(A)=n-r\)</span>。 * 列空间<span
+class="math inline">\(C(A) \in \mathbb{R}^m, dim C(A)=r\)</span>。 *
+左零空间<span class="math inline">\(N(A^T) \in \mathbb{R}^m, dim
+N(A^T)=m-r\)</span>。</p>
+<p>根据上一讲的内容，列空间和零空间的维数和基我们都已了然于胸，而实际上，行空间和左零空间也如出一辙，不过就是把<span
+class="math inline">\(A\)</span>做了转置以后，如法炮制得到的列空间和零空间。</p>
+<blockquote>
+<p>列空间的基：主元所在列的所有向量；零空间的基：所有线性无关的特解。</p>
+</blockquote>
+<p>事实上，除了先转置再如法炮制的法子以外，对于行空间和左零空间，我们还有更便捷的求解方法。</p>
+<h2 id="行空间">行空间</h2>
+假如我们换个角度思考，直接来看<span
+class="math inline">\(A\)</span>的行向量组，消元得到： $ A=
+<span class="math display">\[\begin{bmatrix}
+1 &amp; 2 &amp; 3 &amp; 1
+\\ 1 &amp; 1 &amp; 2 &amp; 1
+\\ 1 &amp; 2 &amp; 3 &amp; 1
+\end{bmatrix}
+\underrightarrow{消元}
+\begin{bmatrix}
+1 &amp; 0 &amp; 1 &amp; 1
+\\ 0 &amp; 1 &amp; 1 &amp; 0
+\\ 0 &amp; 0 &amp; 0 &amp; 0
+\end{bmatrix}\]</span>
+<p>=R $</p>
+<p>消元的本质是做行变换，此时A的列空间发生变化（<span
+class="math inline">\(C(R) \neq
+C(A)\)</span>），但却并不影响行空间，所以可以在<span
+class="math inline">\(R\)</span>中看出前两行就是行空间的一组基。所以，可以得出无论对于矩阵<span
+class="math inline">\(A\)</span>还是<span
+class="math inline">\(R\)</span>，其行空间的一组基，可以由<span
+class="math inline">\(R\)</span>矩阵的前<span
+class="math inline">\(r\)</span>行向量组成。</p>
+<blockquote>
+<p>这里的<span
+class="math inline">\(R\)</span>就是第七讲提到的简化行阶梯形式。</p>
+</blockquote>
+<h2 id="左零空间">左零空间</h2>
+<p>对于左零空间，有<span class="math inline">\(A^Ty=0 \rightarrow
+(A^Ty)^T=0^T\rightarrow y^TA=0^T\)</span>，因此得名。</p>
+<p>采用Gauss-Jordan消元，将增广矩阵<span
+class="math inline">\(\left[\begin{array}{c|c}A_{m \times n} &amp; I_{m
+\times m}\end{array}\right]\)</span>中<span
+class="math inline">\(A\)</span>的部分划为简化行阶梯形式<span
+class="math inline">\(\left[\begin{array}{c|c}R_{m \times n} &amp; E_{m
+\times m}\end{array}\right]\)</span>，此时矩阵<span
+class="math inline">\(E\)</span>会将所有的行变换记录下来。</p>
+<p>则<span class="math inline">\(EA=R\)</span>，而在前几讲中，有当<span
+class="math inline">\(A&#39;\)</span>是<span
+class="math inline">\(m\)</span>阶可逆方阵时，<span
+class="math inline">\(R&#39;\)</span>即是<span
+class="math inline">\(I\)</span>，所以<span
+class="math inline">\(E\)</span>就是<span
+class="math inline">\(A^{-1}\)</span>。</p>
+<p>本例中 <span class="math display">\[
+\left[\begin{array}{c|c}A_{m \times n} &amp; I_{m \times
+m}\end{array}\right]=\left[\begin{array}
+{c c c c|c c c}
+1 &amp; 2 &amp; 3 &amp; 1 &amp; 1 &amp; 0 &amp; 0
+\\ 1 &amp; 1 &amp; 2 &amp; 1 &amp; 0 &amp; 1 &amp; 0
+\\ 1 &amp; 2 &amp; 3 &amp; 1 &amp; 0 &amp; 0 &amp; 1
+\end{array}\right]
+\underrightarrow{消元}
+\left[
+\begin{array}
+{c c c c|c c c}
+1 &amp; 0 &amp; 1 &amp; 1 &amp; -1 &amp; 2 &amp; 0
+\\ 0 &amp; 1 &amp; 1 &amp; 0 &amp; 1 &amp; -1 &amp; 0
+\\ 0 &amp; 0 &amp; 0 &amp; 0 &amp; -1 &amp; 0 &amp; 1
+\end{array}
+\right]
+=\left[\begin{array}{c|c}R_{m \times n} &amp; E_{m \times
+m}\end{array}\right]
+\]</span></p>
+<p>则 <span class="math display">\[
+EA=\begin{bmatrix}
+-1 &amp; 2  &amp; 0
+\\ 1  &amp; -1 &amp; 0
+\\ -1 &amp; 0  &amp; 1
+\end{bmatrix}
+\cdot
+\begin{bmatrix}
+1 &amp; 2 &amp; 3 &amp; 1
+\\ 1 &amp; 1 &amp; 2 &amp; 1
+\\ 1 &amp; 2 &amp; 3 &amp; 1
+\end{bmatrix}=
+\begin{bmatrix}
+1 &amp; 0 &amp; 1 &amp; 1
+\\ 0 &amp; 1 &amp; 1 &amp; 0
+\\ 0 &amp; 0 &amp; 0 &amp; 0
+\end{bmatrix}=R
+\]</span></p>
+<p>很明显，式中<span class="math inline">\(E\)</span>的最后一行对<span
+class="math inline">\(A\)</span>的行做线性组合后，得到<span
+class="math inline">\(R\)</span>的最后一行，即<span
+class="math inline">\(0\)</span>向量，也就是<span
+class="math inline">\(y^TA=0^T\)</span>。另一方面，<span
+class="math inline">\(E\)</span>的第三行对应的行向量就是矩阵<span
+class="math inline">\(A\)</span>的左零空间的基。</p>
+<h2 id="矩阵空间">矩阵空间</h2>
+<p>不只是向量可以构建出空间，万物皆可构造出空间，只要满足加法和数乘的封闭性即可。</p>
+<p>举个例子，矩阵可以同向量一样，做求和、数乘。那么什么样的矩阵构成的空间满足封闭性呢？
+比如，设所有<span class="math inline">\(3 \times
+3\)</span>矩阵组成的矩阵空间为<span
+class="math inline">\(M\)</span>。则上三角矩阵、对称矩阵、对角矩阵（前两者的交集）都可以构成矩阵空间。</p>
+观察一下对角矩阵，如果取： $
+<span class="math display">\[\begin{bmatrix}
+1 &amp; 0 &amp; 0
+\\ 0 &amp; 0 &amp; 0
+\\ 0 &amp; 0 &amp; 0
+\end{bmatrix} \quad
+\begin{bmatrix}
+1 &amp; 0 &amp; 0
+\\ 0 &amp; 3 &amp; 0
+\\ 0 &amp; 0 &amp; 0
+\end{bmatrix} \quad
+\begin{bmatrix}
+0 &amp; 0 &amp; 0
+\\ 0 &amp; 0 &amp; 0
+\\ 0 &amp; 0 &amp; 7
+\end{bmatrix}\]</span>
+<p>$</p>
+<p>可以发现，任何三阶对角矩阵均可用这三个矩阵的线性组合生成，因此，他们生成了三阶对角矩阵空间，即这三个矩阵是三阶对角矩阵空间的一组基。</p>
+
+            </div>
+            <hr>
+            <div>
+              <div class="post-metas mb-3">
+                
+                  <div class="post-meta mr-3">
+                    <i class="iconfont icon-category"></i>
+                    
+                      <a class="hover-with-bg" href="/categories/%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B0/">线性代数</a>
+                    
+                  </div>
+                
+                
+                  <div class="post-meta">
+                    <i class="iconfont icon-tags"></i>
+                    
+                      <a class="hover-with-bg" href="/tags/MIT-18-06-linear-algebra/">MIT-18.06-linear_algebra</a>
+                    
+                  </div>
+                
+              </div>
+              
+                <p class="note note-warning">
+                  
+                    本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！
+                  
+                </p>
+              
+              
+                <div class="post-prevnext">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2022/05/14/%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B0%E7%AC%94%E8%AE%B0(%E5%8D%81%E4%B8%80)%E2%80%94%E2%80%94%E7%9F%A9%E9%98%B5%E7%A9%BA%E9%97%B4%E3%80%81%E7%A7%A91%E7%9F%A9%E9%98%B5%E5%92%8C%E5%B0%8F%E4%B8%96%E7%95%8C%E5%9B%BE/">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">线性代数笔记(十一)——矩阵空间、秩1矩阵和小世界图</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2022/05/14/%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B0%E7%AC%94%E8%AE%B0(%E4%B9%9D)%E2%80%94%E2%80%94%E7%BA%BF%E6%80%A7%E7%9B%B8%E5%85%B3%E6%80%A7%E3%80%81%E5%9F%BA%E5%92%8C%E7%BB%B4%E6%95%B0/">
+                        <span class="hidden-mobile">线性代数笔记(九)——线性相关性、基和维数</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+
+    
+  </main>
+
+  <footer class="text-center mt-5 py-3">
+  <div class="footer-content">
+     <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+  </div>
+  
+
+  
+
+  
+</footer>
+
+
+  <!-- SCRIPTS -->
+  
+  <script  src="https://cdn.jsdelivr.net/npm/nprogress@0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js" ></script>
+<script  src="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+<!-- Plugins -->
+
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+  
+
+
+
+  
+    <script  src="https://cdn.jsdelivr.net/npm/tocbot@4/dist/tocbot.min.js" ></script>
+  
+  
+    <script  src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.js" ></script>
+  
+  
+    <script  src="https://cdn.jsdelivr.net/npm/anchor-js@4/anchor.min.js" ></script>
+  
+  
+    <script defer src="https://cdn.jsdelivr.net/npm/clipboard@2/dist/clipboard.min.js" ></script>
+  
+
+
+
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/typed.js@2/lib/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var title = document.getElementById('subtitle').title;
+      
+        typing(title);
+      
+    })(window, document);
+  </script>
+
+
+
+
+
+  
+
+  
+    <!-- MathJax -->
+    <script>
+      MathJax = {
+        tex: {
+          inlineMath: [['$', '$'], ['\\(', '\\)']]
+        },
+        loader: {
+          load: ['ui/lazy']
+        },
+        options: {
+          renderActions: {
+            findScript: [10, doc => {
+              document.querySelectorAll('script[type^="math/tex"]').forEach(node => {
+                const display = !!node.type.match(/; *mode=display/);
+                const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+                const text = document.createTextNode('');
+                node.parentNode.replaceChild(text, node);
+                math.start = { node: text, delim: '', n: 0 };
+                math.end = { node: text, delim: '', n: 0 };
+                doc.math.push(math);
+              });
+            }, '', false],
+            insertedScript: [200, () => {
+              document.querySelectorAll('mjx-container').forEach(node => {
+                let target = node.parentNode;
+                if (target.nodeName.toLowerCase() === 'li') {
+                  target.parentNode.classList.add('has-jax');
+                }
+              });
+            }, '', false]
+          }
+        }
+      };
+    </script>
+
+    <script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js" ></script>
+
+  
+
+
+
+
+
+
+
+
+
+
+
+<!-- 主题的启动项 保持在最底部 -->
+<script  src="/js/boot.js" ></script>
+
+
+</body>
+</html>

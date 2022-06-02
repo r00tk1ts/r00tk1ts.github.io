@@ -1,0 +1,682 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/favicon.png">
+  <link rel="icon" href="/img/favicon.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="r00tk1t">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="谈到C++模板，多少业界大佬无不讳莫如深，而基于模板的元编程更是历来被业界同仁视为黑魔法。模板从诞生至今已有几十年的历史，实际上在经历了C++11标准的革命性洗礼以及后续的缝缝补补后，模板元编程的门槛和抽象程度已经大大降低。纵观历史长河，优秀的C++书籍鳞次栉比，然而涉及到元编程的书籍却屈指可数，那些传世经典的圣经对于模板皆是浅尝辄止。本系列文章将致力于揭开模板元编程的迷雾，通过牺牲一定程度的表述">
+<meta property="og:type" content="article">
+<meta property="og:title" content="C++模板从入门到劝退(0)——左值与右值">
+<meta property="og:url" content="https://r00tk1ts.github.io/2022/05/27/C++%E6%A8%A1%E6%9D%BF%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%8A%9D%E9%80%80(0)%E2%80%94%E2%80%94%E5%B7%A6%E5%80%BC%E4%B8%8E%E5%8F%B3%E5%80%BC/index.html">
+<meta property="og:site_name" content="r00tk1t&#39;s blog">
+<meta property="og:description" content="谈到C++模板，多少业界大佬无不讳莫如深，而基于模板的元编程更是历来被业界同仁视为黑魔法。模板从诞生至今已有几十年的历史，实际上在经历了C++11标准的革命性洗礼以及后续的缝缝补补后，模板元编程的门槛和抽象程度已经大大降低。纵观历史长河，优秀的C++书籍鳞次栉比，然而涉及到元编程的书籍却屈指可数，那些传世经典的圣经对于模板皆是浅尝辄止。本系列文章将致力于揭开模板元编程的迷雾，通过牺牲一定程度的表述">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://r00tk1ts.github.io/2022/05/27/C++%E6%A8%A1%E6%9D%BF%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%8A%9D%E9%80%80(0)%E2%80%94%E2%80%94%E5%B7%A6%E5%80%BC%E4%B8%8E%E5%8F%B3%E5%80%BC/2022-05-30-14-22-25.png">
+<meta property="article:published_time" content="2022-05-27T09:18:50.000Z">
+<meta property="article:modified_time" content="2022-06-02T04:03:40.269Z">
+<meta property="article:author" content="r00tk1t">
+<meta property="article:tag" content="cpp cpp-templates">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://r00tk1ts.github.io/2022/05/27/C++%E6%A8%A1%E6%9D%BF%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%8A%9D%E9%80%80(0)%E2%80%94%E2%80%94%E5%B7%A6%E5%80%BC%E4%B8%8E%E5%8F%B3%E5%80%BC/2022-05-30-14-22-25.png">
+  
+  
+  <title>C++模板从入门到劝退(0)——左值与右值 - r00tk1t&#39;s blog</title>
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/css/bootstrap.min.css" />
+
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4/github-markdown.min.css" />
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hint.css@2/hint.min.css" />
+
+  
+    
+    
+      
+      <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@10/styles/github-gist.min.css" />
+    
+  
+
+  
+    <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.css" />
+  
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+<!-- 自定义样式保持在最底部 -->
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    var CONFIG = {"hostname":"r00tk1ts.github.io","root":"/","version":"1.8.14","typing":{"enable":true,"typeSpeed":80,"cursorChar":"_","loop":false},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"copy_btn":true,"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml"};
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+<!-- hexo injector head_end start -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hexo-math@4.0.0/dist/style.css">
+<!-- hexo injector head_end end --><meta name="generator" content="Hexo 6.1.0"></head>
+
+
+<body>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>r00tk1t&#39;s blog</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                分类
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              &nbsp;<i class="iconfont icon-search"></i>&nbsp;
+            </a>
+          </li>
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="banner" id="banner" parallax=true
+         style="background: url('/img/default.png') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+          <div class="page-header text-center fade-in-up">
+            <span class="h2" id="subtitle" title="C++模板从入门到劝退(0)——左值与右值">
+              
+            </span>
+
+            
+              <div class="mt-3">
+  
+  
+    <span class="post-meta">
+      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+      <time datetime="2022-05-27 17:18" pubdate>
+        2022年5月27日 下午
+      </time>
+    </span>
+  
+</div>
+
+<div class="mt-1">
+  
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-chart"></i>
+      7.3k 字
+    </span>
+  
+
+  
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-clock-fill"></i>
+      
+      
+      62 分钟
+    </span>
+  
+
+  
+  
+</div>
+
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div class="py-5" id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">C++模板从入门到劝退(0)——左值与右值</h1>
+            
+            <div class="markdown-body">
+              <p>谈到C++模板，多少业界大佬无不讳莫如深，而基于模板的元编程更是历来被业界同仁视为黑魔法。模板从诞生至今已有几十年的历史，实际上在经历了C++11标准的革命性洗礼以及后续的缝缝补补后，模板元编程的门槛和抽象程度已经大大降低。纵观历史长河，优秀的C++书籍鳞次栉比，然而涉及到元编程的书籍却屈指可数，那些传世经典的圣经对于模板皆是浅尝辄止。本系列文章将致力于揭开模板元编程的迷雾，通过牺牲一定程度的表述严谨性，按照笔者的归纳方式穿针引线，为痴迷于黑魔法而又始终不得其解的同学打通任督二脉。</p>
+<span id="more"></span>
+<h1 id="左值与右值">左值与右值</h1>
+<p>随着C++11新标准的制定，C++正式进入现代(modern)时代，相对于传统(traditional/old)C++、新标准的推行可谓是革命性的船新版本。而这一变革带来了两种情况：</p>
+<ol type="1">
+<li>C++神教的新教徒在阅读传统C++代码时会满脸黑人问号：这是个什么方言？</li>
+<li>尚未解锁现代C++的传统C++程序员在接触新标准时会惊呼：还有这种操作？快住手，这根本不是C++！</li>
+</ol>
+<blockquote>
+<p>在《C++ Primer
+5th》问世时，我曾自信满满淘得一本，自诩有着刷了4遍4th的经验，打开了新世界的大门，然后直接自闭。</p>
+</blockquote>
+<p>当大家聊起C++11时，最先想到的可能就是移动语义，没错，这个移动语义可谓是万恶之源，它一方面解决了C++长久以来的顽疾，另一方面也让原本就复杂的语法规则变本加厉。</p>
+<p>传统C++的顽疾在于基于值语义(Value
+Semantics)的冗余拷贝和赋值。所谓值语义，这是很多OO(Object
+Oriented)语言中没有的概念，诸如Java,C#等大多数语言，几乎所有的变量都是引用语义(Reference
+Semantics)（它们天生有着GC(Garbage
+Collector)来管理所有对象的生命周期，开发者无需操心）。而C++并没有做如此现代化的封装，对外呈现的语言生态相当裸露，值语义是指目标对象由源对象拷贝生成，生成的目标对象与源对象毫无关系彼此独立（一些引用语义的编程语言可能只有基础类型是值语义，但同样的它们为了消除违和感对值语义只字不提，而是强调基础类型的特殊性）。对于不了解值语义的C++初学者来说，会想当然的把C++中的引用看成和其他引用语义编程语言中引用的对等概念，这在传统C++中最多是在使用体验上感觉到有些别扭，而到了C++11后，由于对左值引用、右值引用进行了区分，就使得原本理解上的缺失被进一步放大，自然而然得感觉右值引用莫名其妙。</p>
+<blockquote>
+<p>C++对变量生命周期的一种优雅管理方式是RAII，不过不代表RAII能解决所有场景的变量生命期管理需求，更不代表GC没用。</p>
+</blockquote>
+<p>我们以纯OO语言Java为例，如果写这样一段代码：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><div class="code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></div></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">Test</span>&#123;<br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">main</span><span class="hljs-params">(String[] args)</span> &#123;<br>        <span class="hljs-type">String</span> <span class="hljs-variable">s1</span> <span class="hljs-operator">=</span> <span class="hljs-string">&quot;hello&quot;</span>;<br>        <span class="hljs-type">String</span> <span class="hljs-variable">s2</span> <span class="hljs-operator">=</span> s1;<br><br>        System.out.println(System.identityHashCode(s1));<br>        System.out.println(System.identityHashCode(s2));<br>        System.out.println(s1 == s2);<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>运行结果如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs zsh">2060468723<br>2060468723<br>true<br></code></pre></td></tr></table></figure>
+<p>可以看到，Java中<code>s1,s2</code>就是引用语义的典范，它们指向的对象是同一个，而在引用语义的编程语言中，这也被称作浅拷贝(Shallow
+Copy)：在进行赋值、方法传参和返回值时，对于引用类型（非基本类型）一概按引用传递（传址）。</p>
+<blockquote>
+<p>是不是觉着很简单很直观，如果再定义一个<code>String s3 = "hello";</code>，思考下<code>s3</code>和<code>s1</code>是不是同一个对象呢？如果换成<code>String s3 = new String("hello"); String s4 = new String("hello");</code>，<code>s3</code>和<code>s4</code>和<code>s1</code>又是什么关系呢？当然，这是Java体系下的另一个话题了。</p>
+</blockquote>
+<p>再看Python 3:</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs python">s1 = <span class="hljs-string">&quot;hello&quot;</span><br>s2 = s1<br><br><span class="hljs-built_in">print</span>(<span class="hljs-built_in">id</span>(s1))<br><span class="hljs-built_in">print</span>(<span class="hljs-built_in">id</span>(s2))<br></code></pre></td></tr></table></figure>
+<p>运行结果如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs zsh">4341128096<br>4341128096<br></code></pre></td></tr></table></figure>
+<p>显然赋值操作是按引用进行传递，<code>s1,s2</code>所指是同一个对象。</p>
+<blockquote>
+<p>我常说python是一门乱七八糟的语言，所谓“动态类型一时爽，代码重构火葬场”。如果定义<code>s3 = "hello"</code>，<code>s3</code>和<code>s1</code>是什么关系呢？如果把"hello"换成"hello
+world"呢？当然，这也是Python体系下的另一个话题了。</p>
+</blockquote>
+<blockquote>
+<p>对于Java和Python这类工程/工具语言，没必要过于学究，实际上许多经验丰富的Java/Python程序员对这两个问题也是懵逼的，但这丝毫不影响写出健壮可用的代码，这些问题可能也就面试会被问到。。。但是对于C++来说，凡事都得学究一点，哪怕是经验丰富的C++程序员也常常犯语法错误。</p>
+</blockquote>
+<p>那么在C++中，对于标准库的<code>string</code>来说，我们进行类似的赋值是什么结果呢？</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;iostream&gt;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;string&gt;</span></span><br><br><span class="hljs-keyword">using</span> <span class="hljs-keyword">namespace</span> std;<br><br><span class="hljs-function"><span class="hljs-type">int</span> <span class="hljs-title">main</span><span class="hljs-params">(<span class="hljs-type">int</span> argc, <span class="hljs-type">char</span>* argv[])</span></span>&#123;<br>    string s1 = <span class="hljs-string">&quot;hello&quot;</span>;<br>    string s2 = s1;<br><br>    cout &lt;&lt; &amp;s1 &lt;&lt; endl;<br>    cout &lt;&lt; &amp;s2 &lt;&lt; endl;<br>    <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>运行结果：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs zsh">0x16d94f678<br>0x16d94f660<br></code></pre></td></tr></table></figure>
+<p>可以看到<code>s1,s2</code>的地址并不相同，对于非基础类型，C++中使用相同类型的对象做初始化赋值的语义是去调用该类型的拷贝构造器(copy
+ctor)（C++中初始化赋值和普通的赋值语义并不等同，后者在这种情况下调用的是拷贝赋值操作符(copy
+assignment))。此外，对于第一行<code>string s1 = "hello";</code>也并没有表面看上去那样简单，<code>std::string</code>并不是基础类型，赋值初始化在C++的语义是调用相应的拷贝构造器，但是由于<code>"hello"</code>这个字符串字面量的类型是<code>const char[6]</code>（有界常量字符数组，而且标准规定字符串字面量是左值），并不能匹配拷贝构造器的参数，因此按照常理来说编译应该报错才对。但另一方面，C++在某些特定场合支持适宜的隐式(implicit)转换，上述代码会先用<code>"hello"</code>隐式的生成一个临时的string对象（这需要<code>std::string</code>有一个接受<code>const char[6]</code>或其退化(decay)类型的构造器），然后再调用拷贝构造器将临时对象复制给<code>s1</code>。</p>
+<p>我们尝试来探讨一下：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;iostream&gt;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;string&gt;</span></span><br><br><span class="hljs-keyword">using</span> <span class="hljs-keyword">namespace</span> std;<br><br><span class="hljs-keyword">class</span> <span class="hljs-title class_">String</span> &#123;<br>  <span class="hljs-keyword">public</span>:<br>    <span class="hljs-comment">// 如果加explicit关键字，那么String s1 = &quot;hello&quot;;就无法进行隐式转换而报错</span><br>    <span class="hljs-built_in">String</span>(<span class="hljs-type">const</span> <span class="hljs-type">char</span>* pstr) : <span class="hljs-built_in">s_</span>(pstr) &#123; cout &lt;&lt; <span class="hljs-string">&quot;call custom ctor&quot;</span> &lt;&lt; endl; &#125;<br>    <span class="hljs-built_in">String</span>(<span class="hljs-type">const</span> String&amp; rhs) : <span class="hljs-built_in">s_</span>(rhs.s_) &#123; cout &lt;&lt; <span class="hljs-string">&quot;call copy ctor&quot;</span> &lt;&lt; endl; &#125;<br>  <span class="hljs-keyword">private</span>:<br>    string s_;<br>&#125;;<br><br><span class="hljs-function"><span class="hljs-type">int</span> <span class="hljs-title">main</span><span class="hljs-params">(<span class="hljs-type">int</span> argc, <span class="hljs-type">char</span>* argv[])</span></span>&#123;<br>    String s1 = <span class="hljs-string">&quot;hello&quot;</span>;<br>    String s2 = s1;<br><br>    cout &lt;&lt; &amp;s1 &lt;&lt; endl;<br>    cout &lt;&lt; &amp;s2 &lt;&lt; endl;<br>    <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>运行结果：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs zsh">call custom ctor<br>call copy ctor<br>0x7ff7b4ac1658<br>0x7ff7b4ac1640<br></code></pre></td></tr></table></figure>
+<p>显然，运行结果并不符合预期，理论上除了<code>String s2=s1;</code>这一行会调用copy
+ctor以外，<code>String s1 = "hello";</code>也应该调用一次才对，为什么只看到了一次custom
+ctor呢？这是因为C++11标准定义了复制省略(Copy
+Elision)技术（诸如<code>String s1 = "hello";</code>的写法其实非常的符合直觉，但是因为值语义的关系，C++却不得不多做一次值拷贝），要求编译器在实现时对这一情景做一次合理的拷贝消除。实际上，在C++11标准化之前各大厂商的编译器就已经为这事买单了（委员会的“懒汉们”永远是亡羊补牢），传统C++的开发者应该也了解诸如RVO(Return
+Value Optimization), NRVO(Named Return Value
+Optimization)等技术，而这本质上做的就是特定场合的复制省略（未标准化之前，可以视作语言天然缺陷的遮羞布）。</p>
+<p>如果我们通过编译选项关闭复制省略(-fno-elide-constructors)，重新运行：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs zsh">call custom ctor<br>call copy ctor<br>call copy ctor<br>0x7ff7bf7ba658<br>0x7ff7bf7ba618<br></code></pre></td></tr></table></figure>
+<p>C++中基于值语义的拷贝构造和拷贝赋值，可能会导致大对象的冗余拷贝从而引发性能瓶颈。虽然开发者可以通过指针和引用来规避掉部分场景的copy（编译器也十分配合的蒙上遮羞布），但还是有诸多场景无可避免。我曾看过这么一个形象的比喻：要把大象从A冰箱转移到B冰箱需要几步呢？普通青年的做法是3步：打开冰箱A和B的门；把大象从A转移(move)到B；关闭冰箱A和B。2B青年的做法则是：打开冰箱A和B的门；启用量子复制系统在冰箱B克隆出大象；启用射频消融技术将A中大象解体气化。没错，C++曾经就是这个2B青年。</p>
+<p>移动(move)这件事本身很好理解，因为这是一个符合直觉的做法，但是对背着重重历史包袱的C++来说，想要从语言层面理解移动，就需要前置理解这样一个概念：左值(lvalue)和右值(rvalue)。实际上，左值和右值并不是C++11所引入的术语，这两个概念的历史由来可以追溯到编程语言CPL，那么彼时何为左值和右值呢？顾名思义，在赋值操作符('=')左边的就是左值，右边的就是右值，而这也是左值和右值得以命名的历史原因。C语言继承了CPL的分类法，但是弱化了赋值的作用，C语言中左值一开始表示可以被赋值的对象，但由于<code>const</code>的引入，这类对象被修正称作“可更改的左值”，而右值则被视为“值”的同义词，分类上通通都叫作其他(others)（函数和非对象值）。由于const，我们不能再通过表达式值可否修改来判断是否是左值，而是通过是否可寻址（于是坊间流传的一个不严谨的说法就是：左值对应变量的存储位置，右值对应变量的值本身）。</p>
+<blockquote>
+<p>一种说法是ISO C中的lvalue其实是locator
+value的缩写，算是个美丽的巧合。</p>
+</blockquote>
+<p>传统C++(C++98)对表达式的值分类继承了C的做法，但复辟了右值的称呼，此外，C++98规定函数为左值（因为可以被取地址，在后续的标准演进中函数甚至当家做主成了一等公民，实际上除了函数还有一些其他类似情况的表达式也被视为左值），而C++中的引用可以被绑定在左值之上，但不能绑定到右值（只有const引用可以绑定到右值）。截止C++03，我们把具有标识(identity)的表达式视为左值，没有标识的表达式视为右值。因此，名称、指针、引用都是左值，是命名对象，它们有可以寻址的确定内存地址；字面量、临时对象等视为右值，右值仅在创建它的表达式中可以被访问。函数名称是左值，数组名称是常量左值（只不过大多数表达式中函数名和数组名被自动隐式转换成右值）。右值的生命周期短暂，所以需要左值去捕获它，把右值拷贝(copy)给左值是常规操作。</p>
+<p>然而在C++11之后，为了支撑移动语义引入了右值引用，因此左值和右值的定义发生了很大变化。右值引用可以绑定到右值上来给临时对象续命，而移动语义则把临时对象移动(move)而不是拷贝(copy)到左值对象上。对于左值和右值的分类，标准不得不做一些扩充和修正：</p>
+<ul>
+<li>左值(lvalue): 指定一个对象(object)或函数(function)。
+<ul>
+<li>如果<code>E</code>是某种类型的指针类型，那么<code>*E</code>就是一个左值表达式，它引用的是<code>E</code>所指向的对象(object)或函数(function)。</li>
+<li>调用一个返回类型为左值引用的函数，其结果是一个左值。</li>
+</ul></li>
+<li>将亡值(xvalue): expiring
+value的缩写，也指定一个对象，这个对象通常是生命周期即将结束的状态，因此它可以被移动。xvalue是某些涉及右值引用的表达式的结果。
+<ul>
+<li>调用一个返回类型为右值引用的函数，其结果就是一个xvalue。</li>
+</ul></li>
+<li>泛左值(glvalue): lvalue或者是xvalue。</li>
+<li>右值(rvalue):
+xvalue，临时的对象或子对象，或者是与对象无关的值。</li>
+<li>纯右值(prvalue): 非xvalue的rvalue。
+<ul>
+<li>调用一个返回类型为非引用类型的函数，其结果就是一个prvalue。</li>
+</ul></li>
+</ul>
+<p><img src="2022-05-30-14-22-25.png" srcset="/img/loading.gif" lazyload /></p>
+<blockquote>
+<p>大部分初学者都会因为不了解xvalue和prvalue的概念而想当然地把lvalue和rvalue想象成同一层级的概念，而这在学习过程中就会遇到重重困扰，进而对rvalue的概念云里雾里。实际上rvalue是个混合分类。</p>
+</blockquote>
+<p>自此，表达式的值分类不仅考虑了标识(identify)，还考虑了可移动性(movability)。我们按照标准做一下归纳：</p>
+<ul>
+<li>左值(lvalue): 具有标识，不可移动。</li>
+<li>将亡值(xvalue): 具有标识，可以移动。</li>
+<li>纯右值(prvalue): 没有标识，可以移动。</li>
+<li>泛左值(glvalue): 具有标识</li>
+<li>右值(rvalue): 可以移动</li>
+</ul>
+<p>这样一分类，是不是有种恍然大悟的感觉~</p>
+<p>那么再看看三种基本值类型都对应哪些表达式呢？这里参考reference手册并裁剪掉一些corner
+case：</p>
+<ul>
+<li>左值(lvalue):
+<ul>
+<li>变量名、函数名、数据成员
+<ul>
+<li>即使变量类型是右值引用，变量本身依然是左值(这不是特例，是正统的语法规则)</li>
+<li><code>std::getline</code></li>
+<li><code>std::cin</code>, <code>std::endl</code></li>
+</ul></li>
+<li>返回类型为左值引用的函数调用或操作符重载或类型转换
+<ul>
+<li><code>std::getline(std::cin, str)</code></li>
+<li><code>std::cout &lt;&lt; 1</code>, <code>str1 = str2</code>,
+<code>++it</code></li>
+<li><code>static_cast&lt;int&amp;&gt;(val)</code></li>
+</ul></li>
+<li>返回类型为函数右值引用的函数调用或操作符重载或类型转换
+<ul>
+<li><code>static_cast&lt;void (&amp;&amp;)(int)&gt;(x)</code></li>
+</ul></li>
+<li>内建(built-in)的赋值与复合赋值表达式
+<ul>
+<li><code>a=b</code></li>
+<li><code>a+=b</code>,<code>a*=b</code></li>
+</ul></li>
+<li>内建(built-in)的前缀自增、自减
+<ul>
+<li><code>a++</code></li>
+<li><code>a--</code></li>
+</ul></li>
+<li>内建(built-in)的解引用表达式
+<ul>
+<li><code>*p</code></li>
+</ul></li>
+<li>内建(built-in)的下标操作符表达式
+<ul>
+<li><code>a[n]</code>, <code>p[n]</code></li>
+</ul></li>
+<li>对象成员访问，内建(built-int)的指针成员访问
+<ul>
+<li><code>a.m</code>(<code>m</code>不能是枚举成员，也不能是非静态成员函数）</li>
+<li><code>t.m</code>(<code>t</code>为右值且<code>m</code>为非静态数据成员)</li>
+<li><code>p-&gt;m</code>(<code>m</code>不能是成员枚举值，也不能是非静态成员函数)</li>
+</ul></li>
+<li>对象的成员指针访问，内建(built-in)的指针的成员指针访问（成员指针的指针本质上是偏移，和普通的指针不太一样，导致这两个东西非常的拗口和别扭）
+<ul>
+<li><code>a.*mp</code>(<code>a</code>是左值，<code>mp</code>是数据成员指针)</li>
+<li><code>p-&gt;*mp</code>(<code>mp</code>是数据成员指针)</li>
+</ul></li>
+<li>右端为左值的逗号表达式
+<ul>
+<li><code>a, b</code>(<code>b</code>是左值)</li>
+</ul></li>
+<li>二、三操作数为特定值的三元运算符</li>
+<li>字符串字面量(String Literal)
+<ul>
+<li><code>"hello"</code></li>
+</ul></li>
+</ul></li>
+<li>纯右值(prvalue):
+<ul>
+<li>字面量
+<ul>
+<li><code>42</code></li>
+<li><code>'a'</code></li>
+<li><code>true</code></li>
+<li><code>nullptr</code></li>
+</ul></li>
+<li>返回类型为非引用的函数调用或操作符重载或类型转换
+<ul>
+<li><code>str.substr(1, 2)</code></li>
+<li><code>str1 + str2</code></li>
+<li><code>it++</code></li>
+<li><code>static_cast&lt;double&gt;(x)</code>,
+<code>std::string&#123;&#125;</code>, <code>(int)42</code></li>
+</ul></li>
+<li>内建(built-in)的后缀自增、自减表达式
+<ul>
+<li><code>a++</code></li>
+<li><code>b--</code></li>
+</ul></li>
+<li>内建(built-in)的算数、逻辑、比较、取地址表达式
+<ul>
+<li><code>a + b</code>, <code>a % b</code>, <code>a &amp; b</code>,
+<code>a &lt;&lt; b</code></li>
+<li><code>a &amp;&amp; b</code>, <code>a || b</code>,
+<code>!a</code></li>
+<li><code>a &lt; b</code>, <code>a == b</code>,
+<code>a &gt;= b</code></li>
+<li><code>&amp;a</code></li>
+</ul></li>
+<li>对象成员访问，内建(built-in)的指针成员访问
+<ul>
+<li><code>a.m</code>(<code>m</code>是成员枚举值或非静态成员函数)</li>
+<li><code>p-&gt;m</code>(<code>m</code>是成员枚举值或非静态成员函数)</li>
+</ul></li>
+<li>对象的成员指针访问，内建(built-in)的指针的成员指针访问
+<ul>
+<li><code>a.*mp</code>(<code>mp</code>是成员函数指针)</li>
+<li><code>p-&gt;*mp</code>(<code>mp</code>是成员函数指针)</li>
+</ul></li>
+<li>右端为右值的逗号表达式</li>
+<li>二、三操作数为特定值的三元表达式</li>
+<li><code>this</code>指针</li>
+<li>枚举值</li>
+<li>lambda表达式
+<ul>
+<li><code>[](int x)&#123; return x * x; &#125;</code></li>
+</ul></li>
+</ul></li>
+<li>将亡值(xvalue):
+<ul>
+<li>返回类型为右值引用的函数调用或操作符重载或类型转换
+<ul>
+<li><code>std::move(x)</code></li>
+<li><code>static_cast&lt;char&amp;&amp;&gt;(x)</code></li>
+</ul></li>
+<li>对象成员访问
+<ul>
+<li><code>t.m</code>(<code>t</code>是右值且<code>m</code>是非静态非引用数据成员)</li>
+</ul></li>
+<li>对象的成员指针访问
+<ul>
+<li><code>t.*mp</code>(<code>t</code>是右值且<code>mp</code>是数据成员指针)</li>
+</ul></li>
+<li>二、三操作数为特定值的三元表达式</li>
+</ul></li>
+</ul>
+<blockquote>
+<p>三元表达式目前的分类比较复杂，详见https://en.cppreference.com/w/cpp/language/operator_other#Conditional_operator</p>
+</blockquote>
+<p>这里的分类因C++历史的演进而变得非常复杂，初学者没必要全盘记住，实际上日后了解了更多的细节后，会发现这里的分类其实是非常直观的。至此，如果你能看到这里，那么恭喜你，基础的内容你已经掌握了，下一讲，我们谈谈右值引用和移动语义。</p>
+
+            </div>
+            <hr>
+            <div>
+              <div class="post-metas mb-3">
+                
+                  <div class="post-meta mr-3">
+                    <i class="iconfont icon-category"></i>
+                    
+                      <a class="hover-with-bg" href="/categories/program-language/">program-language</a>
+                    
+                  </div>
+                
+                
+                  <div class="post-meta">
+                    <i class="iconfont icon-tags"></i>
+                    
+                      <a class="hover-with-bg" href="/tags/cpp-cpp-templates/">cpp cpp-templates</a>
+                    
+                  </div>
+                
+              </div>
+              
+                <p class="note note-warning">
+                  
+                    本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！
+                  
+                </p>
+              
+              
+                <div class="post-prevnext">
+                  <article class="post-prev col-6">
+                    
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2022/05/14/%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B0%E7%AC%94%E8%AE%B0(%E5%8D%81%E4%BA%8C)%E2%80%94%E2%80%94%E5%9B%BE%E5%92%8C%E7%BD%91%E7%BB%9C/">
+                        <span class="hidden-mobile">线性代数笔记(十二)——图和网络</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+
+    
+  </main>
+
+  <footer class="text-center mt-5 py-3">
+  <div class="footer-content">
+     <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+  </div>
+  
+
+  
+
+  
+</footer>
+
+
+  <!-- SCRIPTS -->
+  
+  <script  src="https://cdn.jsdelivr.net/npm/nprogress@0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js" ></script>
+<script  src="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+<!-- Plugins -->
+
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+  
+
+
+
+  
+    <script  src="https://cdn.jsdelivr.net/npm/tocbot@4/dist/tocbot.min.js" ></script>
+  
+  
+    <script  src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.js" ></script>
+  
+  
+    <script  src="https://cdn.jsdelivr.net/npm/anchor-js@4/anchor.min.js" ></script>
+  
+  
+    <script defer src="https://cdn.jsdelivr.net/npm/clipboard@2/dist/clipboard.min.js" ></script>
+  
+
+
+
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/typed.js@2/lib/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var title = document.getElementById('subtitle').title;
+      
+        typing(title);
+      
+    })(window, document);
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- 主题的启动项 保持在最底部 -->
+<script  src="/js/boot.js" ></script>
+
+
+</body>
+</html>

@@ -1,0 +1,665 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/favicon.png">
+  <link rel="icon" href="/img/favicon.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="r00tk1t">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="这一讲是对矩阵乘法和逆矩阵的深入说明。矩阵乘法主要介绍了按不同视角来理解的多种计算方式。逆矩阵则给出了求解非奇异矩阵的逆矩阵的方法。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="线性代数笔记(三)——乘法和逆矩阵">
+<meta property="og:url" content="https://r00tk1ts.github.io/2022/05/02/%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B0%E7%AC%94%E8%AE%B0(%E4%B8%89)%E2%80%94%E2%80%94%E4%B9%98%E6%B3%95%E5%92%8C%E9%80%86%E7%9F%A9%E9%98%B5/index.html">
+<meta property="og:site_name" content="r00tk1t&#39;s blog">
+<meta property="og:description" content="这一讲是对矩阵乘法和逆矩阵的深入说明。矩阵乘法主要介绍了按不同视角来理解的多种计算方式。逆矩阵则给出了求解非奇异矩阵的逆矩阵的方法。">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2022-05-02T11:15:58.000Z">
+<meta property="article:modified_time" content="2022-05-26T12:06:49.276Z">
+<meta property="article:author" content="r00tk1t">
+<meta property="article:tag" content="MIT-18.06-linear_algebra">
+<meta name="twitter:card" content="summary_large_image">
+  
+  
+  <title>线性代数笔记(三)——乘法和逆矩阵 - r00tk1t&#39;s blog</title>
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/css/bootstrap.min.css" />
+
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4/github-markdown.min.css" />
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hint.css@2/hint.min.css" />
+
+  
+    
+    
+      
+      <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@10/styles/github-gist.min.css" />
+    
+  
+
+  
+    <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.css" />
+  
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+<!-- 自定义样式保持在最底部 -->
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    var CONFIG = {"hostname":"r00tk1ts.github.io","root":"/","version":"1.8.14","typing":{"enable":true,"typeSpeed":80,"cursorChar":"_","loop":false},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"copy_btn":true,"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml"};
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+<!-- hexo injector head_end start -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hexo-math@4.0.0/dist/style.css">
+<!-- hexo injector head_end end --><meta name="generator" content="Hexo 6.1.0"></head>
+
+
+<body>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>r00tk1t&#39;s blog</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                分类
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              &nbsp;<i class="iconfont icon-search"></i>&nbsp;
+            </a>
+          </li>
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="banner" id="banner" parallax=true
+         style="background: url('/img/default.png') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+          <div class="page-header text-center fade-in-up">
+            <span class="h2" id="subtitle" title="线性代数笔记(三)——乘法和逆矩阵">
+              
+            </span>
+
+            
+              <div class="mt-3">
+  
+  
+    <span class="post-meta">
+      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+      <time datetime="2022-05-02 19:15" pubdate>
+        2022年5月2日 晚上
+      </time>
+    </span>
+  
+</div>
+
+<div class="mt-1">
+  
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-chart"></i>
+      3.6k 字
+    </span>
+  
+
+  
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-clock-fill"></i>
+      
+      
+      31 分钟
+    </span>
+  
+
+  
+  
+</div>
+
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div class="py-5" id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">线性代数笔记(三)——乘法和逆矩阵</h1>
+            
+            <div class="markdown-body">
+              <p>这一讲是对矩阵乘法和逆矩阵的深入说明。矩阵乘法主要介绍了按不同视角来理解的多种计算方式。逆矩阵则给出了求解非奇异矩阵的逆矩阵的方法。</p>
+<span id="more"></span>
+<h1 id="乘法和逆矩阵">乘法和逆矩阵</h1>
+<h2 id="矩阵乘法的视觉意义">矩阵乘法的视觉意义</h2>
+<p>矩阵乘法<span class="math inline">\(AB=C\)</span>，其中<span
+class="math inline">\(A\)</span>是<span class="math inline">\(m\times
+n\)</span>阵，<span class="math inline">\(B\)</span>是<span
+class="math inline">\(n\times p\)</span>阵，我们知道得到的<span
+class="math inline">\(C\)</span>是一个<span
+class="math inline">\(m\times p\)</span>阵。对于<span
+class="math inline">\(C\)</span>中第<span
+class="math inline">\(i\)</span>行第<span
+class="math inline">\(j\)</span>列元素<span
+class="math inline">\(C_{ij}\)</span>。</p>
+<p>从不同视角看矩阵乘法，我们可以给出不同的计算式：</p>
+<h3 id="从每个元素的角度">从每个元素的角度</h3>
+<p>有： <span class="math display">\[
+c_{ij}=row_i\cdot column_j = \sum_{k=i}^na_{ik}b_{kj}
+\]</span></p>
+<p>其中<span class="math inline">\(a_{ik}\)</span>是矩阵<span
+class="math inline">\(A\)</span>的第<span
+class="math inline">\(i\)</span>行第<span
+class="math inline">\(k\)</span>列元素，<span
+class="math inline">\(b_{kj}\)</span>是<span
+class="math inline">\(B\)</span>矩阵第<span
+class="math inline">\(k\)</span>行第<span
+class="math inline">\(j\)</span>列元素。 <span
+class="math inline">\(c_{ij}\)</span>可以看成是<span
+class="math inline">\(A\)</span>的第<span
+class="math inline">\(i\)</span>行乘以<span
+class="math inline">\(B\)</span>的第<span
+class="math inline">\(j\)</span>列。</p>
+<h3 id="列的线性组合">列的线性组合</h3>
+<p>从列的角度看，<span class="math inline">\(C\)</span>的各列是<span
+class="math inline">\(A\)</span>中各列的线性组合，组合方式由<span
+class="math inline">\(B\)</span>来确定。比如<span
+class="math inline">\(C\)</span>的第一列是 <span
+class="math inline">\(A\)</span>中各列相对于<span
+class="math inline">\(B\)</span>的第一列的一个线性组合。</p>
+<p><span class="math display">\[
+\begin{bmatrix}
+&amp;&amp;
+\\ A_{col1}&amp;A_{col2}&amp;\cdots&amp;A_{coln}
+\\ &amp;&amp;\end{bmatrix}\begin{bmatrix}
+\cdots&amp;b_{1j}&amp;\cdots
+\\ \cdots&amp;b_{2j}&amp;\cdots
+\\ \cdots&amp;\vdots&amp;\cdots
+\\ \cdots&amp;b_{nj}&amp;\cdots
+\\ \end{bmatrix}=\begin{bmatrix}
+&amp;&amp;
+\\
+\cdots&amp;\left(b_{1j}A_{col1}+b_{2j}A_{col2}+\cdots+b_{nj}A_{coln}\right)&amp;\cdots
+\\ &amp;&amp;\end{bmatrix}
+\]</span></p>
+<p>上面的运算为<span class="math inline">\(B\)</span>的第<span
+class="math inline">\(j\)</span>个列向量右乘矩阵<span
+class="math inline">\(A\)</span>，求得的结果就是<span
+class="math inline">\(C\)</span>矩阵的第<span
+class="math inline">\(j\)</span>列，即<span
+class="math inline">\(C\)</span>的第<span
+class="math inline">\(j\)</span>列是<span
+class="math inline">\(A\)</span>的列向量以<span
+class="math inline">\(B\)</span>的第<span
+class="math inline">\(j\)</span>列作为系数所求得的线性组合，<span
+class="math inline">\(C_j=b_{1j}A_{col1}+b_{2j}A_{col2}+\cdots+b_{nj}A_{coln}\)</span>。</p>
+<h3 id="行的线性组合">行的线性组合</h3>
+<p><span class="math inline">\(C\)</span>的各行是<span
+class="math inline">\(B\)</span>中各行的一个线性组合，组合方式由<span
+class="math inline">\(A\)</span>决定。比如<span
+class="math inline">\(C\)</span>的第一行是<span
+class="math inline">\(B\)</span>中各行相对于<span
+class="math inline">\(A\)</span>的第一行的一个线性组合。</p>
+<p><span class="math display">\[
+\begin{bmatrix}
+\vdots&amp;\vdots&amp;\vdots&amp;\vdots
+\\ a_{i1}&amp;a_{i2}&amp;\cdots&amp;a_{in}
+\\ \vdots&amp;\vdots&amp;\vdots&amp;\vdots
+\end{bmatrix}
+\begin{bmatrix}
+&amp;B_{row1}&amp;
+\\ &amp;B_{row2}&amp;
+\\ &amp;\vdots&amp;
+\\ &amp;B_{rown}&amp;
+\end{bmatrix}=\begin{bmatrix}
+\vdots
+\\ \left(a_{i1}B_{row1}+a_{i2}B_{row2}+\cdots+a_{in}B_{rown}\right)
+\\ \vdots
+\end{bmatrix}
+\]</span></p>
+<p>上面的运算为<span class="math inline">\(A\)</span>的第<span
+class="math inline">\(i\)</span>个行向量左乘矩阵<span
+class="math inline">\(B\)</span>，求得的结果就是<span
+class="math inline">\(C\)</span>矩阵的第<span
+class="math inline">\(i\)</span>行，即<span
+class="math inline">\(C\)</span>的第<span
+class="math inline">\(i\)</span>行是<span
+class="math inline">\(B\)</span>的行向量以<span
+class="math inline">\(A\)</span>的第<span
+class="math inline">\(i\)</span>行作为系数所求的的线性组合，<span
+class="math inline">\(C_i=a_{i1}B_{row1}+a_{i2}B_{row2}+\cdots+a_{in}B_{rown}\)</span>。</p>
+<h3 id="从矩阵的角度看">从矩阵的角度看</h3>
+<p><span class="math inline">\(A\)</span>的列乘以<span
+class="math inline">\(B\)</span>的行： <span class="math display">\[
+\begin{bmatrix}
+&amp;&amp;
+\\ A_{col1}&amp;A_{col2}&amp;\cdots&amp;A_{coln}
+\\ &amp;&amp;
+\end{bmatrix}
+\begin{bmatrix}
+&amp;B_{row1}&amp;
+\\ &amp;B_{row2}&amp;
+\\ &amp;\vdots&amp;
+\\ &amp;B_{rown}&amp;
+\end{bmatrix}=A_{col1}B_{row1}+A_{col2}B_{row2}+\cdots+A_{coln}B_{rown}
+\]</span></p>
+<p><span class="math inline">\(A_{coli}B_{rowi}\)</span>是一个<span
+class="math inline">\(m\times 1\)</span>向量乘以一个<span
+class="math inline">\(1\times p\)</span>向量，其结果是一个<span
+class="math inline">\(m\times p\)</span>矩阵，而所有的<span
+class="math inline">\(m\times p\)</span>矩阵之和就是计算结果。</p>
+<h3 id="分块来看">分块来看</h3>
+<p><span class="math display">\[
+\left[\begin{array}{c|c}A_1&amp;A_2\\ \hline
+A_3&amp;A_4\end{array}\right]\left[\begin{array}{c|c}B_1&amp;B_2\\
+\hline
+B_3&amp;B_4\end{array}\right]=\left[\begin{array}{c|c}A_1B_1+A_2B_3&amp;A_1B_2+A_2B_4\\
+\hline A_3B_1+A_4B_3&amp;A_3B_2+A_4B_4\end{array}\right]
+\]</span></p>
+<p>简写成： <span class="math display">\[
+\left[\begin{array}{c|c}A_1&amp;A_2\\ \hline
+A_3&amp;A_4\end{array}\right]\left[\begin{array}{c|c}B_1&amp;B_2\\
+\hline
+B_3&amp;B_4\end{array}\right]=\left[\begin{array}{c|c}C_1&amp;C_2\\
+\hline C_3&amp;C_4\end{array}\right]
+\]</span></p>
+<p>可以看到 矩阵完全可以拆成多个块，各块的关联关系也一目了然。</p>
+<h2 id="逆矩阵">逆矩阵</h2>
+<p>逆矩阵分为左逆和右逆，不是所有方阵都可逆，对于方阵来说，左逆和右逆是相等的。</p>
+<p>对这些有逆的矩阵，我们称其为可逆的或非奇异的。</p>
+<p>如何判断一个矩阵是可逆的？从列图像来看，如果<span
+class="math inline">\(A^{-1}\)</span>存在，那么有<span
+class="math inline">\(AA^{-1}=I\)</span>，如果<span
+class="math inline">\(A\)</span>中各列无法线性组合成单位阵，则矩阵不可逆。相反，如果可以找到非零向量<span
+class="math inline">\(x\)</span>使得<span
+class="math inline">\(Ax=0\)</span>有解，那么<span
+class="math inline">\(A\)</span>也是不可逆的（某些列是相关的，反证法非常容易求证）。</p>
+<p>那么如何求解一个逆矩阵呢？可以采用高斯-若尔当思想：
+构造这样一个增广矩阵： <span
+class="math inline">\(\left[\begin{array}{cc|cc}1&amp;3&amp;1&amp;0\\
+2&amp;7&amp;0&amp;1\end{array}\right]\)</span>，</p>
+<p>右侧补充一个单位阵<span
+class="math inline">\(I\)</span>，接下来用消元法将左侧变为单位矩阵：</p>
+<p><span class="math display">\[
+\left[\begin{array}{cc|cc}1&amp;3&amp;1&amp;0\\
+2&amp;7&amp;0&amp;1\end{array}\right]\xrightarrow{row_2-2row_1}\left[\begin{array}{cc|cc}1&amp;3&amp;1&amp;0\\
+0&amp;1&amp;-2&amp;1\end{array}\right]\xrightarrow{row_1-3row_2}\left[\begin{array}{cc|cc}1&amp;0&amp;7&amp;-3\\
+0&amp;1&amp;-2&amp;1\end{array}\right]
+\]</span></p>
+<p>于是，我们就将矩阵从<span
+class="math inline">\(\left[\begin{array}{c|c}A&amp;I\end{array}\right]\)</span>变为<span
+class="math inline">\(\left[\begin{array}{c|c}I&amp;A^{-1}\end{array}\right]\)</span></p>
+<p>而高斯-若尔当思想的本质是使用消元矩阵<span
+class="math inline">\(E\)</span>，对<span
+class="math inline">\(A\)</span>进行操作，<span
+class="math inline">\(E\left[\begin{array}{c|c}A&amp;I\end{array}\right]\)</span>，利用一步步消元有<span
+class="math inline">\(EA=I\)</span>，进而得到<span
+class="math inline">\(\left[\begin{array}{c|c}I&amp;E\end{array}\right]\)</span>，其实这个消元矩阵<span
+class="math inline">\(E\)</span>就是<span
+class="math inline">\(A^{-1}\)</span>，而高斯-若尔当法中的<span
+class="math inline">\(I\)</span>只是负责记录消元的每一步操作，待消元完成，逆矩阵就自然出现了。</p>
+<p><strong>结论：如果矩阵可以通过行变换变成<span
+class="math inline">\(I\)</span>，那么矩阵就是可逆的。</strong></p>
+
+            </div>
+            <hr>
+            <div>
+              <div class="post-metas mb-3">
+                
+                  <div class="post-meta mr-3">
+                    <i class="iconfont icon-category"></i>
+                    
+                      <a class="hover-with-bg" href="/categories/%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B0/">线性代数</a>
+                    
+                  </div>
+                
+                
+                  <div class="post-meta">
+                    <i class="iconfont icon-tags"></i>
+                    
+                      <a class="hover-with-bg" href="/tags/MIT-18-06-linear-algebra/">MIT-18.06-linear_algebra</a>
+                    
+                  </div>
+                
+              </div>
+              
+                <p class="note note-warning">
+                  
+                    本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！
+                  
+                </p>
+              
+              
+                <div class="post-prevnext">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2022/05/02/%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B0%E7%AC%94%E8%AE%B0(%E5%9B%9B)%E2%80%94%E2%80%94A%E7%9A%84LU%E5%88%86%E8%A7%A3/">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">线性代数笔记(四)——A的LU分解</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2022/05/02/%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B0%E7%AC%94%E8%AE%B0(%E4%BA%8C)%E2%80%94%E2%80%94%E7%9F%A9%E9%98%B5%E6%B6%88%E5%85%83/">
+                        <span class="hidden-mobile">线性代数笔记(二)——矩阵消元</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+
+    
+  </main>
+
+  <footer class="text-center mt-5 py-3">
+  <div class="footer-content">
+     <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+  </div>
+  
+
+  
+
+  
+</footer>
+
+
+  <!-- SCRIPTS -->
+  
+  <script  src="https://cdn.jsdelivr.net/npm/nprogress@0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js" ></script>
+<script  src="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+<!-- Plugins -->
+
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+  
+
+
+
+  
+    <script  src="https://cdn.jsdelivr.net/npm/tocbot@4/dist/tocbot.min.js" ></script>
+  
+  
+    <script  src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.js" ></script>
+  
+  
+    <script  src="https://cdn.jsdelivr.net/npm/anchor-js@4/anchor.min.js" ></script>
+  
+  
+    <script defer src="https://cdn.jsdelivr.net/npm/clipboard@2/dist/clipboard.min.js" ></script>
+  
+
+
+
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/typed.js@2/lib/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var title = document.getElementById('subtitle').title;
+      
+        typing(title);
+      
+    })(window, document);
+  </script>
+
+
+
+
+
+  
+
+  
+    <!-- MathJax -->
+    <script>
+      MathJax = {
+        tex: {
+          inlineMath: [['$', '$'], ['\\(', '\\)']]
+        },
+        loader: {
+          load: ['ui/lazy']
+        },
+        options: {
+          renderActions: {
+            findScript: [10, doc => {
+              document.querySelectorAll('script[type^="math/tex"]').forEach(node => {
+                const display = !!node.type.match(/; *mode=display/);
+                const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+                const text = document.createTextNode('');
+                node.parentNode.replaceChild(text, node);
+                math.start = { node: text, delim: '', n: 0 };
+                math.end = { node: text, delim: '', n: 0 };
+                doc.math.push(math);
+              });
+            }, '', false],
+            insertedScript: [200, () => {
+              document.querySelectorAll('mjx-container').forEach(node => {
+                let target = node.parentNode;
+                if (target.nodeName.toLowerCase() === 'li') {
+                  target.parentNode.classList.add('has-jax');
+                }
+              });
+            }, '', false]
+          }
+        }
+      };
+    </script>
+
+    <script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js" ></script>
+
+  
+
+
+
+
+
+
+
+
+
+
+
+<!-- 主题的启动项 保持在最底部 -->
+<script  src="/js/boot.js" ></script>
+
+
+</body>
+</html>
