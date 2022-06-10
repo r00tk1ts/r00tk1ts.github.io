@@ -24,7 +24,7 @@
 <meta property="og:description" content="谈到C++模板，多少业界大佬无不讳莫如深，而基于模板的元编程更是历来被业界同仁视为黑魔法。模板从诞生至今已有几十年的历史，实际上在经历了C++11标准的革命性洗礼以及后续的缝缝补补后，模板元编程的门槛和抽象程度已经大大降低。纵观历史长河，优秀的C++书籍鳞次栉比，然而涉及到元编程的书籍却屈指可数，那些传世经典的圣经对于模板皆是浅尝辄止。本系列文章将致力于揭开模板元编程的迷雾，通过牺牲一定程度的表述">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2022-06-04T00:00:20.000Z">
-<meta property="article:modified_time" content="2022-06-09T07:49:02.726Z">
+<meta property="article:modified_time" content="2022-06-10T02:01:02.652Z">
 <meta property="article:author" content="r00tk1t">
 <meta property="article:tag" content="cpp">
 <meta property="article:tag" content="cpp-templates">
@@ -211,7 +211,7 @@
       <i class="iconfont icon-clock-fill"></i>
       
       
-      102 分钟
+      103 分钟
     </span>
   
 
@@ -400,7 +400,8 @@ leak。</p>
 <ol type="1">
 <li><code>std::remove_reference_t&lt;T&gt;</code>是个type
 trait，它会cut掉类型<code>T</code>的引用修饰符，返回裁剪后的类型，实际上是<code>typename std::remove_reference&lt;T&gt;::type</code>的别名模板，由C++14标准引入。</li>
-<li>函数参数类型<code>T&amp;&amp;</code>在此并非右值引用，这里它搭配模板参数一起出现（本质上是<code>T</code>需要被推导时），是一个universal引用，它的真实类型遵循引用折叠规则。
+<li>函数参数类型<code>T&amp;&amp;</code>在此并非右值引用，这里它搭配模板参数一起出现（本质上是<code>T</code>需要被推导时），是一个万能引用(Universal
+Reference)，它的真实类型遵循引用折叠规则。
 <ol type="1">
 <li>左值引用-左值引用<code>T&amp; &amp;</code>：左值引用<code>T&amp;</code></li>
 <li>左值引用-右值引用<code>T&amp; &amp;&amp;</code>：左值引用<code>T&amp;</code></li>
@@ -409,9 +410,9 @@ trait，它会cut掉类型<code>T</code>的引用修饰符，返回裁剪后的�
 </ol></li>
 </ol>
 <blockquote>
-<p>Scott的《Effective Modern
-C++》的中译本称其为万能引用，也有译成通用引用等其他，我们姑且统一口径，就叫万能引用吧。早期委员会对此还有另一个称呼叫forwarding
-reference(转发引用)，我们弃用这个复古的说法但不要对此感到陌生。</p>
+<p>Scott的《Effective Modern C++》的称其为万能引用（Universal
+Reference），这并不是标准的称呼，C++标准称其为转发引用(Forwarding
+Reference)，这个名称历来被诟病见名不知义，远不如Scott给出的称呼，故坊间皆以“万能引用”的说法传世，我们也弃用这个标准的说法，使用“万能引用”。</p>
 </blockquote>
 <blockquote>
 <p>所有的引用折叠最终都代表一个引用，要么是左值引用，要么是右值引用。如果任一引用为左值引用，则结果为左值引用。否则（即两个都是右值引用），结果为右值引用。</p>
