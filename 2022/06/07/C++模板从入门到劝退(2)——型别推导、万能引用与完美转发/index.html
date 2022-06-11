@@ -24,7 +24,7 @@
 <meta property="og:description" content="谈到C++模板，多少业界大佬无不讳莫如深，而基于模板的元编程更是历来被业界同仁视为黑魔法。模板从诞生至今已有几十年的历史，实际上在经历了C++11标准的革命性洗礼以及后续的缝缝补补后，模板元编程的门槛和抽象程度已经大大降低。纵观历史长河，优秀的C++书籍鳞次栉比，然而涉及到元编程的书籍却屈指可数，那些传世经典的圣经对于模板皆是浅尝辄止。本系列文章将致力于揭开模板元编程的迷雾，通过牺牲一定程度的表述">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2022-06-07T03:59:10.000Z">
-<meta property="article:modified_time" content="2022-06-11T03:51:08.464Z">
+<meta property="article:modified_time" content="2022-06-11T09:08:32.613Z">
 <meta property="article:author" content="r00tk1t">
 <meta property="article:tag" content="cpp">
 <meta property="article:tag" content="cpp-templates">
@@ -211,7 +211,7 @@
       <i class="iconfont icon-clock-fill"></i>
       
       
-      126 分钟
+      125 分钟
     </span>
   
 
@@ -340,7 +340,7 @@ id="paramtype既非指针也非引用"><code>ParamType</code>既非指针也非�
 <blockquote>
 <p>思考一下：如果<code>auto* pcx2 = &amp;cx;</code>，<code>pcx2</code>是什么类型？<code>auto* const &amp; pcx3 = &amp;cx;</code>呢？如果你可以轻松地推导出来，那么恭喜你，你已经领悟了型别推导的奥义。</p>
 </blockquote>
-<p><code>decltype</code>也有两个与<code>auto</code>类似的使用场景，一种就是像上例那样使用的对变量做'='右边表达式的型别推导，另一种也是用在函数返回值推导中，写作<code>decltype(auto)</code>，实际上这是C++14对C++11中尾部类型推导的简写（C++11的写法太臃肿了）。</p>
+<p><code>decltype</code>也有两个与<code>auto</code>类似的使用场景，一种就是像上例那样使用的对变量做'='右边表达式的型别推导，另一种也是用在函数返回值推导中，写作<code>decltype(auto)</code>。</p>
 <p><code>decltype</code>相比<code>auto</code>则没有那么麻烦的推导规则，它只是简单粗暴的告诉我们给定实参(<code>argument</code>)的真实类型（意味着不会忽略CV限定、引用修饰）。<code>argument</code>是一个表达式（也包括实体(entity)的情况），但通过前两节的学习，我们知道表达式的值类型有多种情况，所以还是要分情况讨论下：</p>
 <ul>
 <li>如果<code>argument</code>是没有套上小括号的变量(严格的说法是id-expression，不过为了便于理解我们忽略官方的黑话)或是类成员访问表达式(通俗的理解这也是个变量)，decltype给出其本身的类型。</li>
