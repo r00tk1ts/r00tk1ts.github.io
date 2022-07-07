@@ -24,7 +24,7 @@
 <meta property="og:description" content="谈到C++模板，多少业界大佬无不讳莫如深，而基于模板的元编程更是历来被业界同仁视为黑魔法。模板从诞生至今已有几十年的历史，实际上在经历了C++11标准的革命性洗礼以及后续的缝缝补补后，模板元编程的门槛和抽象程度已经大大降低。纵观历史长河，优秀的C++书籍鳞次栉比，然而涉及到元编程的书籍却屈指可数，那些传世经典的圣经对于模板皆是浅尝辄止。本系列文章将致力于揭开模板元编程的迷雾，通过牺牲一定程度的表述">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2022-06-07T03:59:10.000Z">
-<meta property="article:modified_time" content="2022-07-07T11:45:27.182Z">
+<meta property="article:modified_time" content="2022-07-07T11:48:51.814Z">
 <meta property="article:author" content="r00tk1t">
 <meta property="article:tag" content="cpp">
 <meta property="article:tag" content="cpp-templates">
@@ -202,7 +202,7 @@
   
     <span class="post-meta mr-2">
       <i class="iconfont icon-chart"></i>
-      25k 字
+      26k 字
     </span>
   
 
@@ -426,7 +426,7 @@ Forwarding)。那么问题来了，<code>std::forward</code>只不过是标准�
 <p>另一方面，<code>std::forward</code>是一个函数模板，我们传入了<code>param</code>作为参数，而<code>param</code>携带了引用类型的信息，所以只需要编写重载函数，分别处理左值引用和右值引用的不同<code>param</code>即可：</p>
 <figure class="highlight cpp"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs cpp"><span class="hljs-function"><span class="hljs-keyword">template</span>&lt;<span class="hljs-keyword">typename</span> T&gt;</span><br><span class="hljs-function">T&amp;&amp; <span class="hljs-title">forward</span><span class="hljs-params">(<span class="hljs-type">remove_reference_t</span>&lt;T&gt;&amp; param)</span> </span>&#123;<br>  <span class="hljs-keyword">return</span> <span class="hljs-built_in">static_cast</span>&lt;T&amp;&amp;&gt;(param);<br>&#125;<br><br><span class="hljs-function"><span class="hljs-keyword">template</span>&lt;<span class="hljs-keyword">typename</span> T&gt;</span><br><span class="hljs-function">T&amp;&amp; <span class="hljs-title">forward</span><span class="hljs-params">(<span class="hljs-type">remove_reference_t</span>&lt;T&gt;&amp;&amp; param)</span> </span>&#123;<br>  <span class="hljs-keyword">return</span> <span class="hljs-built_in">static_cast</span>&lt;T&amp;&amp;&gt;(param);<br>&#125;<br></code></pre></div></td></tr></table></figure>
 <p><code>remove_reference_t</code>是标准库中的一种type
-trait，可以洗掉类型<code>T</code>的引用修饰，这里是为了先确保拿到一个纯净类型，然后再分别施加左值引用或者是右值引用的修饰，注意，对于后者而言<code>remove_reference_t&lt;T&gt;&amp;&amp;</code>不是万能引用，而是一个彻彻底底的右值引用。于是，当我们向<code>std::forward</code>传递一个左值时，会匹配到第一个函数模板，而当传递右值时，则会匹配到第二个函数模板。</p>
+trait，可以洗掉类型<code>T</code>的引用修饰，这里是为了先确保拿到一个纯净类型，然后再分别施加左值引用或者是右值引用的修饰，注意，对于后者而言<code>remove_reference_t&lt;T&gt;&amp;&amp;</code>不是万能引用，而是一个彻彻底底的右值引用。于是，当我们向<code>std::forward</code>传递一个左值时，会匹配到第一个函数模板，此时<code>T</code>是左值引用，因此返回的类型根据引用折叠规则已然是一个左值引用；而当传递右值时，则会匹配到第二个函数模板，此时<code>T</code>不是引用类型，但返回的类型由于<code>static_cast&lt;T&amp;&amp;&gt;</code>将<code>T</code>强制转成了其右值引用类型。</p>
 <p>实际上上面的代码与各大编译器厂商实现的标准库<code>std::forward</code>如出一辙，只是标准库中的代码有更多的诸如constexpr、noexcept等杂七杂八的修饰。</p>
 <h2 id="参考文献">参考文献</h2>
 <ul>
