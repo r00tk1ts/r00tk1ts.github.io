@@ -24,7 +24,7 @@
 <meta property="og:description" content="这一讲系统的讲解了线性方程组\(Ax&#x3D;b\)的求解，对可解性和解的结构进行了展开说明，得到了具体的通用解法：\(X_p+X_n\)，并按照秩与\(m,n\)的关系对解做了归类。 求解\(Ax&#x3D;b\)：可解性和解的结构 我们知道\(Ax&#x3D;b\)未必有解，当\(A\)的列空间无法线性组合出\(b\)时，方程组是无解的。而在有解时可能存在唯一解，也可能存在无穷多个解，那么这其中又有什么规律呢？我们尝试按">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2022-05-04T11:10:12.000Z">
-<meta property="article:modified_time" content="2023-01-16T06:37:35.992Z">
+<meta property="article:modified_time" content="2023-01-17T03:23:33.284Z">
 <meta property="article:author" content="r00tk1t">
 <meta property="article:tag" content="MIT-18.06-linear_algebra">
 <meta name="twitter:card" content="summary_large_image">
@@ -253,13 +253,10 @@ class="math inline">\(A\)</span>的列空间无法线性组合出<span
 class="math inline">\(b\)</span>时，方程组是无解的。而在有解时可能存在唯一解，也可能存在无穷多个解，那么这其中又有什么规律呢？我们尝试按照上一讲对<span
 class="math inline">\(Ax=0\)</span>的研究方法来进行消元操作。</p>
 <h2 id="可解性">可解性</h2>
-依然采用上一讲的矩阵：$A=
-<span class="math display">\[\begin{bmatrix}
-1 &amp; 2 &amp; 2 &amp; 2
-\\ 2 &amp; 4 &amp; 6 &amp; 8
-\\ 3 &amp; 6 &amp; 8 &amp; 10
-\end{bmatrix}\]</span>
-<p><span class="math inline">\(，求\)</span>Ax=b$的特解。</p>
+<p>依然采用上一讲的矩阵：<span class="math inline">\(A=\begin{bmatrix} 1
+&amp; 2 &amp; 2 &amp; 2 \\ 2 &amp; 4 &amp; 6 &amp; 8 \\ 3 &amp; 6 &amp;
+8 &amp; 10 \end{bmatrix}\)</span>，求<span
+class="math inline">\(Ax=b\)</span>的特解。</p>
 <p>这一次<span class="math inline">\(b\)</span>不再是<span
 class="math inline">\(0\)</span>向量，我们消元时写出增广矩阵： <span
 class="math display">\[
@@ -288,9 +285,9 @@ class="math inline">\(b\)</span>必须要属于<span
 class="math inline">\(A\)</span>的列空间才有解，也就是<span
 class="math inline">\(A\)</span>中各列的线性组合。而这里我们换个角度来理解可解性。</p>
 </blockquote>
-<p>我们尝试归纳一下可解性：如果<span
+<p><strong>我们尝试归纳一下可解性：如果<span
 class="math inline">\(A\)</span>中各行线性组合产生了零行，那么向量<span
-class="math inline">\(b\)</span>的分量在同样的线性组合后也必须为零。</p>
+class="math inline">\(b\)</span>的分量在同样的线性组合后也必须为零。</strong></p>
 <h2 id="解的结构">解的结构</h2>
 <p>我们假设<span class="math inline">\(b=\begin{bmatrix} 1\\ 5\\ 6
 \end{bmatrix}\)</span>满足可解性，那么<span
@@ -314,8 +311,8 @@ class="math inline">\(x_p\)</span>加上上一讲所学的零空间中的任意�
 class="math inline">\(x_n\)</span>)即可得到通解：<span
 class="math inline">\(x=x_p+x_n\)</span>。</p>
 <blockquote>
-<p>显然A(x_p+x_n)=<span
-class="math inline">\(Ax_p+Ax_n=b+0=b\)</span></p>
+<p>显然<span
+class="math inline">\(A(x_p+x_n)=Ax_p+Ax_n=b+0=b\)</span></p>
 </blockquote>
 <p>而上一讲中我们得到了<span
 class="math inline">\(x_n=x_4\begin{bmatrix} 2\\ 0\\ -2\\ 1

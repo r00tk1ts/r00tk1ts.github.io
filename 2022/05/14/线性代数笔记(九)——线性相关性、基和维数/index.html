@@ -24,7 +24,7 @@
 <meta property="og:description" content="这一讲对向量组的线性相关性、线性无关性做了进一步的阐释，之后引出向量空间中基和维数的概念。">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2022-05-14T06:41:24.000Z">
-<meta property="article:modified_time" content="2023-01-16T06:37:35.991Z">
+<meta property="article:modified_time" content="2023-01-17T03:17:10.214Z">
 <meta property="article:author" content="r00tk1t">
 <meta property="article:tag" content="MIT-18.06-linear_algebra">
 <meta name="twitter:card" content="summary_large_image">
@@ -274,13 +274,9 @@ class="math inline">\(A\)</span>必然是可逆的。</p>
 <p>显然向量空间<span
 class="math inline">\(\mathbb{R}^n\)</span>的基有无穷多个，而我们平常在选取的时候，则一般会选择标准基，所谓的<strong>标准基</strong>，就是向量空间中最明显的基，把每个基向量以一定顺序作为列向量，可以组成一个单位矩阵。另一方面，这无穷多个基有着一个共同点：基所包含的向量（基向量）的个数是一定的。而这个确定的基向量的个数实际上就表示了向量空间的大小，我们一般称其为向量空间的“<strong>维数</strong>”。</p>
 <h2 id="示例">示例</h2>
-$ A=
-<span class="math display">\[\begin{bmatrix}
-1 &amp; 2 &amp; 3 &amp; 1
-\\ 1 &amp; 1 &amp; 2 &amp; 1
-\\ 1 &amp; 2 &amp; 3 &amp; 1
-\end{bmatrix}\]</span>
-<p>$</p>
+<p><span class="math inline">\(A=\begin{bmatrix} 1 &amp; 2 &amp; 3 &amp;
+1 \\ 1 &amp; 1 &amp; 2 &amp; 1 \\ 1 &amp; 2 &amp; 3 &amp; 1
+\end{bmatrix}\)</span></p>
 <p>A的列向量线性相关，其零空间中有非零向量，所以<span
 class="math inline">\(rank(A)=2\)</span>，即主元存在的列数，亦是列空间的维数。</p>
 可以很容易的求得<span class="math inline">\(Ax=0\)</span>的两个解，如$
