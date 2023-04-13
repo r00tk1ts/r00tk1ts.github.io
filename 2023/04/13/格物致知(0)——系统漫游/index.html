@@ -1,0 +1,492 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/favicon.png">
+  <link rel="icon" href="/img/favicon.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="r00tk1t">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="对于想要学习编程的新人来说，当下无疑是最好的时节，编程语言发展至今，新生代的语言在诞生之初往往伴随着强大的生态附属以及亲人的语法特性，这大大降低了上手门槛，使得新手也可以轻松地完成任务而不必陷于囹圄。当下也是最坏的时节，现代编程语言高高在上，屏蔽了太多细节与原理，这鸿沟天堑阻绝了新人知其所以然的机会，却又如何技进于道？本系列将以CSAPP为蓝本，接轨当下，让我们格物致知，打通认知体系的奇经八脉。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="格物致知(0)——系统漫游">
+<meta property="og:url" content="https://r00tk1ts.github.io/2023/04/13/%E6%A0%BC%E7%89%A9%E8%87%B4%E7%9F%A5(0)%E2%80%94%E2%80%94%E7%B3%BB%E7%BB%9F%E6%BC%AB%E6%B8%B8/index.html">
+<meta property="og:site_name" content="r00tk1t&#39;s blog">
+<meta property="og:description" content="对于想要学习编程的新人来说，当下无疑是最好的时节，编程语言发展至今，新生代的语言在诞生之初往往伴随着强大的生态附属以及亲人的语法特性，这大大降低了上手门槛，使得新手也可以轻松地完成任务而不必陷于囹圄。当下也是最坏的时节，现代编程语言高高在上，屏蔽了太多细节与原理，这鸿沟天堑阻绝了新人知其所以然的机会，却又如何技进于道？本系列将以CSAPP为蓝本，接轨当下，让我们格物致知，打通认知体系的奇经八脉。">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2023-04-13T02:42:50.000Z">
+<meta property="article:modified_time" content="2023-04-13T08:12:34.447Z">
+<meta property="article:author" content="r00tk1t">
+<meta property="article:tag" content="格物致知">
+<meta name="twitter:card" content="summary_large_image">
+  
+  
+  <title>格物致知(0)——系统漫游 - r00tk1t&#39;s blog</title>
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/css/bootstrap.min.css" />
+
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4/github-markdown.min.css" />
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hint.css@2/hint.min.css" />
+
+  
+    
+    
+      
+      <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@10/styles/atom-one-dark.min.css" />
+    
+  
+
+  
+    <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.css" />
+  
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+<!-- 自定义样式保持在最底部 -->
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    var CONFIG = {"hostname":"r00tk1ts.github.io","root":"/","version":"1.8.14","typing":{"enable":true,"typeSpeed":80,"cursorChar":"_","loop":false},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"copy_btn":true,"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml"};
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+<!-- hexo injector head_end start -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hexo-math@4.0.0/dist/style.css">
+<!-- hexo injector head_end end --><meta name="generator" content="Hexo 6.1.0"></head>
+
+
+<body>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>r00tk1t&#39;s blog</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                分类
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              &nbsp;<i class="iconfont icon-search"></i>&nbsp;
+            </a>
+          </li>
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="banner" id="banner" parallax=true
+         style="background: url('/img/default.png') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+          <div class="page-header text-center fade-in-up">
+            <span class="h2" id="subtitle" title="格物致知(0)——系统漫游">
+              
+            </span>
+
+            
+              <div class="mt-3">
+  
+  
+    <span class="post-meta">
+      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+      <time datetime="2023-04-13 10:42" pubdate>
+        2023年4月13日 上午
+      </time>
+    </span>
+  
+</div>
+
+<div class="mt-1">
+  
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-chart"></i>
+      2.5k 字
+    </span>
+  
+
+  
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-clock-fill"></i>
+      
+      
+      22 分钟
+    </span>
+  
+
+  
+  
+</div>
+
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div class="py-5" id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">格物致知(0)——系统漫游</h1>
+            
+            <div class="markdown-body">
+              <p>对于想要学习编程的新人来说，当下无疑是最好的时节，编程语言发展至今，新生代的语言在诞生之初往往伴随着强大的生态附属以及亲人的语法特性，这大大降低了上手门槛，使得新手也可以轻松地完成任务而不必陷于囹圄。当下也是最坏的时节，现代编程语言高高在上，屏蔽了太多细节与原理，这鸿沟天堑阻绝了新人知其所以然的机会，却又如何技进于道？本系列将以CSAPP为蓝本，接轨当下，让我们格物致知，打通认知体系的奇经八脉。</p>
+<span id="more"></span>
+<h1 id="系统漫游">系统漫游</h1>
+<p>众所周知，计算机系统是由硬件和软件组成的，不论是超级计算机、集群服务器，还是家用电脑、移动端设备(平板、手机)、IoT设备（如路由器、摄像头）应皆如是。硬件五花八门、各司其职，对于非特定领域开发者来说，我们只需要了解两个核心硬件：中央处理器(CPU)和内存(RAM)即可。</p>
+<blockquote>
+<p>除了CPU以外，还有一种叫图形显示器(GPU)的东西，这东西在当下可是大展身手，无出其右（同学，便宜的矿卡来一块不？都是锻炼过的，GPT用了都说好）。
+机械硬盘(SATA)、固态硬盘(SSD)对于一台主机来说很重要，但站在程序开发者视角来说则没那么重要。
+至于显示器、鼠标、键盘等等都属于外设，如果不是为了打游戏，那么研究它们毫无意义(doge)</p>
+</blockquote>
+<p>硬件虽然服务于软件，但硬件才是大爹。事实上，互联网的崛起、从单点到分布式，以及历年的技术革命：诸如大数据、云计算、区块链再到当前潜在商业价值巨大的GPT，之所以能够surfing在浪潮之巅，根本上都是因为硬件的迭代升级。硬件的能力突破了某个瓶颈以后（算力、造价、效率等等...），业界大能才能把此前仅限于理论可行的方案落地，开辟出当前欣欣向荣的生态大环境。</p>
+<p>那么硬件和软件是怎么沟通的呢？不同硬件厂商繁多，标准规格大相径庭，如果将这些都暴露给软件开发者，那简直是一场噩梦。事实上在上古时代，编程就是这样一件不可思议的狠活，程序开发者需要去理解使用的硬件，对着它的规格书使用原生接口来完成自己的工作。随着软件的发展，先驱者抽象出中间层（在软件开发领域，没有什么事是一个中间层搞不定的，如果有，就再加一个中间层），让它负责对接所有硬件，开发者只需要和这个中间层打交道即可。那么这个中间层是什么呢？它的真身就是我们常常说的操作系统(OS,
+Operating
+System)，操作系统实际上也经历了漫长的发展历史长河，一直到现在我们耳熟能详的Windows,
+Linux, Mac OS, Android,
+IOS等。时至今日，我们更愿意称它们为“现代操作系统”，“现代”这一限定词可谓意义非凡，它浓缩了这一路上面对重重困境披荆斩棘的解决之道，并最终沉淀成标准，任岁月打磨。</p>
+<blockquote>
+<p>即使是家喻户晓的Windows，实际上也有着漫长的历史，严格来说，Windows不是具体的某个系统，而是一种徽章，从最古老的DOS到Windows
+9x再到Windows NT，底层的变化翻天覆地，而Win
+7（前身是赫赫有名的失败品Vista）之后历经Win 8、Win 10再到“内测”的Win
+11，安全加固、系统生态等方方面面都愈发成熟。</p>
+</blockquote>
+<p>操作系统实际上也是软件，事实上，它就是我们开机以后第一个运行的体量最大的软件，OS提供了其他软件运行的土壤。现代操作系统整体分为两大部分：内核(kernel)和外壳(shell)，内核负责决策、调度和资源管理，里面住着的都是一等公民，外壳则面向开发者与用户进行交互：你只能通过使用我开放的接口、组合成你想实现的功能。通过这些接口（即系统API）我们可以编写各种程序，进而完成各种各样的软件，只不过受制于人（你得看具体OS厂商的脸色），能做的事儿有限。</p>
+<blockquote>
+<p>你可能会问：为啥现代操作系统要分层呢？大家写的程序都和OS内核平起平坐，功能岂不是更丰富？嗯，上古时期DOS就是这么干的，所以那个年代病毒满天飞，挡都挡不住。</p>
+</blockquote>
+<p>因此，在现代操作系统中，生态环境被分成了两部分：内核态与用户态。</p>
+<ul>
+<li>与硬件打交道的代码通通运行在内核层，各类硬件设备分门别类一般有着业界统一标准或是自定义标准，OS通过设备驱动来与它们交互，它们以插件的形式，或先天集成在OS内核里，或后天装载插入；</li>
+<li>我们日常所用的大部分软件，诸如chrome浏览器、QQ音乐、Steam等它们之中的大部分工作在用户态；</li>
+<li>像是一些防护软件比如火绒、360、QQ电脑管家等则兼具用户与内核态，为什么说是兼具呢？因为用户态有功能局限性，防护软件要和那些无孔不入的恶意程序对抗，那势必要下沉到内核去获取更高的权限与更强大的power。实际上，操作系统并不仅仅提供用户态的接口，内核层往往也会提供，而除了少量做设备驱动和二进制安全研究的人士，大部分开发者是用不到它们的。</li>
+</ul>
+<blockquote>
+<p>内核态与用户态是现代操作系统的概念，在很多上下文中会等价于Ring
+0/3态，后者是站在CPU的视角来看的，虽然二者有一定区别，但基本绑定。</p>
+</blockquote>
+<blockquote>
+<p>在我尚未学习内核/驱动编程的时候，总觉着写内核态程序的高人一等，直到上下求索、建立一定的知识体系后才明白：写程序就是写程序，本没有什么优劣，不过是所在的层与生态环境不同罢了。</p>
+</blockquote>
+<h2 id="hello-world">Hello, world</h2>
+<p>“Hello,
+world”之于编程，就好比“衬衫的价格是”之于英语听力。不管你是何门何派、哪个语种，入门的第一站都是"Hello,
+world"，经久不衰。这一切，都要从此说起：我们意兴盎然的选择了某门语言，开始修炼本门功法，不同门派的功法各有千秋：有些功法小巧精妙(C)，有些功法直捣黄龙(go)，有些功法艰深晦涩(C++)，有些功法必先自宫(Rust)，有些功法大开大阖(Java)，有些功法乱七八糟(你猜我说的是谁？)。</p>
+<p>然而不管我们选择了哪一派，从它变成母语的那一天开始，我们就被深深地打上了相应的烙印。尽管在修炼过程中我们能够解决越来越多的问题，但与此同时它所植入的灵魂烙印也把我们的解体思维牢牢限制在本家系统之内。直到功夫不负有心人，本家功夫大成，我们得以窥探别门别派的心法口诀，坐而悟道。而本门功夫，修炼周期各有长短，这期间一旦受其他门派影响，轻则自我怀疑，重则道心破碎。</p>
+<blockquote>
+<p>有些选择了C语言的小伙伴，学了一年也不会做任何酷炫的app，只会在黑框框里跑四则运算，看到邻家8岁的小男孩都用python写AI画图了，顿时道心破碎，弃C如敝履。</p>
+</blockquote>
+<p>待续。。。</p>
+
+            </div>
+            <hr>
+            <div>
+              <div class="post-metas mb-3">
+                
+                  <div class="post-meta mr-3">
+                    <i class="iconfont icon-category"></i>
+                    
+                      <a class="hover-with-bg" href="/categories/%E7%BC%96%E7%A8%8B%E5%AF%BC%E8%AE%BA/">编程导论</a>
+                    
+                  </div>
+                
+                
+                  <div class="post-meta">
+                    <i class="iconfont icon-tags"></i>
+                    
+                      <a class="hover-with-bg" href="/tags/%E6%A0%BC%E7%89%A9%E8%87%B4%E7%9F%A5/">格物致知</a>
+                    
+                  </div>
+                
+              </div>
+              
+                <p class="note note-warning">
+                  
+                    本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！
+                  
+                </p>
+              
+              
+                <div class="post-prevnext">
+                  <article class="post-prev col-6">
+                    
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2022/06/07/C++%E6%A8%A1%E6%9D%BF%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%8A%9D%E9%80%80(2)%E2%80%94%E2%80%94%E5%9E%8B%E5%88%AB%E6%8E%A8%E5%AF%BC%E3%80%81%E4%B8%87%E8%83%BD%E5%BC%95%E7%94%A8%E4%B8%8E%E5%AE%8C%E7%BE%8E%E8%BD%AC%E5%8F%91/">
+                        <span class="hidden-mobile">C++模板从入门到劝退(2)——型别推导、万能引用与完美转发</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+
+    
+  </main>
+
+  <footer class="text-center mt-5 py-3">
+  <div class="footer-content">
+     <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+  </div>
+  
+
+  
+
+  
+</footer>
+
+
+  <!-- SCRIPTS -->
+  
+  <script  src="https://cdn.jsdelivr.net/npm/nprogress@0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js" ></script>
+<script  src="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+<!-- Plugins -->
+
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+  
+
+
+
+  
+    <script  src="https://cdn.jsdelivr.net/npm/tocbot@4/dist/tocbot.min.js" ></script>
+  
+  
+    <script  src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.js" ></script>
+  
+  
+    <script  src="https://cdn.jsdelivr.net/npm/anchor-js@4/anchor.min.js" ></script>
+  
+  
+    <script defer src="https://cdn.jsdelivr.net/npm/clipboard@2/dist/clipboard.min.js" ></script>
+  
+
+
+
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/typed.js@2/lib/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var title = document.getElementById('subtitle').title;
+      
+        typing(title);
+      
+    })(window, document);
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- 主题的启动项 保持在最底部 -->
+<script  src="/js/boot.js" ></script>
+
+
+</body>
+</html>
