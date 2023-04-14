@@ -24,8 +24,9 @@
 <meta property="og:description" content="对于想要学习编程的新人来说，当下无疑是最好的时节，编程语言发展至今，新生代的语言在诞生之初往往伴随着强大的生态附属以及友好的语法特性，这大大降低了上手门槛，使得新手也可以轻松地完成任务而不必陷于囹圄。当下也是最坏的时节，现代编程语言高高在上，屏蔽了太多细节与原理，这鸿沟天堑阻绝了新人知其所以然的机会，却又如何技进于道？本系列将以CSAPP(Computer Systems: A Programme">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://r00tk1ts.github.io/2023/04/13/%E6%A0%BC%E7%89%A9%E8%87%B4%E7%9F%A5(0)%E2%80%94%E2%80%94%E7%B3%BB%E7%BB%9F%E6%BC%AB%E6%B8%B8/2023-04-13-19-19-46.png">
+<meta property="og:image" content="https://r00tk1ts.github.io/2023/04/13/%E6%A0%BC%E7%89%A9%E8%87%B4%E7%9F%A5(0)%E2%80%94%E2%80%94%E7%B3%BB%E7%BB%9F%E6%BC%AB%E6%B8%B8/2023-04-14-17-16-42.png">
 <meta property="article:published_time" content="2023-04-13T02:42:50.000Z">
-<meta property="article:modified_time" content="2023-04-13T12:02:46.558Z">
+<meta property="article:modified_time" content="2023-04-14T09:50:49.188Z">
 <meta property="article:author" content="r00tk1t">
 <meta property="article:tag" content="格物致知">
 <meta name="twitter:card" content="summary_large_image">
@@ -203,7 +204,7 @@
   
     <span class="post-meta mr-2">
       <i class="iconfont icon-chart"></i>
-      3.3k 字
+      4.1k 字
     </span>
   
 
@@ -212,7 +213,7 @@
       <i class="iconfont icon-clock-fill"></i>
       
       
-      28 分钟
+      34 分钟
     </span>
   
 
@@ -289,6 +290,8 @@ Solaris都算作类Unix系统，它们遵守POSIX标准，集成了GNU套件。<
 <blockquote>
 <p>在我尚未学习内核/驱动编程的时候，总觉着写内核态程序的高人一等，直到上下求索、建立一定的知识体系后才明白：写程序就是写程序，本没有什么优劣，不过是所在的层与生态环境不同罢了。</p>
 </blockquote>
+<h2 id="编程语言简史">编程语言简史</h2>
+<p>// TODO: 待补充。。。</p>
 <h2 id="缘起hello-world">缘起"Hello, world"</h2>
 <p>“Hello,
 world”之于编程，就好比“衬衫的价格是”之于英语听力。不管你是何门何派、哪个语种，入门的第一站都是"Hello,
@@ -303,12 +306,26 @@ world"，经久不衰。这一切，都要从此说起：我们意兴盎然的�
 <figure class="highlight python"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs python"><span class="hljs-built_in">print</span>(<span class="hljs-string">&quot;Hello, world&quot;</span>)<br></code></pre></div></td></tr></table></figure>
 <p>嗯，按照各家功法所述，我们应该分别保存成hello.c, hello.java,
 hello.py。还记得功法让我们怎么称呼它们吗？对，源文件！这些文件里的内容就是源代码（可能pythoner更习惯称它为脚本、脚本代码），那么源文件怎么执行起来输出“Hello,
-world”呢？这个时候，各家功法就有所分歧了：</p>
-<ul>
-<li>C：源文件需要经过预处理器、编译器、汇编器、链接器来一步一步处理，最终生成二进制可执行文件（在Windows里叫PE(Portable
-Executable)，Linux/Mac OS里叫ELF）</li>
-</ul>
-<p>待续。。。</p>
+world”呢？这个时候，各家功法就有所分歧了.</p>
+<h3 id="c">C</h3>
+<p>使用C语言编写的hello.c需要经过预处理器、编译器、汇编器、链接器来一步一步处理，最终生成二进制可执行文件，不同平台都制定了可执行文件组织结构的标准，比如在Windows里叫PE(Portable
+Executable)，像是我们平时双击的xxx.exe就是典型的PE可执行文件（实际上.sys,
+.dll也都是PE，前者是内核态所运行的驱动程序、后者是用于共享的动态链接库），而在大部分类Unix系统里用ELF(Executable
+and Linking
+Format)），它们往往没有后缀名。实际上后缀名只是一种浮于表面的印记，通过盖戳的方式让人类更容易分辨它是一个什么文件，真正决定文件制式的是它的内容信息，图片、视频、文本、可执行文件，他们各有各的标准结构。</p>
+<blockquote>
+<p>既然后缀名只是印记，那岂不是可以用来诱骗？早年的恶意软件、病毒可不就是充分利用了此种手段，整个Windows乌烟瘴气。用户也可以利用这一小手段：比如我上小学的时候，隐藏文件早就不用系统提供的方法了，我会把他的后缀改成其他资源的类型，诶嘿，你打不开了吧！后来到了中学，懂得套路又多了一些，这次就直接打开二进制编辑器，偷偷改掉某某视频的文件头~</p>
+</blockquote>
+<blockquote>
+<p>Mac OS逼格比较高，它的可执行文件格式叫Mach-O（Mach Object File
+Format），是一种类似ELF的制式，iOS也是这套。</p>
+</blockquote>
+<p>也就是说，我们的源代码经过了重重流水线关卡，最终变成可执行文件。现在我来问你，这每道关卡都在折腾啥？
+相信这个问题应该难不倒有一年以上C编程经验的同学，毕竟C派重视基础，门徒大都喜欢刨根问底。</p>
+<p><img src="2023-04-14-17-16-42.png" srcset="/img/loading.gif" lazyload /></p>
+<p>简单来说，预处理器负责展开头文件、处理宏；编译器负责将加工后的源文件翻译成低级语言：汇编语言源代码；汇编器再将汇编语言转化成机器码、生成可重定向的目标程序；最终由链接器整合所有目标程序，按照可执行文件的制式整合成可执行文件。</p>
+<p>整个过程说起来简单，但其实每一步展开都是宏篇巨幅。作为编程导论，我们暂不去深入了解每一步都是怎么做的，我们的疑问是：为什么需要这几步？</p>
+<p>// TODO: 待续。。。</p>
 
             </div>
             <hr>
