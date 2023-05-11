@@ -1,0 +1,462 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/favicon.png">
+  <link rel="icon" href="/img/favicon.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="r00tk1t">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="在我入坑之前就时长听大佬说：计算机的世界是二进制的，所有的信息都用0和1来表达。这对习惯于使用十进制的人脑来说显得捉摸不透：为什么要用二进制，十进制不香吗？另外啥叫信息？计算机为啥要表达？它要表达啥？不知道年轻的你有没有此等困惑，今天就让我们来揭开遮掩的幕布，看破这背后的戏法与魔术。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="格物致知(1)——你什么进制？我什么进制？">
+<meta property="og:url" content="https://r00tk1ts.github.io/2023/05/06/%E6%A0%BC%E7%89%A9%E8%87%B4%E7%9F%A5(1)%E2%80%94%E2%80%94%E4%BD%A0%E4%BB%80%E4%B9%88%E8%BF%9B%E5%88%B6%EF%BC%9F%E6%88%91%E4%BB%80%E4%B9%88%E8%BF%9B%E5%88%B6%EF%BC%9F/index.html">
+<meta property="og:site_name" content="玉涵的技能书">
+<meta property="og:description" content="在我入坑之前就时长听大佬说：计算机的世界是二进制的，所有的信息都用0和1来表达。这对习惯于使用十进制的人脑来说显得捉摸不透：为什么要用二进制，十进制不香吗？另外啥叫信息？计算机为啥要表达？它要表达啥？不知道年轻的你有没有此等困惑，今天就让我们来揭开遮掩的幕布，看破这背后的戏法与魔术。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://r00tk1ts.github.io/2023/05/06/%E6%A0%BC%E7%89%A9%E8%87%B4%E7%9F%A5(1)%E2%80%94%E2%80%94%E4%BD%A0%E4%BB%80%E4%B9%88%E8%BF%9B%E5%88%B6%EF%BC%9F%E6%88%91%E4%BB%80%E4%B9%88%E8%BF%9B%E5%88%B6%EF%BC%9F/2023-05-11-19-53-30.png">
+<meta property="article:published_time" content="2023-05-06T03:36:57.000Z">
+<meta property="article:modified_time" content="2023-05-11T12:02:09.017Z">
+<meta property="article:author" content="r00tk1t">
+<meta property="article:tag" content="格物致知">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://r00tk1ts.github.io/2023/05/06/%E6%A0%BC%E7%89%A9%E8%87%B4%E7%9F%A5(1)%E2%80%94%E2%80%94%E4%BD%A0%E4%BB%80%E4%B9%88%E8%BF%9B%E5%88%B6%EF%BC%9F%E6%88%91%E4%BB%80%E4%B9%88%E8%BF%9B%E5%88%B6%EF%BC%9F/2023-05-11-19-53-30.png">
+  
+  
+  <title>格物致知(1)——你什么进制？我什么进制？ - 玉涵的技能书</title>
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/css/bootstrap.min.css" />
+
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4/github-markdown.min.css" />
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hint.css@2/hint.min.css" />
+
+  
+    
+    
+      
+      <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@10/styles/atom-one-dark.min.css" />
+    
+  
+
+  
+    <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.css" />
+  
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+<!-- 自定义样式保持在最底部 -->
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    var CONFIG = {"hostname":"r00tk1ts.github.io","root":"/","version":"1.8.14","typing":{"enable":true,"typeSpeed":80,"cursorChar":"_","loop":false},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"copy_btn":true,"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml"};
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+<!-- hexo injector head_end start -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hexo-math@4.0.0/dist/style.css">
+<!-- hexo injector head_end end --><meta name="generator" content="Hexo 6.1.0"></head>
+
+
+<body>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>玉涵的技能书</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                分类
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              &nbsp;<i class="iconfont icon-search"></i>&nbsp;
+            </a>
+          </li>
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="banner" id="banner" parallax=true
+         style="background: url('/img/default.png') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+          <div class="page-header text-center fade-in-up">
+            <span class="h2" id="subtitle" title="格物致知(1)——你什么进制？我什么进制？">
+              
+            </span>
+
+            
+              <div class="mt-3">
+  
+  
+    <span class="post-meta">
+      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+      <time datetime="2023-05-06 11:36" pubdate>
+        2023年5月6日 中午
+      </time>
+    </span>
+  
+</div>
+
+<div class="mt-1">
+  
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-chart"></i>
+      1.4k 字
+    </span>
+  
+
+  
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-clock-fill"></i>
+      
+      
+      12 分钟
+    </span>
+  
+
+  
+  
+</div>
+
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div class="py-5" id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">格物致知(1)——你什么进制？我什么进制？</h1>
+            
+            <div class="markdown-body">
+              <p>在我入坑之前就时长听大佬说：计算机的世界是二进制的，所有的信息都用0和1来表达。这对习惯于使用十进制的人脑来说显得捉摸不透：为什么要用二进制，十进制不香吗？另外啥叫信息？计算机为啥要表达？它要表达啥？不知道年轻的你有没有此等困惑，今天就让我们来揭开遮掩的幕布，看破这背后的戏法与魔术。</p>
+<span id="more"></span>
+<h1 id="你什么进制我什么进制">你什么进制？我什么进制？</h1>
+<p>在研究计算机为什么是二进制之前，我们先抛开先入为主的偏见，思考一下：为什么人脑习惯用十进制，阿拉布数字为啥用10当做基数来设计？这个问题很简单，掰掰我们的手指，数一数一共有几根，答案也就呼之欲出了。得益于我们有10根手指，最早的计数方式便选择10作为基数，而随着智慧的启蒙与时代的发展，阿拉伯人设计出以10作为基数的阿拉伯数字，推动了数字革命。最终，阿拉伯数字家喻户晓、流传沿用至今，乃至在中国、3岁小儿都能做10以内加减法运算。幼儿园老师教我们加减法运算时，其核心就在于凑10，当我们掌握了凑10技巧以后（也就是明白了进制的意义），就可以口算相当大规模的数字加减运算了。</p>
+<p>而在计算机的世界则流行的是一种二进制运算，为什么是2而不是10呢，这是因为二值信号更容易被表示、传输和存储，2这个数字很有power，他可以表示两种极端对立的特性，比如：有和无、阳和阴、高和低、顺时针和逆时针等等。对二值信号进行存储和计算的电子电路简单可靠、易于设计，制造商可以在一个单独的硅片上集成数百万乃至数十亿个这样的电路。</p>
+<p>正所谓太极生两仪、两仪生四象、四象生八卦，单个二值信息本身作用有限，但是当把多个二值信息排成队、通过排列组合就可以生万物，正如我们在第零讲中反复提到的核心思想：对抽象的事物赋予特定的语义。对连续二值信息的排列组合可以让我们对任何有限集合赋予语义，比如字符编码、CPU指令，再比如今天要讲的主角：数值信息的表达与存储。</p>
+<h2 id="初识二进制">初识二进制</h2>
+<p>二进制运算法则和十进制没什么区别，不过是缝2进位罢了，这里介绍一个简单的口算进制转换技巧：我们按照从低到高，记住一连串的二进制位为1的实际值，比如B11111111从低位到高位分别是1、2、4、8、16、32、64、128，比如此时我们有一个十进制数为69，那么用这些二进制位去凑的话，就是64+4+1，亦即第0、2、6位为1，其余位为0，最终写成B01000101。这里的前缀B表示二进制，是英文binary首字母的缩写。</p>
+<p>好，看到这里相信你已经学会怎么口算了，那么留一个问题给读者：250用二进制表示要怎么写呢？</p>
+<h2 id="超量召唤十六进制">超量召唤：十六进制</h2>
+<p>有的同学可能注意到，为啥69的二进制最高位在第六位，我却在最高位前面补了个0呢？这是因为大多数计算机存储的最小单元是字节(Byte)，一个字节=8个位(bit)，常常写作1B(yte)
+=
+8b(its)。一个字节有8个位，表达的范围就是B00000000<sub>B11111111，十进制就是从0</sub>255，由于使用二进制书写显得各位不方便，大家就对2进行了”折叠“，选择2^4=16来作为基数，用十六进制来表示（使用数字0<sub>9+A</sub>F来表示每个位值，从0到15），如此，一个字节就只需要两个16进制数字来表示，大大缩减了书写长度，此时值区间域为0x00~0xFF（这里的0x是用户表示十六进制的前缀，可能还有0xFFH、FFH的写法，H是十六进制——Hex的缩写）。</p>
+<p><img src="2023-05-11-19-53-30.png" srcset="/img/loading.gif" lazyload /></p>
+<p>施工中。。。</p>
+
+            </div>
+            <hr>
+            <div>
+              <div class="post-metas mb-3">
+                
+                  <div class="post-meta mr-3">
+                    <i class="iconfont icon-category"></i>
+                    
+                      <a class="hover-with-bg" href="/categories/%E7%BC%96%E7%A8%8B%E5%AF%BC%E8%AE%BA/">编程导论</a>
+                    
+                  </div>
+                
+                
+                  <div class="post-meta">
+                    <i class="iconfont icon-tags"></i>
+                    
+                      <a class="hover-with-bg" href="/tags/%E6%A0%BC%E7%89%A9%E8%87%B4%E7%9F%A5/">格物致知</a>
+                    
+                  </div>
+                
+              </div>
+              
+                <p class="note note-warning">
+                  
+                    本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！
+                  
+                </p>
+              
+              
+                <div class="post-prevnext">
+                  <article class="post-prev col-6">
+                    
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2023/04/13/%E6%A0%BC%E7%89%A9%E8%87%B4%E7%9F%A5(0)%E2%80%94%E2%80%94%E7%B3%BB%E7%BB%9F%E6%BC%AB%E6%B8%B8/">
+                        <span class="hidden-mobile">格物致知(0)——系统漫游</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+
+    
+  </main>
+
+  <footer class="text-center mt-5 py-3">
+  <div class="footer-content">
+     <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+  </div>
+  
+
+  
+
+  
+</footer>
+
+
+  <!-- SCRIPTS -->
+  
+  <script  src="https://cdn.jsdelivr.net/npm/nprogress@0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js" ></script>
+<script  src="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+<!-- Plugins -->
+
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+  
+
+
+
+  
+    <script  src="https://cdn.jsdelivr.net/npm/tocbot@4/dist/tocbot.min.js" ></script>
+  
+  
+    <script  src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.js" ></script>
+  
+  
+    <script  src="https://cdn.jsdelivr.net/npm/anchor-js@4/anchor.min.js" ></script>
+  
+  
+    <script defer src="https://cdn.jsdelivr.net/npm/clipboard@2/dist/clipboard.min.js" ></script>
+  
+
+
+
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/typed.js@2/lib/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var title = document.getElementById('subtitle').title;
+      
+        typing(title);
+      
+    })(window, document);
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- 主题的启动项 保持在最底部 -->
+<script  src="/js/boot.js" ></script>
+
+
+</body>
+</html>
