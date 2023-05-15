@@ -34,7 +34,7 @@
 <meta property="og:image" content="https://r00tk1ts.github.io/2023/05/06/%E6%A0%BC%E7%89%A9%E8%87%B4%E7%9F%A5(1)%E2%80%94%E2%80%94%E4%BD%A0%E4%BB%80%E4%B9%88%E8%BF%9B%E5%88%B6%EF%BC%9F%E6%88%91%E4%BB%80%E4%B9%88%E8%BF%9B%E5%88%B6%EF%BC%9F/2023-05-15-11-27-27.png">
 <meta property="og:image" content="https://r00tk1ts.github.io/2023/05/06/%E6%A0%BC%E7%89%A9%E8%87%B4%E7%9F%A5(1)%E2%80%94%E2%80%94%E4%BD%A0%E4%BB%80%E4%B9%88%E8%BF%9B%E5%88%B6%EF%BC%9F%E6%88%91%E4%BB%80%E4%B9%88%E8%BF%9B%E5%88%B6%EF%BC%9F/2023-05-12-17-47-18.png">
 <meta property="article:published_time" content="2023-05-06T03:36:57.000Z">
-<meta property="article:modified_time" content="2023-05-15T03:57:11.190Z">
+<meta property="article:modified_time" content="2023-05-15T09:22:53.897Z">
 <meta property="article:author" content="r00tk1t">
 <meta property="article:tag" content="格物致知">
 <meta name="twitter:card" content="summary_large_image">
@@ -212,7 +212,7 @@
   
     <span class="post-meta mr-2">
       <i class="iconfont icon-chart"></i>
-      5k 字
+      7.3k 字
     </span>
   
 
@@ -221,7 +221,7 @@
       <i class="iconfont icon-clock-fill"></i>
       
       
-      42 分钟
+      62 分钟
     </span>
   
 
@@ -278,7 +278,7 @@
 <p>实际上我们只需要掌握十六进制数的阅读方法即可，如果口算不是为了装B，那就毫无意义(doge）。</p>
 </blockquote>
 <h2 id="数值类型与尺寸">数值类型与尺寸</h2>
-<p>我们上中学的时候，对数字的划分一般都是采用自然数、实数、复数等概念来进行划分，但在计算机的世界，划分规则却迥然不同。各大编程语言往往都会定义各种各样的数据类型，它们作用不同、长短不一，但总体而言，数值在大分类上可以被归类成这两种：整型数和浮点型数。在这两大类的基础上，编程语言一般会在设计上根据尺寸长短（也就是确定数值范围、即多少个字节），将整型和浮点型细分成多种类型。另一方面，由于数值有正负之分，为了便于日常开发者的使用，在大部分编程语言里还对每一种类型再进一步拆分成有符号和无符号型。</p>
+<p>我们上中学的时候，对数字的划分一般都是采用自然数、实数、复数等概念来进行划分，但在计算机的世界，划分规则却迥然不同。各大编程语言往往都会定义各种各样的数据类型，它们作用不同、长短不一，但总体而言，数值在大分类上可以被归类成这两种：整型数和浮点型数。在这两大类的基础上，编程语言一般会在设计上根据尺寸长短（也就是确定数值范围、即多少个字节），将整型和浮点型细分成多种类型。另一方面，由于数值有正负之分，为了便于日常开发者的使用，在一些编程语言里还对每一种类型再进一步拆分成有符号和无符号型（比如C、C++）。</p>
 <p>整型数就是整数，不管他的尺寸有多大，哪怕你定义成64个字节的超大范围，它能表示的数值也仅限于整数。比如我们定义一个<code>uint8_t</code>的类型，长度为1个字节，那么它所能表示的数值范围就是<code>0~255</code>，假如我们想让这个范围能表示负数，那么不妨再设计一个<code>sint8_t</code>型，长度依然是1个字节，此时数值范围就是<code>-128~127</code>。对于无符号数来说，如何使用单字节来存储<code>0~255</code>显得非常直接，0就存储为<code>0x00</code>、1就存储为<code>0x01</code>、240就存储为<code>0xF0</code>、255就存储为<code>0xFF</code>，这和十六进制表示数值的设计是完全统一的，我们姑且也把这叫做一种编码（尽管这层转换什么都没做）。但是负数要怎么存储呢？目前并没有一个单独的信息位来告诉我们这个数是positive还是negative呀。</p>
 <h3 id="麻烦的符号">麻烦的符号</h3>
 <p>看来简单的一比一编码行不通，一旦涉及了正负的概念，还是得考虑编码规则。考虑到正负本身无非也是一种信息，且恰好就是个二值信息，所以如果我们在原有尺寸的基础上，让出最高位、作为正负符号的表示，其余位仍然代表数值，看起来就可以解决这个case。比如对于此前我们设计的<code>sint8_t</code>，它一共有8个bits，我们让最高位（第7位）为0时代表正、为1时代表负，那么它所能表示的范围就变成了<code>-127~127</code>。此时B11111111在作为<code>sint8_t</code>的时候，它的值就是-127，而作为<code>uint8_t</code>时，它的值是255。</p>
@@ -332,10 +332,39 @@ class="math inline">\(-2^{w-1}\)</span>，它和补码完全一样：</p>
 <p>实际上x64（64位）机器也可以编译x86(32位)的C程序，此时类型尺寸按32位的标准生效。</p>
 </blockquote>
 <h4 id="有符号数和无符号数的转换">有符号数和无符号数的转换</h4>
-<p>截止到目前，我们对有符号数和无符号数可以说是区别对待，可是在实际生产环境中，我们很可能会遇到两种类型数混用甚至需要进行计算的场合，那怎么办呢？不同语言都提供了它们之间的转换方法，比如在C语言中就有显式强制类型转换和隐式类型转换这两种。然而语言层面往往只是提供能力，二者进行计算最终得到的值，归根结底取决于你对它的解读方式。</p>
-<p>举个例子，比如下面的代码：</p>
-<figure class="highlight c"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs c"><span class="hljs-type">short</span> <span class="hljs-type">int</span> v = <span class="hljs-number">-12345</span>;<br><span class="hljs-type">unsigned</span> <span class="hljs-type">short</span> uv = (<span class="hljs-type">unsigned</span> <span class="hljs-type">short</span>)v;<br><span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;v=%d, uv=%u\n&quot;</span>, v, uv);<br></code></pre></div></td></tr></table></figure>
-<p>前方施工中。。。</p>
+<p>截止到目前，我们对有符号数和无符号数可以说是区别对待，可是在实际生产环境中，我们很可能会遇到两种类型数混用甚至需要进行计算的场合，那怎么办呢？大部分区分了符号数的语言往往都提供了它们之间的转换方法，比如在C语言中就有显式强制类型转换和隐式类型转换这两种。然而语言层面往往只是提供能力，二者进行计算最终得到的值，归根结底取决于你对它的解读方式。</p>
+<p>举个例子，比如下面的C代码：</p>
+<figure class="highlight c"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs c"><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;stdio.h&gt;</span></span><br><br><span class="hljs-type">int</span> <span class="hljs-title function_">main</span><span class="hljs-params">()</span> &#123;<br>    <span class="hljs-type">short</span> <span class="hljs-type">int</span> v = <span class="hljs-number">-12345</span>;   <span class="hljs-comment">// 16位大小有符号数，表达范围是 -32768 ~ 32767</span><br>    <span class="hljs-type">unsigned</span> <span class="hljs-type">short</span> uv = (<span class="hljs-type">unsigned</span> <span class="hljs-type">short</span>)v;  <span class="hljs-comment">// 这里进行了强制类型转换</span><br>    <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;v=%hd, uv=%hu\n&quot;</span>, v, uv); <span class="hljs-comment">// %hd是按有符号数打印unsigned short，%hu是按无符号数打印short</span><br>    <br>    <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>&#125;<br></code></pre></div></td></tr></table></figure>
+<p>使用x86-64 gcc
+13.1编译，最终输出的结果是：<code>v=-12345, uv=53191</code>。为什么<code>uv</code>的值是53191而不是直觉上的12345呢？这就是因为<code>-12345</code>底层存储的值是<code>B1100111111000111</code>，采用的是补码存储，而当我们把他看做是一个无符号数时，它的编码解读方式就发生了变化，最高位的符号位不再代表符号位，而是代表了<span
+class="math inline">\(2^15\)</span>这个值，不妨按照无符号数的编码方式计算一下，就会发现<code>B1100111111000111</code>对应的值正是<span
+class="math inline">\(2^{15}+2^{14}+2^{11}+2^{10}+2^9+2^8+2^7+2^6+2^2+2^1+2^0=53191\)</span>。</p>
+<p>因此，对于上一段C代码来说，<code>unsigned short uv = (unsigned short)v</code>只不过是使用强制类型转换将<code>v</code>底层存储的编码值赋值给了<code>uv</code>，仅此而已。实际上，我们将上面的代码改写一下，完全不需要copy一份<code>v</code>，只需要对<code>v</code>使用不同的format来打印，亦会得到相同的结果：</p>
+<figure class="highlight c"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs c"><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;stdio.h&gt;</span></span><br><br><span class="hljs-type">int</span> <span class="hljs-title function_">main</span><span class="hljs-params">()</span> &#123;<br>    <span class="hljs-type">short</span> <span class="hljs-type">int</span> v = <span class="hljs-number">-12345</span>;   <span class="hljs-comment">// 16位大小有符号数，表达范围是 -32768 ~ 32767</span><br>    <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;v=%hd, uv=%hu\n&quot;</span>, v, v); <span class="hljs-comment">// 依然输出v=-12345, uv=53191</span><br>    <br>    <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>&#125;<br></code></pre></div></td></tr></table></figure>
+<blockquote>
+<p>对于大多数语言的无符号和有符号数类型的转换，原则都和C一样：数值可能会变，但是位模式不变。因此，当开发者对有符号数和无符号数进行混淆计算时，一定要确保非预期的结果产出，对于大部分语言来说，这都是一个存在风险且不推荐的操作。</p>
+</blockquote>
+<h4 id="扩展与截断">扩展与截断</h4>
+<p>另一个常见的转换场景是不同字长的整数之间进行转换。我们原则上希望这样的转换可以保持原有数值的不变，这对于扩展来说（也就是从小尺寸转成大尺寸），可以通过设置扩展的规则来保证，但对于截断来说，显然是不可能的（你那点空间容不下人家的熵）。</p>
+<p>对于无符号的扩展来说，只需要在扩展的高位全部填0即可，这一法则被称作无符号数的零扩展，其原理直接遵循了无符号数编码的定义。而对于有符号数来说，补码需要执行符号扩展：高位填充最高有效位的值，简单来说，就是负数用1填充，非负数用0填充。</p>
+<p>我们还是以C语言为例，将上面的代码做一下调整：</p>
+<figure class="highlight c"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs c"><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;stdio.h&gt;</span></span><br><br><span class="hljs-type">int</span> <span class="hljs-title function_">main</span><span class="hljs-params">()</span> &#123;<br>    <span class="hljs-type">short</span> <span class="hljs-type">int</span> v = <span class="hljs-number">-12345</span>;   <span class="hljs-comment">// 16位大小有符号数，十六进制对应0xCFC7</span><br>    <span class="hljs-type">int</span> wv = v;     <span class="hljs-comment">// 16位扩展到32位，高位用符号位1来填充，扩展为0xFFFFCFC7</span><br>    <br>    <span class="hljs-type">unsigned</span> <span class="hljs-type">short</span> <span class="hljs-type">int</span> uv = (<span class="hljs-type">unsigned</span> <span class="hljs-type">short</span> <span class="hljs-type">int</span>)v;  <span class="hljs-comment">// 0xCFC7，此时解码视作53191 </span><br>    <span class="hljs-type">unsigned</span> <span class="hljs-type">int</span> wuv = uv;  <span class="hljs-comment">// 无符号数用零扩展，0x0000CFC7，依然是53191</span><br><br>    <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;v=%hd, uv=%hu\n&quot;</span>, v, uv);<br>    <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;wv=%d, wuv=%u\n&quot;</span>, wv, wuv);<br>    <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>&#125;<br></code></pre></div></td></tr></table></figure>
+<p>输出结果如下：</p>
+<figure class="highlight routeros"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs routeros"><span class="hljs-attribute">v</span>=-12345, <span class="hljs-attribute">uv</span>=53191<br><span class="hljs-attribute">wv</span>=-12345, <span class="hljs-attribute">wuv</span>=53191<br></code></pre></div></td></tr></table></figure>
+<p>扩展的规则易于理解，那么怎么截断呢？既然截断可能会导致原始数值的丢失，所以我们也不用有那么多顾忌，不管是无符号数还是有符号数的补码，我们都干脆把高位丢弃就行。</p>
+<figure class="highlight c"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs c"><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;stdio.h&gt;</span></span><br><br><span class="hljs-type">int</span> <span class="hljs-title function_">main</span><span class="hljs-params">()</span> &#123;<br>    <span class="hljs-type">int</span> v = <span class="hljs-number">53191</span>;                  <span class="hljs-comment">// 0x0000CFC7</span><br>    <span class="hljs-type">short</span> <span class="hljs-type">int</span> sv = (<span class="hljs-type">short</span> <span class="hljs-type">int</span>)v;    <span class="hljs-comment">// 丢弃最高位后变成0xCFC7，此时最高位1作为符号位值为1，整个值变成了-12345</span><br><br>    <span class="hljs-type">int</span> v2 = <span class="hljs-number">0x0001CFC7</span>;            <span class="hljs-comment">// 直接用十六进制书写了，十进制为118727</span><br>    <span class="hljs-type">short</span> <span class="hljs-type">int</span> sv2 = (<span class="hljs-type">short</span> <span class="hljs-type">int</span>)v2;  <span class="hljs-comment">// 还是0xCFC7，-12345</span><br><br>    <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;sv=%hd, v=%d\n&quot;</span>, sv, v);     <span class="hljs-comment">// 输出-12345,53191</span><br>    <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;sv2=%hd, v2=%d\n&quot;</span>, sv2, v2); <span class="hljs-comment">// 输出-12345,118727</span><br>    <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>&#125;<br></code></pre></div></td></tr></table></figure>
+<p>所以截断这个操作在编程时也是个高度危险的操作，这很可能会因为熵信息丢失导致出现非预期的问题，甚至会产生一些可被黑客利用的漏洞。</p>
+<blockquote>
+<p>纵观历史长河，因类型转换、扩展截断而导致的漏洞数不胜数，比如CSAPP在2.2.8的旁注中给出了一个经典的开源系统FreeBSD
+getpeername的设计缺陷案例。早期的语言设计诸如C/C++对类型的分类和处理比较宽松，想要写出bugfree的代码需要开发者有较深的理解且务必仔细，这种环境天然助长了大量漏洞的滋生，这也间接导致此后数十年间、二进制安全的世界精彩纷呈，各种漏洞利用手法叹为观止。</p>
+</blockquote>
+<blockquote>
+<p>既然无符号数和有符号数之间混用势必产生一地鸡毛，所以一些编程语言在设计时移除了对无符号数的支持，比如Java仅支持有符号整数，大刀阔斧，魄力相当。</p>
+</blockquote>
+<h3 id="整型数运算">整型数运算</h3>
+<p>待补充。。。</p>
+<h3 id="浮点数">浮点数</h3>
+<p>前方施工。。。</p>
 
             </div>
             <hr>
