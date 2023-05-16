@@ -33,8 +33,9 @@
 <meta property="og:image" content="https://r00tk1ts.github.io/2023/05/06/%E6%A0%BC%E7%89%A9%E8%87%B4%E7%9F%A5(1)%E2%80%94%E2%80%94%E4%BD%A0%E4%BB%80%E4%B9%88%E8%BF%9B%E5%88%B6%EF%BC%9F%E6%88%91%E4%BB%80%E4%B9%88%E8%BF%9B%E5%88%B6%EF%BC%9F/2023-05-15-11-28-20.png">
 <meta property="og:image" content="https://r00tk1ts.github.io/2023/05/06/%E6%A0%BC%E7%89%A9%E8%87%B4%E7%9F%A5(1)%E2%80%94%E2%80%94%E4%BD%A0%E4%BB%80%E4%B9%88%E8%BF%9B%E5%88%B6%EF%BC%9F%E6%88%91%E4%BB%80%E4%B9%88%E8%BF%9B%E5%88%B6%EF%BC%9F/2023-05-15-11-27-27.png">
 <meta property="og:image" content="https://r00tk1ts.github.io/2023/05/06/%E6%A0%BC%E7%89%A9%E8%87%B4%E7%9F%A5(1)%E2%80%94%E2%80%94%E4%BD%A0%E4%BB%80%E4%B9%88%E8%BF%9B%E5%88%B6%EF%BC%9F%E6%88%91%E4%BB%80%E4%B9%88%E8%BF%9B%E5%88%B6%EF%BC%9F/2023-05-12-17-47-18.png">
+<meta property="og:image" content="https://r00tk1ts.github.io/2023/05/06/%E6%A0%BC%E7%89%A9%E8%87%B4%E7%9F%A5(1)%E2%80%94%E2%80%94%E4%BD%A0%E4%BB%80%E4%B9%88%E8%BF%9B%E5%88%B6%EF%BC%9F%E6%88%91%E4%BB%80%E4%B9%88%E8%BF%9B%E5%88%B6%EF%BC%9F/2023-05-15-22-48-15.png">
 <meta property="article:published_time" content="2023-05-06T03:36:57.000Z">
-<meta property="article:modified_time" content="2023-05-15T09:22:53.897Z">
+<meta property="article:modified_time" content="2023-05-16T01:33:42.297Z">
 <meta property="article:author" content="r00tk1t">
 <meta property="article:tag" content="格物致知">
 <meta name="twitter:card" content="summary_large_image">
@@ -82,11 +83,7 @@
   </script>
   <script  src="/js/utils.js" ></script>
   <script  src="/js/color-schema.js" ></script>
-<!-- hexo injector head_end start -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css">
-
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hexo-math@4.0.0/dist/style.css">
-<!-- hexo injector head_end end --><meta name="generator" content="Hexo 6.1.0"></head>
+<meta name="generator" content="Hexo 6.1.0"></head>
 
 
 <body>
@@ -212,7 +209,7 @@
   
     <span class="post-meta mr-2">
       <i class="iconfont icon-chart"></i>
-      7.3k 字
+      9.2k 字
     </span>
   
 
@@ -221,7 +218,7 @@
       <i class="iconfont icon-clock-fill"></i>
       
       
-      62 分钟
+      77 分钟
     </span>
   
 
@@ -362,7 +359,27 @@ getpeername的设计缺陷案例。早期的语言设计诸如C/C++对类型的�
 <p>既然无符号数和有符号数之间混用势必产生一地鸡毛，所以一些编程语言在设计时移除了对无符号数的支持，比如Java仅支持有符号整数，大刀阔斧，魄力相当。</p>
 </blockquote>
 <h3 id="整型数运算">整型数运算</h3>
-<p>待补充。。。</p>
+<h4 id="加法与减法">加法与减法</h4>
+<p>由于尺寸固定的整型数类型范围受限，所以当进行加法操作时，会遇到一种在计算机世界中非常常见的现象：溢出(Overflow)。对于无符号来说，这一点显而易见，我们依然使用C语言来做测试，使用unsigned
+short来溢出一下：</p>
+<figure class="highlight c"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs c"><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;stdio.h&gt;</span></span><br><br><span class="hljs-type">int</span> <span class="hljs-title function_">main</span><span class="hljs-params">()</span> &#123;<br>    <span class="hljs-type">unsigned</span> <span class="hljs-type">short</span> v = <span class="hljs-number">65535</span>;           <span class="hljs-comment">// 所能表示的最大数，B1111 1111 1111 1111</span><br>    <span class="hljs-type">unsigned</span> <span class="hljs-type">short</span> overflow = v + <span class="hljs-number">1</span>;    <span class="hljs-comment">// 此时overflow是B(1) 0000 0000 0000 0000，最高位进位后溢出被丢弃，最终结果为0。   </span><br>    <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;overflow=%hu\n&quot;</span>, overflow);   <span class="hljs-comment">// 输出overflow=0</span><br>&#125;<br></code></pre></div></td></tr></table></figure>
+<p>对于有符号数来说，其实也没什么不同，计算机依然是墨守成规的对每个位进行相加，按需进位：</p>
+<figure class="highlight c"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs c"><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;stdio.h&gt;</span></span><br><br><span class="hljs-type">int</span> <span class="hljs-title function_">main</span><span class="hljs-params">()</span> &#123;<br>    <span class="hljs-type">short</span> v = <span class="hljs-number">32767</span>;                        <span class="hljs-comment">// 所能表示的最大正数，B0111 1111 1111 1111</span><br>    <span class="hljs-type">short</span> overflow = v + <span class="hljs-number">1</span>;                 <span class="hljs-comment">// 此时overflow是B1000 0000 0000 0000，次高位进位后导致符号位变成1，该值为-32768的补码   </span><br>    <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;overflow=%hd\n&quot;</span>, overflow);     <span class="hljs-comment">// 输出overflow=-32768</span><br><br>    v = <span class="hljs-number">-32768</span>;                             <span class="hljs-comment">// 所能表示的最小负数，B1000 0000 0000 0000</span><br>    overflow = v - <span class="hljs-number">1</span>;                       <span class="hljs-comment">// 相当于v + (-1), -1的补码是B1111 1111 1111 1111，相加后最高位溢出，得到B(1) 0111 1111 1111 1111</span><br>                                            <span class="hljs-comment">// 最高位丢弃，值为32767</span><br>    <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;overflow=%hd\n&quot;</span>, overflow);     <span class="hljs-comment">// 输出overflow=32767</span><br>&#125;<br></code></pre></div></td></tr></table></figure>
+<p>减法相当于是对负数做加法，而加法运算也同样是老老实实的按位操作，在中央处理器眼里从来都没有什么符号位，更没有什么负权。我们可以发现一个规律，向上溢出（正溢出）和向下溢出（负溢出）形成了一个周期环，所有的值都在<span
+class="math inline">\(-2^w~2^{w-1}\)</span>之间反复横跳、周而复始。</p>
+<p><img src="2023-05-15-22-48-15.png" srcset="/img/loading.gif" lazyload /></p>
+<h4 id="乘法与除法">乘法与除法</h4>
+<p>我们知道乘法实际上就是多次的加法运算，尽管自近现代以来，流行处理器都支持独立的乘法指令（如Intel
+x86系列的MUL,IMUL），然而这些乘法指令相当慢，相比于其他整数运算指令诸如：加法、减法、位运算(与、或、非、异或)、移位，要花费数十倍以上的时钟周期。现代编译器在编译程序时往往都会对乘法运算进行优化，其核心思想就是利用位移指令+加减法指令配合完成原本的乘法运算，取代费时费力的乘法指令。</p>
+<blockquote>
+<p>这里的优化是编译器针对于变量x常量的case，变量x变量由于无法提前预知两个值中的任意一个，所以只能使用乘法指令IMUL,MUL。而常量*常量则在编译期就已经可以计算出结果了，根本不经过CPU做runtime的乘法计算。</p>
+</blockquote>
+<p>首先我们得前置介绍一些位移指令，位移指令其实很简单，它分为左移和右移：前者就是将每个二进制位都想左侧的高位移动K位，低位用0补齐；而后者则相反，将每个二进制位都向右移动K位，低位丢弃、至于最高位嘛，则分两种情况，一种叫逻辑右移、另一种叫算数右移，逻辑右移很简单，就是在高位补K个0，但算数右移则根据最高位进行补齐，也就是说，如果右移前，最高位是1，那么就用1来补齐位移后的最高K个位。</p>
+<p>可别小瞧这位移指令，举个例子，我们对<code>B0001</code>(十进制等于1)进行左移操作，移动2位，结果就是B0100（十进制等于4），其效果相当于是乘以2的某个幂数，移动K位，就是乘以<span
+class="math inline">\(2^k\)</span>。聪明的编译器根据一些数学上的技巧可以把复杂的与2的幂数对不齐的乘法转换为某个K位左移操作，进而再通过加减法进行补足。比如语句<code>n = num * 63;</code>的x86汇编指令可能是这样的：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs assembly">mov ecx, dword ptr [num]; 把num初始值赋值给ecx寄存器<br>shl ecx, 6              ; 对ecx左移6位，相当于乘上2^6=64，此时ecx值为num*64                 <br>sub ecx, dword ptr [num]; 对ecx进行减法操作，减去一个num，相当于ecx=num*64-num，即ecx最终值为num * 63<br>...                     ; 其他指令，将ecx结果赋值给变量n<br></code></pre></div></td></tr></table></figure>
+<p>考虑到这一技巧较为复杂，且和入门二进制关系不大，我们暂且按下不表，留待日后研讨。</p>
+<p>除法相比乘法更加复杂、执行速度也更慢，类似乘法的左移优化，除法也有围绕2的幂数通过右移来加速的技巧。</p>
 <h3 id="浮点数">浮点数</h3>
 <p>前方施工。。。</p>
 
