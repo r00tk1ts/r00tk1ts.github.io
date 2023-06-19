@@ -24,7 +24,7 @@
 <meta property="og:description" content="开局一个段子，经典咏流传：你什么语言？我什么语言？我用go写需求、我就算写出10个bug也能按期交付，你写C++、随便一个ABI问题都能卡你一整天。在座的这些老司机，哪个不是写go、写Java、写Python的？你写C++，难怪你加班。什么C艹神教教父分父？真不熟！别笑我厌旧，你来你也臭，这就是现代编程语言带给我的自信(doge)~ 我笑不出来，因为我写C++。">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2023-06-13T11:15:55.000Z">
-<meta property="article:modified_time" content="2023-06-16T09:31:41.765Z">
+<meta property="article:modified_time" content="2023-06-19T09:52:45.872Z">
 <meta property="article:author" content="r00tk1t">
 <meta property="article:tag" content="格物致知">
 <meta name="twitter:card" content="summary_large_image">
@@ -197,7 +197,7 @@
   
     <span class="post-meta mr-2">
       <i class="iconfont icon-chart"></i>
-      6.1k 字
+      6.8k 字
     </span>
   
 
@@ -206,7 +206,7 @@
       <i class="iconfont icon-clock-fill"></i>
       
       
-      52 分钟
+      57 分钟
     </span>
   
 
@@ -247,11 +247,10 @@ Set Architecture,
 指令集架构)都包含了基本数据类型、指令集、寄存器、寻址模式、存储体系、中断与异常处理以及外部I/O，它们是计算机体系结构中与程序设计息息相关的部分。不同的处理器家族（如Intel
 IA-32和x86-64，ARM，MIPS）有着不同的指令集架构。</p>
 <p>正如《系统漫游》一讲中所述：由于机器码过于抽象，不适合直接作为一种语言来直接编写，故开发者先驱在机器码的基础上进行了翻译，给出汇编助记符并最终演化成汇编语言。尽管汇编语言已经可以完成复杂程序的编写，但相比自然语言来说依然高度抽象、对开发者极不友好，于是，在经过了漫长发展史的今天，越来越多的编程语言应运而生，它们的亲和性越来越高、上手门槛越来越低，而这些语言，我们通常把它们归类为“高级编程语言”，时至今日，“编程语言”这一概念在大部分上下文中都指代高级编程语言。</p>
-<h2 id="编程语言">编程语言</h2>
+<h2 id="编程语言的本质">编程语言的本质</h2>
 <p>刚入门的小伙伴，在对眼花缭乱的编程语言望洋兴叹之时，往往也会有一个大大的疑问：为什么会有这么多的编程语言呢？难道每一种语言都要学会才能掌握编程吗？</p>
 <p>显然不是，想想我们每天都在用的自然语言，对大部分国人来说，掌握的可能只有普通话这门母语（不同地域还可能有各种方言，但他们都算在中文体系），受教育程度高的群体一般还会掌握英语这门国际语，而只有少数人掌握了三门以上的语言（比如日语、韩语、法语、德语）。然而归根结底，掌握自然语言的用途是为了与其他人交流，在中国当然说中国话，但在和外国人交流时，则因母语差异往往需要通过通用的国际语——英语来沟通。</p>
 <p>实际上编程语言也不外如是，只不过它不受限于你出生的地域，你可以凭自己的喜好来选择第一门语言入坑来作为母语，但就像自然语言那样，不同语言的使用者之间存在着沟通壁垒，比如你让C语言使用者去跟Pythoner交流指针的使用艺术，完全是鸡同鸭讲。然而，还是有着一点关键性的差异：编程语言是用来和机器打交道的，你编写的程序就好比你说出去的话，最终是交由计算机来执行，由于计算机只认识自己的指令集，所以每一种语言的背后都有着强大的翻译团队，或提前打好腹稿、或同声传译，把由高级语言编写的程序的意图传达给机器（详见第零讲：《系统漫游》）。因此，和自然语言不同的是，开发者最低限度只需要掌握任意一门语言（好歹得是正经语言）就可以和机器沟通了，但至于这门语言能不能搞事情、能搞多大的动静出来，就取决于其设计之初的定位和生态丰富程度了。</p>
-<h3 id="编程语言的本质">编程语言的本质</h3>
 <p>编程语言的本质就是和计算机交流，每一门编程语言都有它自己的审美和设计哲学，通过规范化一套自己的词法、语法、语义来完成“指令驱动数据”的最终目的。编程语言，也叫程序设计语言，按照wiki对这一规范化的组成拆分，主要包括以下四点：</p>
 <ul>
 <li>数据和数据结构</li>
@@ -259,8 +258,8 @@ IA-32和x86-64，ARM，MIPS）有着不同的指令集架构。</p>
 <li>引用机制和重用</li>
 <li>设计哲学</li>
 </ul>
-<h4 id="数据和数据结构">数据和数据结构</h4>
-<h5 id="动态类型与静态类型">动态类型与静态类型</h5>
+<h3 id="数据和数据结构">数据和数据结构</h3>
+<h4 id="动态类型与静态类型">动态类型与静态类型</h4>
 <p>程序中专门处理数据的系统被称作型别系统(type
 system)，语言依次可分成两大类：静态类型（如C/C++、Java、Go）和动态类型(如Lisp，Javascript，Python)。二者的根本性差异在于类型被确定的时机，对于静态类型语言来说，其数据类型在编译或者更准确的说是在运行之前就确定的，而动态类型语言则是在运行时(RT)才确定变量的类型。</p>
 <p>比如下面这段C++代码：</p>
@@ -274,7 +273,7 @@ system)，语言依次可分成两大类：静态类型（如C/C++、Java、Go�
 <blockquote>
 <p>动态类型很大程度上提升了代码编写的灵活性，给于开发者极大的脑洞同时也是把双刃剑，灵活性的不合理运用生产了大量的屎山代码，不得不经常面对重构。故而江湖流传着这么句话：动态类型一时爽，代码重构火葬场！</p>
 </blockquote>
-<h5 id="强类型与弱类型">强类型与弱类型</h5>
+<h4 id="强类型与弱类型">强类型与弱类型</h4>
 <p>与动态类型和静态类型一起时常被提起的，还有一组被叫做强类型(Java,C#,Python,go,Rust...)与弱类型(C,Javascript,Perl,PHP...)语言的区分。强弱类型的核心差异在于：不同类型的变量是否允许隐式转化。不少误人子弟的网文都把强弱类型与动静态类型混为一谈，实际上这两组概念毫不相干。像Go是静态类型语言，同时它也是强类型语言，我们在编写Go程序时，甚至不能将int32隐式转换成int型：</p>
 <figure class="highlight go"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs go"><span class="hljs-keyword">package</span> main<br><br><span class="hljs-keyword">import</span> (<br>    <span class="hljs-string">&quot;fmt&quot;</span><br>)<br><br><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">main</span><span class="hljs-params">()</span></span> &#123;<br>    <span class="hljs-keyword">var</span> a <span class="hljs-type">int32</span> = <span class="hljs-number">100</span><br>    <span class="hljs-comment">// var b int = a    // 编译错误：cannot use a (variable of type int32) as type int in variable declaration</span><br>    <span class="hljs-keyword">var</span> b <span class="hljs-type">int</span> = <span class="hljs-type">int</span>(a)  <span class="hljs-comment">// 强制类型转换可以</span><br>    fmt.Println(a, b)<br>&#125;<br></code></pre></div></td></tr></table></figure>
 <p>尽管在32位机器上，int32和int尺寸相同，但对于强类型语言来说，它不支持隐式转换，哪怕你所有的上下文都将线索指向了这两种类型没有任何本质的区别。</p>
@@ -303,7 +302,7 @@ C++(11标准之后)的诸多设计显得格格不入但又因为历史债务而�
 <blockquote>
 <p>Python和Javascript在设计上都过于天马行空，初学者上手容易，但越学越偏执，有那么点邪魔歪道的意思。</p>
 </blockquote>
-<h5 id="数据结构">数据结构</h5>
+<h4 id="数据结构">数据结构</h4>
 <p>另一个重要的组成部分就是数据结构了，很多理工科的专业本科都会开设这么一个课程，相信也是很多非科班出身小伙伴的噩梦。数据结构(Data
 Structure)是计算机用来存储、组织数据的方式，它利用编程语言所提供的数据类型、引用等其他操作加以实现，联合组成某种存储结构并对访问方法加以封装。不同的数据结构用来解决特定的问题，例如最常用的线性表(Linear
 List)（数组（Array）（也叫顺序表(Sequence List)）、链表(Linked
@@ -311,9 +310,18 @@ List)）用来组织存储同质化的多个数据、栈(Stack)这种LIFO的特�
 Search
 Tree)可以最高效的支持基于比较操作的元素集合查找能力、又矮又胖的B+树适合在磁盘上按索引存储大量数据等等。</p>
 <p>我们课上学习的数组、链表、栈、队列、哈希表、树等等可以看做是狭义的数据结构，它们是解决某类问题的最小结构化数据的demo，而我们真正在写程序的时候，往往会将各种数据结构与基本型、自定义类型按需求做组合封装，定义出新的自定义类型，这可以看作是广义的数据结构。</p>
-<p>越是后现代的编程语言，往往本身对常用数据结构的支持越深入骨髓。以C语言为例，它天生就支持定长数组，我们可以简单的写做<code>int v[100];</code>来实现一个数组结构，该数组连续存放100个<code>int</code>型数据。但对于变长的需求来说，这种定义方式就行不通了，我们可能需要自己去利用基础类型来实现一个：</p>
-<figure class="highlight c"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs c"><br></code></pre></div></td></tr></table></figure>
+<p>越是后现代的编程语言，往往本身对常用数据结构的支持越深入骨髓。像是老牌语言比如C，语法特性与标准库相当精简，仅仅天然支持数组。在C语言中，我们可以通过<code>int v[100];</code>来定义一个长度为100的定长<code>int</code>型数组，它可以在内存连续存放100个<code>int</code>型数据。当我们需要各种复杂的数据结构时，往往就需要自己去实现一套或者干脆找成品第三方库（C开发者可以说是最喜欢重复造轮子的群体，这与语言标准生态的贫瘠息息相关）。而像是后续较新的一些语言，比如C++,
+Java，往往其标准库更加庞大，里面集成了各种常用的数据结构，比如C++的<code>std::vector&lt;&gt;</code>（动态变长数组）,<code>std::map&lt;&gt;</code>（红黑树，平衡二叉搜索树的一种妥协实现体，本质上是2-3树）,<code>std::unordered_map&lt;&gt;</code>（哈希表、也称散列表），<code>std::tuple&lt;&gt;</code>（元组，支持存放任意多种不同类型的数据）。再到后现代的编程语言，比如Python,
+Go，它们甚至在语言特性本身就支持各种丰富的数据结构（比如Python的list,dict，Go的slice,map都有适配的语法糖）。</p>
+<p>我们在编写程序时，往往会合理搭配使用各种数据结构和基础类型，封装出程序所需要的自定义类型，比如我们在C++中可以封装一个学生的结构，里面放置它的学号、姓名和分数：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs cpp"><span class="hljs-keyword">enum</span> <span class="hljs-title class_">Subject</span> &#123;Chinese,English,Math&#125;;<br><br><span class="hljs-keyword">struct</span> <span class="hljs-title class_">Student</span> &#123;<br>  <span class="hljs-type">int64_t</span> id_;<br>  std::string name_;<br>  std::map&lt;Subject, <span class="hljs-type">int32_t</span>&gt; score_;<br>  <span class="hljs-comment">// for extend here ...</span><br>&#125;;<br></code></pre></div></td></tr></table></figure>
+<blockquote>
+<p>当然，这里展示的只是个toy，真实工程里的数据结构往往有着复杂的组合关系，能否良好的设计各种数据结构非常吃开发者对系统的理解和经验加成。</p>
+</blockquote>
+<h3 id="指令与流程控制">指令与流程控制</h3>
 <p>待续。。。</p>
+<h3 id="引用机制和重用">引用机制和重用</h3>
+<h3 id="设计哲学">设计哲学</h3>
 
             </div>
             <hr>
