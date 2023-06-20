@@ -25,8 +25,9 @@
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://r00tk1ts.github.io/2023/06/13/%E6%A0%BC%E7%89%A9%E8%87%B4%E7%9F%A5(2)%E2%80%94%E2%80%94%E8%AF%AD%E8%A8%80%E5%8D%83%E7%99%BE%EF%BC%8C%E6%AE%8A%E9%80%94%E5%90%8C%E5%BD%92/2023-06-19-19-57-33.png">
 <meta property="og:image" content="https://r00tk1ts.github.io/2023/06/13/%E6%A0%BC%E7%89%A9%E8%87%B4%E7%9F%A5(2)%E2%80%94%E2%80%94%E8%AF%AD%E8%A8%80%E5%8D%83%E7%99%BE%EF%BC%8C%E6%AE%8A%E9%80%94%E5%90%8C%E5%BD%92/2023-06-20-10-47-22.png">
+<meta property="og:image" content="https://r00tk1ts.github.io/2023/06/13/%E6%A0%BC%E7%89%A9%E8%87%B4%E7%9F%A5(2)%E2%80%94%E2%80%94%E8%AF%AD%E8%A8%80%E5%8D%83%E7%99%BE%EF%BC%8C%E6%AE%8A%E9%80%94%E5%90%8C%E5%BD%92/2023-06-20-11-49-03.png">
 <meta property="article:published_time" content="2023-06-13T11:15:55.000Z">
-<meta property="article:modified_time" content="2023-06-20T02:58:33.258Z">
+<meta property="article:modified_time" content="2023-06-20T04:02:46.698Z">
 <meta property="article:author" content="r00tk1t">
 <meta property="article:tag" content="格物致知">
 <meta name="twitter:card" content="summary_large_image">
@@ -200,7 +201,7 @@
   
     <span class="post-meta mr-2">
       <i class="iconfont icon-chart"></i>
-      8k 字
+      9k 字
     </span>
   
 
@@ -209,7 +210,7 @@
       <i class="iconfont icon-clock-fill"></i>
       
       
-      67 分钟
+      75 分钟
     </span>
   
 
@@ -318,7 +319,12 @@ Tree)可以最高效的支持基于比较操作的元素集合查找能力、又
 <p>业内有着这么一句行话口口相传：程序 = 数据结构 +
 算法。这句话始源于一本古书的名字：</p>
 <p><img src="2023-06-20-10-47-22.png" srcset="/img/loading.gif" lazyload /></p>
-<p>这本书发行于1976年，在起名这方面的才能可以说即使放在当下亦是不遑多让，这本书是传授的是经典数据结构的知识，而书名的影响程度甚至超过了作者的想象。我们课上学习的数组、链表、栈、队列、哈希表、树等等可以看做是狭义的数据结构，它们是解决某类问题的最小结构化数据的demo，而我们真正在写程序的时候，往往会将各种数据结构与基本型、自定义类型按需求做组合封装，定义出新的自定义类型，这可以看作是广义的数据结构。</p>
+<p>这本书发行于1976年，在起名这方面的才能可以说即使放在当下亦是不遑多让，这本书传授的是经典数据结构的知识，而书名的影响程度甚至超过了作者的想象（对于OIer倒是完美契合）。我们课上学习的数组、链表、栈、队列、哈希表、树等等可以看做是狭义的数据结构，它们是解决某类问题的最小结构化数据的demo，而我们真正在写程序的时候，往往会将各种数据结构与基本型、自定义类型按需求做组合封装，定义出新的自定义类型，这可以看作是广义的数据结构。</p>
+<blockquote>
+<p>至于Algorithms又是另一个打击面相当大的泛用词了，理工科课上的算法一般指的是传统的用来解决某一类问题的基础算法，比如二分查找、八大比较排序，研究生阶段还会上一门更具有体系的课：算法设计与分析，按照解决问题的思想大体可以拆分为枚举、模拟、递归、递推、贪心等策略，各种算法无非就是这些核心思想的应用（有过OI经验的同学一定深谙此道，刷笔试题简直是虐菜游戏）。而现如今业界火热的算法岗则指的是做Machine
+Learning, Deep
+Learning的AI算法岗，算是另一个领域的知识。尽管如此，我们去学习机器学习时，依然会发现那些经典算法的核心思想也还是这些，无非是在组合数学的基础上，施加了统计学的魔法罢了（要么说万物皆数学）。</p>
+</blockquote>
 <p>越是后现代的编程语言，往往本身对常用数据结构的支持越深入骨髓。像是老牌语言比如C，语法特性与标准库相当精简，仅仅天然支持数组。在C语言中，我们可以通过<code>int v[100];</code>来定义一个长度为100的定长<code>int</code>型数组，它可以在内存连续存放100个<code>int</code>型数据。当我们需要各种复杂的数据结构时，往往就需要自己去实现一套或者干脆找成品第三方库（C开发者可以说是最喜欢重复造轮子的群体，这与语言标准生态的贫瘠息息相关）。而像是后续较新的一些语言，比如C++,
 Java，往往其标准库更加庞大，里面集成了各种常用的数据结构，比如C++的<code>std::vector&lt;&gt;</code>（动态变长数组）,<code>std::map&lt;&gt;</code>（红黑树，平衡二叉搜索树的一种妥协实现体，本质上是2-3树）,<code>std::unordered_map&lt;&gt;</code>（哈希表、也称散列表），<code>std::tuple&lt;&gt;</code>（元组，支持存放任意多种不同类型的数据）。再到后现代的编程语言，比如Python,
 Go，它们甚至在语言特性本身就支持各种丰富的数据结构（比如Python的list,dict，Go的slice,map都有适配的语法糖）。</p>
@@ -328,14 +334,23 @@ Go，它们甚至在语言特性本身就支持各种丰富的数据结构（比
 <p>当然，这里展示的只是个toy，真实工程里的数据结构往往有着复杂的组合嵌套关系，能否良好的设计各种数据结构非常吃开发者对系统的理解和经验加成。</p>
 </blockquote>
 <h3 id="指令与流程控制">指令与流程控制</h3>
-<p>还记得上面的那本书吗，如果是从宏大叙事上来讲，我心中的算法其实指的就是指令与流程控制。以cooking来比喻programming的话，如果说数据是预加工好的食材，那么流程控制就是炒菜的工序。一旦数据被确定，机器必须被告知如何对这些数据进行处理。尽管编程语言的设计风格千奇百怪，但都可以归纳为以下四种结构：顺序、跳转、分支、循环。</p>
+<p>还记得上面的那本书吗，如果是从宏大叙事上来讲，我心中的算法其实指的就是指令与流程控制。以cooking来比喻programming的话，如果说数据是预加工好的食材，那么流程控制就是炒菜的工序。一旦数据被确定，机器必须被告知如何对这些数据进行处理。尽管编程语言的设计风格千奇百怪，但都可以归纳为以下三种结构：顺序、分支、循环，这三种结构可以表达所有的计算机程序逻辑，</p>
+<p><img src="2023-06-20-11-49-03.png" srcset="/img/loading.gif" lazyload /></p>
+<p>我们先出一个题，利用下面的三种结构来编写这个猜数游戏：提前想好一个100以内的数字，由用户来猜测，如果用户猜错了，就高速用户猜测的数字是大了还是小了，重试直到猜对；如果用户猜对了就输出“Bingo”并退出。</p>
 <h4 id="顺序">顺序</h4>
-<p>这个没什么好说的，你书写的代码一行一行从上到下有序执行，这本身就是一种结构，我们叫它顺序结构。</p>
-<figure class="highlight dust"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs dust"><span class="hljs-template-variable">&#123;</span><br><span class="hljs-template-variable">    aaa</span><br><span class="hljs-template-variable">    bbb</span><br><span class="hljs-template-variable">    ccc</span><br><span class="hljs-template-variable">    ...</span><br><span class="hljs-template-variable">&#125;</span><br></code></pre></div></td></tr></table></figure>
+<p>这个没什么好说的，你书写的代码一行一行从上到下依次执行，这本身就是一种结构，我们叫它顺序结构。顺序结构尽管简单但却最为常用，只要按照解决问题的顺序写出相应的语句即可。</p>
 <h4 id="分支">分支</h4>
+<p>分支结构也叫选择结构，无非就是根据特定条件，选择执行A or B or
+...代码块。语句格式为（这里采用伪代码）：</p>
+<figure class="highlight dust"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs dust"><span class="language-xml">if（条件1） </span><span class="hljs-template-variable">&#123;分支1&#125;</span><span class="language-xml">；</span><br><span class="language-xml">else if（条件2） </span><span class="hljs-template-variable">&#123;分支2&#125;</span><span class="language-xml"></span><br><span class="language-xml">else if（条件3） </span><span class="hljs-template-variable">&#123;分支3&#125;</span><span class="language-xml"></span><br><span class="language-xml">...</span><br><span class="language-xml">else if（条件n） </span><span class="hljs-template-variable">&#123;分支n&#125;</span><span class="language-xml"></span><br><span class="language-xml">else </span><span class="hljs-template-variable">&#123;分支n+1&#125;</span><br></code></pre></div></td></tr></table></figure>
+<p>最简单分支结构是单分支，即只在满足条件时执行分支语句，简化为：</p>
+<figure class="highlight apache"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs apache"><span class="hljs-attribute">if</span>（条件<span class="hljs-number">1</span>）&#123;分支<span class="hljs-number">1</span>&#125;；<br></code></pre></div></td></tr></table></figure>
+<p>分支不仅支持多分支，还可以做层级嵌套，形如：</p>
+<figure class="highlight aspectj"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs aspectj"><span class="hljs-keyword">if</span> (条件<span class="hljs-number">1</span>) &#123;<br>    ...<br>    <span class="hljs-keyword">if</span> (条件<span class="hljs-number">1</span>A) &#123;分支<span class="hljs-number">1</span>A&#125;<br>    <span class="hljs-function"><span class="hljs-keyword">else</span> <span class="hljs-title">if</span> <span class="hljs-params">(条件<span class="hljs-number">1</span>B)</span> </span>&#123;分支<span class="hljs-number">1</span>B&#125;<br>    ...<br>    <span class="hljs-function"><span class="hljs-keyword">else</span> <span class="hljs-title">if</span> <span class="hljs-params">(条件<span class="hljs-number">1</span>N)</span> </span>&#123;分支<span class="hljs-number">1</span>N&#125;<br>    <span class="hljs-keyword">else</span> &#123;分支<span class="hljs-number">1</span>N+<span class="hljs-number">1</span>&#125;<br>&#125; <br><span class="hljs-function"><span class="hljs-keyword">else</span> <span class="hljs-title">if</span> <span class="hljs-params">(条件<span class="hljs-number">2</span>)</span> </span>&#123;分支<span class="hljs-number">2</span>&#125;<br><span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span>（条件n） &#123;分支n&#125;<br><span class="hljs-keyword">else</span> &#123;分支n+<span class="hljs-number">1</span>&#125;<br></code></pre></div></td></tr></table></figure>
+<p>此处允许套娃，套、都给我尽情的套！</p>
+<p>大部分语言对分支结构的支持，都有着最基础的两种语句：if-else和switch。</p>
 <p>待续。。。</p>
 <h4 id="循环">循环</h4>
-<h4 id="跳转">跳转</h4>
 <h3 id="引用机制和重用">引用机制和重用</h3>
 <h3 id="设计哲学">设计哲学</h3>
 
