@@ -30,7 +30,7 @@
 <meta property="og:image" content="https://r00tk1ts.github.io/2023/06/13/%E6%A0%BC%E7%89%A9%E8%87%B4%E7%9F%A5(2)%E2%80%94%E2%80%94%E8%AF%AD%E8%A8%80%E5%8D%83%E7%99%BE%EF%BC%8C%E6%AE%8A%E9%80%94%E5%90%8C%E5%BD%92/2023-06-21-10-14-00.png">
 <meta property="og:image" content="https://r00tk1ts.github.io/2023/06/13/%E6%A0%BC%E7%89%A9%E8%87%B4%E7%9F%A5(2)%E2%80%94%E2%80%94%E8%AF%AD%E8%A8%80%E5%8D%83%E7%99%BE%EF%BC%8C%E6%AE%8A%E9%80%94%E5%90%8C%E5%BD%92/2023-06-21-11-27-29.png">
 <meta property="article:published_time" content="2023-06-13T11:15:55.000Z">
-<meta property="article:modified_time" content="2023-06-21T03:50:59.011Z">
+<meta property="article:modified_time" content="2023-06-21T07:52:50.014Z">
 <meta property="article:author" content="r00tk1t">
 <meta property="article:tag" content="格物致知">
 <meta name="twitter:card" content="summary_large_image">
@@ -204,7 +204,7 @@
   
     <span class="post-meta mr-2">
       <i class="iconfont icon-chart"></i>
-      16k 字
+      17k 字
     </span>
   
 
@@ -213,7 +213,7 @@
       <i class="iconfont icon-clock-fill"></i>
       
       
-      137 分钟
+      144 分钟
     </span>
   
 
@@ -265,7 +265,10 @@ Machine的缩写）。ARM广泛用于嵌入式系统，主要设计目标就在�
 target="_blank" rel="noopener" href="https://www.tiobe.com/tiobe-index/">TIOBE</a>的项目会定期更新编程语言流行度的排行榜：</p>
 <p><img src="2023-06-21-11-50-09.png" srcset="/img/loading.gif" lazyload /></p>
 <blockquote>
-<p>不同语言因其天然的特性与设计以及生态环境，在不同领域与场景的契合度不尽相同，语言本身谈不上高低优劣，关键在于机师的操作水平。你说的都对，但我单方面宣布PHP是世界上最牛逼的语言(doge)~</p>
+<p>不同语言因其天然的特性与设计以及生态环境，在不同领域与场景的契合度不尽相同，语言本身谈不上高低优劣，关键在于机师的操作水平。</p>
+</blockquote>
+<blockquote>
+<p>你说的都对，但我单方面宣布PHP是世界上最牛逼的语言(doge)~</p>
 </blockquote>
 <p>编程语言的本质就是和计算机交流，每一门编程语言都有它自己的审美和设计哲学，通过规范化一套自己的词法、语法、语义来完成“指令驱动数据”的最终目的。编程语言，也叫程序设计语言，按照wikipedia对这一规范化的组成拆分，主要包括以下四点：</p>
 <ul>
@@ -427,15 +430,26 @@ Java派系一般称之为增强型for循环，也叫foreach循环。我个人认
 <figure class="highlight c#"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs c#">Span&lt;<span class="hljs-built_in">string</span>&gt; fruits = <span class="hljs-keyword">new</span> <span class="hljs-built_in">string</span>[] &#123;<span class="hljs-string">&quot;banana&quot;</span>,<span class="hljs-string">&quot;apple&quot;</span>,<span class="hljs-string">&quot;mango&quot;</span>,<span class="hljs-string">&quot;orange&quot;</span>&#125;;<br><span class="hljs-keyword">foreach</span> (<span class="hljs-keyword">ref</span> <span class="hljs-built_in">string</span> fruit <span class="hljs-keyword">in</span> fruits)<br>&#123;<br>    Console.WriteLine(<span class="hljs-string">$&quot;<span class="hljs-subst">&#123;fruit&#125;</span>&quot;</span>);<br>&#125;<br></code></pre></div></td></tr></table></figure>
 <p>Go语言对迭代型循环的支持采用的则是for-range语句：</p>
 <figure class="highlight go"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs go">fruits := []<span class="hljs-type">string</span>&#123;<span class="hljs-string">&quot;banana&quot;</span>,<span class="hljs-string">&quot;apple&quot;</span>,<span class="hljs-string">&quot;mango&quot;</span>,<span class="hljs-string">&quot;orange&quot;</span>&#125;<br><span class="hljs-keyword">for</span> fruit := <span class="hljs-keyword">range</span> fruits &#123;<br>    fmt.Println(fruit)<br>&#125;<br></code></pre></div></td></tr></table></figure>
-<h3 id="练习">练习</h3>
+<h4 id="练习">练习</h4>
 <p>最后让我们来利用这三种结构编写一个猜数游戏：提前想好一个100以内的数字，由用户来猜测，如果用户猜错了，就告诉用户猜测的数字是大了还是小了，重试直到猜对；如果用户猜对了就输出“Bingo”并退出。</p>
 <p>我们简单的做一下需求分析：显然这段程序需要循环读取用户的输入，并对用户输入的数字进行条件判断，执行两个分支。当用户猜对的情况，直接打印Bingo并终止循环退出程序接口；当用户猜错的情况，就需要重头来过并提示用户数字大了还是小了。显然，这里用直到型循环书写起来更优雅。至于提前想好的数字要怎么生成呢，我们让程序随机生成一个就好。我这里用C++来实现一个版本：</p>
 <figure class="highlight cpp"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs cpp"><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;iostream&gt;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;cstdlib&gt;</span></span><br><br><span class="hljs-keyword">using</span> <span class="hljs-keyword">namespace</span> std;<br><br><span class="hljs-function"><span class="hljs-type">int</span> <span class="hljs-title">main</span><span class="hljs-params">()</span> </span>&#123;<br>    <span class="hljs-type">int</span> n = <span class="hljs-built_in">rand</span>() % <span class="hljs-number">101</span>;<br>    <span class="hljs-type">int</span> input;<br><br>    <span class="hljs-keyword">do</span> &#123;<br>        cin &gt;&gt; input;<br>        <span class="hljs-keyword">if</span> (input == n) &#123;<br>            cout &lt;&lt; <span class="hljs-string">&quot;Bingo!&quot;</span> &lt;&lt; endl;<br>            <span class="hljs-keyword">break</span>;<br>        &#125; <span class="hljs-keyword">else</span> &#123;<br>            <span class="hljs-keyword">if</span> (input &gt; n) &#123;<br>                cout &lt;&lt; input &lt;&lt; <span class="hljs-string">&quot; is larger than n.&quot;</span> &lt;&lt; endl;<br>            &#125; <span class="hljs-keyword">else</span> &#123;<br>                cout &lt;&lt; input &lt;&lt; <span class="hljs-string">&quot; is smaller than n.&quot;</span> &lt;&lt; endl;<br>            &#125;<br>        &#125;<br>    &#125; <span class="hljs-keyword">while</span>(<span class="hljs-literal">true</span>);<br><br>    cout &lt;&lt; <span class="hljs-string">&quot;Quit...&quot;</span> &lt;&lt; endl;<br>    <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>; <br>&#125;<br></code></pre></div></td></tr></table></figure>
 <p><img src="2023-06-21-11-27-29.png" srcset="/img/loading.gif" lazyload /></p>
 <p>如果你也有些许的编程经验，可以使用你喜欢的语言，也来写一个猜数游戏，正所谓“纸上得来终觉浅，绝知此事要躬行”。</p>
 <h3 id="引用机制和重用">引用机制和重用</h3>
-<p>待续。。。</p>
 <h3 id="设计哲学">设计哲学</h3>
+<p>这两部分一起讨论，承上启下、息息相关。</p>
+<p>所谓的引用机制和重用，概念看上去很抽象，但翻译成大白话就两个字：复用。我们给变量取名是为了复用，你可以在上下文的多个地方通过名称来引用它；我们封装可调用对象也是为了复用，同一个代码片段功能体可能会反复执行多次，为了避免重复copy大段的代码，就需要对这段代码进行抽象和封装，大部分语言都会使用函数或者方法来支持这一能力，在这基础之上，又是八仙过海、各显神通。</p>
+<p>像是C语言这种古老的面向过程(Oriented
+Process)型语言，设计上高度自由（开放大世界玩法），语言本身仅仅提供结构体、函数和宏这三种抽象能力，你想怎么DIY都随你喜欢。另一种曾经十分火爆的面向对象(Oriented
+Object，简称OO)型语言则天生带着镣铐，这其中以Java最具代表性（Java是一门纯粹的OO语言），OO语言抽象出“类”的概念，认为万物皆可封装成特定的类，而类与类之间有着继承(Inheritance)关系（也就是父子），每个类可以定义它自己的成员变量、成员函数(方法)，在这基础上还可以设定开放权限。另一方面，继承类可以直接继承父类的某些方法，对于不满意的，也可以通过重写(Override)的方式来DIY自己的专属版本。外部对象访问时，通过多态(Polymorphism)的机制来达到父类指针(引用)访问不同的子类对象的能力。继承与传统的组合(Composition)搭配使用，发生了强烈的化学反应，随着OO语言的不断发展，先驱者应对各类需求场景归纳出了各种设计上的定式，而这就是大名鼎鼎的“设计模式”。</p>
+<blockquote>
+<p>设计模式也算是面试八股文的重灾区了，说实话我到现在都不会画UML，我是低手。</p>
+</blockquote>
+<blockquote>
+<p>OO只是C++语言能力的一个子集，也不是非用不可。事实上C++是所有语言中自由度最高的、也是能力最大而全的（但也因历史问题形成了严重的割裂感），只是对机师的操作要求太高，我至今没见过谁敢在简历上写“精通C++”，即使是经验丰富的老司机，谈到C++，也只敢说略懂、略懂。</p>
+</blockquote>
+<p>待续。。。</p>
 
             </div>
             <hr>
