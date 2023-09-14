@@ -89,8 +89,7 @@ $$
 
 # 附录
 ## 视频
-<iframe src="//player.bilibili.com/player.html?aid=382989698&bvid=BV16Z4y1U7oU&cid=569897195&p=8&autoplay=0" scrolling="no" border="0" width="100%" height="500" frameborder="no" framespacing="0" allowfullscreen="true"> </iframe>
-
+<iframe src="//player.bilibili.com/player.html?aid=382989698&bvid=BV16Z4y1U7oU&cid=569898565&p=8&autoplay=0" scrolling="no" border="0" width="100%" height="500" frameborder="no" framespacing="0" allowfullscreen="true"> </iframe>
 ## 参考链接
 
 - [Ax=b 的可解性和解的结构](https://github.com/MLNLP-World/MIT-Linear-Algebra-Notes/blob/master/%5B08%5D%20Ax%3Db%20%E7%9A%84%E5%8F%AF%E8%A7%A3%E6%80%A7%E5%92%8C%E8%A7%A3%E7%9A%84%E7%BB%93%E6%9E%84/%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B08.pdf)
