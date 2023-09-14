@@ -24,7 +24,7 @@
 <meta property="og:description" content="这一讲深入探讨了求解\(Ax&#x3D;0\)过程中，消元法所得到的主列、自由列、自由变量与特解以及它们与矩阵的秩的关系。">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2022-05-04T04:28:37.000Z">
-<meta property="article:modified_time" content="2023-01-17T02:56:15.963Z">
+<meta property="article:modified_time" content="2023-09-14T03:10:14.246Z">
 <meta property="article:author" content="r00tk1t">
 <meta property="article:tag" content="MIT-18.06-linear_algebra">
 <meta name="twitter:card" content="summary_large_image">
@@ -197,7 +197,7 @@
   
     <span class="post-meta mr-2">
       <i class="iconfont icon-chart"></i>
-      2.6k 字
+      2.8k 字
     </span>
   
 
@@ -206,7 +206,7 @@
       <i class="iconfont icon-clock-fill"></i>
       
       
-      22 分钟
+      24 分钟
     </span>
   
 
@@ -246,8 +246,9 @@ class="math inline">\(Ax=0\)</span>: 主变量，特解</h1>
 <p>给定一个<span class="math inline">\(3\times 4\)</span>的矩阵： <span
 class="math inline">\(A=\begin{bmatrix}  1&amp;2&amp;2&amp;2  \\
 2&amp;4&amp;6&amp;8  \\ 3&amp;6&amp;8&amp;10 \end{bmatrix}\)</span></p>
-<p>欲求<span
-class="math inline">\(Ax=0\)</span>的特解，首先通过高斯消元法找到主变量：
+<h2 id="求解零空间">求解零空间</h2>
+<p>零空间由求<span
+class="math inline">\(Ax=0\)</span>的解集合组成，除了零向量以外，欲求其他解，首先要通过高斯消元法找到主变量：
 <span class="math display">\[
 A=
 \begin{bmatrix}
@@ -265,12 +266,12 @@ A=
 <p>可以看出经过消元后，主变量还剩2个（下划线元素），因此矩阵<span
 class="math inline">\(A\)</span>的秩就是2，即<span
 class="math inline">\(r=2\)</span>。
-主变量所在的列我们称为主列，其余列则称为自由列。自由列中的变量我们称为自由变量，那么自由变量的个数就是：<span
+主变量所在的列我们称为主列，其余列则称为自由列。自由列对应的变量我们称为自由变量，那么自由变量的个数就是：<span
 class="math inline">\(n-r=4-2=2\)</span>。</p>
 <p>高斯消元处理后，线性相关的行就会被暴露出来，比如<span
 class="math inline">\(A\)</span>矩阵的行三实际上就是行一和行二的加和，所以在消元后整行都变成了<span
 class="math inline">\(0\)</span>(<span
-class="math inline">\(0\)</span>行，即没有主元)。另一方面，线性相关的列也会被暴露，我们在消元过程中发现第二列原本要做主元的元素变成了0，这恰恰是因为第二列和前面的列（这里只有第一列）线性相关（刚好是2倍列1），因此第二列没有主元，是自由列。而同样的，第四列也没有主元，这就说明第四列实际上是前三列的线性组合（二倍第三列减去第二列）。</p>
+class="math inline">\(0\)</span>行，即没有主元)。另一方面，线性相关的列也会被暴露，我们在消元过程中发现第二列原本要做主元的元素变成了0，这恰恰是因为第二列和前面的列（这里只有第一列）线性相关（刚好是两倍的列1），因此第二列没有主元，是自由列。而同样的，第四列也没有主元，这就说明第四列实际上是前三列的线性组合（两倍的第三列减第二列）。</p>
 <p>消元的本质是行变换，行变换改变的是列向量（从而可能改变列空间），但是无法改变列向量之间的线性相关性。另一方面，消元不会改变零空间，因为<span
 class="math inline">\(b\)</span>为<span
 class="math inline">\(0\)</span>时，随你怎么折腾，他都是<span
@@ -280,31 +281,41 @@ class="math inline">\(Ux=0\)</span>的求解，首先我们找出主变量和自
 class="math inline">\(x_1\)</span>和<span
 class="math inline">\(x_3\)</span>是主变量，<span
 class="math inline">\(x_2\)</span>和<span
-class="math inline">\(x_4\)</span>是自由变量。自由变量可以对其分配任意的值（不关你赋什么值，都会被其他线性相关的列的某个值里抵消掉）。</p>
+class="math inline">\(x_4\)</span>是自由变量。自由变量可以对其分配任意的值（不管你赋什么值，都会被计算出来的主变量抵消掉）。</p>
 <p><strong>我们对自由变量随意赋值，一般采用的一种简单策略是：对其中一个自由变量赋值为<span
 class="math inline">\(1\)</span>，其余赋值为<span
 class="math inline">\(0\)</span>，循环往复。</strong></p>
-<blockquote>
-<p>这种策略非常优雅且直观，类似控制变量法的思想，我们每次只关注其中一个自由变量，其他都砍成<span
-class="math inline">\(0\)</span>，这样就可以避免自由变量的相互影响，从而得到所有的线性无关的特解。</p>
-</blockquote>
 <p>通过这样的策略，我们对自由变量进行赋值，并回代求出主变量：</p>
 <ul>
-<li>令<span class="math inline">\(x_2=1, x_4=0\)</span>求得特解<span
-class="math inline">\(x=c_1\begin{bmatrix}-2\\ 1\\ 0\\
+<li>令<span class="math inline">\(x_2=1, x_4=0\)</span>，得解<span
+class="math inline">\(x=\begin{bmatrix}-2\\ 1\\ 0\\
 0\end{bmatrix}\)</span></li>
-<li>令<span class="math inline">\(x_2=0, x_4=1\)</span>求得特解<span
-class="math inline">\(x=c_2\begin{bmatrix}2\\ 0\\ -2\\
+<li>令<span class="math inline">\(x_2=0, x_4=1\)</span>，得解<span
+class="math inline">\(x=\begin{bmatrix}2\\ 0\\ -2\\
 1\end{bmatrix}\)</span></li>
 </ul>
-<p>到这里，结果就很显而易见了：<strong>零空间所包含的就是特解的线性组合，每个自由变量对应着一个特解，特解之间线性无关。</strong></p>
+<p>这两个解我们称之为特解，<strong>特解的线性组合构成的向量空间就是零空间，零空间的每个向量都是方程组的解</strong>：
+<span class="math display">\[
+x=c\begin{bmatrix}-2\\ 1\\ 0\\ 0\end{bmatrix}+d\begin{bmatrix}2\\ 0\\
+-2\\ 1\end{bmatrix}
+\]</span></p>
+<p><strong>特解之间线性无关。</strong></p>
+<blockquote>
+<p>求特解的策略非常优雅直观，采用控制变量的思想，我们每次只关注其中一个自由变量，避免自由变量的相互影响，从而得到所有的线性无关的特解。</p>
+</blockquote>
+<p><strong>归纳：对于<span
+class="math inline">\(m*n\)</span>矩阵，若其秩为<span
+class="math inline">\(r\)</span>，则主变量有<span
+class="math inline">\(r\)</span>个，自由变量有<span
+class="math inline">\(n-r\)</span>个。</strong></p>
 <h2 id="rrefreduced-row-echelon-form">RREF(Reduced row echelon
 form)</h2>
 <p>上例中消元得到的<span
 class="math inline">\(U\)</span>矩阵是个上三角阵，实际上还可以进一步简化成<span
 class="math inline">\(R\)</span>矩阵，即RREF(Reduced row echelon
 form)——简化行阶梯形式。</p>
-<p><span class="math inline">\(R\)</span>矩阵中主元上下的元素都是0：
+<p><span
+class="math inline">\(R\)</span>矩阵中主元上下的元素都是0，主元提取公倍数化简为1：
 <span class="math display">\[
 U=
 \begin{bmatrix}
@@ -321,7 +332,7 @@ U=
 =R
 \]</span></p>
 <p>将<span
-class="math inline">\(R\)</span>矩阵中的主变量放在一起，自由变量放在一起（列交换），得到：
+class="math inline">\(R\)</span>矩阵中的主列放在一起，自由列放在一起（列交换），得到：
 <span class="math display">\[
 R=\begin{bmatrix}
 \underline{1} &amp; 2 &amp; 0 &amp; -2
@@ -339,7 +350,7 @@ R=\begin{bmatrix}
 I &amp; F
 \\ 0 &amp; 0
 \end{bmatrix}
-\textrm{，其中}I\textrm{为单位矩阵，}F\textrm{为自由变量组成的矩阵}
+\textrm{，其中}I\textrm{为主列组成的$r*r$大小的单位矩阵，}F\textrm{为自由列经过化简后组成的矩阵}
 \]</span></p>
 <p>计算零空间矩阵<span class="math inline">\(N\)</span>（nullspace
 matrix），其列为特解，有<span class="math inline">\(RN=0\)</span>。
@@ -362,12 +373,27 @@ x_{pivot}
 <p>在本例中<span class="math inline">\(N=\begin{bmatrix}  -2&amp;2  \\
 0&amp;-2  \\ 1&amp;0  \\ 0&amp;1
 \end{bmatrix}\)</span>，与上面求得的两个<span
-class="math inline">\(x\)</span>特解一致。</p>
+class="math inline">\(x\)</span>特解一致，因此，可以利用<span
+class="math inline">\(R\)</span>直接求解零空间。</p>
+<blockquote>
 <p>主元的概念是消元带来的，而消元过程中挖掘的实际上就是行、列的线性相关性。</p>
+</blockquote>
 <p><strong>总结：<span class="math inline">\(A\)</span> 的主元个数 =
 <span class="math inline">\(A\)</span> 矩阵线性无关的列的个数 = <span
 class="math inline">\(A^T\)</span> 矩阵线性无关的行的个数 = <span
 class="math inline">\(A^T\)</span> 的主元个数。</strong></p>
+<h1 id="附录">附录</h1>
+<h2 id="视频">视频</h2>
+<iframe src="//player.bilibili.com/player.html?aid=382989698&amp;bvid=BV16Z4y1U7oU&amp;cid=569897195&amp;p=7&amp;autoplay=0" scrolling="no" border="0" width="100%" height="500" frameborder="no" framespacing="0" allowfullscreen="true">
+</iframe>
+<h2 id="参考链接">参考链接</h2>
+<ul>
+<li><a
+target="_blank" rel="noopener" href="https://github.com/MLNLP-World/MIT-Linear-Algebra-Notes/blob/master/%5B07%5D%20%E6%B1%82%E8%A7%A3%20Ax%20%3D%200%EF%BC%8C%E4%B8%BB%E5%8F%98%E9%87%8F%EF%BC%8C%E7%89%B9%E8%A7%A3/%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B0%5B%E4%B8%83%5D.pdf">求解
+Ax = 0，主变量，特解</a></li>
+<li><a
+target="_blank" rel="noopener" href="https://github.com/kf-liu/The-Art-of-Linear-Algebra-zh-CN">线性代数的艺术</a></li>
+</ul>
 
             </div>
             <hr>
