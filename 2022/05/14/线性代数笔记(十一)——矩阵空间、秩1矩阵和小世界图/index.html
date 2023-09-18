@@ -16,16 +16,16 @@
   <meta name="author" content="r00tk1t">
   <meta name="keywords" content="">
   
-    <meta name="description" content="本讲是上一讲的扩展内容，共分为3部分，第一部分延续上一讲介绍了矩阵空间的特性并延展到微分方程的例子，第二部分介绍了一个特殊的秩1矩阵，第三部分介绍了图的概念以及图与矩阵的关系。">
+    <meta name="description" content="本讲是上一讲的扩展内容，共分为三部分：第一部分延续上一讲介绍了矩阵空间的特性并延展到微分方程的例子；第二部分介绍了一个特殊的秩1矩阵；第三部分介绍了图的概念以及图与矩阵的关系。">
 <meta property="og:type" content="article">
 <meta property="og:title" content="线性代数笔记(十一)——矩阵空间、秩1矩阵和小世界图">
 <meta property="og:url" content="https://r00tk1ts.github.io/2022/05/14/%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B0%E7%AC%94%E8%AE%B0(%E5%8D%81%E4%B8%80)%E2%80%94%E2%80%94%E7%9F%A9%E9%98%B5%E7%A9%BA%E9%97%B4%E3%80%81%E7%A7%A91%E7%9F%A9%E9%98%B5%E5%92%8C%E5%B0%8F%E4%B8%96%E7%95%8C%E5%9B%BE/index.html">
 <meta property="og:site_name" content="玉涵的技能书">
-<meta property="og:description" content="本讲是上一讲的扩展内容，共分为3部分，第一部分延续上一讲介绍了矩阵空间的特性并延展到微分方程的例子，第二部分介绍了一个特殊的秩1矩阵，第三部分介绍了图的概念以及图与矩阵的关系。">
+<meta property="og:description" content="本讲是上一讲的扩展内容，共分为三部分：第一部分延续上一讲介绍了矩阵空间的特性并延展到微分方程的例子；第二部分介绍了一个特殊的秩1矩阵；第三部分介绍了图的概念以及图与矩阵的关系。">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://r00tk1ts.github.io/2022/05/14/%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B0%E7%AC%94%E8%AE%B0(%E5%8D%81%E4%B8%80)%E2%80%94%E2%80%94%E7%9F%A9%E9%98%B5%E7%A9%BA%E9%97%B4%E3%80%81%E7%A7%A91%E7%9F%A9%E9%98%B5%E5%92%8C%E5%B0%8F%E4%B8%96%E7%95%8C%E5%9B%BE/2022-05-14-16-41-56.png">
 <meta property="article:published_time" content="2022-05-14T08:01:54.000Z">
-<meta property="article:modified_time" content="2023-01-16T06:37:35.992Z">
+<meta property="article:modified_time" content="2023-09-18T03:50:32.879Z">
 <meta property="article:author" content="r00tk1t">
 <meta property="article:tag" content="MIT-18.06-linear_algebra">
 <meta name="twitter:card" content="summary_large_image">
@@ -199,7 +199,7 @@
   
     <span class="post-meta mr-2">
       <i class="iconfont icon-chart"></i>
-      4.2k 字
+      4.5k 字
     </span>
   
 
@@ -208,7 +208,7 @@
       <i class="iconfont icon-clock-fill"></i>
       
       
-      35 分钟
+      38 分钟
     </span>
   
 
@@ -240,12 +240,12 @@
             <h1 style="display: none">线性代数笔记(十一)——矩阵空间、秩1矩阵和小世界图</h1>
             
             <div class="markdown-body">
-              <p>本讲是上一讲的扩展内容，共分为3部分，第一部分延续上一讲介绍了矩阵空间的特性并延展到微分方程的例子，第二部分介绍了一个特殊的秩1矩阵，第三部分介绍了图的概念以及图与矩阵的关系。</p>
+              <p>本讲是上一讲的扩展内容，共分为三部分：第一部分延续上一讲介绍了矩阵空间的特性并延展到微分方程的例子；第二部分介绍了一个特殊的秩1矩阵；第三部分介绍了图的概念以及图与矩阵的关系。</p>
 <span id="more"></span>
 <h1 id="矩阵空间秩1矩阵和小世界图">矩阵空间、秩1矩阵和小世界图</h1>
 <h2 id="矩阵空间">矩阵空间</h2>
-<p>话接上一讲，以<span class="math inline">\(3\times
-3\)</span>矩阵为例，矩阵空间记为<span
+<p>话接上一讲，所有<span class="math inline">\(3\times
+3\)</span>的矩阵可以构成的封闭的空间（数乘和加法运算），记为<span
 class="math inline">\(M\)</span>，则其一组基为： <span
 class="math display">\[
 \begin{bmatrix}
@@ -294,8 +294,11 @@ class="math display">\[
 \\ 0 &amp; 0 &amp; 1
 \end{bmatrix}
 \]</span></p>
-<p>另一方面，对称阵<span
-class="math inline">\(S\)</span>的基也非常容易找到： <span
+<p>对称矩阵构成的空间<span
+class="math inline">\(S\)</span>和上三角矩阵构成的空间<span
+class="math inline">\(U\)</span>是<span
+class="math inline">\(M\)</span>的子空间： 对称阵<span
+class="math inline">\(S\)</span>的基容易找到： <span
 class="math display">\[
 \begin{bmatrix}
 1 &amp; 0 &amp; 0
@@ -361,7 +364,9 @@ class="math display">\[
 \\ 0 &amp; 0 &amp; 1
 \end{bmatrix}
 \]</span></p>
-<p>对角矩阵<span class="math inline">\(D\)</span>的基： <span
+<p>对角矩阵是对称阵和上三角矩阵的交，可以得到另一个子空间：<span
+class="math inline">\(D\)</span>，<span
+class="math inline">\(D\)</span>的基容易找到： <span
 class="math display">\[
 \begin{bmatrix}
 1 &amp; 0 &amp; 0
@@ -391,10 +396,10 @@ dim(S+U)=9\)</span>；</li>
 <p>可以看出：<span class="math inline">\(dim S + dim U=12=dim(S+U) +
 dim(S \cap U)\)</span>。</p>
 <blockquote>
-<p><span class="math inline">\(S+U\)</span>可以看出就是<span
+<p><span class="math inline">\(S+U\)</span>其实就是<span
 class="math inline">\(M\)</span>，但是要注意<span
 class="math inline">\(S+U\)</span>并不是<span class="math inline">\(S
-\cup U\)</span>，后者只包含了<span
+\cup U\)</span>（这东西也不封闭，构不成空间），后者只包含了<span
 class="math inline">\(S\)</span>和<span
 class="math inline">\(U\)</span>，而前者包含的是<span
 class="math inline">\(S\)</span>中元素和<span
@@ -403,9 +408,9 @@ class="math inline">\(S\)</span>和<span
 class="math inline">\(U\)</span>，也即 <span class="math inline">\((S
 \cup U) \subseteq (S + U)\)</span>。</p>
 </blockquote>
-<p>空间内元素还可以进一步扩展，不仅限于矩阵或向量，比如还可以是微分方程的解。</p>
 <h2 id="微分方程">微分方程</h2>
-<p>求解：<span
+<p>空间内元素还可以进一步扩展，不仅限于矩阵或向量，比如还可以是微分方程的解。</p>
+<p>例如，求解：<span
 class="math inline">\(\frac{d^2y}{dx^2}+y=0\)</span>，即<span
 class="math inline">\(y&#39;&#39;+y=0\)</span></p>
 <p>方程的解有：<span class="math inline">\(y=\cos{x}, \quad y=\sin{x},
@@ -414,15 +419,15 @@ class="math inline">\(e^{ix}=\cos{x}+i\sin{x}, \quad
 e^{-ix}=\cos{x}-i\sin{x}\)</span>）</p>
 <p>只考虑实数范围，该方程的通解为：<span class="math inline">\(y=c_1
 \cos{x} + c_2 \sin{x}\)</span>。</p>
-<p>所以，该方程的零空间的一组基为<span class="math inline">\(\cos{x},
-\sin{x}\)</span>，零空间的维数为<span
-class="math inline">\(2\)</span>。同理，如果考虑复数范围，那么<span
+<p>这很类似于零空间，可以把这些解看成零空间中的向量，其一组基为<span
+class="math inline">\(\cos{x},
+\sin{x}\)</span>，零空间的维数为2。同理，如果考虑复数范围，那么<span
 class="math inline">\(e^{ix}, e^{-ix}\)</span>也可以作为另一组基。</p>
 <p>该微分方程的所有解的集合实际上就可以看做是一个“向量空间”，或者应该叫“解空间”，他们满足加法和数乘的封闭性。</p>
 <h2 id="秩1矩阵">秩1矩阵</h2>
-<p>秩<span class="math inline">\(1\)</span>矩阵也即秩为<span
+<p>秩<span class="math inline">\(1\)</span>矩阵，即秩为<span
 class="math inline">\(1\)</span>的矩阵。所有的秩<span
-class="math inline">\(1\)</span>矩阵都可以表示成一列乘以一行（<span
+class="math inline">\(1\)</span>矩阵都可以分解成一列乘以一行（<span
 class="math inline">\(A=UV^T\)</span>）的形式，如： <span
 class="math display">\[
 A=\begin{bmatrix}
@@ -440,25 +445,28 @@ A=\begin{bmatrix}
 <p>其中<span class="math inline">\(dimC(A)=1=dimC(A^T)\)</span>，<span
 class="math inline">\(U, V\)</span>均为列向量。</p>
 <p>秩<span
-class="math inline">\(1\)</span>矩阵类似积木，任何矩阵都是有秩<span
+class="math inline">\(1\)</span>矩阵类似积木，任何矩阵都是由秩<span
 class="math inline">\(1\)</span>矩阵搭建而成的，如对于一个<span
 class="math inline">\(5 \times 17\)</span>秩为<span
 class="math inline">\(4\)</span>的矩阵，只需要<span
 class="math inline">\(4\)</span>个秩一矩阵就可以组合出来，具体过程类似于我们在第3讲中提到的矩阵乘法中的“列乘行”形式。</p>
+<h2 id="同秩矩阵的集合">同秩矩阵的集合</h2>
 <p>另外，矩阵的加法存在这样的性质：<span class="math inline">\(rank(A+B)
 \le
 rank(A)+rank(B)\)</span>。这意味着：对于同样规模的同秩矩阵所组成的集合，其加法是不封闭的。两个<span
 class="math inline">\(5\times 6\)</span>的秩为<span
 class="math inline">\(4\)</span>矩阵相加，结果的秩可能大于<span
-class="math inline">\(4\)</span>。</p>
-<h2 id="示例">示例</h2>
-<p>在<span class="math inline">\(\mathbb{R}^4\)</span>空间中有向量<span
+class="math inline">\(4\)</span>，因此，所有秩为<span
+class="math inline">\(4\)</span>的矩阵构成的集合并不是空间，同理，秩<span
+class="math inline">\(1\)</span>矩阵集合也不是空间。</p>
+<h2 id="子空间转化">子空间转化</h2>
+<p><span class="math inline">\(\mathbb{R}^4\)</span>空间中任一向量<span
 class="math inline">\(v=\begin{bmatrix}v_1\\ v_2\\ v_3\\
-v_4\end{bmatrix}\)</span>，取<span
+v_4\end{bmatrix}\)</span>共有4个分量，取<span
 class="math inline">\(\mathbb{R}^4\)</span>中满足<span
 class="math inline">\(v_1+v_2+v_3+v_4=0\)</span>的所有向量组成一个向量空间<span
 class="math inline">\(S\)</span>，则<span
-class="math inline">\(S\)</span>是一个向量子空间。易看出，不论是使用系数乘以该向量，或是用两个满足条件的向量相加，其结果仍然落在分量和为零的向量空间中。</p>
+class="math inline">\(S\)</span>显然是一个向量子空间。易看出，不论是使用系数乘以该向量，或是用两个满足条件的向量相加，其结果仍然落在分量和为零的向量空间中。</p>
 <p><strong><span class="math inline">\(S\)</span>的维数</strong>
 从另一个角度看，<span
 class="math inline">\(v_1+v_2+v_3+v_4=0\)</span>等价于: <span
@@ -470,26 +478,30 @@ class="math inline">\(A=\begin{bmatrix}1&amp;1&amp;1&amp;1\end{bmatrix}\)</span>
 class="math inline">\(rank(A)=1\)</span>，则对其零空间有<span
 class="math inline">\(rank(N(A))=n-r=3=dim N(A)\)</span>，则<span
 class="math inline">\(S\)</span>的维数是<span
-class="math inline">\(3\)</span>。</p>
+class="math inline">\(3\)</span>，其基为<span
+class="math inline">\(Av=0\)</span>的三个特解：<span
+class="math inline">\(\begin{bmatrix}-1\\1\\0\\0\end{bmatrix}\)</span>,<span
+class="math inline">\(\begin{bmatrix}-1\\0\\1\\0\end{bmatrix}\)</span>,<span
+class="math inline">\(\begin{bmatrix}-1\\0\\0\\1\end{bmatrix}\)</span></p>
 <p>矩阵<span class="math inline">\(A\)</span>的四个基本子空间： -
-行空间：<span class="math inline">\(dim
-C(A^T)=1\)</span>，其中的一组基是<span
-class="math inline">\(\begin{bmatrix}1\\ 1\\ 1\\
-1\end{bmatrix}\)</span>； - 零空间：<span class="math inline">\(dim
-N(A)=3\)</span>，其中的一组基是<span
-class="math inline">\(\begin{bmatrix}-1\\ 1\\ 0\\
-0\end{bmatrix}\begin{bmatrix}-1\\ 0\\ 1\\
-0\end{bmatrix}\begin{bmatrix}-1\\ 0\\ 0\\ 1\end{bmatrix}\)</span> -
 列空间：<span class="math inline">\(dim
 C(A)=1\)</span>，其中一组基是<span
 class="math inline">\(\begin{bmatrix}1\end{bmatrix}\)</span>，可以看出列空间就是整个<span
-class="math inline">\(\mathbb{R}^1\)</span>空间。 - 左零空间：<span
-class="math inline">\(dim N(A^T)=0\)</span>，因为<span
+class="math inline">\(\mathbb{R}^1\)</span>空间。 - 零空间：<span
+class="math inline">\(dim N(A)=3\)</span>，其中的一组基是<span
+class="math inline">\(\begin{bmatrix}-1\\ 1\\ 0\\
+0\end{bmatrix}\begin{bmatrix}-1\\ 0\\ 1\\
+0\end{bmatrix}\begin{bmatrix}-1\\ 0\\ 0\\ 1\end{bmatrix}\)</span> -
+行空间：<span class="math inline">\(dim
+C(A^T)=1\)</span>，其中的一组基是<span
+class="math inline">\(\begin{bmatrix}1\\ 1\\ 1\\
+1\end{bmatrix}\)</span>； - 左零空间：<span class="math inline">\(dim
+N(A^T)=0\)</span>，因为<span
 class="math inline">\(A\)</span>转置后没有非零的<span
 class="math inline">\(v\)</span>可以使<span
-class="math inline">\(Av=0\)</span>成立，就是<span
+class="math inline">\(Av=0\)</span>成立，左零空间就只有<span
 class="math inline">\(\begin{bmatrix}0\end{bmatrix}\)</span>。</p>
-<p>综上，<span class="math inline">\(dim C(A^T)+dim N(A)=4=n, dim
+<p>综上：<span class="math inline">\(dim C(A^T)+dim N(A)=4=n, dim
 C(A)+dim N(A^T)=1=m\)</span></p>
 <h2 id="小世界图">小世界图</h2>
 <p><strong>图是点和边的集合，边连通各个点。</strong></p>
@@ -497,6 +509,18 @@ C(A)+dim N(A^T)=1=m\)</span></p>
 <p>假设，每个人是图中的一个节点，如果两个人为朋友关系，则在这两个人的节点间添加一条边，通常来说，从一个节点到另一个节点只需要不超过<span
 class="math inline">\(6\)</span>步（即六条边）即可到达，这就是大名鼎鼎的“<strong>六度分割理论</strong>”。</p>
 <p>图与矩阵有怎样的联系呢？下一讲会进行阐述。</p>
+<h1 id="附录">附录</h1>
+<h2 id="视频">视频</h2>
+<iframe src="//player.bilibili.com/player.html?aid=382989698&amp;bvid=BV16Z4y1U7oU&amp;cid=569901788&amp;p=11&amp;autoplay=0" scrolling="no" border="0" width="100%" height="500" frameborder="no" framespacing="0" allowfullscreen="true">
+</iframe>
+<h2 id="参考链接">参考链接</h2>
+<ul>
+<li><a
+target="_blank" rel="noopener" href="https://github.com/MLNLP-World/MIT-Linear-Algebra-Notes/blob/master/%5B11%5D%20%E7%9F%A9%E9%98%B5%E7%A9%BA%E9%97%B4%20%E7%A7%A91%20%E7%9F%A9%E9%98%B5/%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B011.pdf">矩阵空间
+秩1 矩阵</a></li>
+<li><a
+target="_blank" rel="noopener" href="https://github.com/kf-liu/The-Art-of-Linear-Algebra-zh-CN">线性代数的艺术</a></li>
+</ul>
 
             </div>
             <hr>
