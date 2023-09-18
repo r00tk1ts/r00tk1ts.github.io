@@ -24,7 +24,7 @@
 <meta property="og:description" content="这一讲对向量组的线性相关性、线性无关性做了进一步的阐释，之后引出向量空间中基和维数的概念。">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2022-05-14T06:41:24.000Z">
-<meta property="article:modified_time" content="2023-09-18T02:06:58.728Z">
+<meta property="article:modified_time" content="2023-09-18T07:10:25.540Z">
 <meta property="article:author" content="r00tk1t">
 <meta property="article:tag" content="MIT-18.06-linear_algebra">
 <meta name="twitter:card" content="summary_large_image">
@@ -197,7 +197,7 @@
   
     <span class="post-meta mr-2">
       <i class="iconfont icon-chart"></i>
-      1.6k 字
+      1.5k 字
     </span>
   
 
@@ -274,24 +274,13 @@ class="math inline">\(\mathbb{R}^n\)</span>的基有无穷多个，而我们平�
 1 \\ 1 &amp; 1 &amp; 2 &amp; 1 \\ 1 &amp; 2 &amp; 3 &amp; 1
 \end{bmatrix}\)</span></p>
 <h3 id="a的各列是不是a列空间的基">A的各列是不是A列空间的基？</h3>
-显然不是，列3是列1和列2的加和，列4和列1完全相同，A的列向量线性相关，所以不是基。这也意味着其零空间中有非零向量，不难看出<span
+<p>显然不是，列3是列1和列2的加和，列4和列1完全相同，A的列向量线性相关，所以不是基。这也意味着其零空间中有非零向量，不难看出<span
 class="math inline">\(rank(A)=2\)</span>。可以很容易的求得<span
-class="math inline">\(Ax=0\)</span>的两个解，如$ x_1=
-<span class="math display">\[\begin{bmatrix}
--1
-\\ -1
-\\ 1
-\\ 0
-\end{bmatrix}\]</span>
-, x_2=
-<span class="math display">\[\begin{bmatrix}
--1
-\\ 0
-\\ 0
-\\ 1
-\end{bmatrix}\]</span>
-<p><span
-class="math inline">\(，而特解的个数就是自由变量的个数，所以\)</span>n-rank(A)=2$，即自由变量存在的列数，亦是零空间的维数。</p>
+class="math inline">\(Ax=0\)</span>的两个解，如<span
+class="math inline">\(x_1=\begin{bmatrix} -1 \\ -1 \\ 1 \\ 0
+\end{bmatrix}, x_2= \begin{bmatrix} -1 \\ 0 \\ 0 \\ 1
+\end{bmatrix}\)</span>，而特解的个数就是自由变量的个数，所以<span
+class="math inline">\(n-rank(A)=2\)</span>，即自由变量存在的列数，亦是零空间的维数。</p>
 <h3 id="给出a列空间的基和维数">给出A列空间的基和维数。</h3>
 <p>可以取前两列线性无关列作为基。A列空间的维数是2。</p>
 <h3 id="a零空间的维数是多少">A零空间的维数是多少？</h3>
