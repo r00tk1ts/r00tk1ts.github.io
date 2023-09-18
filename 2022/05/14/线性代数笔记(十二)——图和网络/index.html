@@ -16,18 +16,20 @@
   <meta name="author" content="r00tk1t">
   <meta name="keywords" content="">
   
-    <meta name="description" content="这一讲作为第一部分的最后一节内容，主要着重于描述线性代数的应用。 图和网络 有向图 给定一个有向图：4节点，5条边  可以用如下方式来抽象描述：。 \[ \begin{array}{c | c c c c} &amp; node_1 &amp; node_2 &amp; node_3 &amp; node_4 \\ \hline edge_1 &amp; -1     &amp; 1      &amp;">
+    <meta name="description" content="这一讲作为第一部分的最后一节内容，主要着重于描述线性代数的应用。 图和网络 有向图 给定一个有向图：4节点，5条边  可以用如下方式来抽象描述： \[ \begin{array}{c | c c c c} &amp; node_1 &amp; node_2 &amp; node_3 &amp; node_4 \\ \hline edge_1 &amp; -1     &amp; 1      &amp;a">
 <meta property="og:type" content="article">
 <meta property="og:title" content="线性代数笔记(十二)——图和网络">
 <meta property="og:url" content="https://r00tk1ts.github.io/2022/05/14/%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B0%E7%AC%94%E8%AE%B0(%E5%8D%81%E4%BA%8C)%E2%80%94%E2%80%94%E5%9B%BE%E5%92%8C%E7%BD%91%E7%BB%9C/index.html">
 <meta property="og:site_name" content="玉涵的技能书">
-<meta property="og:description" content="这一讲作为第一部分的最后一节内容，主要着重于描述线性代数的应用。 图和网络 有向图 给定一个有向图：4节点，5条边  可以用如下方式来抽象描述：。 \[ \begin{array}{c | c c c c} &amp; node_1 &amp; node_2 &amp; node_3 &amp; node_4 \\ \hline edge_1 &amp; -1     &amp; 1      &amp;">
+<meta property="og:description" content="这一讲作为第一部分的最后一节内容，主要着重于描述线性代数的应用。 图和网络 有向图 给定一个有向图：4节点，5条边  可以用如下方式来抽象描述： \[ \begin{array}{c | c c c c} &amp; node_1 &amp; node_2 &amp; node_3 &amp; node_4 \\ \hline edge_1 &amp; -1     &amp; 1      &amp;a">
 <meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://r00tk1ts.github.io/2022/05/14/%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B0%E7%AC%94%E8%AE%B0(%E5%8D%81%E4%BA%8C)%E2%80%94%E2%80%94%E5%9B%BE%E5%92%8C%E7%BD%91%E7%BB%9C/2022-05-14-16-56-35.png">
 <meta property="article:published_time" content="2022-05-14T08:51:02.000Z">
-<meta property="article:modified_time" content="2023-01-16T06:37:35.993Z">
+<meta property="article:modified_time" content="2023-09-18T07:05:17.972Z">
 <meta property="article:author" content="r00tk1t">
 <meta property="article:tag" content="MIT-18.06-linear_algebra">
 <meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://r00tk1ts.github.io/2022/05/14/%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B0%E7%AC%94%E8%AE%B0(%E5%8D%81%E4%BA%8C)%E2%80%94%E2%80%94%E5%9B%BE%E5%92%8C%E7%BD%91%E7%BB%9C/2022-05-14-16-56-35.png">
   
   
   <title>线性代数笔记(十二)——图和网络 - 玉涵的技能书</title>
@@ -206,7 +208,7 @@
       <i class="iconfont icon-clock-fill"></i>
       
       
-      26 分钟
+      27 分钟
     </span>
   
 
@@ -241,9 +243,9 @@
               <p>这一讲作为第一部分的最后一节内容，主要着重于描述线性代数的应用。</p>
 <h1 id="图和网络">图和网络</h1>
 <h2 id="有向图">有向图</h2>
-<p>给定一个有向图：4节点，5条边 <img
-src="2022-05-14-16-56-35.png" srcset="/img/loading.gif" lazyload /></p>
-<p>可以用如下方式来抽象描述：。 <span class="math display">\[
+<p>给定一个有向图：4节点，5条边</p>
+<p><img src="2022-05-14-16-56-35.png" srcset="/img/loading.gif" lazyload /></p>
+<p>可以用如下方式来抽象描述： <span class="math display">\[
 \begin{array}{c | c c c c}
 &amp; node_1 &amp; node_2 &amp; node_3 &amp; node_4
 \\ \hline
@@ -264,8 +266,7 @@ A=\begin{bmatrix}
 \\ 0 &amp; 0 &amp; -1 &amp; 1
 \end{bmatrix}
 \]</span></p>
-<p>该矩阵叫做关联矩阵，其中每一列代表一个节点，每一行代表一条边（正负代表方向）。</p>
-<p>通过观察前三行，可以看出这三个行向量线性相关，而实际上，它的物理意义就是这三个向量（三条边）可以形成回路。关联矩阵一般是稀疏阵，因为每一行只有两个非零元素。</p>
+<p>这种矩阵叫做关联矩阵，其中每一列代表一个节点，每一行代表一条边（正负代表方向）。关联矩阵一般是稀疏阵，因为每一行只有两个非零元素。通过观察前三行，可以看出这三个行向量线性相关，而实际上，它的物理意义就是这三个向量（三条边）可以形成回路。</p>
 <h3 id="a的零空间"><span class="math inline">\(A\)</span>的零空间</h3>
 <p>矩阵<span class="math inline">\(A\)</span>的零空间可以通过解<span
 class="math inline">\(Ax=0\)</span>来得到，有： <span
@@ -368,7 +369,7 @@ x_2-x_1
 <p>实际上<span
 class="math inline">\(A^Ty=0\)</span>阐释的就是“基尔霍夫电流定律”（KCL），基尔霍夫电流定律是一个平衡方程，守恒定律，它说明了流入等于流出，电荷在结点上不会积累。</p>
 <p>对于<span
-class="math inline">\(A^T\)</span>，有上文得出其零空间的维数是<span
+class="math inline">\(A^T\)</span>，根据上文得出其零空间的维数是<span
 class="math inline">\(2\)</span>，则零空间的基应该有两个向量。假设<span
 class="math inline">\(y_1=1\)</span>，也就是令<span
 class="math inline">\(1\)</span>安培的电流在边<span
@@ -429,6 +430,17 @@ nodes-edges+loops=1
 <span class="math display">\[
 节点数-边数+最小回路数=1
 \]</span></p>
+<h1 id="附录">附录</h1>
+<h2 id="视频">视频</h2>
+<iframe src="//player.bilibili.com/player.html?aid=382989698&amp;bvid=BV16Z4y1U7oU&amp;cid=570094064&amp;p=12&amp;autoplay=0" scrolling="no" border="0" width="100%" height="500" frameborder="no" framespacing="0" allowfullscreen="true">
+</iframe>
+<h2 id="参考链接">参考链接</h2>
+<ul>
+<li><a
+target="_blank" rel="noopener" href="https://github.com/MLNLP-World/MIT-Linear-Algebra-Notes/blob/master/%5B12%5D%20%E7%9F%A9%E9%98%B5%E5%BA%94%E7%94%A8%EF%BC%9A%E5%9B%BE%E4%B8%8E%E7%BD%91%E7%BB%9C/%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B012.pdf">矩阵应用：图与网络</a></li>
+<li><a
+target="_blank" rel="noopener" href="https://github.com/kf-liu/The-Art-of-Linear-Algebra-zh-CN">线性代数的艺术</a></li>
+</ul>
 
             </div>
             <hr>
