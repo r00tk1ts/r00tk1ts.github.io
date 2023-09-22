@@ -37,30 +37,25 @@
 <meta name="twitter:image" content="https://r00tk1ts.github.io/2023/06/13/%E6%A0%BC%E7%89%A9%E8%87%B4%E7%9F%A5(2)%E2%80%94%E2%80%94%E8%AF%AD%E8%A8%80%E5%8D%83%E7%99%BE%EF%BC%8C%E6%AE%8A%E9%80%94%E5%90%8C%E5%BD%92/2023-06-19-19-57-33.png">
   
   
+  
   <title>格物致知(2)——语言千百，殊途同归 - 玉涵的技能书</title>
 
-  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/css/bootstrap.min.css" />
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
 
 
-  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4/github-markdown.min.css" />
-  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hint.css@2/hint.min.css" />
 
-  
-    
-    
-      
-      <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@10/styles/atom-one-dark.min.css" />
-    
-  
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
 
-  
-    <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.css" />
-  
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
 
 
 <!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
 
-<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
 
 
 
@@ -69,21 +64,42 @@
 
 <link  rel="stylesheet" href="/css/main.css" />
 
-<!-- 自定义样式保持在最底部 -->
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
 
 
   <script id="fluid-configs">
     var Fluid = window.Fluid || {};
-    var CONFIG = {"hostname":"r00tk1ts.github.io","root":"/","version":"1.8.14","typing":{"enable":true,"typeSpeed":80,"cursorChar":"_","loop":false},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"copy_btn":true,"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml"};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"r00tk1ts.github.io","root":"/","version":"1.9.5","typing":{"enable":true,"typeSpeed":80,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
   </script>
   <script  src="/js/utils.js" ></script>
   <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
 <meta name="generator" content="Hexo 6.1.0"></head>
 
 
 <body>
-  <header style="height: 70vh;">
-    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
   <div class="container">
     <a class="navbar-brand" href="/">
       <strong>玉涵的技能书</strong>
@@ -106,7 +122,7 @@
             <li class="nav-item">
               <a class="nav-link" href="/">
                 <i class="iconfont icon-home-fill"></i>
-                首页
+                <span>首页</span>
               </a>
             </li>
           
@@ -118,7 +134,7 @@
             <li class="nav-item">
               <a class="nav-link" href="/archives/">
                 <i class="iconfont icon-archive-fill"></i>
-                归档
+                <span>归档</span>
               </a>
             </li>
           
@@ -130,7 +146,7 @@
             <li class="nav-item">
               <a class="nav-link" href="/categories/">
                 <i class="iconfont icon-category-fill"></i>
-                分类
+                <span>分类</span>
               </a>
             </li>
           
@@ -142,7 +158,7 @@
             <li class="nav-item">
               <a class="nav-link" href="/tags/">
                 <i class="iconfont icon-tags-fill"></i>
-                标签
+                <span>标签</span>
               </a>
             </li>
           
@@ -154,7 +170,7 @@
             <li class="nav-item">
               <a class="nav-link" href="/about/">
                 <i class="iconfont icon-user-fill"></i>
-                关于
+                <span>关于</span>
               </a>
             </li>
           
@@ -162,14 +178,16 @@
         
           <li class="nav-item" id="search-btn">
             <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
-              &nbsp;<i class="iconfont icon-search"></i>&nbsp;
+              <i class="iconfont icon-search"></i>
             </a>
           </li>
+          
         
         
           <li class="nav-item" id="color-toggle-btn">
-            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">&nbsp;<i
-                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
           </li>
         
       </ul>
@@ -177,57 +195,69 @@
   </div>
 </nav>
 
-    <div class="banner" id="banner" parallax=true
-         style="background: url('/img/default.png') no-repeat center center;
-           background-size: cover;">
-      <div class="full-bg-img">
-        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
-          <div class="page-header text-center fade-in-up">
-            <span class="h2" id="subtitle" title="格物致知(2)——语言千百，殊途同归">
-              
-            </span>
-
-            
-              <div class="mt-3">
-  
-  
-    <span class="post-meta">
-      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
-      <time datetime="2023-06-13 19:15" pubdate>
-        2023年6月13日 晚上
-      </time>
-    </span>
-  
-</div>
-
-<div class="mt-1">
-  
-    <span class="post-meta mr-2">
-      <i class="iconfont icon-chart"></i>
-      19k 字
-    </span>
   
 
-  
-    <span class="post-meta mr-2">
-      <i class="iconfont icon-clock-fill"></i>
-      
-      
-      161 分钟
-    </span>
-  
-
-  
-  
-</div>
-
-            
-          </div>
-
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="格物致知(2)——语言千百，殊途同归"></span>
           
         </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2023-06-13 19:15" pubdate>
+          2023年6月13日 晚上
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          19k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          161 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
       </div>
+
+      
     </div>
+  </div>
+</div>
+
+</div>
+
   </header>
 
   <main>
@@ -236,16 +266,21 @@
 
 <div class="container-fluid nopadding-x">
   <div class="row nomargin-x">
-    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
     <div class="col-lg-8 nopadding-x-md">
       <div class="container nopadding-x-md" id="board-ctn">
-        <div class="py-5" id="board">
+        <div id="board">
           <article class="post-content mx-auto">
-            <!-- SEO header -->
-            <h1 style="display: none">格物致知(2)——语言千百，殊途同归</h1>
+            <h1 id="seo-header">格物致知(2)——语言千百，殊途同归</h1>
             
-            <div class="markdown-body">
-              <p>开局一个段子，经典咏流传：你什么语言？我什么语言？我用Go写需求、我就算写出10个bug也能按期交付，你写C++、随便一个ABI问题都能卡你一整天。在座的这些老司机，哪个不是写Go、写Java、写Python的？你写C++，难怪你加班。什么C艹神教教父分父？真不熟！别笑我厌旧，你来你也臭，这就是现代编程语言带给我的自信(doge)~</p>
+            
+              <div class="markdown-body">
+                
+                <p>开局一个段子，经典咏流传：你什么语言？我什么语言？我用Go写需求、我就算写出10个bug也能按期交付，你写C++、随便一个ABI问题都能卡你一整天。在座的这些老司机，哪个不是写Go、写Java、写Python的？你写C++，难怪你加班。什么C艹神教教父分父？真不熟！别笑我厌旧，你来你也臭，这就是现代编程语言带给我的自信(doge)~</p>
 <p>我笑不出来，因为我写C++。</p>
 <span id="more"></span>
 <h1 id="语言千百殊途同归">语言千百，殊途同归</h1>
@@ -282,19 +317,19 @@ target="_blank" rel="noopener" href="https://www.tiobe.com/tiobe-index/">TIOBE</
 <p>程序中专门处理数据的系统被称作型别系统(type
 system)，语言依次可分成两大类：静态类型（如C/C++、Java、Go）和动态类型(如Lisp，Javascript，Python)。二者的根本性差异在于类型被确定的时机，对于静态类型语言来说，其数据类型在编译或者更准确的说是在运行之前就确定的，而动态类型语言则是在运行时(RT)才确定变量的类型。</p>
 <p>比如下面这段C++代码：</p>
-<figure class="highlight cpp"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs cpp"><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;iostream&gt;</span></span><br><br><span class="hljs-function"><span class="hljs-type">int</span> <span class="hljs-title">add</span><span class="hljs-params">(<span class="hljs-type">int</span> a, <span class="hljs-type">int</span> b)</span> </span>&#123;<br>    <span class="hljs-keyword">return</span> a + b;<br>&#125;<br><br><span class="hljs-function"><span class="hljs-type">int</span> <span class="hljs-title">main</span><span class="hljs-params">()</span> </span>&#123;<br>    std::cout &lt;&lt; <span class="hljs-built_in">add</span>(<span class="hljs-number">3</span>,<span class="hljs-number">5</span>) &lt;&lt; std::endl;<br>    <span class="hljs-comment">// std::cout &lt;&lt; add(&quot;3&quot;, &quot;5&quot;) &lt;&lt; std::endl; // 编译不通过，add的参数是int型，不能传const char*</span><br>    <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>&#125;<br></code></pre></div></td></tr></table></figure>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;iostream&gt;</span></span><br><br><span class="hljs-function"><span class="hljs-type">int</span> <span class="hljs-title">add</span><span class="hljs-params">(<span class="hljs-type">int</span> a, <span class="hljs-type">int</span> b)</span> </span>&#123;<br>    <span class="hljs-keyword">return</span> a + b;<br>&#125;<br><br><span class="hljs-function"><span class="hljs-type">int</span> <span class="hljs-title">main</span><span class="hljs-params">()</span> </span>&#123;<br>    std::cout &lt;&lt; <span class="hljs-built_in">add</span>(<span class="hljs-number">3</span>,<span class="hljs-number">5</span>) &lt;&lt; std::endl;<br>    <span class="hljs-comment">// std::cout &lt;&lt; add(&quot;3&quot;, &quot;5&quot;) &lt;&lt; std::endl; // 编译不通过，add的参数是int型，不能传const char*</span><br>    <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
 <p>在编译阶段就已经知道了a和b的类型是int，而对于像Python这种动态类型语言来说则不然：</p>
-<figure class="highlight python"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs python"><span class="hljs-keyword">def</span> <span class="hljs-title function_">add</span>(<span class="hljs-params">a, b</span>):<br>    <span class="hljs-keyword">return</span> a + b<br><br><span class="hljs-built_in">print</span>(add(<span class="hljs-number">3</span>, <span class="hljs-number">5</span>))     <span class="hljs-comment"># 两者都是int型，输出8</span><br><span class="hljs-built_in">print</span>(add(<span class="hljs-string">&quot;3&quot;</span>,<span class="hljs-string">&quot;5&quot;</span>))  <span class="hljs-comment"># 两者都是str型，输出&quot;35&quot;</span><br><span class="hljs-built_in">print</span>(add(<span class="hljs-number">3</span>, <span class="hljs-number">4.0</span>))   <span class="hljs-comment"># 传入int和float型，最终返回的是float型，输出7.0</span><br><span class="hljs-comment">#print(add(3,&quot;5&quot;))   # 运行时抛异常，TypeError: unsupported operand type(s) for +: &#x27;int&#x27; and &#x27;str&#x27;</span><br></code></pre></div></td></tr></table></figure>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-keyword">def</span> <span class="hljs-title function_">add</span>(<span class="hljs-params">a, b</span>):<br>    <span class="hljs-keyword">return</span> a + b<br><br><span class="hljs-built_in">print</span>(add(<span class="hljs-number">3</span>, <span class="hljs-number">5</span>))     <span class="hljs-comment"># 两者都是int型，输出8</span><br><span class="hljs-built_in">print</span>(add(<span class="hljs-string">&quot;3&quot;</span>,<span class="hljs-string">&quot;5&quot;</span>))  <span class="hljs-comment"># 两者都是str型，输出&quot;35&quot;</span><br><span class="hljs-built_in">print</span>(add(<span class="hljs-number">3</span>, <span class="hljs-number">4.0</span>))   <span class="hljs-comment"># 传入int和float型，最终返回的是float型，输出7.0</span><br><span class="hljs-comment">#print(add(3,&quot;5&quot;))   # 运行时抛异常，TypeError: unsupported operand type(s) for +: &#x27;int&#x27; and &#x27;str&#x27;</span><br></code></pre></td></tr></table></figure>
 <p>执行到square的时候，才知道传进来的<code>a</code>和<code>b</code>究竟是什么类型。</p>
 <p>通过上面的例子，初学者可能会认为：动态类型好清爽，不需要在定义/声明变量的同时标注类型，不仅书写简单，用起来还灵活，你看，C++的add函数就只支持传<code>int</code>型，但python版本的则尽可能支持所有能做加法的一到两种类型。真的是这样吗？实际上这种认知并不完全正确，这里的能力实际上叫做泛型，动态类型确实让语句更短显得更干练，其RT绑定变量类型的机制也天然支持了这种泛型能力，但静态类型语言在设计上同样也可以后天弥补这种能力，对于C++来说，我们可以改造一下上述代码，通过使用函数模板来支持参数类型的泛化：</p>
-<figure class="highlight cpp"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs cpp"><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;iostream&gt;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;string&gt;</span></span><br><br><span class="hljs-function"><span class="hljs-keyword">template</span>&lt;<span class="hljs-keyword">typename</span> T1, <span class="hljs-keyword">typename</span> T2&gt;</span><br><span class="hljs-function"><span class="hljs-keyword">auto</span> <span class="hljs-title">add</span><span class="hljs-params">(T1 a, T2 b)</span> </span>&#123;<br>    <span class="hljs-keyword">return</span> a + b;<br>&#125;<br><br><span class="hljs-function"><span class="hljs-type">int</span> <span class="hljs-title">main</span><span class="hljs-params">()</span> </span>&#123;<br>    std::cout &lt;&lt; <span class="hljs-built_in">add</span>(<span class="hljs-number">3</span>, <span class="hljs-number">5</span>) &lt;&lt; std::endl;    <span class="hljs-comment">// 返回的是int型，输出8</span><br>    std::cout &lt;&lt; <span class="hljs-built_in">add</span>(std::<span class="hljs-built_in">string</span>(<span class="hljs-string">&quot;3&quot;</span>), std::<span class="hljs-built_in">string</span>(<span class="hljs-string">&quot;5&quot;</span>)) &lt;&lt; std::endl;  <span class="hljs-comment">// 返回的是std::string类型，输出&quot;35&quot;</span><br>    std::cout &lt;&lt; <span class="hljs-built_in">add</span>(<span class="hljs-number">3</span>, <span class="hljs-number">5.1</span>) &lt;&lt; std::endl;  <span class="hljs-comment">// 返回的是double型，输出8.1</span><br><br>    <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>&#125;<br></code></pre></div></td></tr></table></figure>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;iostream&gt;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;string&gt;</span></span><br><br><span class="hljs-function"><span class="hljs-keyword">template</span>&lt;<span class="hljs-keyword">typename</span> T1, <span class="hljs-keyword">typename</span> T2&gt;</span><br><span class="hljs-function"><span class="hljs-keyword">auto</span> <span class="hljs-title">add</span><span class="hljs-params">(T1 a, T2 b)</span> </span>&#123;<br>    <span class="hljs-keyword">return</span> a + b;<br>&#125;<br><br><span class="hljs-function"><span class="hljs-type">int</span> <span class="hljs-title">main</span><span class="hljs-params">()</span> </span>&#123;<br>    std::cout &lt;&lt; <span class="hljs-built_in">add</span>(<span class="hljs-number">3</span>, <span class="hljs-number">5</span>) &lt;&lt; std::endl;    <span class="hljs-comment">// 返回的是int型，输出8</span><br>    std::cout &lt;&lt; <span class="hljs-built_in">add</span>(std::<span class="hljs-built_in">string</span>(<span class="hljs-string">&quot;3&quot;</span>), std::<span class="hljs-built_in">string</span>(<span class="hljs-string">&quot;5&quot;</span>)) &lt;&lt; std::endl;  <span class="hljs-comment">// 返回的是std::string类型，输出&quot;35&quot;</span><br>    std::cout &lt;&lt; <span class="hljs-built_in">add</span>(<span class="hljs-number">3</span>, <span class="hljs-number">5.1</span>) &lt;&lt; std::endl;  <span class="hljs-comment">// 返回的是double型，输出8.1</span><br><br>    <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
 <p>C++中的泛型通过模板得以实现，其他像是Java，C#等静态类型语言也有相似的设计，当然也存在一些并不具备泛型能力的语言，此时可能就需要用诸如函数重载、抽象interface做类内wrapper、甚至干脆定义多个版本的<code>addXXX</code>来迂回支持。</p>
 <blockquote>
 <p>动态类型很大程度上提升了代码编写的灵活性，给于开发者极大的脑洞同时也是把双刃剑，灵活性的不合理运用生产了大量的屎山代码，不得不经常面对重构。故而江湖流传着这么句话：动态类型一时爽，代码重构火葬场！</p>
 </blockquote>
 <h4 id="强类型与弱类型">强类型与弱类型</h4>
 <p>与动态类型和静态类型一起时常被提起的，还有一组被叫做强类型(Java,C#,Python,go,Rust...)与弱类型(C,Javascript,Perl,PHP...)语言的区分。强弱类型的核心差异在于：不同类型的变量是否允许隐式转化。不少误人子弟的网文都把强弱类型与动静态类型混为一谈，实际上这两组概念毫不相干。像Go是静态类型语言，同时它也是强类型语言，我们在编写Go程序时，甚至不能将int32隐式转换成int型：</p>
-<figure class="highlight go"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs go"><span class="hljs-keyword">package</span> main<br><br><span class="hljs-keyword">import</span> (<br>    <span class="hljs-string">&quot;fmt&quot;</span><br>)<br><br><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">main</span><span class="hljs-params">()</span></span> &#123;<br>    <span class="hljs-keyword">var</span> a <span class="hljs-type">int32</span> = <span class="hljs-number">100</span><br>    <span class="hljs-comment">// var b int = a    // 编译错误：cannot use a (variable of type int32) as type int in variable declaration</span><br>    <span class="hljs-keyword">var</span> b <span class="hljs-type">int</span> = <span class="hljs-type">int</span>(a)  <span class="hljs-comment">// 强制类型转换可以</span><br>    fmt.Println(a, b)<br>&#125;<br></code></pre></div></td></tr></table></figure>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs go"><span class="hljs-keyword">package</span> main<br><br><span class="hljs-keyword">import</span> (<br>    <span class="hljs-string">&quot;fmt&quot;</span><br>)<br><br><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">main</span><span class="hljs-params">()</span></span> &#123;<br>    <span class="hljs-keyword">var</span> a <span class="hljs-type">int32</span> = <span class="hljs-number">100</span><br>    <span class="hljs-comment">// var b int = a    // 编译错误：cannot use a (variable of type int32) as type int in variable declaration</span><br>    <span class="hljs-keyword">var</span> b <span class="hljs-type">int</span> = <span class="hljs-type">int</span>(a)  <span class="hljs-comment">// 强制类型转换可以</span><br>    fmt.Println(a, b)<br>&#125;<br></code></pre></td></tr></table></figure>
 <p>尽管在32位机器上，int32和int尺寸相同，但对于强类型语言来说，它不支持隐式转换，哪怕你所有的上下文都将线索指向了这两种类型没有任何本质的区别。</p>
 <blockquote>
 <p>强弱类型这个概念直到2004才被一篇微软研究院的集大成论文《Type
@@ -308,10 +343,10 @@ errors的容忍程度来区分强弱，由于大部分untrapped
 errors是由隐式类型转换而导致，所以后来逐渐演变成：以是否支持隐式转换来界定强弱类型。</p>
 </blockquote>
 <p>Python是动态类型语言，同时主流社区也认为它是强类型语言，为什么没有完全达成共识呢？这主要是因为Python类型转换上的一些外在表现：</p>
-<figure class="highlight python"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs python">a = <span class="hljs-string">&quot;test&quot;</span><br><span class="hljs-built_in">print</span>(a, <span class="hljs-built_in">type</span>(a), <span class="hljs-built_in">id</span>(a)) <span class="hljs-comment"># test &lt;class &#x27;str&#x27;&gt; 93997654303728</span><br>a = <span class="hljs-number">1</span><br><span class="hljs-built_in">print</span>(a, <span class="hljs-built_in">type</span>(a), <span class="hljs-built_in">id</span>(a)) <span class="hljs-comment"># 1 &lt;class &#x27;int&#x27;&gt; 93997648968296</span><br>a += <span class="hljs-number">2</span><br><span class="hljs-built_in">print</span>(a, <span class="hljs-built_in">type</span>(a), <span class="hljs-built_in">id</span>(a)) <span class="hljs-comment"># 3 &lt;class &#x27;int&#x27;&gt; 93997648968360</span><br>a += <span class="hljs-number">5.0</span><br><span class="hljs-built_in">print</span>(a, <span class="hljs-built_in">type</span>(a), <span class="hljs-built_in">id</span>(a)) <span class="hljs-comment"># 8.0 &lt;class &#x27;float&#x27;&gt; 94765439680288</span><br></code></pre></div></td></tr></table></figure>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs python">a = <span class="hljs-string">&quot;test&quot;</span><br><span class="hljs-built_in">print</span>(a, <span class="hljs-built_in">type</span>(a), <span class="hljs-built_in">id</span>(a)) <span class="hljs-comment"># test &lt;class &#x27;str&#x27;&gt; 93997654303728</span><br>a = <span class="hljs-number">1</span><br><span class="hljs-built_in">print</span>(a, <span class="hljs-built_in">type</span>(a), <span class="hljs-built_in">id</span>(a)) <span class="hljs-comment"># 1 &lt;class &#x27;int&#x27;&gt; 93997648968296</span><br>a += <span class="hljs-number">2</span><br><span class="hljs-built_in">print</span>(a, <span class="hljs-built_in">type</span>(a), <span class="hljs-built_in">id</span>(a)) <span class="hljs-comment"># 3 &lt;class &#x27;int&#x27;&gt; 93997648968360</span><br>a += <span class="hljs-number">5.0</span><br><span class="hljs-built_in">print</span>(a, <span class="hljs-built_in">type</span>(a), <span class="hljs-built_in">id</span>(a)) <span class="hljs-comment"># 8.0 &lt;class &#x27;float&#x27;&gt; 94765439680288</span><br></code></pre></td></tr></table></figure>
 <p><code>a</code>一开始是个<code>str</code>类型，在执行到<code>a = 1</code>时，表面上看是把<code>int</code>型的<code>1</code>隐式转换给<code>str</code>类型的变量<code>a</code>，但其实这种认知是错误的。Python的类型并不是和变量<code>a</code>绑定，而是和值(准确的说、是右值)绑定，<code>a</code>只是个变量名，它只是绑定到实际变量的标签，表面上看<code>a</code>的赋值操作用到了隐式转化，但实际上程序执行过程中只是更换了它的标签，让<code>a</code>重新绑定到了另一个<code>str</code>类型的变量而已。这段代码其实最隐晦的在于最后一句<code>a += 5.0</code>，看起来是对<code>int</code>和<code>float</code>做了计算，那么按照常理就势必涉及到了类似C/C++这种向上转型的隐式转换，然而python并没有做这样的隐式转换，python的一切基础类型也都是内置的<code>class</code>型（注意<code>type</code>打印的结果，前面是不是都有个<code>class</code>~），<code>class</code>型有自己的内置<code>__add__()</code>方法，不同类型的相加实际上是<code>__add__()</code>来完成的（python万物皆对象，数值类型也不例外）。</p>
 <p>C是比较标准的弱类型语言，它支持的隐式转换相当丰富：</p>
-<figure class="highlight c"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs c"><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;stdio.h&gt;</span></span><br><br><span class="hljs-type">int</span> <span class="hljs-title function_">main</span><span class="hljs-params">()</span> &#123;<br>    <span class="hljs-type">int</span> a = <span class="hljs-number">3</span>;<br>    <span class="hljs-type">double</span> b = <span class="hljs-number">4.0</span>;<br>    a = b;              <span class="hljs-comment">// 隐式转换double-&gt;int，产出右值4</span><br>    <span class="hljs-type">double</span> c = a + b;   <span class="hljs-comment">// a是int型，b是double型，按照数值计算的向上转型规则，int会转成double再做计算</span><br>    <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;a=%d, b=%lf, c=%lf&quot;</span>, a, b, c);<br>    <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>&#125;<br></code></pre></div></td></tr></table></figure>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;stdio.h&gt;</span></span><br><br><span class="hljs-type">int</span> <span class="hljs-title function_">main</span><span class="hljs-params">()</span> &#123;<br>    <span class="hljs-type">int</span> a = <span class="hljs-number">3</span>;<br>    <span class="hljs-type">double</span> b = <span class="hljs-number">4.0</span>;<br>    a = b;              <span class="hljs-comment">// 隐式转换double-&gt;int，产出右值4</span><br>    <span class="hljs-type">double</span> c = a + b;   <span class="hljs-comment">// a是int型，b是double型，按照数值计算的向上转型规则，int会转成double再做计算</span><br>    <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;a=%d, b=%lf, c=%lf&quot;</span>, a, b, c);<br>    <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
 <p>当然这里给的都是中规中矩不会搞出问题的模范示例，实际上C代码的bug有相当一部分恰好源于各种不合规的隐式转换（型别溢出、指针步长、越界访问...）。</p>
 <blockquote>
 <p>C++诞生于C，它背负了太多C的历史设计包袱，与Modern
@@ -341,7 +376,7 @@ Learning的AI算法岗，算是另一个领域的知识。尽管如此，我们�
 Java，往往其标准库更加庞大，里面集成了各种常用的数据结构，比如C++的<code>std::vector&lt;&gt;</code>（动态变长数组）,<code>std::map&lt;&gt;</code>（红黑树，平衡二叉搜索树的一种妥协实现体，本质上是2-3树）,<code>std::unordered_map&lt;&gt;</code>（哈希表、也称散列表），<code>std::tuple&lt;&gt;</code>（元组，支持存放任意多种不同类型的数据）。再到后现代的编程语言，比如Python,
 Go，它们甚至在语言特性本身就支持各种丰富的数据结构（比如Python的list,dict，Go的slice,map都有适配的语法糖）。</p>
 <p>我们在编写程序时，往往会合理搭配使用各种数据结构和基础类型，封装出程序所需要的自定义类型，比如我们在C++中可以封装一个学生的结构，里面放置它的学号、姓名和分数：</p>
-<figure class="highlight cpp"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs cpp"><span class="hljs-keyword">enum</span> <span class="hljs-title class_">Subject</span> &#123;Chinese,English,Math&#125;;<br><br><span class="hljs-keyword">struct</span> <span class="hljs-title class_">Student</span> &#123;<br>  <span class="hljs-type">int64_t</span> id_;<br>  std::string name_;<br>  std::map&lt;Subject, <span class="hljs-type">int32_t</span>&gt; score_;<br>  <span class="hljs-comment">// for extend here ...</span><br>&#125;;<br></code></pre></div></td></tr></table></figure>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-keyword">enum</span> <span class="hljs-title class_">Subject</span> &#123;Chinese,English,Math&#125;;<br><br><span class="hljs-keyword">struct</span> <span class="hljs-title class_">Student</span> &#123;<br>  <span class="hljs-type">int64_t</span> id_;<br>  std::string name_;<br>  std::map&lt;Subject, <span class="hljs-type">int32_t</span>&gt; score_;<br>  <span class="hljs-comment">// for extend here ...</span><br>&#125;;<br></code></pre></td></tr></table></figure>
 <blockquote>
 <p>当然，这里展示的只是个toy，真实工程里的数据结构往往有着复杂的组合嵌套关系，能否良好的设计各种数据结构非常吃开发者对系统的理解和经验加成。</p>
 </blockquote>
@@ -353,36 +388,36 @@ Go，它们甚至在语言特性本身就支持各种丰富的数据结构（比
 <h4 id="分支">分支</h4>
 <p>分支结构也叫选择结构，无非就是根据特定条件，选择执行A or B or
 ...代码块。语句格式为（这里采用伪代码）：</p>
-<figure class="highlight dust"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs dust"><span class="language-xml">if（条件1） </span><span class="hljs-template-variable">&#123;分支1&#125;</span><span class="language-xml">；</span><br><span class="language-xml">else if（条件2） </span><span class="hljs-template-variable">&#123;分支2&#125;</span><span class="language-xml"></span><br><span class="language-xml">else if（条件3） </span><span class="hljs-template-variable">&#123;分支3&#125;</span><span class="language-xml"></span><br><span class="language-xml">...</span><br><span class="language-xml">else if（条件n） </span><span class="hljs-template-variable">&#123;分支n&#125;</span><span class="language-xml"></span><br><span class="language-xml">else </span><span class="hljs-template-variable">&#123;分支n+1&#125;</span><br></code></pre></div></td></tr></table></figure>
+<figure class="highlight dust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs dust"><span class="language-xml">if（条件1） </span><span class="hljs-template-variable">&#123;分支1&#125;</span><span class="language-xml">；</span><br><span class="language-xml">else if（条件2） </span><span class="hljs-template-variable">&#123;分支2&#125;</span><span class="language-xml"></span><br><span class="language-xml">else if（条件3） </span><span class="hljs-template-variable">&#123;分支3&#125;</span><span class="language-xml"></span><br><span class="language-xml">...</span><br><span class="language-xml">else if（条件n） </span><span class="hljs-template-variable">&#123;分支n&#125;</span><span class="language-xml"></span><br><span class="language-xml">else </span><span class="hljs-template-variable">&#123;分支n+1&#125;</span><br></code></pre></td></tr></table></figure>
 <p>最简单的分支结构是单分支，即只在满足条件时执行分支语句，简化为：</p>
-<figure class="highlight apache"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs apache"><span class="hljs-attribute">if</span>（条件<span class="hljs-number">1</span>）&#123;分支<span class="hljs-number">1</span>&#125;；<br></code></pre></div></td></tr></table></figure>
+<figure class="highlight apache"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs apache"><span class="hljs-attribute">if</span>（条件<span class="hljs-number">1</span>）&#123;分支<span class="hljs-number">1</span>&#125;；<br></code></pre></td></tr></table></figure>
 <p>分支不仅支持多分支，还可以做层级嵌套，形如：</p>
-<figure class="highlight aspectj"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs aspectj"><span class="hljs-keyword">if</span> (条件<span class="hljs-number">1</span>) &#123;<br>    ...<br>    <span class="hljs-keyword">if</span> (条件<span class="hljs-number">1</span>A) &#123;分支<span class="hljs-number">1</span>A&#125;<br>    <span class="hljs-function"><span class="hljs-keyword">else</span> <span class="hljs-title">if</span> <span class="hljs-params">(条件<span class="hljs-number">1</span>B)</span> </span>&#123;分支<span class="hljs-number">1</span>B&#125;<br>    ...<br>    <span class="hljs-function"><span class="hljs-keyword">else</span> <span class="hljs-title">if</span> <span class="hljs-params">(条件<span class="hljs-number">1</span>N)</span> </span>&#123;分支<span class="hljs-number">1</span>N&#125;<br>    <span class="hljs-keyword">else</span> &#123;分支<span class="hljs-number">1</span>N+<span class="hljs-number">1</span>&#125;<br>&#125; <br><span class="hljs-function"><span class="hljs-keyword">else</span> <span class="hljs-title">if</span> <span class="hljs-params">(条件<span class="hljs-number">2</span>)</span> </span>&#123;分支<span class="hljs-number">2</span>&#125;<br><span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span>（条件n） &#123;分支n&#125;<br><span class="hljs-keyword">else</span> &#123;分支n+<span class="hljs-number">1</span>&#125;<br></code></pre></div></td></tr></table></figure>
+<figure class="highlight aspectj"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs aspectj"><span class="hljs-keyword">if</span> (条件<span class="hljs-number">1</span>) &#123;<br>    ...<br>    <span class="hljs-keyword">if</span> (条件<span class="hljs-number">1</span>A) &#123;分支<span class="hljs-number">1</span>A&#125;<br>    <span class="hljs-function"><span class="hljs-keyword">else</span> <span class="hljs-title">if</span> <span class="hljs-params">(条件<span class="hljs-number">1</span>B)</span> </span>&#123;分支<span class="hljs-number">1</span>B&#125;<br>    ...<br>    <span class="hljs-function"><span class="hljs-keyword">else</span> <span class="hljs-title">if</span> <span class="hljs-params">(条件<span class="hljs-number">1</span>N)</span> </span>&#123;分支<span class="hljs-number">1</span>N&#125;<br>    <span class="hljs-keyword">else</span> &#123;分支<span class="hljs-number">1</span>N+<span class="hljs-number">1</span>&#125;<br>&#125; <br><span class="hljs-function"><span class="hljs-keyword">else</span> <span class="hljs-title">if</span> <span class="hljs-params">(条件<span class="hljs-number">2</span>)</span> </span>&#123;分支<span class="hljs-number">2</span>&#125;<br><span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span>（条件n） &#123;分支n&#125;<br><span class="hljs-keyword">else</span> &#123;分支n+<span class="hljs-number">1</span>&#125;<br></code></pre></td></tr></table></figure>
 <p>此处允许套娃，套、都给我尽情的套！</p>
 <p>大部分语言对分支结构的支持，都有着最基础的if-else语句，比如让我们来写一个判断某个用户输入的整数是奇数还是偶数的例子，在C++中，我们可以这样写：</p>
-<figure class="highlight cpp"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs cpp"><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;iostream&gt;</span></span><br><br><span class="hljs-keyword">using</span> <span class="hljs-keyword">namespace</span> std;<br><br><span class="hljs-function"><span class="hljs-type">int</span> <span class="hljs-title">main</span><span class="hljs-params">()</span> </span>&#123;<br>    <span class="hljs-type">int</span> number;<br>    cin &gt;&gt; number;<br><br>    <span class="hljs-keyword">if</span> (number % <span class="hljs-number">2</span> == <span class="hljs-number">0</span>) &#123;<br>        cout &lt;&lt; <span class="hljs-string">&quot;偶数&quot;</span> &lt;&lt; endl;<br>    &#125; <span class="hljs-keyword">else</span> &#123;<br>        cout &lt;&lt; <span class="hljs-string">&quot;奇数&quot;</span> &lt;&lt; endl;<br>    &#125;<br>    <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>&#125;<br></code></pre></div></td></tr></table></figure>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;iostream&gt;</span></span><br><br><span class="hljs-keyword">using</span> <span class="hljs-keyword">namespace</span> std;<br><br><span class="hljs-function"><span class="hljs-type">int</span> <span class="hljs-title">main</span><span class="hljs-params">()</span> </span>&#123;<br>    <span class="hljs-type">int</span> number;<br>    cin &gt;&gt; number;<br><br>    <span class="hljs-keyword">if</span> (number % <span class="hljs-number">2</span> == <span class="hljs-number">0</span>) &#123;<br>        cout &lt;&lt; <span class="hljs-string">&quot;偶数&quot;</span> &lt;&lt; endl;<br>    &#125; <span class="hljs-keyword">else</span> &#123;<br>        cout &lt;&lt; <span class="hljs-string">&quot;奇数&quot;</span> &lt;&lt; endl;<br>    &#125;<br>    <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
 <p>可以看到C++的if-else语句和伪代码相当相似，其他的一些语言也大同小异，比如同样的功能，我们在Go可以这样写：</p>
-<figure class="highlight go"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs go"><span class="hljs-keyword">package</span> main<br><br><span class="hljs-keyword">import</span> <span class="hljs-string">&quot;fmt&quot;</span><br><br><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">main</span><span class="hljs-params">()</span></span> &#123;<br>    <span class="hljs-keyword">var</span> number <span class="hljs-type">int</span><br>	fmt.Scanf(<span class="hljs-string">&quot;%d&quot;</span>, &amp;number)<br>    <br>    <span class="hljs-keyword">if</span> number % <span class="hljs-number">2</span> == <span class="hljs-number">0</span> &#123;<br>        fmt.Println(<span class="hljs-string">&quot;偶数&quot;</span>)<br>    &#125; <span class="hljs-keyword">else</span> &#123;<br>        fmt.Println(<span class="hljs-string">&quot;奇数&quot;</span>)<br>    &#125;<br>&#125;<br></code></pre></div></td></tr></table></figure>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><code class="hljs go"><span class="hljs-keyword">package</span> main<br><br><span class="hljs-keyword">import</span> <span class="hljs-string">&quot;fmt&quot;</span><br><br><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">main</span><span class="hljs-params">()</span></span> &#123;<br>    <span class="hljs-keyword">var</span> number <span class="hljs-type">int</span><br>	fmt.Scanf(<span class="hljs-string">&quot;%d&quot;</span>, &amp;number)<br>    <br>    <span class="hljs-keyword">if</span> number % <span class="hljs-number">2</span> == <span class="hljs-number">0</span> &#123;<br>        fmt.Println(<span class="hljs-string">&quot;偶数&quot;</span>)<br>    &#125; <span class="hljs-keyword">else</span> &#123;<br>        fmt.Println(<span class="hljs-string">&quot;奇数&quot;</span>)<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
 <p>而在以语法简练著称的Python中则写作：</p>
-<figure class="highlight python"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs python">number = <span class="hljs-built_in">int</span>(<span class="hljs-built_in">input</span>())<br><br><span class="hljs-keyword">if</span> number % <span class="hljs-number">2</span> == <span class="hljs-number">0</span>:<br>    <span class="hljs-built_in">print</span>(<span class="hljs-string">&quot;偶数&quot;</span>)<br><span class="hljs-keyword">else</span>:<br>    <span class="hljs-built_in">print</span>(<span class="hljs-string">&quot;奇数&quot;</span>)<br></code></pre></div></td></tr></table></figure>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs python">number = <span class="hljs-built_in">int</span>(<span class="hljs-built_in">input</span>())<br><br><span class="hljs-keyword">if</span> number % <span class="hljs-number">2</span> == <span class="hljs-number">0</span>:<br>    <span class="hljs-built_in">print</span>(<span class="hljs-string">&quot;偶数&quot;</span>)<br><span class="hljs-keyword">else</span>:<br>    <span class="hljs-built_in">print</span>(<span class="hljs-string">&quot;奇数&quot;</span>)<br></code></pre></td></tr></table></figure>
 <p>除了if-else语句外，一些语言还提供了switch语句，switch语句形如：</p>
-<figure class="highlight scss"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs scss">switch (表达式) &#123;<br>    case (值<span class="hljs-number">1</span>): &#123;代码块&#125;<br>    case (值<span class="hljs-number">2</span>): &#123;代码块&#125;<br>    ...<br>    default: &#123;默认代码块&#125;<br>&#125;<br></code></pre></div></td></tr></table></figure>
+<figure class="highlight scss"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs scss">switch (表达式) &#123;<br>    case (值<span class="hljs-number">1</span>): &#123;代码块&#125;<br>    case (值<span class="hljs-number">2</span>): &#123;代码块&#125;<br>    ...<br>    default: &#123;默认代码块&#125;<br>&#125;<br></code></pre></td></tr></table></figure>
 <p>switch是对表达式的值进行枚举，按照匹配情况去执行其中某一个具体的case的代码块，对于全部不匹配的情况，会走最后一个兜底的default逻辑。switch适合那种枚举值范围较小、且case较多的情况，switch相比if-else在翻译成底层汇编指令时是有所差别的，if-else直接应对的就是指令集中的条件跳转指令，比如Intel
 x86汇编的<code>je</code>,<code>jne</code>,<code>ja</code>,<code>jb</code>等等，而switch则可以根据具体情况在翻译阶段优化成”offset索引+跳转表“的底层指令，if-else的多重分支的判断次数和分支数成正比，但switch则与case数量无关。</p>
 <p>比如我们在C++中写这样一个例子：用户输入一年中第1天是星期几（0代表星期日，1~6代表星期一到星期六）以及一年中的第N天，我们输出第N天是星期几。</p>
-<figure class="highlight cpp"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs cpp"><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;iostream&gt;</span></span><br><br><span class="hljs-keyword">using</span> <span class="hljs-keyword">namespace</span> std;<br><br><span class="hljs-function"><span class="hljs-type">int</span> <span class="hljs-title">main</span><span class="hljs-params">()</span> </span>&#123;<br>    <span class="hljs-type">int</span> first, n;<br>    cin &gt;&gt; first &gt;&gt; n;<br><br>    <span class="hljs-keyword">switch</span> (n%<span class="hljs-number">7</span>+first<span class="hljs-number">-1</span>) &#123;<br>        <span class="hljs-keyword">case</span> <span class="hljs-number">0</span>:<br>            cout &lt;&lt; <span class="hljs-string">&quot;星期日&quot;</span> &lt;&lt; endl;<br>            <span class="hljs-keyword">break</span>;<br>        <span class="hljs-keyword">case</span> <span class="hljs-number">1</span>:<br>            cout &lt;&lt; <span class="hljs-string">&quot;星期一&quot;</span> &lt;&lt; endl;<br>            <span class="hljs-keyword">break</span>;<br>        <span class="hljs-keyword">case</span> <span class="hljs-number">2</span>:<br>            cout &lt;&lt; <span class="hljs-string">&quot;星期二&quot;</span> &lt;&lt; endl;<br>            <span class="hljs-keyword">break</span>;<br>        <span class="hljs-keyword">case</span> <span class="hljs-number">3</span>:<br>            cout &lt;&lt; <span class="hljs-string">&quot;星期三&quot;</span> &lt;&lt; endl;<br>            <span class="hljs-keyword">break</span>;<br>        <span class="hljs-keyword">case</span> <span class="hljs-number">4</span>:<br>            cout &lt;&lt; <span class="hljs-string">&quot;星期四&quot;</span> &lt;&lt; endl;<br>            <span class="hljs-keyword">break</span>;<br>        <span class="hljs-keyword">case</span> <span class="hljs-number">5</span>:<br>            cout &lt;&lt; <span class="hljs-string">&quot;星期五&quot;</span> &lt;&lt; endl;<br>            <span class="hljs-keyword">break</span>;<br>        <span class="hljs-keyword">case</span> <span class="hljs-number">6</span>:<br>            cout &lt;&lt; <span class="hljs-string">&quot;星期六&quot;</span> &lt;&lt; endl;<br>            <span class="hljs-keyword">break</span>;<br>        <span class="hljs-keyword">default</span>:    <span class="hljs-comment">// never through here</span><br>            <span class="hljs-built_in">assert</span>(<span class="hljs-literal">false</span>);<br>            <span class="hljs-keyword">break</span>;<br>    &#125;<br>    <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>&#125;<br></code></pre></div></td></tr></table></figure>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;iostream&gt;</span></span><br><br><span class="hljs-keyword">using</span> <span class="hljs-keyword">namespace</span> std;<br><br><span class="hljs-function"><span class="hljs-type">int</span> <span class="hljs-title">main</span><span class="hljs-params">()</span> </span>&#123;<br>    <span class="hljs-type">int</span> first, n;<br>    cin &gt;&gt; first &gt;&gt; n;<br><br>    <span class="hljs-keyword">switch</span> (n%<span class="hljs-number">7</span>+first<span class="hljs-number">-1</span>) &#123;<br>        <span class="hljs-keyword">case</span> <span class="hljs-number">0</span>:<br>            cout &lt;&lt; <span class="hljs-string">&quot;星期日&quot;</span> &lt;&lt; endl;<br>            <span class="hljs-keyword">break</span>;<br>        <span class="hljs-keyword">case</span> <span class="hljs-number">1</span>:<br>            cout &lt;&lt; <span class="hljs-string">&quot;星期一&quot;</span> &lt;&lt; endl;<br>            <span class="hljs-keyword">break</span>;<br>        <span class="hljs-keyword">case</span> <span class="hljs-number">2</span>:<br>            cout &lt;&lt; <span class="hljs-string">&quot;星期二&quot;</span> &lt;&lt; endl;<br>            <span class="hljs-keyword">break</span>;<br>        <span class="hljs-keyword">case</span> <span class="hljs-number">3</span>:<br>            cout &lt;&lt; <span class="hljs-string">&quot;星期三&quot;</span> &lt;&lt; endl;<br>            <span class="hljs-keyword">break</span>;<br>        <span class="hljs-keyword">case</span> <span class="hljs-number">4</span>:<br>            cout &lt;&lt; <span class="hljs-string">&quot;星期四&quot;</span> &lt;&lt; endl;<br>            <span class="hljs-keyword">break</span>;<br>        <span class="hljs-keyword">case</span> <span class="hljs-number">5</span>:<br>            cout &lt;&lt; <span class="hljs-string">&quot;星期五&quot;</span> &lt;&lt; endl;<br>            <span class="hljs-keyword">break</span>;<br>        <span class="hljs-keyword">case</span> <span class="hljs-number">6</span>:<br>            cout &lt;&lt; <span class="hljs-string">&quot;星期六&quot;</span> &lt;&lt; endl;<br>            <span class="hljs-keyword">break</span>;<br>        <span class="hljs-keyword">default</span>:    <span class="hljs-comment">// never through here</span><br>            <span class="hljs-built_in">assert</span>(<span class="hljs-literal">false</span>);<br>            <span class="hljs-keyword">break</span>;<br>    &#125;<br>    <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
 <p>虽然这里<code>default</code>分支永远不会命中，但对每个switch都书写<code>default</code>是个编程的好习惯。另外在C++里每个<code>case</code>需要一个<code>break</code>语句来跳出，如果不写<code>break</code>的话则会产生穿透(Fall
 Through)到下一个case继续执行的效果。C++的<code>switch</code>只能对有限的几种类型做枚举，一些其他语言比如Go则更加强大一些，Go不仅支持更丰富的类型值枚举，还可以在一个case里匹配复数个值，上面的代码用Go来写一版：</p>
-<figure class="highlight go"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs go"><span class="hljs-keyword">package</span> main<br><br><span class="hljs-keyword">import</span> (<br>    <span class="hljs-string">&quot;fmt&quot;</span><br>)<br><br><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">main</span><span class="hljs-params">()</span></span> &#123;<br>    <span class="hljs-keyword">var</span> (<br>        first <span class="hljs-type">int</span><br>        n <span class="hljs-type">int</span><br>    )<br>    fmt.Scanf(<span class="hljs-string">&quot;%d %d&quot;</span>, &amp;first, &amp;n)<br><br>    <span class="hljs-keyword">switch</span> n%<span class="hljs-number">7</span>+first<span class="hljs-number">-1</span> &#123;<br>        <span class="hljs-keyword">case</span> <span class="hljs-number">0</span>:<br>            fmt.Printf(<span class="hljs-string">&quot;星期日\n&quot;</span>);dd<br>        <span class="hljs-keyword">case</span> <span class="hljs-number">1</span>,<span class="hljs-number">2</span>,<span class="hljs-number">3</span>,<span class="hljs-number">4</span>,<span class="hljs-number">5</span>,<span class="hljs-number">6</span>:<br>            fmt.Printf(<span class="hljs-string">&quot;星期%d\n&quot;</span>, n%<span class="hljs-number">7</span>+first<span class="hljs-number">-1</span>)<br>        <span class="hljs-keyword">default</span>: <span class="hljs-comment">// never through here</span><br>    &#125;<br>&#125;<br></code></pre></div></td></tr></table></figure>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><code class="hljs go"><span class="hljs-keyword">package</span> main<br><br><span class="hljs-keyword">import</span> (<br>    <span class="hljs-string">&quot;fmt&quot;</span><br>)<br><br><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">main</span><span class="hljs-params">()</span></span> &#123;<br>    <span class="hljs-keyword">var</span> (<br>        first <span class="hljs-type">int</span><br>        n <span class="hljs-type">int</span><br>    )<br>    fmt.Scanf(<span class="hljs-string">&quot;%d %d&quot;</span>, &amp;first, &amp;n)<br><br>    <span class="hljs-keyword">switch</span> n%<span class="hljs-number">7</span>+first<span class="hljs-number">-1</span> &#123;<br>        <span class="hljs-keyword">case</span> <span class="hljs-number">0</span>:<br>            fmt.Printf(<span class="hljs-string">&quot;星期日\n&quot;</span>);dd<br>        <span class="hljs-keyword">case</span> <span class="hljs-number">1</span>,<span class="hljs-number">2</span>,<span class="hljs-number">3</span>,<span class="hljs-number">4</span>,<span class="hljs-number">5</span>,<span class="hljs-number">6</span>:<br>            fmt.Printf(<span class="hljs-string">&quot;星期%d\n&quot;</span>, n%<span class="hljs-number">7</span>+first<span class="hljs-number">-1</span>)<br>        <span class="hljs-keyword">default</span>: <span class="hljs-comment">// never through here</span><br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
 <p>当然，这段代码只是为了展示switch的能力，实际上单以这个需求而论有更优雅的写法：</p>
-<figure class="highlight go"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs go"><span class="hljs-keyword">package</span> main<br><br><span class="hljs-keyword">import</span> (<br>    <span class="hljs-string">&quot;fmt&quot;</span><br>)<br><br><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">main</span><span class="hljs-params">()</span></span> &#123;<br>    <span class="hljs-keyword">var</span> (<br>        first <span class="hljs-type">int</span><br>        n <span class="hljs-type">int</span><br>    )<br>    fmt.Scanf(<span class="hljs-string">&quot;%d %d&quot;</span>, &amp;first, &amp;n)<br><br>    desc := []<span class="hljs-type">string</span>&#123;<span class="hljs-string">&quot;日&quot;</span>, <span class="hljs-string">&quot;一&quot;</span>, <span class="hljs-string">&quot;二&quot;</span>, <span class="hljs-string">&quot;三&quot;</span>, <span class="hljs-string">&quot;四&quot;</span>, <span class="hljs-string">&quot;五&quot;</span>, <span class="hljs-string">&quot;六&quot;</span>&#125;<br>    fmt.Printf(<span class="hljs-string">&quot;星期%s\n&quot;</span>, desc[n%<span class="hljs-number">7</span>+first<span class="hljs-number">-1</span>])<br>&#125;<br></code></pre></div></td></tr></table></figure>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><code class="hljs go"><span class="hljs-keyword">package</span> main<br><br><span class="hljs-keyword">import</span> (<br>    <span class="hljs-string">&quot;fmt&quot;</span><br>)<br><br><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">main</span><span class="hljs-params">()</span></span> &#123;<br>    <span class="hljs-keyword">var</span> (<br>        first <span class="hljs-type">int</span><br>        n <span class="hljs-type">int</span><br>    )<br>    fmt.Scanf(<span class="hljs-string">&quot;%d %d&quot;</span>, &amp;first, &amp;n)<br><br>    desc := []<span class="hljs-type">string</span>&#123;<span class="hljs-string">&quot;日&quot;</span>, <span class="hljs-string">&quot;一&quot;</span>, <span class="hljs-string">&quot;二&quot;</span>, <span class="hljs-string">&quot;三&quot;</span>, <span class="hljs-string">&quot;四&quot;</span>, <span class="hljs-string">&quot;五&quot;</span>, <span class="hljs-string">&quot;六&quot;</span>&#125;<br>    fmt.Printf(<span class="hljs-string">&quot;星期%s\n&quot;</span>, desc[n%<span class="hljs-number">7</span>+first<span class="hljs-number">-1</span>])<br>&#125;<br></code></pre></td></tr></table></figure>
 <blockquote>
 <p>可别小看这段代码，实际上这就是江湖上赫赫有名的表驱动设计的本质。</p>
 </blockquote>
 <p>一些语言在设计上没有switch语句，比如Python，一方面是switch的设计从美学上来讲与Python倡导的灵活性背道而驰，另一个重要的方面在于底层实现的优化不好做（类似C对switch的offset+跳转表的优化）。当然了，我们其实也可以用其他语法去模拟switch语句，比如<a
 target="_blank" rel="noopener" href="https://www.freecodecamp.org/news/python-switch-statement-switch-case-example/">Python
 Switch Statement – Switch Case Example</a>的举例：</p>
-<figure class="highlight python"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs python"><span class="hljs-keyword">def</span> <span class="hljs-title function_">switch</span>(<span class="hljs-params">lang</span>):<br>    <span class="hljs-keyword">if</span> lang == <span class="hljs-string">&quot;JavaScript&quot;</span>:<br>        <span class="hljs-keyword">return</span> <span class="hljs-string">&quot;You can become a web developer.&quot;</span><br>    <span class="hljs-keyword">elif</span> lang == <span class="hljs-string">&quot;PHP&quot;</span>:<br>        <span class="hljs-keyword">return</span> <span class="hljs-string">&quot;You can become a backend developer.&quot;</span><br>    <span class="hljs-keyword">elif</span> lang == <span class="hljs-string">&quot;Python&quot;</span>:<br>        <span class="hljs-keyword">return</span> <span class="hljs-string">&quot;You can become a Data Scientist&quot;</span><br>    <span class="hljs-keyword">elif</span> lang == <span class="hljs-string">&quot;Solidity&quot;</span>:<br>        <span class="hljs-keyword">return</span> <span class="hljs-string">&quot;You can become a Blockchain developer.&quot;</span><br>    <span class="hljs-keyword">elif</span> lang == <span class="hljs-string">&quot;Java&quot;</span>:<br>        <span class="hljs-keyword">return</span> <span class="hljs-string">&quot;You can become a mobile app developer&quot;</span><br><br><span class="hljs-built_in">print</span>(switch(<span class="hljs-string">&quot;JavaScript&quot;</span>))   <br><span class="hljs-built_in">print</span>(switch(<span class="hljs-string">&quot;PHP&quot;</span>))   <br><span class="hljs-built_in">print</span>(switch(<span class="hljs-string">&quot;Java&quot;</span>))  <br></code></pre></div></td></tr></table></figure>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-keyword">def</span> <span class="hljs-title function_">switch</span>(<span class="hljs-params">lang</span>):<br>    <span class="hljs-keyword">if</span> lang == <span class="hljs-string">&quot;JavaScript&quot;</span>:<br>        <span class="hljs-keyword">return</span> <span class="hljs-string">&quot;You can become a web developer.&quot;</span><br>    <span class="hljs-keyword">elif</span> lang == <span class="hljs-string">&quot;PHP&quot;</span>:<br>        <span class="hljs-keyword">return</span> <span class="hljs-string">&quot;You can become a backend developer.&quot;</span><br>    <span class="hljs-keyword">elif</span> lang == <span class="hljs-string">&quot;Python&quot;</span>:<br>        <span class="hljs-keyword">return</span> <span class="hljs-string">&quot;You can become a Data Scientist&quot;</span><br>    <span class="hljs-keyword">elif</span> lang == <span class="hljs-string">&quot;Solidity&quot;</span>:<br>        <span class="hljs-keyword">return</span> <span class="hljs-string">&quot;You can become a Blockchain developer.&quot;</span><br>    <span class="hljs-keyword">elif</span> lang == <span class="hljs-string">&quot;Java&quot;</span>:<br>        <span class="hljs-keyword">return</span> <span class="hljs-string">&quot;You can become a mobile app developer&quot;</span><br><br><span class="hljs-built_in">print</span>(switch(<span class="hljs-string">&quot;JavaScript&quot;</span>))   <br><span class="hljs-built_in">print</span>(switch(<span class="hljs-string">&quot;PHP&quot;</span>))   <br><span class="hljs-built_in">print</span>(switch(<span class="hljs-string">&quot;Java&quot;</span>))  <br></code></pre></td></tr></table></figure>
 <blockquote>
 <p>Python
 3.10引入了新的match-case语句，与switch类似，但更像是Rust这种语言所支持的一种match表达式。</p>
@@ -395,45 +430,45 @@ Switch Statement – Switch Case Example</a>的举例：</p>
 </ul>
 <p><img src="2023-06-21-10-14-00.png" srcset="/img/loading.gif" lazyload /></p>
 <p>当型循环的语句格式为：</p>
-<figure class="highlight ada"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs ada"><span class="hljs-keyword">for</span> (条件) <br>    &#123;执行体&#125;<br><span class="hljs-keyword">end</span><br></code></pre></div></td></tr></table></figure>
+<figure class="highlight ada"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs ada"><span class="hljs-keyword">for</span> (条件) <br>    &#123;执行体&#125;<br><span class="hljs-keyword">end</span><br></code></pre></td></tr></table></figure>
 <p>直到型则形如：</p>
-<figure class="highlight applescript"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs applescript"><span class="hljs-keyword">repeat</span><br>    &#123;执行体&#125;<br><span class="hljs-keyword">until</span> (条件)<br></code></pre></div></td></tr></table></figure>
+<figure class="highlight applescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs applescript"><span class="hljs-keyword">repeat</span><br>    &#123;执行体&#125;<br><span class="hljs-keyword">until</span> (条件)<br></code></pre></td></tr></table></figure>
 <p>大部分编程语言在循环语句的设计上大同小异，最常见的便是for和while语句，比如C++中最常见的for循环：</p>
-<figure class="highlight cpp"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs cpp"><span class="hljs-comment">// init-expression: 在 for 语句的任何其他元素之前，init-expression 仅执行一次。 控制权然后传递给 cond-expression。</span><br><span class="hljs-comment">// cond-expression: 在执行 statement 的每次迭代之前，包括第一次迭代。 statement 只在 cond-expression 的计算结果为 true（非零）时执行。</span><br><span class="hljs-comment">// loop-expression: 在 statement 的每次迭代结束时。 执行 loop-expression 后，将计算 cond-expression。</span><br><span class="hljs-keyword">for</span> ( init-expression ; cond-expression ; loop-expression ) &#123;<br>    statement<br>    ...<br>&#125;<br></code></pre></div></td></tr></table></figure>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-comment">// init-expression: 在 for 语句的任何其他元素之前，init-expression 仅执行一次。 控制权然后传递给 cond-expression。</span><br><span class="hljs-comment">// cond-expression: 在执行 statement 的每次迭代之前，包括第一次迭代。 statement 只在 cond-expression 的计算结果为 true（非零）时执行。</span><br><span class="hljs-comment">// loop-expression: 在 statement 的每次迭代结束时。 执行 loop-expression 后，将计算 cond-expression。</span><br><span class="hljs-keyword">for</span> ( init-expression ; cond-expression ; loop-expression ) &#123;<br>    statement<br>    ...<br>&#125;<br></code></pre></td></tr></table></figure>
 <p>for中的条件由三段式构成，每一段都可以省略，其中init-expression通常用来初始化循环索引，cond-expression通常用于测试循环终止的条件，loop-expression则通常用来控制循环变量的变化。
 比如最简单的示例，我们来计算1~10的数字之和，可以通过for语句实现：</p>
-<figure class="highlight cpp"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs cpp"><span class="hljs-type">int</span> sum = <span class="hljs-number">0</span>;<br><span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> i=<span class="hljs-number">1</span>; i&lt;=<span class="hljs-number">10</span>; ++i) &#123;<br>    sum += i;<br>&#125;<br></code></pre></div></td></tr></table></figure>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-type">int</span> sum = <span class="hljs-number">0</span>;<br><span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> i=<span class="hljs-number">1</span>; i&lt;=<span class="hljs-number">10</span>; ++i) &#123;<br>    sum += i;<br>&#125;<br></code></pre></td></tr></table></figure>
 <p>另一种常见的循环语句是while语句：</p>
-<figure class="highlight cpp"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs cpp"><span class="hljs-comment">// expression: 每次执行循环体前进行判断，条件满足则执行循环体，否则终止循环</span><br><span class="hljs-keyword">while</span> ( expression ) &#123;<br>    statement<br>    ...<br>&#125;<br></code></pre></div></td></tr></table></figure>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-comment">// expression: 每次执行循环体前进行判断，条件满足则执行循环体，否则终止循环</span><br><span class="hljs-keyword">while</span> ( expression ) &#123;<br>    statement<br>    ...<br>&#125;<br></code></pre></td></tr></table></figure>
 <p>while相比for语句更简洁，它的条件判断只有一个表达式，比如上面的代码也可以用while来实现：</p>
-<figure class="highlight cpp"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs cpp"><span class="hljs-type">int</span> sum = <span class="hljs-number">0</span>, i = <span class="hljs-number">1</span>;<br><span class="hljs-keyword">while</span>( i&lt;=<span class="hljs-number">10</span> ) &#123;<br>    sum += i++;<br>&#125;<br></code></pre></div></td></tr></table></figure>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-type">int</span> sum = <span class="hljs-number">0</span>, i = <span class="hljs-number">1</span>;<br><span class="hljs-keyword">while</span>( i&lt;=<span class="hljs-number">10</span> ) &#123;<br>    sum += i++;<br>&#125;<br></code></pre></td></tr></table></figure>
 <p>C++的直到型循环则是使用do-while语句：</p>
-<figure class="highlight cpp"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs cpp"><span class="hljs-keyword">do</span> &#123;<br>   statement<br>   ...<br>&#125; <span class="hljs-keyword">while</span> ( expression );<br></code></pre></div></td></tr></table></figure>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-keyword">do</span> &#123;<br>   statement<br>   ...<br>&#125; <span class="hljs-keyword">while</span> ( expression );<br></code></pre></td></tr></table></figure>
 <p>终止条件的判定下一到了执行体执行过后判定，这对于某些场景来说采用这种实现更加优雅。</p>
 <p>Java对循环的支持也有for,while,do-while这三种语句，它们甚至在语法上和C++都如出一辙，上面的C++代码在Java里甚至可以完全照抄（可以说在这方面两种语言有着同样的审美）：</p>
-<figure class="highlight java"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs java"><span class="hljs-comment">// for version </span><br><span class="hljs-type">int</span> <span class="hljs-variable">sum</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>;<br><span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> i=<span class="hljs-number">0</span>; i&lt;<span class="hljs-number">10</span>; ++i) &#123;<br>    sum += i;<br>&#125;<br><br><span class="hljs-comment">// while version</span><br><span class="hljs-type">int</span> i=<span class="hljs-number">1</span>, sum = <span class="hljs-number">0</span>;<br><span class="hljs-keyword">while</span>(i&lt;=<span class="hljs-number">10</span>) &#123;<br>    sum += i++;<br>&#125;<br></code></pre></div></td></tr></table></figure>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// for version </span><br><span class="hljs-type">int</span> <span class="hljs-variable">sum</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>;<br><span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> i=<span class="hljs-number">0</span>; i&lt;<span class="hljs-number">10</span>; ++i) &#123;<br>    sum += i;<br>&#125;<br><br><span class="hljs-comment">// while version</span><br><span class="hljs-type">int</span> i=<span class="hljs-number">1</span>, sum = <span class="hljs-number">0</span>;<br><span class="hljs-keyword">while</span>(i&lt;=<span class="hljs-number">10</span>) &#123;<br>    sum += i++;<br>&#125;<br></code></pre></td></tr></table></figure>
 <p>而像是Go语言，它在设计上只有for语句而没有while或是do-while，事实上for的能力是足够的，且Go的for有三种结构：</p>
-<figure class="highlight go"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs go"><span class="hljs-comment">// 和C++,Java的for一致</span><br><span class="hljs-keyword">for</span> init; condition; post &#123; &#125;<br><br><span class="hljs-comment">// 类似C++,Java的while</span><br><span class="hljs-keyword">for</span> condition &#123; &#125;<br><br><span class="hljs-comment">// infinite loop，只能靠内部的break语句终止，类似C++,Java的for(;;)&#123;&#125;</span><br><span class="hljs-keyword">for</span> &#123; &#125;<br></code></pre></div></td></tr></table></figure>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs go"><span class="hljs-comment">// 和C++,Java的for一致</span><br><span class="hljs-keyword">for</span> init; condition; post &#123; &#125;<br><br><span class="hljs-comment">// 类似C++,Java的while</span><br><span class="hljs-keyword">for</span> condition &#123; &#125;<br><br><span class="hljs-comment">// infinite loop，只能靠内部的break语句终止，类似C++,Java的for(;;)&#123;&#125;</span><br><span class="hljs-keyword">for</span> &#123; &#125;<br></code></pre></td></tr></table></figure>
 <p>再像是Python，它虽然有for也有while，但它的for循环实际上是另一种迭代器的形态（此for非彼for，我们稍后介绍），while则如出一辙：</p>
-<figure class="highlight python"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs python"><span class="hljs-keyword">while</span> 判断条件(condition)：<br>    执行语句(statements)<br>    ...<br></code></pre></div></td></tr></table></figure>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-keyword">while</span> 判断条件(condition)：<br>    执行语句(statements)<br>    ...<br></code></pre></td></tr></table></figure>
 <p>上面所举例的各种语言中的for,while语句，其本质上判断的条件都是一个表达式，实际上除了这种基于条件判断做循环的设计以外，还有另一种更常用的需求：遍历集合，对每个集合元素进行迭代。主流的现代编程语言大都支持这种迭代型循环语句，像是Python的for语句就是迭代型：</p>
-<figure class="highlight python"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs python">// sequence是一个可迭代对象<br>// iterating_var从前往后每次执行循环体都从sequence取单一成员<br><span class="hljs-keyword">for</span> iterating_var <span class="hljs-keyword">in</span> sequence:<br>   statements(s)<br></code></pre></div></td></tr></table></figure>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs python">// sequence是一个可迭代对象<br>// iterating_var从前往后每次执行循环体都从sequence取单一成员<br><span class="hljs-keyword">for</span> iterating_var <span class="hljs-keyword">in</span> sequence:<br>   statements(s)<br></code></pre></td></tr></table></figure>
 <p>比如我们想打印数组中所有成员：</p>
-<figure class="highlight python"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs python">fruits = [<span class="hljs-string">&#x27;banana&#x27;</span>,<span class="hljs-string">&#x27;apple&#x27;</span>,<span class="hljs-string">&#x27;mango&#x27;</span>,<span class="hljs-string">&#x27;orange&#x27;</span>]<br><span class="hljs-keyword">for</span> fruit <span class="hljs-keyword">in</span> fruits: <br>    <span class="hljs-built_in">print</span>(fruit)<br></code></pre></div></td></tr></table></figure>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs python">fruits = [<span class="hljs-string">&#x27;banana&#x27;</span>,<span class="hljs-string">&#x27;apple&#x27;</span>,<span class="hljs-string">&#x27;mango&#x27;</span>,<span class="hljs-string">&#x27;orange&#x27;</span>]<br><span class="hljs-keyword">for</span> fruit <span class="hljs-keyword">in</span> fruits: <br>    <span class="hljs-built_in">print</span>(fruit)<br></code></pre></td></tr></table></figure>
 <p>C++也支持这种迭代型循环，同样通过for语句来完成，只不过语法设计上有所差异：</p>
-<figure class="highlight cpp"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs cpp">vector&lt;string&gt; fruits&#123;<span class="hljs-string">&quot;banana&quot;</span>, <span class="hljs-string">&quot;apple&quot;</span>, <span class="hljs-string">&quot;mango&quot;</span>, <span class="hljs-string">&quot;orange&quot;</span>&#125;<br><span class="hljs-keyword">for</span> (<span class="hljs-keyword">auto</span>&amp; fruit : fruits) &#123;<br>    cout &lt;&lt; fruit &lt;&lt; endl;<br>&#125;<br></code></pre></div></td></tr></table></figure>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs cpp">vector&lt;string&gt; fruits&#123;<span class="hljs-string">&quot;banana&quot;</span>, <span class="hljs-string">&quot;apple&quot;</span>, <span class="hljs-string">&quot;mango&quot;</span>, <span class="hljs-string">&quot;orange&quot;</span>&#125;<br><span class="hljs-keyword">for</span> (<span class="hljs-keyword">auto</span>&amp; fruit : fruits) &#123;<br>    cout &lt;&lt; fruit &lt;&lt; endl;<br>&#125;<br></code></pre></td></tr></table></figure>
 <blockquote>
 <p>C++直到11标准才引入这种迭代型循环，在C++11之前，我们只能通过笨重的for语句配合迭代器来完成。形如<code>for(vector&lt;string&gt;::iterator iter=fruits.begin(); iter!=fruits.end(); ++iter)</code>，对于可以按下标枚举的可以简化写成<code>for(size_t i=0; i&lt;fruits.size(); ++i)</code>，相比于迭代型，不论哪种都尽显笨重。</p>
 </blockquote>
 <p>Java对迭代型循环的支持和C++又是如出一辙（这和两种语言在语法设计上的高度一致有关系）,
 Java派系一般称之为增强型for循环，也叫foreach循环。我个人认为这个foreach名称特别贴切，能够体现出逐元素迭代的语义，而foreach这个名词在C#语言中就被选取为关键字以支持迭代型循环:</p>
-<figure class="highlight c#"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs c#">Span&lt;<span class="hljs-built_in">string</span>&gt; fruits = <span class="hljs-keyword">new</span> <span class="hljs-built_in">string</span>[] &#123;<span class="hljs-string">&quot;banana&quot;</span>,<span class="hljs-string">&quot;apple&quot;</span>,<span class="hljs-string">&quot;mango&quot;</span>,<span class="hljs-string">&quot;orange&quot;</span>&#125;;<br><span class="hljs-keyword">foreach</span> (<span class="hljs-keyword">ref</span> <span class="hljs-built_in">string</span> fruit <span class="hljs-keyword">in</span> fruits)<br>&#123;<br>    Console.WriteLine(<span class="hljs-string">$&quot;<span class="hljs-subst">&#123;fruit&#125;</span>&quot;</span>);<br>&#125;<br></code></pre></div></td></tr></table></figure>
+<figure class="highlight c#"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs c#">Span&lt;<span class="hljs-built_in">string</span>&gt; fruits = <span class="hljs-keyword">new</span> <span class="hljs-built_in">string</span>[] &#123;<span class="hljs-string">&quot;banana&quot;</span>,<span class="hljs-string">&quot;apple&quot;</span>,<span class="hljs-string">&quot;mango&quot;</span>,<span class="hljs-string">&quot;orange&quot;</span>&#125;;<br><span class="hljs-keyword">foreach</span> (<span class="hljs-keyword">ref</span> <span class="hljs-built_in">string</span> fruit <span class="hljs-keyword">in</span> fruits)<br>&#123;<br>    Console.WriteLine(<span class="hljs-string">$&quot;<span class="hljs-subst">&#123;fruit&#125;</span>&quot;</span>);<br>&#125;<br></code></pre></td></tr></table></figure>
 <p>Go语言对迭代型循环的支持采用的则是for-range语句：</p>
-<figure class="highlight go"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs go">fruits := []<span class="hljs-type">string</span>&#123;<span class="hljs-string">&quot;banana&quot;</span>,<span class="hljs-string">&quot;apple&quot;</span>,<span class="hljs-string">&quot;mango&quot;</span>,<span class="hljs-string">&quot;orange&quot;</span>&#125;<br><span class="hljs-keyword">for</span> fruit := <span class="hljs-keyword">range</span> fruits &#123;<br>    fmt.Println(fruit)<br>&#125;<br></code></pre></div></td></tr></table></figure>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs go">fruits := []<span class="hljs-type">string</span>&#123;<span class="hljs-string">&quot;banana&quot;</span>,<span class="hljs-string">&quot;apple&quot;</span>,<span class="hljs-string">&quot;mango&quot;</span>,<span class="hljs-string">&quot;orange&quot;</span>&#125;<br><span class="hljs-keyword">for</span> fruit := <span class="hljs-keyword">range</span> fruits &#123;<br>    fmt.Println(fruit)<br>&#125;<br></code></pre></td></tr></table></figure>
 <h4 id="练习">练习</h4>
 <p>最后让我们来利用这三种结构编写一个猜数游戏：提前想好一个100以内的数字，由用户来猜测，如果用户猜错了，就告诉用户猜测的数字是大了还是小了，重试直到猜对；如果用户猜对了就输出“Bingo”并退出。</p>
 <p>我们简单的做一下需求分析：显然这段程序需要循环读取用户的输入，并对用户输入的数字进行条件判断，执行两个分支。当用户猜对的情况，直接打印Bingo并终止循环退出程序接口；当用户猜错的情况，就需要重头来过并提示用户数字大了还是小了。显然，这里用直到型循环书写起来更优雅。至于提前想好的数字要怎么生成呢，我们让程序随机生成一个就好。我这里用C++来实现一个版本：</p>
-<figure class="highlight cpp"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs cpp"><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;iostream&gt;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;cstdlib&gt;</span></span><br><br><span class="hljs-keyword">using</span> <span class="hljs-keyword">namespace</span> std;<br><br><span class="hljs-function"><span class="hljs-type">int</span> <span class="hljs-title">main</span><span class="hljs-params">()</span> </span>&#123;<br>    <span class="hljs-type">int</span> n = <span class="hljs-built_in">rand</span>() % <span class="hljs-number">101</span>;<br>    <span class="hljs-type">int</span> input;<br><br>    <span class="hljs-keyword">do</span> &#123;<br>        cin &gt;&gt; input;<br>        <span class="hljs-keyword">if</span> (input == n) &#123;<br>            cout &lt;&lt; <span class="hljs-string">&quot;Bingo!&quot;</span> &lt;&lt; endl;<br>            <span class="hljs-keyword">break</span>;<br>        &#125; <span class="hljs-keyword">else</span> &#123;<br>            <span class="hljs-keyword">if</span> (input &gt; n) &#123;<br>                cout &lt;&lt; input &lt;&lt; <span class="hljs-string">&quot; is larger than n.&quot;</span> &lt;&lt; endl;<br>            &#125; <span class="hljs-keyword">else</span> &#123;<br>                cout &lt;&lt; input &lt;&lt; <span class="hljs-string">&quot; is smaller than n.&quot;</span> &lt;&lt; endl;<br>            &#125;<br>        &#125;<br>    &#125; <span class="hljs-keyword">while</span>(<span class="hljs-literal">true</span>);<br><br>    cout &lt;&lt; <span class="hljs-string">&quot;Quit...&quot;</span> &lt;&lt; endl;<br>    <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>; <br>&#125;<br></code></pre></div></td></tr></table></figure>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;iostream&gt;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;cstdlib&gt;</span></span><br><br><span class="hljs-keyword">using</span> <span class="hljs-keyword">namespace</span> std;<br><br><span class="hljs-function"><span class="hljs-type">int</span> <span class="hljs-title">main</span><span class="hljs-params">()</span> </span>&#123;<br>    <span class="hljs-type">int</span> n = <span class="hljs-built_in">rand</span>() % <span class="hljs-number">101</span>;<br>    <span class="hljs-type">int</span> input;<br><br>    <span class="hljs-keyword">do</span> &#123;<br>        cin &gt;&gt; input;<br>        <span class="hljs-keyword">if</span> (input == n) &#123;<br>            cout &lt;&lt; <span class="hljs-string">&quot;Bingo!&quot;</span> &lt;&lt; endl;<br>            <span class="hljs-keyword">break</span>;<br>        &#125; <span class="hljs-keyword">else</span> &#123;<br>            <span class="hljs-keyword">if</span> (input &gt; n) &#123;<br>                cout &lt;&lt; input &lt;&lt; <span class="hljs-string">&quot; is larger than n.&quot;</span> &lt;&lt; endl;<br>            &#125; <span class="hljs-keyword">else</span> &#123;<br>                cout &lt;&lt; input &lt;&lt; <span class="hljs-string">&quot; is smaller than n.&quot;</span> &lt;&lt; endl;<br>            &#125;<br>        &#125;<br>    &#125; <span class="hljs-keyword">while</span>(<span class="hljs-literal">true</span>);<br><br>    cout &lt;&lt; <span class="hljs-string">&quot;Quit...&quot;</span> &lt;&lt; endl;<br>    <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>; <br>&#125;<br></code></pre></td></tr></table></figure>
 <p><img src="2023-06-21-11-27-29.png" srcset="/img/loading.gif" lazyload /></p>
 <p>如果你也有些许的编程经验，可以使用你喜欢的语言，也来写一个猜数游戏，正所谓“纸上得来终觉浅，绝知此事要躬行”。</p>
 <h3 id="引用机制和重用">引用机制和重用</h3>
@@ -482,40 +517,96 @@ Software，但这本书玄之又玄我真理解不上去，我这里推荐一篇
 by 玉涵，完稿于2023年6月21日夜
 </p>
 
-            </div>
-            <hr>
-            <div>
-              <div class="post-metas mb-3">
-                
-                  <div class="post-meta mr-3">
-                    <i class="iconfont icon-category"></i>
-                    
-                      <a class="hover-with-bg" href="/categories/%E7%BC%96%E7%A8%8B%E5%AF%BC%E8%AE%BA/">编程导论</a>
-                    
-                  </div>
-                
-                
-                  <div class="post-meta">
-                    <i class="iconfont icon-tags"></i>
-                    
-                      <a class="hover-with-bg" href="/tags/%E6%A0%BC%E7%89%A9%E8%87%B4%E7%9F%A5/">格物致知</a>
-                    
-                  </div>
                 
               </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E7%BC%96%E7%A8%8B%E5%AF%BC%E8%AE%BA/" class="category-chain-item">编程导论</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/%E6%A0%BC%E7%89%A9%E8%87%B4%E7%9F%A5/" class="print-no-link">#格物致知</a>
+      
+    </div>
+  
+</div>
+
+
               
-                <p class="note note-warning">
-                  
-                    本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！
-                  
-                </p>
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>格物致知(2)——语言千百，殊途同归</div>
+      <div>https://r00tk1ts.github.io/2023/06/13/格物致知(2)——语言千百，殊途同归/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>r00tk1t</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2023年6月13日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
               
               
-                <div class="post-prevnext">
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
                   <article class="post-prev col-6">
                     
                     
-                      <a href="/2023/09/21/%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B0%E7%AC%94%E8%AE%B0(%E5%8D%81%E5%9B%9B)%E2%80%94%E2%80%94%E6%AD%A3%E4%BA%A4%E5%90%91%E9%87%8F%E4%B8%8E%E5%AD%90%E7%A9%BA%E9%97%B4/">
+                      <a href="/2023/09/21/%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B0%E7%AC%94%E8%AE%B0(%E5%8D%81%E5%9B%9B)%E2%80%94%E2%80%94%E6%AD%A3%E4%BA%A4%E5%90%91%E9%87%8F%E4%B8%8E%E5%AD%90%E7%A9%BA%E9%97%B4/" title="线性代数笔记(十四)——正交向量与子空间">
                         <i class="iconfont icon-arrowleft"></i>
                         <span class="hidden-mobile">线性代数笔记(十四)——正交向量与子空间</span>
                         <span class="visible-mobile">上一篇</span>
@@ -525,7 +616,7 @@ by 玉涵，完稿于2023年6月21日夜
                   <article class="post-next col-6">
                     
                     
-                      <a href="/2023/05/06/%E6%A0%BC%E7%89%A9%E8%87%B4%E7%9F%A5(1)%E2%80%94%E2%80%94%E4%BD%A0%E4%BB%80%E4%B9%88%E8%BF%9B%E5%88%B6%EF%BC%9F%E6%88%91%E4%BB%80%E4%B9%88%E8%BF%9B%E5%88%B6%EF%BC%9F/">
+                      <a href="/2023/05/06/%E6%A0%BC%E7%89%A9%E8%87%B4%E7%9F%A5(1)%E2%80%94%E2%80%94%E4%BD%A0%E4%BB%80%E4%B9%88%E8%BF%9B%E5%88%B6%EF%BC%9F%E6%88%91%E4%BB%80%E4%B9%88%E8%BF%9B%E5%88%B6%EF%BC%9F/" title="格物致知(1)——你什么进制？我什么进制？">
                         <span class="hidden-mobile">格物致知(1)——你什么进制？我什么进制？</span>
                         <span class="visible-mobile">下一篇</span>
                         <i class="iconfont icon-arrowright"></i>
@@ -541,19 +632,53 @@ by 玉涵，完稿于2023年6月21日夜
         </div>
       </div>
     </div>
-    
-      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
-        <div id="toc">
-  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
   <div class="toc-body" id="toc-body"></div>
 </div>
 
-      </div>
-    
+
+
+  </aside>
+
+
+    </div>
   </div>
 </div>
 
-<!-- Custom -->
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
 
 
     
@@ -578,35 +703,37 @@ by 玉涵，完稿于2023年6月21日夜
       <div class="modal-body mx-3">
         <div class="md-form mb-5">
           <input type="text" id="local-search-input" class="form-control validate">
-          <label data-error="x" data-success="v"
-                 for="local-search-input">关键词</label>
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
         </div>
         <div class="list-group" id="local-search-result"></div>
       </div>
     </div>
   </div>
 </div>
+
     
 
     
   </main>
 
-  <footer class="text-center mt-5 py-3">
-  <div class="footer-content">
-     <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
-  </div>
+  <footer>
+    <div class="footer-inner">
   
-
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
   
-
   
-</footer>
-
-
-  <!-- SCRIPTS -->
   
-  <script  src="https://cdn.jsdelivr.net/npm/nprogress@0/nprogress.min.js" ></script>
-  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0/nprogress.min.css" />
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
 
   <script>
     NProgress.configure({"showSpinner":false,"trickleSpeed":100})
@@ -617,15 +744,27 @@ by 玉涵，完稿于2023年6月21日夜
   </script>
 
 
-<script  src="https://cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js" ></script>
-<script  src="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/js/bootstrap.min.js" ></script>
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
 <script  src="/js/events.js" ></script>
 <script  src="/js/plugins.js" ></script>
 
-<!-- Plugins -->
 
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
 
-  <script  src="/js/local-search.js" ></script>
 
 
 
@@ -635,56 +774,115 @@ by 玉涵，完稿于2023年6月21日夜
 
 
 
-  
-
-
 
   
-    <script  src="https://cdn.jsdelivr.net/npm/tocbot@4/dist/tocbot.min.js" ></script>
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
   
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
   
-    <script  src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.js" ></script>
-  
-  
-    <script  src="https://cdn.jsdelivr.net/npm/anchor-js@4/anchor.min.js" ></script>
-  
-  
-    <script defer src="https://cdn.jsdelivr.net/npm/clipboard@2/dist/clipboard.min.js" ></script>
-  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
 
 
 
 
 
-
-  <script  src="https://cdn.jsdelivr.net/npm/typed.js@2/lib/typed.min.js" ></script>
-  <script>
-    (function (window, document) {
-      var typing = Fluid.plugins.typing;
-      var title = document.getElementById('subtitle').title;
-      
-        typing(title);
-      
-    })(window, document);
-  </script>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<!-- 主题的启动项 保持在最底部 -->
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
 <script  src="/js/boot.js" ></script>
 
 
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
 </body>
 </html>

@@ -31,30 +31,25 @@
 <meta name="twitter:card" content="summary_large_image">
   
   
+  
   <title>C++模板从入门到劝退(1)——右值引用与移动语义 - 玉涵的技能书</title>
 
-  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/css/bootstrap.min.css" />
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
 
 
-  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4/github-markdown.min.css" />
-  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hint.css@2/hint.min.css" />
 
-  
-    
-    
-      
-      <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@10/styles/atom-one-dark.min.css" />
-    
-  
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
 
-  
-    <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.css" />
-  
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
 
 
 <!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
 
-<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
 
 
 
@@ -63,21 +58,42 @@
 
 <link  rel="stylesheet" href="/css/main.css" />
 
-<!-- 自定义样式保持在最底部 -->
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
 
 
   <script id="fluid-configs">
     var Fluid = window.Fluid || {};
-    var CONFIG = {"hostname":"r00tk1ts.github.io","root":"/","version":"1.8.14","typing":{"enable":true,"typeSpeed":80,"cursorChar":"_","loop":false},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"copy_btn":true,"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml"};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"r00tk1ts.github.io","root":"/","version":"1.9.5","typing":{"enable":true,"typeSpeed":80,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
   </script>
   <script  src="/js/utils.js" ></script>
   <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
 <meta name="generator" content="Hexo 6.1.0"></head>
 
 
 <body>
-  <header style="height: 70vh;">
-    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
   <div class="container">
     <a class="navbar-brand" href="/">
       <strong>玉涵的技能书</strong>
@@ -100,7 +116,7 @@
             <li class="nav-item">
               <a class="nav-link" href="/">
                 <i class="iconfont icon-home-fill"></i>
-                首页
+                <span>首页</span>
               </a>
             </li>
           
@@ -112,7 +128,7 @@
             <li class="nav-item">
               <a class="nav-link" href="/archives/">
                 <i class="iconfont icon-archive-fill"></i>
-                归档
+                <span>归档</span>
               </a>
             </li>
           
@@ -124,7 +140,7 @@
             <li class="nav-item">
               <a class="nav-link" href="/categories/">
                 <i class="iconfont icon-category-fill"></i>
-                分类
+                <span>分类</span>
               </a>
             </li>
           
@@ -136,7 +152,7 @@
             <li class="nav-item">
               <a class="nav-link" href="/tags/">
                 <i class="iconfont icon-tags-fill"></i>
-                标签
+                <span>标签</span>
               </a>
             </li>
           
@@ -148,7 +164,7 @@
             <li class="nav-item">
               <a class="nav-link" href="/about/">
                 <i class="iconfont icon-user-fill"></i>
-                关于
+                <span>关于</span>
               </a>
             </li>
           
@@ -156,14 +172,16 @@
         
           <li class="nav-item" id="search-btn">
             <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
-              &nbsp;<i class="iconfont icon-search"></i>&nbsp;
+              <i class="iconfont icon-search"></i>
             </a>
           </li>
+          
         
         
           <li class="nav-item" id="color-toggle-btn">
-            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">&nbsp;<i
-                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
           </li>
         
       </ul>
@@ -171,57 +189,69 @@
   </div>
 </nav>
 
-    <div class="banner" id="banner" parallax=true
-         style="background: url('/img/default.png') no-repeat center center;
-           background-size: cover;">
-      <div class="full-bg-img">
-        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
-          <div class="page-header text-center fade-in-up">
-            <span class="h2" id="subtitle" title="C++模板从入门到劝退(1)——右值引用与移动语义">
-              
-            </span>
-
-            
-              <div class="mt-3">
-  
-  
-    <span class="post-meta">
-      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
-      <time datetime="2022-06-04 08:00" pubdate>
-        2022年6月4日 早上
-      </time>
-    </span>
-  
-</div>
-
-<div class="mt-1">
-  
-    <span class="post-meta mr-2">
-      <i class="iconfont icon-chart"></i>
-      12k 字
-    </span>
   
 
-  
-    <span class="post-meta mr-2">
-      <i class="iconfont icon-clock-fill"></i>
-      
-      
-      104 分钟
-    </span>
-  
-
-  
-  
-</div>
-
-            
-          </div>
-
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="C++模板从入门到劝退(1)——右值引用与移动语义"></span>
           
         </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2022-06-04 08:00" pubdate>
+          2022年6月4日 早上
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          12k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          104 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
       </div>
+
+      
     </div>
+  </div>
+</div>
+
+</div>
+
   </header>
 
   <main>
@@ -230,29 +260,34 @@
 
 <div class="container-fluid nopadding-x">
   <div class="row nomargin-x">
-    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
     <div class="col-lg-8 nopadding-x-md">
       <div class="container nopadding-x-md" id="board-ctn">
-        <div class="py-5" id="board">
+        <div id="board">
           <article class="post-content mx-auto">
-            <!-- SEO header -->
-            <h1 style="display: none">C++模板从入门到劝退(1)——右值引用与移动语义</h1>
+            <h1 id="seo-header">C++模板从入门到劝退(1)——右值引用与移动语义</h1>
             
-            <div class="markdown-body">
-              <p>谈到C++模板，多少业界大佬无不讳莫如深，而基于模板的元编程更是历来被业界同仁视为黑魔法。模板从诞生至今已有几十年的历史，实际上在经历了C++11标准的革命性洗礼以及后续的缝缝补补后，模板元编程的门槛和抽象程度已经大大降低。纵观历史长河，优秀的C++书籍鳞次栉比，然而涉及到元编程的书籍却屈指可数，那些传世经典的圣经对于模板皆是浅尝辄止。本系列文章将致力于揭开模板元编程的迷雾，通过牺牲一定程度的表述严谨性，按照笔者的归纳方式穿针引线，为痴迷于黑魔法而又始终不得其解的同学打通任督二脉。</p>
+            
+              <div class="markdown-body">
+                
+                <p>谈到C++模板，多少业界大佬无不讳莫如深，而基于模板的元编程更是历来被业界同仁视为黑魔法。模板从诞生至今已有几十年的历史，实际上在经历了C++11标准的革命性洗礼以及后续的缝缝补补后，模板元编程的门槛和抽象程度已经大大降低。纵观历史长河，优秀的C++书籍鳞次栉比，然而涉及到元编程的书籍却屈指可数，那些传世经典的圣经对于模板皆是浅尝辄止。本系列文章将致力于揭开模板元编程的迷雾，通过牺牲一定程度的表述严谨性，按照笔者的归纳方式穿针引线，为痴迷于黑魔法而又始终不得其解的同学打通任督二脉。</p>
 <p>本篇是走进模板世界的第二道前菜，只有搞懂了这些C++中的基本概念，才能掌握模板世界的黑魔法。</p>
 <span id="more"></span>
 <h1 id="右值引用与移动语义">右值引用与移动语义</h1>
 <h2 id="右值引用初探">右值引用初探</h2>
 <p>上一讲我们对表达式的值分类进行了展开，围绕值语义和引用语义的探讨对现代C++的左值和右值有了深入的理解。但搞懂值分类的区分仅是第一步，我们尚未揭晓移动语义的帷幕。</p>
 <p>在传统C++中，引用非常纯粹，比如代码：</p>
-<figure class="highlight cpp"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs cpp"><span class="hljs-type">int</span> a = <span class="hljs-number">1</span>;<br><span class="hljs-type">int</span> &amp;b = a; <span class="hljs-comment">// 这里的&amp;不是取址符，而是左值引用的声明符</span><br></code></pre></div></td></tr></table></figure>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-type">int</span> a = <span class="hljs-number">1</span>;<br><span class="hljs-type">int</span> &amp;b = a; <span class="hljs-comment">// 这里的&amp;不是取址符，而是左值引用的声明符</span><br></code></pre></td></tr></table></figure>
 <p>其中<code>b</code>就是<code>a</code>的引用，开发者简单地将<code>b</code>视为变量<code>a</code>的别名，通过<code>b</code>和<code>a</code>对变量值进行读写本质上并没有什么不同。引用语法相比从C继承的指针来说更加简洁，也更容易理解。而从现代C++的视角来看，这里的<code>b</code>是一个左值引用（显然，它绑定的<code>a</code>是个左值），这里对左值的强调是为了区分C++11所引入的另一种引用类型：右值引用。那么右值引用如何声明呢？既然是全新的语法，那肯定得量身定制：语法规定用<code>&amp;&amp;</code>作为右值引用的声明符。因此，形如<code>S&amp; D;</code>是将<code>D</code>声明为<code>S</code>所确定类型的左值引用；形如<code>S&amp;&amp; D;</code>则是将<code>D</code>声明为<code>S</code>所确定类型的右值引用。顾名思义，左值引用绑定到左值，右值引用绑定到右值（也就是xvalue和prvalue）。</p>
 <blockquote>
 <p>你可能还见到过别人这样写:<code>int&amp; b = a;</code>，声明符的空格位置和上述写法相反，而实际上这里怎么书写都是正确的（<code>&amp;</code>两边都有空格也无所谓），因为<code>&amp;</code>是声明符而非取地址符(address
 of)，我个人习惯于这种写法，它有一种把<code>&amp;</code>和<code>int</code>联系起来的感觉。</p>
 </blockquote>
-<figure class="highlight cpp"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs cpp"><span class="hljs-type">int</span> a = <span class="hljs-number">1</span>;<br><span class="hljs-type">int</span>&amp; b = a;         <span class="hljs-comment">// 正确：b是绑定到左值a的左值引用</span><br><span class="hljs-type">int</span>&amp; c = <span class="hljs-number">1</span>;         <span class="hljs-comment">// 错误：字面量1是prvalue，左值引用不能绑定到右值</span><br><span class="hljs-type">int</span>&amp;&amp; d = a + <span class="hljs-number">1</span>;    <span class="hljs-comment">// 正确：算术运算符表达式是prvalue</span><br><br>std::string s1 = <span class="hljs-string">&quot;hello&quot;</span>;<br>std::strin&amp;&amp; r1 = s1;                                   <span class="hljs-comment">// 错误：右值引用不能绑定到左值</span><br>std::string&amp;&amp; r2 = s1 + s1;                             <span class="hljs-comment">// 正确：左右操作数为std::string的操作符重载(operator+)返回的是一个值类型，值分类上是prvalue</span><br>std::string&amp;&amp; r3 = <span class="hljs-built_in">static_cast</span>&lt;std::string&amp;&amp;&gt;(s1);      <span class="hljs-comment">// 正确：到右值引用类型转换的表达式值类型是xvalue</span><br></code></pre></div></td></tr></table></figure>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-type">int</span> a = <span class="hljs-number">1</span>;<br><span class="hljs-type">int</span>&amp; b = a;         <span class="hljs-comment">// 正确：b是绑定到左值a的左值引用</span><br><span class="hljs-type">int</span>&amp; c = <span class="hljs-number">1</span>;         <span class="hljs-comment">// 错误：字面量1是prvalue，左值引用不能绑定到右值</span><br><span class="hljs-type">int</span>&amp;&amp; d = a + <span class="hljs-number">1</span>;    <span class="hljs-comment">// 正确：算术运算符表达式是prvalue</span><br><br>std::string s1 = <span class="hljs-string">&quot;hello&quot;</span>;<br>std::strin&amp;&amp; r1 = s1;                                   <span class="hljs-comment">// 错误：右值引用不能绑定到左值</span><br>std::string&amp;&amp; r2 = s1 + s1;                             <span class="hljs-comment">// 正确：左右操作数为std::string的操作符重载(operator+)返回的是一个值类型，值分类上是prvalue</span><br>std::string&amp;&amp; r3 = <span class="hljs-built_in">static_cast</span>&lt;std::string&amp;&amp;&gt;(s1);      <span class="hljs-comment">// 正确：到右值引用类型转换的表达式值类型是xvalue</span><br></code></pre></td></tr></table></figure>
 <p>上面是用基础内建类型<code>int</code>和标准库的<code>std::string</code>类类型作为示例演示的说明。</p>
 <p>关于引用，还有些开发者必须知道的细节：</p>
 <ul>
@@ -263,7 +298,7 @@ of)，我个人习惯于这种写法，它有一种把<code>&amp;</code>和<code
 </ul>
 <h2 id="引用与const限定">引用与const限定</h2>
 <p>上述的最后一个条例提到了CV限定，它是指C++运行时对对象的一种<code>const</code>或<code>volatile</code>限定，后者对于大部分开发场景来说十分罕见(这货跟其他语言比如Java的<code>volatile</code>有着甚许微妙差别，而<code>volatile</code>在Java日常编程中十分常见)，而前者则常伴于身。对于引用来说，<code>const</code>限定无疑让语法的复杂度提升了一个维度，我们先用<code>int</code>基础内建类型来做示例：</p>
-<figure class="highlight cpp"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs cpp"><span class="hljs-type">int</span> a = <span class="hljs-number">1</span>;<br><span class="hljs-type">const</span> <span class="hljs-type">int</span>&amp; b = a;           <span class="hljs-comment">// 正确：const左值引用可以绑定到非const变量</span><br>b = <span class="hljs-number">2</span>;                      <span class="hljs-comment">// 错误：左值引用b所绑定的变量有const限定，RT不可修改</span><br><span class="hljs-built_in">const_cast</span>&lt;<span class="hljs-type">int</span>&amp;&gt;(b) = <span class="hljs-number">2</span>;    <span class="hljs-comment">// 正确：const引用的RT限定可以通过const_cast来擦除，这里确实修改了变量a的值为2；</span><br><span class="hljs-comment">/*</span><br><span class="hljs-comment">test2.cpp:9:7: error: cannot assign to variable &#x27;b&#x27; with const-qualified type &#x27;const int &amp;&#x27;</span><br><span class="hljs-comment">    b = 2;</span><br><span class="hljs-comment">    ~ ^</span><br><span class="hljs-comment">test2.cpp:8:16: note: variable &#x27;b&#x27; declared const here</span><br><span class="hljs-comment">    const int&amp; b = a;</span><br><span class="hljs-comment">    ~~~~~~~~~~~^~~~~</span><br><span class="hljs-comment">1 error generated.</span><br><span class="hljs-comment"> */</span><br><span class="hljs-type">const</span> <span class="hljs-type">int</span> &amp;&amp;ra = a;     <span class="hljs-comment">// 错误：常量右值引用亦不能绑定到左值</span><br><span class="hljs-comment">/*</span><br><span class="hljs-comment">test2.cpp:11:17: error: rvalue reference to type &#x27;const int&#x27; cannot bind to lvalue of type &#x27;int&#x27;</span><br><span class="hljs-comment">    const int&amp;&amp; ra = a;</span><br><span class="hljs-comment"> */</span><br><span class="hljs-type">const</span> <span class="hljs-type">int</span> &amp;&amp;rb = <span class="hljs-number">1</span>;     <span class="hljs-comment">// 正确：常量右值引用当然可以绑定到prvalue，只不过毫无卵用</span><br><br><br><span class="hljs-type">const</span> <span class="hljs-type">int</span> c = <span class="hljs-number">1</span>;<br><span class="hljs-type">int</span>&amp; d = c;         <span class="hljs-comment">// 错误：左值引用类型与所绑定的变量类型不一致</span><br><span class="hljs-comment">/*</span><br><span class="hljs-comment">test2.cpp:11:11: error: binding reference of type &#x27;int&#x27; to value of type &#x27;const int&#x27; drops &#x27;const&#x27; qualifier</span><br><span class="hljs-comment">    int&amp;&amp; d = c;</span><br><span class="hljs-comment">          ^   ~</span><br><span class="hljs-comment"> */</span><br><span class="hljs-type">const</span> <span class="hljs-type">int</span>&amp; e = c;  <span class="hljs-comment">// 正确</span><br><span class="hljs-built_in">const_cast</span>&lt;<span class="hljs-type">int</span>&amp;&gt;(e) = <span class="hljs-number">2</span>;    <span class="hljs-comment">//正确：虽然语法上可以通过const_cast擦除来间接访问修改const对象，但产生的结果是undefined behaviour，不要依赖UB行为</span><br><span class="hljs-type">int</span>&amp;&amp; f = c;        <span class="hljs-comment">// 错误：右值引用类型与所绑定的变量类型不一致（第一关都没过去）</span><br><span class="hljs-comment">/*</span><br><span class="hljs-comment">test2.cpp:17:11: error: binding reference of type &#x27;int&#x27; to value of type &#x27;const int&#x27; drops &#x27;const&#x27; qualifier</span><br><span class="hljs-comment">    int &amp;&amp;f = c;</span><br><span class="hljs-comment"> */</span><br><br><br><span class="hljs-comment">// 一个出人意料的case</span><br><span class="hljs-type">const</span> <span class="hljs-type">int</span>&amp; g = <span class="hljs-number">1</span>;   <span class="hljs-comment">// 正确：虽然字面量1是prvalue，但是const左值引用可以绑定到右值（可以理解成字面量值先隐式转换成了一个匿名的const int，然后将const引用与其绑定）</span><br></code></pre></div></td></tr></table></figure>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-type">int</span> a = <span class="hljs-number">1</span>;<br><span class="hljs-type">const</span> <span class="hljs-type">int</span>&amp; b = a;           <span class="hljs-comment">// 正确：const左值引用可以绑定到非const变量</span><br>b = <span class="hljs-number">2</span>;                      <span class="hljs-comment">// 错误：左值引用b所绑定的变量有const限定，RT不可修改</span><br><span class="hljs-built_in">const_cast</span>&lt;<span class="hljs-type">int</span>&amp;&gt;(b) = <span class="hljs-number">2</span>;    <span class="hljs-comment">// 正确：const引用的RT限定可以通过const_cast来擦除，这里确实修改了变量a的值为2；</span><br><span class="hljs-comment">/*</span><br><span class="hljs-comment">test2.cpp:9:7: error: cannot assign to variable &#x27;b&#x27; with const-qualified type &#x27;const int &amp;&#x27;</span><br><span class="hljs-comment">    b = 2;</span><br><span class="hljs-comment">    ~ ^</span><br><span class="hljs-comment">test2.cpp:8:16: note: variable &#x27;b&#x27; declared const here</span><br><span class="hljs-comment">    const int&amp; b = a;</span><br><span class="hljs-comment">    ~~~~~~~~~~~^~~~~</span><br><span class="hljs-comment">1 error generated.</span><br><span class="hljs-comment"> */</span><br><span class="hljs-type">const</span> <span class="hljs-type">int</span> &amp;&amp;ra = a;     <span class="hljs-comment">// 错误：常量右值引用亦不能绑定到左值</span><br><span class="hljs-comment">/*</span><br><span class="hljs-comment">test2.cpp:11:17: error: rvalue reference to type &#x27;const int&#x27; cannot bind to lvalue of type &#x27;int&#x27;</span><br><span class="hljs-comment">    const int&amp;&amp; ra = a;</span><br><span class="hljs-comment"> */</span><br><span class="hljs-type">const</span> <span class="hljs-type">int</span> &amp;&amp;rb = <span class="hljs-number">1</span>;     <span class="hljs-comment">// 正确：常量右值引用当然可以绑定到prvalue，只不过毫无卵用</span><br><br><br><span class="hljs-type">const</span> <span class="hljs-type">int</span> c = <span class="hljs-number">1</span>;<br><span class="hljs-type">int</span>&amp; d = c;         <span class="hljs-comment">// 错误：左值引用类型与所绑定的变量类型不一致</span><br><span class="hljs-comment">/*</span><br><span class="hljs-comment">test2.cpp:11:11: error: binding reference of type &#x27;int&#x27; to value of type &#x27;const int&#x27; drops &#x27;const&#x27; qualifier</span><br><span class="hljs-comment">    int&amp;&amp; d = c;</span><br><span class="hljs-comment">          ^   ~</span><br><span class="hljs-comment"> */</span><br><span class="hljs-type">const</span> <span class="hljs-type">int</span>&amp; e = c;  <span class="hljs-comment">// 正确</span><br><span class="hljs-built_in">const_cast</span>&lt;<span class="hljs-type">int</span>&amp;&gt;(e) = <span class="hljs-number">2</span>;    <span class="hljs-comment">//正确：虽然语法上可以通过const_cast擦除来间接访问修改const对象，但产生的结果是undefined behaviour，不要依赖UB行为</span><br><span class="hljs-type">int</span>&amp;&amp; f = c;        <span class="hljs-comment">// 错误：右值引用类型与所绑定的变量类型不一致（第一关都没过去）</span><br><span class="hljs-comment">/*</span><br><span class="hljs-comment">test2.cpp:17:11: error: binding reference of type &#x27;int&#x27; to value of type &#x27;const int&#x27; drops &#x27;const&#x27; qualifier</span><br><span class="hljs-comment">    int &amp;&amp;f = c;</span><br><span class="hljs-comment"> */</span><br><br><br><span class="hljs-comment">// 一个出人意料的case</span><br><span class="hljs-type">const</span> <span class="hljs-type">int</span>&amp; g = <span class="hljs-number">1</span>;   <span class="hljs-comment">// 正确：虽然字面量1是prvalue，但是const左值引用可以绑定到右值（可以理解成字面量值先隐式转换成了一个匿名的const int，然后将const引用与其绑定）</span><br></code></pre></td></tr></table></figure>
 <p>根据上述代码，我们简单归纳一下：</p>
 <ul>
 <li>引用绑定过程中const限定不能drop，但是可以add。换句话说，非const引用不能绑定const值，但const引用可以绑定到非const值。</li>
@@ -322,9 +357,9 @@ assignment)对应，C++11为支持移动语义，引入了额外的两个类成�
 ctor)和移动赋值运算符(move
 assignment)。正如拷贝构造器和拷贝赋值运算符的“孪生性”，移动构造器和移动赋值运算符也是如此，相比前一对的<code>const Object&amp;</code>参数，后一对的参数换成了右值引用<code>Object&amp;&amp;</code>。</p>
 <p>举个例子：</p>
-<figure class="highlight cpp"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs cpp"><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;iostream&gt;</span></span><br><br><span class="hljs-keyword">using</span> <span class="hljs-keyword">namespace</span> std;<br><br><span class="hljs-keyword">class</span> <span class="hljs-title class_">Object</span>&#123;<br><span class="hljs-keyword">public</span>:<br>    <span class="hljs-built_in">Object</span>() &#123; cout &lt;&lt; <span class="hljs-string">&quot;default ctor&quot;</span> &lt;&lt; endl; &#125;<br>    <span class="hljs-built_in">Object</span>(<span class="hljs-type">const</span> Object&amp; rhs) &#123;<br>        cout &lt;&lt; <span class="hljs-string">&quot;copy ctor&quot;</span> &lt;&lt; endl;<br>    &#125;<br>    <span class="hljs-built_in">Object</span>(Object &amp;&amp;rhs) &#123;<br>        cout &lt;&lt; <span class="hljs-string">&quot;move ctor&quot;</span> &lt;&lt; endl;<br>    &#125;<br><br>    Object&amp; <span class="hljs-keyword">operator</span>=(<span class="hljs-type">const</span> Object&amp; rhs) &#123;<br>        cout &lt;&lt; <span class="hljs-string">&quot;copy assignment&quot;</span> &lt;&lt; endl;<br>        <span class="hljs-keyword">return</span> *<span class="hljs-keyword">this</span>;<br>    &#125;<br>    Object&amp; <span class="hljs-keyword">operator</span>=(Object&amp;&amp; rhs) &#123;<br>        cout &lt;&lt; <span class="hljs-string">&quot;move assignment&quot;</span> &lt;&lt; endl;<br>        <span class="hljs-keyword">return</span> *<span class="hljs-keyword">this</span>;<br>    &#125;<br><br>    ~<span class="hljs-built_in">Object</span>() &#123;&#125;<br>&#125;;<br><br><span class="hljs-function"><span class="hljs-type">int</span> <span class="hljs-title">main</span><span class="hljs-params">()</span></span>&#123;<br>    Object a;       <span class="hljs-comment">// 调用默认构造器</span><br>    Object b = a;   <span class="hljs-comment">// 调用拷贝构造器</span><br><br>    Object c;       <span class="hljs-comment">// 调用默认构造器</span><br>    c = a;          <span class="hljs-comment">// 调用拷贝赋值运算符</span><br><br>    Object d = <span class="hljs-built_in">static_cast</span>&lt;Object&amp;&amp;&gt;(c);    <span class="hljs-comment">// 调用移动构造器</span><br>    Object e;                               <span class="hljs-comment">// 调用默认构造器</span><br>    e = <span class="hljs-built_in">static_cast</span>&lt;Object&amp;&amp;&gt;(c);           <span class="hljs-comment">// 调用移动赋值运算符</span><br><br>    <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>&#125;<br></code></pre></div></td></tr></table></figure>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;iostream&gt;</span></span><br><br><span class="hljs-keyword">using</span> <span class="hljs-keyword">namespace</span> std;<br><br><span class="hljs-keyword">class</span> <span class="hljs-title class_">Object</span>&#123;<br><span class="hljs-keyword">public</span>:<br>    <span class="hljs-built_in">Object</span>() &#123; cout &lt;&lt; <span class="hljs-string">&quot;default ctor&quot;</span> &lt;&lt; endl; &#125;<br>    <span class="hljs-built_in">Object</span>(<span class="hljs-type">const</span> Object&amp; rhs) &#123;<br>        cout &lt;&lt; <span class="hljs-string">&quot;copy ctor&quot;</span> &lt;&lt; endl;<br>    &#125;<br>    <span class="hljs-built_in">Object</span>(Object &amp;&amp;rhs) &#123;<br>        cout &lt;&lt; <span class="hljs-string">&quot;move ctor&quot;</span> &lt;&lt; endl;<br>    &#125;<br><br>    Object&amp; <span class="hljs-keyword">operator</span>=(<span class="hljs-type">const</span> Object&amp; rhs) &#123;<br>        cout &lt;&lt; <span class="hljs-string">&quot;copy assignment&quot;</span> &lt;&lt; endl;<br>        <span class="hljs-keyword">return</span> *<span class="hljs-keyword">this</span>;<br>    &#125;<br>    Object&amp; <span class="hljs-keyword">operator</span>=(Object&amp;&amp; rhs) &#123;<br>        cout &lt;&lt; <span class="hljs-string">&quot;move assignment&quot;</span> &lt;&lt; endl;<br>        <span class="hljs-keyword">return</span> *<span class="hljs-keyword">this</span>;<br>    &#125;<br><br>    ~<span class="hljs-built_in">Object</span>() &#123;&#125;<br>&#125;;<br><br><span class="hljs-function"><span class="hljs-type">int</span> <span class="hljs-title">main</span><span class="hljs-params">()</span></span>&#123;<br>    Object a;       <span class="hljs-comment">// 调用默认构造器</span><br>    Object b = a;   <span class="hljs-comment">// 调用拷贝构造器</span><br><br>    Object c;       <span class="hljs-comment">// 调用默认构造器</span><br>    c = a;          <span class="hljs-comment">// 调用拷贝赋值运算符</span><br><br>    Object d = <span class="hljs-built_in">static_cast</span>&lt;Object&amp;&amp;&gt;(c);    <span class="hljs-comment">// 调用移动构造器</span><br>    Object e;                               <span class="hljs-comment">// 调用默认构造器</span><br>    e = <span class="hljs-built_in">static_cast</span>&lt;Object&amp;&amp;&gt;(c);           <span class="hljs-comment">// 调用移动赋值运算符</span><br><br>    <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
 <p>输出结果：</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs zsh">default ctor<br>copy ctor<br>default ctor<br>copy assignment<br>move ctor<br>default ctor<br>move assignment<br></code></pre></div></td></tr></table></figure>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs zsh">default ctor<br>copy ctor<br>default ctor<br>copy assignment<br>move ctor<br>default ctor<br>move assignment<br></code></pre></td></tr></table></figure>
 <p>实际上看到这里你就会发现，所谓的移动构造器，不过就是一种参数为对象右值引用类型的构造器罢了，C++语法上的扩充仅仅是右值语义而已，移动构造和移动赋值运算符不过是一种优雅的称谓。</p>
 <blockquote>
 <p>你可能听说过默认构造器+BigFive（传统C++的BigThree(拷贝构造、拷贝赋值运算符、析构)再填上这两个移动兄弟，正好凑成五排(bushi)），当然这不是标准化的称谓（应该是侯捷老师带来的叫法），但编译器确实会按照标准所规定的那样，对默认构造和BigFive做一些特殊照顾。</p>
@@ -345,9 +380,9 @@ free, uaf, memory leak等问题。这也是C++上手门槛高的一个原因。<
 </blockquote>
 <p>而另一方面，<code>Object</code>是个空类，我们原本打算通过<code>Object d = static_cast&lt;Object&amp;&amp;&gt;(c);</code>调用移动构造器把<code>c</code>“搬空”，资源归属转移到<code>d</code>而不是复制给<code>d</code>，可在实际实现移动构造器的时候才发现<code>Object</code>空空如也。没错，这个例子中<code>Object</code>是个空类（当然这种情况其实例化对象也是有size的），对于这种类本不用定义它的BigFive（编译器会默认生成），因为它并没有需要区分拷贝或者移动的资源。</p>
 <p>我们改进一下，引入三个数据成员，分别用具有代表性的基础类型<code>int</code>，标准库的复杂类类型<code>std::string</code>和指针类型<code>char*</code>，请一定仔细阅读代码注释：
-<figure class="highlight cpp"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs cpp"><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;iostream&gt;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;string&gt;</span></span><br><br><span class="hljs-keyword">using</span> <span class="hljs-keyword">namespace</span> std;<br><br><span class="hljs-keyword">class</span> <span class="hljs-title class_">Object</span>&#123;<br><span class="hljs-keyword">public</span>:<br>    <span class="hljs-comment">// custom ctor</span><br>    <span class="hljs-built_in">Object</span>(<span class="hljs-type">const</span> string&amp; name, <span class="hljs-type">int</span> size) : <span class="hljs-built_in">name_</span>(name), <span class="hljs-built_in">size_</span>(std::<span class="hljs-built_in">max</span>(size, <span class="hljs-number">16</span>)), <span class="hljs-built_in">data_ptr_</span>(<span class="hljs-keyword">new</span> <span class="hljs-type">char</span>[size_]) &#123;&#125;<br><br>    <span class="hljs-comment">// copy ctor</span><br>    <span class="hljs-comment">// 对于拷贝构造器来说，我们需要对name_调用std::string的拷贝构造器来做一次copy</span><br>    <span class="hljs-comment">// 而基础内建类型没有拷贝构造器，它只能进行bit copy，这也是自动生成的拷贝构造器的动作</span><br>    <span class="hljs-comment">// 自动生成的copy ctor对data_ptr_做的也是bit copy，但显然我们希望对其做深拷贝，因此要自己写逻辑</span><br>    <span class="hljs-built_in">Object</span>(<span class="hljs-type">const</span> Object&amp; rhs) : <span class="hljs-built_in">name_</span>(rhs.name_), <span class="hljs-built_in">size_</span>(rhs.size_), <span class="hljs-built_in">data_ptr_</span>(<span class="hljs-keyword">new</span> <span class="hljs-type">char</span>[rhs.size_]) &#123;<br>        std::<span class="hljs-built_in">copy</span>(rhs.data_ptr_, rhs.data_ptr_ + rhs.size_, data_ptr_);<br>    &#125;<br><br>    <span class="hljs-comment">// move ctor</span><br>    <span class="hljs-comment">// 对于移动构造器来说，我们只需要对name_调用std::string的移动构造器来做move而非copy</span><br>    <span class="hljs-comment">// 基础内建类型没有移动构造器，它只能进行bit copy，这也是自动生成的移动构造器的动作</span><br>    <span class="hljs-comment">// 自动生成的move ctor对于data_ptr_做的也是bit copy，但显然我们不仅希望做浅拷贝，还希望传进来的右值引用所refer to的值可以被转移释放（偷走）</span><br>    <span class="hljs-built_in">Object</span>(Object &amp;&amp;rhs) : <span class="hljs-built_in">name_</span>(std::<span class="hljs-built_in">move</span>(rhs.name_)), <span class="hljs-built_in">size_</span>(rhs.size_), <span class="hljs-built_in">data_ptr_</span>(rhs.data_ptr_) &#123;<br>        rhs.data_ptr_ = <span class="hljs-literal">nullptr</span>;<br>        rhs.size_ = <span class="hljs-number">0</span>;<br>    &#125;<br><br>    <span class="hljs-comment">// copy assignment</span><br>    <span class="hljs-comment">// 拷贝赋值运算符是copy ctor的孪生，用于适配非初始化赋值情景的赋值值语义</span><br>    <span class="hljs-comment">// 参数类型为const左值引用，意味着可以绑定到所有const/非const左值或右值，因此右操作数是啥都接得住</span><br>    Object&amp; <span class="hljs-keyword">operator</span>=(<span class="hljs-type">const</span> Object&amp; rhs) &#123;<br>        <span class="hljs-keyword">if</span> (<span class="hljs-keyword">this</span> != &amp;rhs) &#123;<br>            <span class="hljs-type">char</span> *ptr = <span class="hljs-keyword">new</span> <span class="hljs-type">char</span>[rhs.size_];<br>            std::<span class="hljs-built_in">copy</span>(rhs.data_ptr_, rhs.data_ptr_ + rhs.size_, ptr);<br>            <span class="hljs-keyword">if</span> (data_ptr_ != <span class="hljs-literal">nullptr</span>) &#123;<br>                <span class="hljs-keyword">delete</span>[] data_ptr_;<br>            &#125;<br>            data_ptr_ = ptr;<br>            size_ = rhs.size_;<br>            name_ = rhs.name_;<br>        &#125;<br>        <span class="hljs-keyword">return</span> *<span class="hljs-keyword">this</span>;<br>    &#125;<br><br>    <span class="hljs-comment">// move assignment</span><br>    <span class="hljs-comment">// 移动赋值运算符是move ctor的孪生，用于适配非初始化赋值情景的赋值值语义</span><br>    <span class="hljs-comment">// 参数类型为右值引用，意味着仅可以绑定到非const右值引用，同时对于传递非const右值引用时</span><br>    <span class="hljs-comment">// 根据函数重载的优先级会优先匹配，换句话说，如果没有该定义，那就只能退一步去调用copy assignment</span><br>    Object&amp; <span class="hljs-keyword">operator</span>=(Object&amp;&amp; rhs) &#123;<br>        <span class="hljs-keyword">if</span> (<span class="hljs-keyword">this</span> != &amp;rhs) &#123;<br>            <span class="hljs-keyword">if</span> (data_ptr_ != <span class="hljs-literal">nullptr</span>) &#123;<br>                <span class="hljs-keyword">delete</span>[] data_ptr_;<br>            &#125;<br>            data_ptr_ = rhs.data_ptr_;<br>            size_ = rhs.size_;<br><br>            name_ = std::<span class="hljs-built_in">move</span>(rhs.name_);<br>            rhs.data_ptr_ = <span class="hljs-literal">nullptr</span>;<br>            rhs.size_ = <span class="hljs-number">0</span>;<br>        &#125;<br>        <span class="hljs-keyword">return</span> *<span class="hljs-keyword">this</span>;<br>    &#125;<br><br>    <span class="hljs-comment">// dtor</span><br>    <span class="hljs-comment">// 对于拥有raw pointer数据成员的类来说，析构都是少不了的</span><br>    ~<span class="hljs-built_in">Object</span>() &#123; <span class="hljs-keyword">if</span>(data_ptr_ != <span class="hljs-literal">nullptr</span>) <span class="hljs-keyword">delete</span>[] data_ptr_; &#125;<br><br>    <span class="hljs-function"><span class="hljs-type">void</span> <span class="hljs-title">DebugPrint</span><span class="hljs-params">()</span> </span>&#123;<br>        std::cout &lt;&lt; name_ &lt;&lt; <span class="hljs-string">&quot;\t&quot;</span> &lt;&lt; size_ &lt;&lt; <span class="hljs-string">&quot;\t&quot;</span> &lt;&lt; <span class="hljs-built_in">static_cast</span>&lt;<span class="hljs-type">const</span> <span class="hljs-type">void</span>*&gt;(data_ptr_) &lt;&lt; std::endl;<br>    &#125;<br><span class="hljs-keyword">private</span>:<br>    std::string name_;<br>    <span class="hljs-type">int</span> size_;<br>    <span class="hljs-type">char</span>* data_ptr_;<br>&#125;;<br><br><span class="hljs-function"><span class="hljs-type">int</span> <span class="hljs-title">main</span><span class="hljs-params">()</span></span>&#123;<br>    <span class="hljs-function">Object <span class="hljs-title">a</span><span class="hljs-params">(<span class="hljs-string">&quot;a&quot;</span>, <span class="hljs-number">32</span>)</span></span>;<br>    <span class="hljs-function">Object <span class="hljs-title">b</span><span class="hljs-params">(<span class="hljs-string">&quot;b&quot;</span>, <span class="hljs-number">64</span>)</span></span>;<br><br>    Object c = a;<br>    Object d = std::<span class="hljs-built_in">move</span>(b);    <span class="hljs-comment">// std::move见下文</span><br><br>    a.<span class="hljs-built_in">DebugPrint</span>();     <br>    b.<span class="hljs-built_in">DebugPrint</span>();    <br>    c.<span class="hljs-built_in">DebugPrint</span>();<br>    d.<span class="hljs-built_in">DebugPrint</span>();<br><br>    <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>&#125;<br></code></pre></div></td></tr></table></figure></p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;iostream&gt;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;string&gt;</span></span><br><br><span class="hljs-keyword">using</span> <span class="hljs-keyword">namespace</span> std;<br><br><span class="hljs-keyword">class</span> <span class="hljs-title class_">Object</span>&#123;<br><span class="hljs-keyword">public</span>:<br>    <span class="hljs-comment">// custom ctor</span><br>    <span class="hljs-built_in">Object</span>(<span class="hljs-type">const</span> string&amp; name, <span class="hljs-type">int</span> size) : <span class="hljs-built_in">name_</span>(name), <span class="hljs-built_in">size_</span>(std::<span class="hljs-built_in">max</span>(size, <span class="hljs-number">16</span>)), <span class="hljs-built_in">data_ptr_</span>(<span class="hljs-keyword">new</span> <span class="hljs-type">char</span>[size_]) &#123;&#125;<br><br>    <span class="hljs-comment">// copy ctor</span><br>    <span class="hljs-comment">// 对于拷贝构造器来说，我们需要对name_调用std::string的拷贝构造器来做一次copy</span><br>    <span class="hljs-comment">// 而基础内建类型没有拷贝构造器，它只能进行bit copy，这也是自动生成的拷贝构造器的动作</span><br>    <span class="hljs-comment">// 自动生成的copy ctor对data_ptr_做的也是bit copy，但显然我们希望对其做深拷贝，因此要自己写逻辑</span><br>    <span class="hljs-built_in">Object</span>(<span class="hljs-type">const</span> Object&amp; rhs) : <span class="hljs-built_in">name_</span>(rhs.name_), <span class="hljs-built_in">size_</span>(rhs.size_), <span class="hljs-built_in">data_ptr_</span>(<span class="hljs-keyword">new</span> <span class="hljs-type">char</span>[rhs.size_]) &#123;<br>        std::<span class="hljs-built_in">copy</span>(rhs.data_ptr_, rhs.data_ptr_ + rhs.size_, data_ptr_);<br>    &#125;<br><br>    <span class="hljs-comment">// move ctor</span><br>    <span class="hljs-comment">// 对于移动构造器来说，我们只需要对name_调用std::string的移动构造器来做move而非copy</span><br>    <span class="hljs-comment">// 基础内建类型没有移动构造器，它只能进行bit copy，这也是自动生成的移动构造器的动作</span><br>    <span class="hljs-comment">// 自动生成的move ctor对于data_ptr_做的也是bit copy，但显然我们不仅希望做浅拷贝，还希望传进来的右值引用所refer to的值可以被转移释放（偷走）</span><br>    <span class="hljs-built_in">Object</span>(Object &amp;&amp;rhs) : <span class="hljs-built_in">name_</span>(std::<span class="hljs-built_in">move</span>(rhs.name_)), <span class="hljs-built_in">size_</span>(rhs.size_), <span class="hljs-built_in">data_ptr_</span>(rhs.data_ptr_) &#123;<br>        rhs.data_ptr_ = <span class="hljs-literal">nullptr</span>;<br>        rhs.size_ = <span class="hljs-number">0</span>;<br>    &#125;<br><br>    <span class="hljs-comment">// copy assignment</span><br>    <span class="hljs-comment">// 拷贝赋值运算符是copy ctor的孪生，用于适配非初始化赋值情景的赋值值语义</span><br>    <span class="hljs-comment">// 参数类型为const左值引用，意味着可以绑定到所有const/非const左值或右值，因此右操作数是啥都接得住</span><br>    Object&amp; <span class="hljs-keyword">operator</span>=(<span class="hljs-type">const</span> Object&amp; rhs) &#123;<br>        <span class="hljs-keyword">if</span> (<span class="hljs-keyword">this</span> != &amp;rhs) &#123;<br>            <span class="hljs-type">char</span> *ptr = <span class="hljs-keyword">new</span> <span class="hljs-type">char</span>[rhs.size_];<br>            std::<span class="hljs-built_in">copy</span>(rhs.data_ptr_, rhs.data_ptr_ + rhs.size_, ptr);<br>            <span class="hljs-keyword">if</span> (data_ptr_ != <span class="hljs-literal">nullptr</span>) &#123;<br>                <span class="hljs-keyword">delete</span>[] data_ptr_;<br>            &#125;<br>            data_ptr_ = ptr;<br>            size_ = rhs.size_;<br>            name_ = rhs.name_;<br>        &#125;<br>        <span class="hljs-keyword">return</span> *<span class="hljs-keyword">this</span>;<br>    &#125;<br><br>    <span class="hljs-comment">// move assignment</span><br>    <span class="hljs-comment">// 移动赋值运算符是move ctor的孪生，用于适配非初始化赋值情景的赋值值语义</span><br>    <span class="hljs-comment">// 参数类型为右值引用，意味着仅可以绑定到非const右值引用，同时对于传递非const右值引用时</span><br>    <span class="hljs-comment">// 根据函数重载的优先级会优先匹配，换句话说，如果没有该定义，那就只能退一步去调用copy assignment</span><br>    Object&amp; <span class="hljs-keyword">operator</span>=(Object&amp;&amp; rhs) &#123;<br>        <span class="hljs-keyword">if</span> (<span class="hljs-keyword">this</span> != &amp;rhs) &#123;<br>            <span class="hljs-keyword">if</span> (data_ptr_ != <span class="hljs-literal">nullptr</span>) &#123;<br>                <span class="hljs-keyword">delete</span>[] data_ptr_;<br>            &#125;<br>            data_ptr_ = rhs.data_ptr_;<br>            size_ = rhs.size_;<br><br>            name_ = std::<span class="hljs-built_in">move</span>(rhs.name_);<br>            rhs.data_ptr_ = <span class="hljs-literal">nullptr</span>;<br>            rhs.size_ = <span class="hljs-number">0</span>;<br>        &#125;<br>        <span class="hljs-keyword">return</span> *<span class="hljs-keyword">this</span>;<br>    &#125;<br><br>    <span class="hljs-comment">// dtor</span><br>    <span class="hljs-comment">// 对于拥有raw pointer数据成员的类来说，析构都是少不了的</span><br>    ~<span class="hljs-built_in">Object</span>() &#123; <span class="hljs-keyword">if</span>(data_ptr_ != <span class="hljs-literal">nullptr</span>) <span class="hljs-keyword">delete</span>[] data_ptr_; &#125;<br><br>    <span class="hljs-function"><span class="hljs-type">void</span> <span class="hljs-title">DebugPrint</span><span class="hljs-params">()</span> </span>&#123;<br>        std::cout &lt;&lt; name_ &lt;&lt; <span class="hljs-string">&quot;\t&quot;</span> &lt;&lt; size_ &lt;&lt; <span class="hljs-string">&quot;\t&quot;</span> &lt;&lt; <span class="hljs-built_in">static_cast</span>&lt;<span class="hljs-type">const</span> <span class="hljs-type">void</span>*&gt;(data_ptr_) &lt;&lt; std::endl;<br>    &#125;<br><span class="hljs-keyword">private</span>:<br>    std::string name_;<br>    <span class="hljs-type">int</span> size_;<br>    <span class="hljs-type">char</span>* data_ptr_;<br>&#125;;<br><br><span class="hljs-function"><span class="hljs-type">int</span> <span class="hljs-title">main</span><span class="hljs-params">()</span></span>&#123;<br>    <span class="hljs-function">Object <span class="hljs-title">a</span><span class="hljs-params">(<span class="hljs-string">&quot;a&quot;</span>, <span class="hljs-number">32</span>)</span></span>;<br>    <span class="hljs-function">Object <span class="hljs-title">b</span><span class="hljs-params">(<span class="hljs-string">&quot;b&quot;</span>, <span class="hljs-number">64</span>)</span></span>;<br><br>    Object c = a;<br>    Object d = std::<span class="hljs-built_in">move</span>(b);    <span class="hljs-comment">// std::move见下文</span><br><br>    a.<span class="hljs-built_in">DebugPrint</span>();     <br>    b.<span class="hljs-built_in">DebugPrint</span>();    <br>    c.<span class="hljs-built_in">DebugPrint</span>();<br>    d.<span class="hljs-built_in">DebugPrint</span>();<br><br>    <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>&#125;<br></code></pre></td></tr></table></figure></p>
 <p>运行结果：</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs zsh">a	32	0x60000180d120<br>	0	0x0<br>a	32	0x60000180d140<br>b	64	0x600000d0c1c0<br></code></pre></div></td></tr></table></figure>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs zsh">a	32	0x60000180d120<br>	0	0x0<br>a	32	0x60000180d140<br>b	64	0x600000d0c1c0<br></code></pre></td></tr></table></figure>
 <p>在解释运行结果之前，我们先来说明一个C++11标准库所引入的一个非常常见的函数模板：<code>std::move</code>，该函数的名称如果是从C++的语法角度来看非常的具有误导性，<code>std::move</code>本身并不能做”移动“或者说“资源归属转移”操作，它仅仅是返回一个调用参数的右值引用而已，在我们的代码中，它曾两次出现：</p>
 <ul>
 <li><code>Object d = std::move(b);</code></li>
@@ -371,7 +406,7 @@ ctor构造了一个“有血有肉”的<code>b</code>对象实例吗，为何�
 bit，但我们往往需要自己重写BigFive来谨慎处理</li>
 </ul>
 <p>看到这里，一些同学一定会有这样的问题：说好的移动语义，怎么看上去还是东拼西凑呢？语法上为什么不对基础类型也来一个移动语义呢？比如：</p>
-<figure class="highlight cpp"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs cpp"><span class="hljs-type">int</span> a = <span class="hljs-number">3</span>;<br><span class="hljs-type">int</span> b = std::<span class="hljs-built_in">move</span>(a);<br><br>cout &lt;&lt; a &lt;&lt; <span class="hljs-string">&quot;\t&quot;</span> &lt;&lt; b &lt;&lt; endl;<br>cout &lt;&lt; &amp;a &lt;&lt; <span class="hljs-string">&quot;\t&quot;</span> &lt;&lt; &amp;b &lt;&lt; endl;<br><span class="hljs-comment">// 输出结果:</span><br><span class="hljs-comment">// 3  3</span><br><span class="hljs-comment">// 0x16d11b718	0x16d11b714</span><br><span class="hljs-comment">// a并没能被搬空，甚至继续使用也没有问题，a和b的地址也各不相同</span><br></code></pre></div></td></tr></table></figure>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-type">int</span> a = <span class="hljs-number">3</span>;<br><span class="hljs-type">int</span> b = std::<span class="hljs-built_in">move</span>(a);<br><br>cout &lt;&lt; a &lt;&lt; <span class="hljs-string">&quot;\t&quot;</span> &lt;&lt; b &lt;&lt; endl;<br>cout &lt;&lt; &amp;a &lt;&lt; <span class="hljs-string">&quot;\t&quot;</span> &lt;&lt; &amp;b &lt;&lt; endl;<br><span class="hljs-comment">// 输出结果:</span><br><span class="hljs-comment">// 3  3</span><br><span class="hljs-comment">// 0x16d11b718	0x16d11b714</span><br><span class="hljs-comment">// a并没能被搬空，甚至继续使用也没有问题，a和b的地址也各不相同</span><br></code></pre></td></tr></table></figure>
 <p>还记得移动语义的初衷吗？我们想要解决的是大对象冗余的拷贝，像是基础内建类型这种size非常小的数据，比如64bit机寄存器就可以一次性装载8B数据了，copy的成本过于低廉，真要支持个移动说不定反而效率更低(其他引用语义的语言如Java又何尝不是如此)。</p>
 <blockquote>
 <p>基础类型的raw数组也一样是copy bit by bit,
@@ -386,12 +421,12 @@ xvalue"的场景，其中<code>b</code>不再被需要，通过<code>std::move</
 <p>于是，对于移动构造器来说，我们在将参数的资源窃为己有后，一般会将其重置为默认态或者零值态（标准没有硬性规定要如何善后，但是规定了接下来对它的操作皆是UB行为（由编译器具体实现机制来买单）），正如我们在上例中对<code>size_</code>清零，对<code>data_ptr_</code>置空的操作，而<code>std::string</code>的移动构造器则是将字符串重置成空串作为善后处理手段。而移动赋值运算符则麻烦一点，因为被赋值的对象可能有历史的数据，尤其是对于指针型就要及时释放，避免memory
 leak。</p>
 <p>此外，移动构造器和移动赋值运算符只是两种比较特别的成员函数，并不是说移动只能在这两种函数内处理，比如，我们定义这样一个构造器：
-<figure class="highlight cpp"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs cpp"><span class="hljs-keyword">class</span> <span class="hljs-title class_">Object</span>&#123;<br><span class="hljs-keyword">public</span>：<br>    <span class="hljs-built_in">Object</span>(std::string&amp;&amp; name) : <span class="hljs-built_in">name_</span>(std::<span class="hljs-built_in">move</span>(name)), <span class="hljs-built_in">size_</span>(<span class="hljs-number">16</span>), <span class="hljs-built_in">data_ptr_</span>(<span class="hljs-keyword">new</span> <span class="hljs-type">char</span>[<span class="hljs-number">16</span>]) &#123;&#125;<br>    。。。<br>&#125;;<br></code></pre></div></td></tr></table></figure>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-keyword">class</span> <span class="hljs-title class_">Object</span>&#123;<br><span class="hljs-keyword">public</span>：<br>    <span class="hljs-built_in">Object</span>(std::string&amp;&amp; name) : <span class="hljs-built_in">name_</span>(std::<span class="hljs-built_in">move</span>(name)), <span class="hljs-built_in">size_</span>(<span class="hljs-number">16</span>), <span class="hljs-built_in">data_ptr_</span>(<span class="hljs-keyword">new</span> <span class="hljs-type">char</span>[<span class="hljs-number">16</span>]) &#123;&#125;<br>    。。。<br>&#125;;<br></code></pre></td></tr></table></figure>
 参数也可以是一个右值引用，此时我们可以通过<code>std::string</code>的移动构造器来将参数的资源偷走，而如果不进行窃取的话，比如改成：
 <code>name_(name)</code>（就会调用<code>std::string</code>的拷贝构造，因为<code>name</code>本身是左值）。</p>
 <h2 id="stdmove">std::move</h2>
 <p>上文也提到<code>std::move</code>是个函数模板，它的标准定义如下：</p>
-<figure class="highlight cpp"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs cpp"><span class="hljs-function"><span class="hljs-keyword">template</span>&lt;<span class="hljs-keyword">typename</span> T&gt;</span><br><span class="hljs-function"><span class="hljs-keyword">constexpr</span> <span class="hljs-keyword">typename</span> std::<span class="hljs-type">remove_reference_t</span>&lt;T&gt;&amp;&amp; <span class="hljs-title">move</span><span class="hljs-params">(T&amp;&amp; t)</span> <span class="hljs-keyword">noexcept</span> </span>&#123;<br>    <span class="hljs-keyword">return</span> <span class="hljs-keyword">static_cast</span>&lt;<span class="hljs-keyword">typename</span> std::<span class="hljs-type">remove_reference_t</span>&lt;T&gt;&amp;&amp;&gt;(<span class="hljs-type">__t</span>);<br>&#125;<br></code></pre></div></td></tr></table></figure>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-function"><span class="hljs-keyword">template</span>&lt;<span class="hljs-keyword">typename</span> T&gt;</span><br><span class="hljs-function"><span class="hljs-keyword">constexpr</span> <span class="hljs-keyword">typename</span> std::<span class="hljs-type">remove_reference_t</span>&lt;T&gt;&amp;&amp; <span class="hljs-title">move</span><span class="hljs-params">(T&amp;&amp; t)</span> <span class="hljs-keyword">noexcept</span> </span>&#123;<br>    <span class="hljs-keyword">return</span> <span class="hljs-keyword">static_cast</span>&lt;<span class="hljs-keyword">typename</span> std::<span class="hljs-type">remove_reference_t</span>&lt;T&gt;&amp;&amp;&gt;(<span class="hljs-type">__t</span>);<br>&#125;<br></code></pre></td></tr></table></figure>
 <p>想要理解<code>std::move</code>，需要前置掌握这两个知识点：</p>
 <ol type="1">
 <li><code>std::remove_reference_t&lt;T&gt;</code>是个type
@@ -436,42 +471,98 @@ there a difference between universal references and forwarding
 references?</a></li>
 </ul>
 
-            </div>
-            <hr>
-            <div>
-              <div class="post-metas mb-3">
-                
-                  <div class="post-meta mr-3">
-                    <i class="iconfont icon-category"></i>
-                    
-                      <a class="hover-with-bg" href="/categories/program-language/">program-language</a>
-                    
-                  </div>
-                
-                
-                  <div class="post-meta">
-                    <i class="iconfont icon-tags"></i>
-                    
-                      <a class="hover-with-bg" href="/tags/cpp/">cpp</a>
-                    
-                      <a class="hover-with-bg" href="/tags/cpp-templates/">cpp-templates</a>
-                    
-                  </div>
                 
               </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/program-language/" class="category-chain-item">program-language</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/cpp/" class="print-no-link">#cpp</a>
+      
+        <a href="/tags/cpp-templates/" class="print-no-link">#cpp-templates</a>
+      
+    </div>
+  
+</div>
+
+
               
-                <p class="note note-warning">
-                  
-                    本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！
-                  
-                </p>
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>C++模板从入门到劝退(1)——右值引用与移动语义</div>
+      <div>https://r00tk1ts.github.io/2022/06/04/C++模板从入门到劝退(1)——右值引用与移动语义/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>r00tk1t</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2022年6月4日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
               
               
-                <div class="post-prevnext">
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
                   <article class="post-prev col-6">
                     
                     
-                      <a href="/2022/06/07/C++%E6%A8%A1%E6%9D%BF%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%8A%9D%E9%80%80(2)%E2%80%94%E2%80%94%E5%9E%8B%E5%88%AB%E6%8E%A8%E5%AF%BC%E3%80%81%E4%B8%87%E8%83%BD%E5%BC%95%E7%94%A8%E4%B8%8E%E5%AE%8C%E7%BE%8E%E8%BD%AC%E5%8F%91/">
+                      <a href="/2022/06/07/C++%E6%A8%A1%E6%9D%BF%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%8A%9D%E9%80%80(2)%E2%80%94%E2%80%94%E5%9E%8B%E5%88%AB%E6%8E%A8%E5%AF%BC%E3%80%81%E4%B8%87%E8%83%BD%E5%BC%95%E7%94%A8%E4%B8%8E%E5%AE%8C%E7%BE%8E%E8%BD%AC%E5%8F%91/" title="C++模板从入门到劝退(2)——型别推导、万能引用与完美转发">
                         <i class="iconfont icon-arrowleft"></i>
                         <span class="hidden-mobile">C++模板从入门到劝退(2)——型别推导、万能引用与完美转发</span>
                         <span class="visible-mobile">上一篇</span>
@@ -481,7 +572,7 @@ references?</a></li>
                   <article class="post-next col-6">
                     
                     
-                      <a href="/2022/05/27/C++%E6%A8%A1%E6%9D%BF%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%8A%9D%E9%80%80(0)%E2%80%94%E2%80%94%E5%B7%A6%E5%80%BC%E4%B8%8E%E5%8F%B3%E5%80%BC/">
+                      <a href="/2022/05/27/C++%E6%A8%A1%E6%9D%BF%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%8A%9D%E9%80%80(0)%E2%80%94%E2%80%94%E5%B7%A6%E5%80%BC%E4%B8%8E%E5%8F%B3%E5%80%BC/" title="C++模板从入门到劝退(0)——左值与右值">
                         <span class="hidden-mobile">C++模板从入门到劝退(0)——左值与右值</span>
                         <span class="visible-mobile">下一篇</span>
                         <i class="iconfont icon-arrowright"></i>
@@ -497,19 +588,53 @@ references?</a></li>
         </div>
       </div>
     </div>
-    
-      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
-        <div id="toc">
-  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
   <div class="toc-body" id="toc-body"></div>
 </div>
 
-      </div>
-    
+
+
+  </aside>
+
+
+    </div>
   </div>
 </div>
 
-<!-- Custom -->
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
 
 
     
@@ -534,35 +659,37 @@ references?</a></li>
       <div class="modal-body mx-3">
         <div class="md-form mb-5">
           <input type="text" id="local-search-input" class="form-control validate">
-          <label data-error="x" data-success="v"
-                 for="local-search-input">关键词</label>
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
         </div>
         <div class="list-group" id="local-search-result"></div>
       </div>
     </div>
   </div>
 </div>
+
     
 
     
   </main>
 
-  <footer class="text-center mt-5 py-3">
-  <div class="footer-content">
-     <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
-  </div>
+  <footer>
+    <div class="footer-inner">
   
-
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
   
-
   
-</footer>
-
-
-  <!-- SCRIPTS -->
   
-  <script  src="https://cdn.jsdelivr.net/npm/nprogress@0/nprogress.min.js" ></script>
-  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0/nprogress.min.css" />
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
 
   <script>
     NProgress.configure({"showSpinner":false,"trickleSpeed":100})
@@ -573,15 +700,27 @@ references?</a></li>
   </script>
 
 
-<script  src="https://cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js" ></script>
-<script  src="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/js/bootstrap.min.js" ></script>
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
 <script  src="/js/events.js" ></script>
 <script  src="/js/plugins.js" ></script>
 
-<!-- Plugins -->
 
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
 
-  <script  src="/js/local-search.js" ></script>
 
 
 
@@ -591,56 +730,115 @@ references?</a></li>
 
 
 
-  
-
-
 
   
-    <script  src="https://cdn.jsdelivr.net/npm/tocbot@4/dist/tocbot.min.js" ></script>
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
   
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
   
-    <script  src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.js" ></script>
-  
-  
-    <script  src="https://cdn.jsdelivr.net/npm/anchor-js@4/anchor.min.js" ></script>
-  
-  
-    <script defer src="https://cdn.jsdelivr.net/npm/clipboard@2/dist/clipboard.min.js" ></script>
-  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
 
 
 
 
 
-
-  <script  src="https://cdn.jsdelivr.net/npm/typed.js@2/lib/typed.min.js" ></script>
-  <script>
-    (function (window, document) {
-      var typing = Fluid.plugins.typing;
-      var title = document.getElementById('subtitle').title;
-      
-        typing(title);
-      
-    })(window, document);
-  </script>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<!-- 主题的启动项 保持在最底部 -->
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
 <script  src="/js/boot.js" ></script>
 
 
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
 </body>
 </html>

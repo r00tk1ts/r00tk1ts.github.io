@@ -44,30 +44,25 @@
 <meta name="twitter:image" content="https://r00tk1ts.github.io/2023/05/06/%E6%A0%BC%E7%89%A9%E8%87%B4%E7%9F%A5(1)%E2%80%94%E2%80%94%E4%BD%A0%E4%BB%80%E4%B9%88%E8%BF%9B%E5%88%B6%EF%BC%9F%E6%88%91%E4%BB%80%E4%B9%88%E8%BF%9B%E5%88%B6%EF%BC%9F/2023-05-11-19-53-30.png">
   
   
+  
   <title>格物致知(1)——你什么进制？我什么进制？ - 玉涵的技能书</title>
 
-  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/css/bootstrap.min.css" />
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
 
 
-  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4/github-markdown.min.css" />
-  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hint.css@2/hint.min.css" />
 
-  
-    
-    
-      
-      <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@10/styles/atom-one-dark.min.css" />
-    
-  
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
 
-  
-    <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.css" />
-  
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
 
 
 <!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
 
-<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
 
 
 
@@ -76,21 +71,42 @@
 
 <link  rel="stylesheet" href="/css/main.css" />
 
-<!-- 自定义样式保持在最底部 -->
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
 
 
   <script id="fluid-configs">
     var Fluid = window.Fluid || {};
-    var CONFIG = {"hostname":"r00tk1ts.github.io","root":"/","version":"1.8.14","typing":{"enable":true,"typeSpeed":80,"cursorChar":"_","loop":false},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"copy_btn":true,"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml"};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"r00tk1ts.github.io","root":"/","version":"1.9.5","typing":{"enable":true,"typeSpeed":80,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
   </script>
   <script  src="/js/utils.js" ></script>
   <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
 <meta name="generator" content="Hexo 6.1.0"></head>
 
 
 <body>
-  <header style="height: 70vh;">
-    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
   <div class="container">
     <a class="navbar-brand" href="/">
       <strong>玉涵的技能书</strong>
@@ -113,7 +129,7 @@
             <li class="nav-item">
               <a class="nav-link" href="/">
                 <i class="iconfont icon-home-fill"></i>
-                首页
+                <span>首页</span>
               </a>
             </li>
           
@@ -125,7 +141,7 @@
             <li class="nav-item">
               <a class="nav-link" href="/archives/">
                 <i class="iconfont icon-archive-fill"></i>
-                归档
+                <span>归档</span>
               </a>
             </li>
           
@@ -137,7 +153,7 @@
             <li class="nav-item">
               <a class="nav-link" href="/categories/">
                 <i class="iconfont icon-category-fill"></i>
-                分类
+                <span>分类</span>
               </a>
             </li>
           
@@ -149,7 +165,7 @@
             <li class="nav-item">
               <a class="nav-link" href="/tags/">
                 <i class="iconfont icon-tags-fill"></i>
-                标签
+                <span>标签</span>
               </a>
             </li>
           
@@ -161,7 +177,7 @@
             <li class="nav-item">
               <a class="nav-link" href="/about/">
                 <i class="iconfont icon-user-fill"></i>
-                关于
+                <span>关于</span>
               </a>
             </li>
           
@@ -169,14 +185,16 @@
         
           <li class="nav-item" id="search-btn">
             <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
-              &nbsp;<i class="iconfont icon-search"></i>&nbsp;
+              <i class="iconfont icon-search"></i>
             </a>
           </li>
+          
         
         
           <li class="nav-item" id="color-toggle-btn">
-            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">&nbsp;<i
-                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
           </li>
         
       </ul>
@@ -184,57 +202,69 @@
   </div>
 </nav>
 
-    <div class="banner" id="banner" parallax=true
-         style="background: url('/img/default.png') no-repeat center center;
-           background-size: cover;">
-      <div class="full-bg-img">
-        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
-          <div class="page-header text-center fade-in-up">
-            <span class="h2" id="subtitle" title="格物致知(1)——你什么进制？我什么进制？">
-              
-            </span>
-
-            
-              <div class="mt-3">
-  
-  
-    <span class="post-meta">
-      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
-      <time datetime="2023-05-06 11:36" pubdate>
-        2023年5月6日 中午
-      </time>
-    </span>
-  
-</div>
-
-<div class="mt-1">
-  
-    <span class="post-meta mr-2">
-      <i class="iconfont icon-chart"></i>
-      10k 字
-    </span>
   
 
-  
-    <span class="post-meta mr-2">
-      <i class="iconfont icon-clock-fill"></i>
-      
-      
-      88 分钟
-    </span>
-  
-
-  
-  
-</div>
-
-            
-          </div>
-
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="格物致知(1)——你什么进制？我什么进制？"></span>
           
         </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2023-05-06 11:36" pubdate>
+          2023年5月6日 中午
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          10k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          88 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
       </div>
+
+      
     </div>
+  </div>
+</div>
+
+</div>
+
   </header>
 
   <main>
@@ -243,16 +273,21 @@
 
 <div class="container-fluid nopadding-x">
   <div class="row nomargin-x">
-    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
     <div class="col-lg-8 nopadding-x-md">
       <div class="container nopadding-x-md" id="board-ctn">
-        <div class="py-5" id="board">
+        <div id="board">
           <article class="post-content mx-auto">
-            <!-- SEO header -->
-            <h1 style="display: none">格物致知(1)——你什么进制？我什么进制？</h1>
+            <h1 id="seo-header">格物致知(1)——你什么进制？我什么进制？</h1>
             
-            <div class="markdown-body">
-              <p>在我入坑之前就时长听大佬说：计算机的世界是二进制的，所有的信息都用0和1来表达。这对习惯于使用十进制的人脑来说显得捉摸不透：为什么要用二进制，十进制不香吗？另外啥叫信息？计算机为啥要表达？它要表达啥？不知道年轻的你有没有此等困惑，今天就让我们来揭开遮掩的幕布，看破这背后的戏法与魔术。</p>
+            
+              <div class="markdown-body">
+                
+                <p>在我入坑之前就时长听大佬说：计算机的世界是二进制的，所有的信息都用0和1来表达。这对习惯于使用十进制的人脑来说显得捉摸不透：为什么要用二进制，十进制不香吗？另外啥叫信息？计算机为啥要表达？它要表达啥？不知道年轻的你有没有此等困惑，今天就让我们来揭开遮掩的幕布，看破这背后的戏法与魔术。</p>
 <span id="more"></span>
 <h1 id="你什么进制我什么进制">你什么进制？我什么进制？</h1>
 <p>在研究计算机为什么是二进制之前，我们先抛开先入为主的偏见，思考一下：为什么人脑习惯用十进制，阿拉伯数字为啥用10当做基数来设计？这个问题很简单，掰掰我们的手指，数一数一共有几根，答案也就呼之欲出了。得益于我们的手指数量，最早的计数方式便选择10作为基数，而随着智慧的启蒙与时代的发展，阿拉伯人设计出以10作为基数的阿拉伯数字，推动了数字革命，终而家喻户晓、流传沿用至今。幼儿园老师教我们加减法运算时，其核心就在于凑10，当我们掌握了凑10技巧以后（也就是明白了进制的意义），就可以口算相当大规模的数字加减运算了。</p>
@@ -284,7 +319,7 @@ class="math inline">\(128+64+32+16+8+2\)</span>，也就是对第1、3、4、5�
 <h3 id="麻烦的符号">麻烦的符号</h3>
 <p>看来简单的一比一编码行不通，一旦涉及了正负的概念，还是得考虑编码规则。考虑到正负本身无非也是一种信息，且恰好就是个二值信息，所以如果我们在原有尺寸的基础上，让出最高位、作为正负符号的表示，其余位仍然代表数值，看起来就可以解决这个case。比如对于此前我们设计的<code>sint8_t</code>，它一共有8个bits，我们让最高位（第7位）为0时代表正、为1时代表负，那么它所能表示的范围就变成了<code>-127~127</code>。此时B11111111在作为<code>sint8_t</code>的时候，它的值就是-127，而作为<code>uint8_t</code>时，它的值是255。</p>
 <p>这种简单粗暴的设计看起来很美好，但实际上却经不起推敲：比如我们考虑对-4和+8做加法运算，二进制写作B10000100和B00001000，正常的结果应该是+4，当计算机操作二进制数按位计算时，答案却是错误的B10001100，也就是-12：</p>
-<figure class="highlight tap"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs tap">-4:<span class="hljs-number"> 1 </span>0<span class="hljs-number"> 0 </span>0<span class="hljs-number"> 0 </span>1<span class="hljs-number"> 0 </span>0<br> 8:<span class="hljs-number"> 0 </span>0<span class="hljs-number"> 0 </span>0<span class="hljs-number"> 1 </span>0<span class="hljs-number"> 0 </span>0<br>+=:<span class="hljs-number"> 1 </span>0<span class="hljs-number"> 0 </span>0<span class="hljs-number"> 1 </span>1<span class="hljs-number"> 0 </span>0<br></code></pre></div></td></tr></table></figure>
+<figure class="highlight tap"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs tap">-4:<span class="hljs-number"> 1 </span>0<span class="hljs-number"> 0 </span>0<span class="hljs-number"> 0 </span>1<span class="hljs-number"> 0 </span>0<br> 8:<span class="hljs-number"> 0 </span>0<span class="hljs-number"> 0 </span>0<span class="hljs-number"> 1 </span>0<span class="hljs-number"> 0 </span>0<br>+=:<span class="hljs-number"> 1 </span>0<span class="hljs-number"> 0 </span>0<span class="hljs-number"> 1 </span>1<span class="hljs-number"> 0 </span>0<br></code></pre></td></tr></table></figure>
 <p>经过分析，我们发现这里第一个问题就在于符号位是不能直接进行加法运算的，因为我们在计算时并不知道最终结果应该是正还是负。此外，第二个问题在于正数和负数的加法运算，其实相当于是减法，这里的计算逻辑实际上忽略了这一事实，而是进行简单的4+8，所以最终才得出了-12的结果。</p>
 <p>尽管我们经过分析，或许能够梳理出一套正确计算的逻辑，但从计算机来说，这就显得太过于复杂了，对于计算机来说，它只能做加法运算，至于你这些数字的背后代表了哪些数值，它是丝毫不关心的。因此，我们需要精心设计一个编码机制，使得它能够在计算机的世界对正负数的加减法操作（计算机只能做加法，减法也是加法（与负数相加））得到一个正确结果的相应编码值。</p>
 <h3 id="整型数编码">整型数编码</h3>
@@ -306,10 +341,10 @@ class="math inline">\(-2^{w-1}\)</span>，当该符号位为时表示负数（�
 <p>为什么要设计这个权重呢，实际上它是对减法运算的一种模拟，对于负数来说，它最终用于表达的二进制值是权重作用后的结果，如此，当我们对复数进行加法运算时，这个权重就发挥了作用。</p>
 <p><img src="2023-05-15-10-55-17.png" srcset="/img/loading.gif" lazyload /></p>
 <p>比如重新考虑<code>-8+4</code>，对<code>sint8_t</code>类型，-8的补码是B11111000，4的补码是B00000100，二者相加：</p>
-<figure class="highlight tap"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs tap">-8:<span class="hljs-number"> 1 </span>1<span class="hljs-number"> 1 </span>1<span class="hljs-number"> 1 </span>0<span class="hljs-number"> 0 </span>0<br> 4:<span class="hljs-number"> 0 </span>0<span class="hljs-number"> 0 </span>0<span class="hljs-number"> 0 </span>1<span class="hljs-number"> 0 </span>0<br>+=:<span class="hljs-number"> 1 </span>1<span class="hljs-number"> 1 </span>1<span class="hljs-number"> 1 </span>1<span class="hljs-number"> 0 </span>0 =&gt; -4的补码<br></code></pre></div></td></tr></table></figure>
+<figure class="highlight tap"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs tap">-8:<span class="hljs-number"> 1 </span>1<span class="hljs-number"> 1 </span>1<span class="hljs-number"> 1 </span>0<span class="hljs-number"> 0 </span>0<br> 4:<span class="hljs-number"> 0 </span>0<span class="hljs-number"> 0 </span>0<span class="hljs-number"> 0 </span>1<span class="hljs-number"> 0 </span>0<br>+=:<span class="hljs-number"> 1 </span>1<span class="hljs-number"> 1 </span>1<span class="hljs-number"> 1 </span>1<span class="hljs-number"> 0 </span>0 =&gt; -4的补码<br></code></pre></td></tr></table></figure>
 <p>通过计算机的加法运算后，得到的正好就是-4的补码。</p>
 <p>再比如<code>-4+8</code>：-4的补码是B11111100，8的补码是B00001000，二者相加：</p>
-<figure class="highlight tap"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs tap">-4:    <span class="hljs-number"> 1 </span>1<span class="hljs-number"> 1 </span>1<span class="hljs-number"> 1 </span>1<span class="hljs-number"> 0 </span>0<br> 8:    <span class="hljs-number"> 0 </span>0<span class="hljs-number"> 0 </span>0<span class="hljs-number"> 1 </span>0<span class="hljs-number"> 0 </span>0<br>+=: (1)<span class="hljs-number"> 0 </span>0<span class="hljs-number"> 0 </span>0<span class="hljs-number"> 0 </span>1<span class="hljs-number"> 0 </span>0 =&gt; 产生进位，丢弃溢出位，最终结果是4的补码<br></code></pre></div></td></tr></table></figure>
+<figure class="highlight tap"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs tap">-4:    <span class="hljs-number"> 1 </span>1<span class="hljs-number"> 1 </span>1<span class="hljs-number"> 1 </span>1<span class="hljs-number"> 0 </span>0<br> 8:    <span class="hljs-number"> 0 </span>0<span class="hljs-number"> 0 </span>0<span class="hljs-number"> 1 </span>0<span class="hljs-number"> 0 </span>0<br>+=: (1)<span class="hljs-number"> 0 </span>0<span class="hljs-number"> 0 </span>0<span class="hljs-number"> 0 </span>1<span class="hljs-number"> 0 </span>0 =&gt; 产生进位，丢弃溢出位，最终结果是4的补码<br></code></pre></td></tr></table></figure>
 <p>由于尺寸限制，这里的加法运算产生了溢出，最终溢出位被丢弃，而最高位（符号位）刚好因为进位而变成0（语义上代表非负数），这一巧合实际上就是我们精心设计的补码编码规则而产生的。</p>
 <h4 id="补码反码与原码">补码、反码与原码</h4>
 <p>各版本大学计算机基础的教材往往都会提到这么几个概念，补码我们已经知道了，那么啥叫反码和原码呢？</p>
@@ -338,13 +373,13 @@ class="math inline">\(-0\)</span>。反码和原码相对于补码是截然不�
 <h4 id="有符号数和无符号数的转换">有符号数和无符号数的转换</h4>
 <p>截止到目前，我们对有符号数和无符号数可以说是区别对待，可是在实际生产环境中，我们很可能会遇到两种类型数混用甚至需要进行计算的场合，那怎么办呢？大部分区分了符号数的语言往往都提供了它们之间的转换方法，比如在C语言中就有显式强制类型转换和隐式类型转换这两种。然而语言层面往往只是提供能力，二者进行计算最终得到的值，归根结底取决于你对它的解读方式。</p>
 <p>举个例子，比如下面的C代码：</p>
-<figure class="highlight c"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs c"><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;stdio.h&gt;</span></span><br><br><span class="hljs-type">int</span> <span class="hljs-title function_">main</span><span class="hljs-params">()</span> &#123;<br>    <span class="hljs-type">short</span> <span class="hljs-type">int</span> v = <span class="hljs-number">-12345</span>;   <span class="hljs-comment">// 16位大小有符号数，表达范围是 -32768 ~ 32767</span><br>    <span class="hljs-type">unsigned</span> <span class="hljs-type">short</span> uv = (<span class="hljs-type">unsigned</span> <span class="hljs-type">short</span>)v;  <span class="hljs-comment">// 这里进行了强制类型转换</span><br>    <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;v=%hd, uv=%hu\n&quot;</span>, v, uv); <span class="hljs-comment">// %hd是按有符号数打印unsigned short，%hu是按无符号数打印short</span><br>    <br>    <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>&#125;<br></code></pre></div></td></tr></table></figure>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;stdio.h&gt;</span></span><br><br><span class="hljs-type">int</span> <span class="hljs-title function_">main</span><span class="hljs-params">()</span> &#123;<br>    <span class="hljs-type">short</span> <span class="hljs-type">int</span> v = <span class="hljs-number">-12345</span>;   <span class="hljs-comment">// 16位大小有符号数，表达范围是 -32768 ~ 32767</span><br>    <span class="hljs-type">unsigned</span> <span class="hljs-type">short</span> uv = (<span class="hljs-type">unsigned</span> <span class="hljs-type">short</span>)v;  <span class="hljs-comment">// 这里进行了强制类型转换</span><br>    <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;v=%hd, uv=%hu\n&quot;</span>, v, uv); <span class="hljs-comment">// %hd是按有符号数打印unsigned short，%hu是按无符号数打印short</span><br>    <br>    <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
 <p>使用x86-64 gcc
 13.1编译，最终输出的结果是：<code>v=-12345, uv=53191</code>。为什么<code>uv</code>的值是53191而不是直觉上的12345呢？这就是因为<code>-12345</code>底层存储的值是<code>B1100111111000111</code>，采用的是补码存储，而当我们把他看做是一个无符号数时，它的编码解读方式就发生了变化，最高位的符号位不再代表符号位，而是代表了<span
 class="math inline">\(2^15\)</span>这个值，不妨按照无符号数的编码方式计算一下，就会发现<code>B1100111111000111</code>对应的值正是<span
 class="math inline">\(2^{15}+2^{14}+2^{11}+2^{10}+2^9+2^8+2^7+2^6+2^2+2^1+2^0=53191\)</span>。</p>
 <p>因此，对于上一段C代码来说，<code>unsigned short uv = (unsigned short)v</code>只不过是使用强制类型转换将<code>v</code>底层存储的编码值赋值给了<code>uv</code>，仅此而已。实际上，我们将上面的代码改写一下，完全不需要copy一份<code>v</code>，只需要对<code>v</code>使用不同的format来打印，亦会得到相同的结果：</p>
-<figure class="highlight c"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs c"><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;stdio.h&gt;</span></span><br><br><span class="hljs-type">int</span> <span class="hljs-title function_">main</span><span class="hljs-params">()</span> &#123;<br>    <span class="hljs-type">short</span> <span class="hljs-type">int</span> v = <span class="hljs-number">-12345</span>;   <span class="hljs-comment">// 16位大小有符号数，表达范围是 -32768 ~ 32767</span><br>    <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;v=%hd, uv=%hu\n&quot;</span>, v, v); <span class="hljs-comment">// 依然输出v=-12345, uv=53191</span><br>    <br>    <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>&#125;<br></code></pre></div></td></tr></table></figure>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;stdio.h&gt;</span></span><br><br><span class="hljs-type">int</span> <span class="hljs-title function_">main</span><span class="hljs-params">()</span> &#123;<br>    <span class="hljs-type">short</span> <span class="hljs-type">int</span> v = <span class="hljs-number">-12345</span>;   <span class="hljs-comment">// 16位大小有符号数，表达范围是 -32768 ~ 32767</span><br>    <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;v=%hd, uv=%hu\n&quot;</span>, v, v); <span class="hljs-comment">// 依然输出v=-12345, uv=53191</span><br>    <br>    <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
 <blockquote>
 <p>对于大多数语言的无符号和有符号数类型的转换，原则都和C一样：数值可能会变，但是位模式不变。因此，当开发者对有符号数和无符号数进行混淆计算时，一定要确保非预期的结果产出，对于大部分语言来说，这都是一个存在风险且不推荐的操作。</p>
 </blockquote>
@@ -352,11 +387,11 @@ class="math inline">\(2^{15}+2^{14}+2^{11}+2^{10}+2^9+2^8+2^7+2^6+2^2+2^1+2^0=53
 <p>另一个常见的转换场景是不同字长的整数之间进行转换。我们原则上希望这样的转换可以保持原有数值的不变，这对于扩展来说（也就是从小尺寸转成大尺寸），可以通过设置扩展的规则来保证，但对于截断来说，显然是不可能的（你那点空间容不下人家的熵）。</p>
 <p>对于无符号的扩展来说，只需要在扩展的高位全部填0即可，这一法则被称作无符号数的零扩展，其原理直接遵循了无符号数编码的定义。而对于有符号数来说，补码需要执行符号扩展：高位填充最高有效位的值，简单来说，就是负数用1填充，非负数用0填充。</p>
 <p>我们还是以C语言为例，将上面的代码做一下调整：</p>
-<figure class="highlight c"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs c"><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;stdio.h&gt;</span></span><br><br><span class="hljs-type">int</span> <span class="hljs-title function_">main</span><span class="hljs-params">()</span> &#123;<br>    <span class="hljs-type">short</span> <span class="hljs-type">int</span> v = <span class="hljs-number">-12345</span>;   <span class="hljs-comment">// 16位大小有符号数，十六进制对应0xCFC7</span><br>    <span class="hljs-type">int</span> wv = v;     <span class="hljs-comment">// 16位扩展到32位，高位用符号位1来填充，扩展为0xFFFFCFC7</span><br>    <br>    <span class="hljs-type">unsigned</span> <span class="hljs-type">short</span> <span class="hljs-type">int</span> uv = (<span class="hljs-type">unsigned</span> <span class="hljs-type">short</span> <span class="hljs-type">int</span>)v;  <span class="hljs-comment">// 0xCFC7，此时解码视作53191 </span><br>    <span class="hljs-type">unsigned</span> <span class="hljs-type">int</span> wuv = uv;  <span class="hljs-comment">// 无符号数用零扩展，0x0000CFC7，依然是53191</span><br><br>    <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;v=%hd, uv=%hu\n&quot;</span>, v, uv);<br>    <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;wv=%d, wuv=%u\n&quot;</span>, wv, wuv);<br>    <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>&#125;<br></code></pre></div></td></tr></table></figure>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;stdio.h&gt;</span></span><br><br><span class="hljs-type">int</span> <span class="hljs-title function_">main</span><span class="hljs-params">()</span> &#123;<br>    <span class="hljs-type">short</span> <span class="hljs-type">int</span> v = <span class="hljs-number">-12345</span>;   <span class="hljs-comment">// 16位大小有符号数，十六进制对应0xCFC7</span><br>    <span class="hljs-type">int</span> wv = v;     <span class="hljs-comment">// 16位扩展到32位，高位用符号位1来填充，扩展为0xFFFFCFC7</span><br>    <br>    <span class="hljs-type">unsigned</span> <span class="hljs-type">short</span> <span class="hljs-type">int</span> uv = (<span class="hljs-type">unsigned</span> <span class="hljs-type">short</span> <span class="hljs-type">int</span>)v;  <span class="hljs-comment">// 0xCFC7，此时解码视作53191 </span><br>    <span class="hljs-type">unsigned</span> <span class="hljs-type">int</span> wuv = uv;  <span class="hljs-comment">// 无符号数用零扩展，0x0000CFC7，依然是53191</span><br><br>    <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;v=%hd, uv=%hu\n&quot;</span>, v, uv);<br>    <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;wv=%d, wuv=%u\n&quot;</span>, wv, wuv);<br>    <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
 <p>输出结果如下：</p>
-<figure class="highlight routeros"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs routeros"><span class="hljs-attribute">v</span>=-12345, <span class="hljs-attribute">uv</span>=53191<br><span class="hljs-attribute">wv</span>=-12345, <span class="hljs-attribute">wuv</span>=53191<br></code></pre></div></td></tr></table></figure>
+<figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs routeros"><span class="hljs-attribute">v</span>=-12345, <span class="hljs-attribute">uv</span>=53191<br><span class="hljs-attribute">wv</span>=-12345, <span class="hljs-attribute">wuv</span>=53191<br></code></pre></td></tr></table></figure>
 <p>扩展的规则易于理解，那么怎么截断呢？既然截断可能会导致原始数值的丢失，所以我们也不用有那么多顾忌，不管是无符号数还是有符号数的补码，我们都干脆把高位丢弃就行。</p>
-<figure class="highlight c"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs c"><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;stdio.h&gt;</span></span><br><br><span class="hljs-type">int</span> <span class="hljs-title function_">main</span><span class="hljs-params">()</span> &#123;<br>    <span class="hljs-type">int</span> v = <span class="hljs-number">53191</span>;                  <span class="hljs-comment">// 0x0000CFC7</span><br>    <span class="hljs-type">short</span> <span class="hljs-type">int</span> sv = (<span class="hljs-type">short</span> <span class="hljs-type">int</span>)v;    <span class="hljs-comment">// 丢弃最高位后变成0xCFC7，此时最高位1作为符号位值为1，整个值变成了-12345</span><br><br>    <span class="hljs-type">int</span> v2 = <span class="hljs-number">0x0001CFC7</span>;            <span class="hljs-comment">// 直接用十六进制书写了，十进制为118727</span><br>    <span class="hljs-type">short</span> <span class="hljs-type">int</span> sv2 = (<span class="hljs-type">short</span> <span class="hljs-type">int</span>)v2;  <span class="hljs-comment">// 还是0xCFC7，-12345</span><br><br>    <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;sv=%hd, v=%d\n&quot;</span>, sv, v);     <span class="hljs-comment">// 输出-12345,53191</span><br>    <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;sv2=%hd, v2=%d\n&quot;</span>, sv2, v2); <span class="hljs-comment">// 输出-12345,118727</span><br>    <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>&#125;<br></code></pre></div></td></tr></table></figure>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;stdio.h&gt;</span></span><br><br><span class="hljs-type">int</span> <span class="hljs-title function_">main</span><span class="hljs-params">()</span> &#123;<br>    <span class="hljs-type">int</span> v = <span class="hljs-number">53191</span>;                  <span class="hljs-comment">// 0x0000CFC7</span><br>    <span class="hljs-type">short</span> <span class="hljs-type">int</span> sv = (<span class="hljs-type">short</span> <span class="hljs-type">int</span>)v;    <span class="hljs-comment">// 丢弃最高位后变成0xCFC7，此时最高位1作为符号位值为1，整个值变成了-12345</span><br><br>    <span class="hljs-type">int</span> v2 = <span class="hljs-number">0x0001CFC7</span>;            <span class="hljs-comment">// 直接用十六进制书写了，十进制为118727</span><br>    <span class="hljs-type">short</span> <span class="hljs-type">int</span> sv2 = (<span class="hljs-type">short</span> <span class="hljs-type">int</span>)v2;  <span class="hljs-comment">// 还是0xCFC7，-12345</span><br><br>    <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;sv=%hd, v=%d\n&quot;</span>, sv, v);     <span class="hljs-comment">// 输出-12345,53191</span><br>    <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;sv2=%hd, v2=%d\n&quot;</span>, sv2, v2); <span class="hljs-comment">// 输出-12345,118727</span><br>    <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
 <p>所以截断这个操作在编程时也是个高度危险的操作，这很可能会因为熵信息丢失导致出现非预期的问题，甚至会产生一些可被黑客利用的漏洞。</p>
 <blockquote>
 <p>纵观历史长河，因类型转换、扩展截断而导致的漏洞数不胜数，比如CSAPP在2.2.8的旁注中给出了一个经典的开源系统FreeBSD
@@ -369,9 +404,9 @@ getpeername的设计缺陷案例。早期的语言设计诸如C/C++对类型的�
 <h4 id="加法与减法">加法与减法</h4>
 <p>由于尺寸固定的整型数类型范围受限，所以当进行加法操作时，会遇到一种在计算机世界中非常常见的现象：溢出(Overflow)。对于无符号来说，这一点显而易见，我们依然使用C语言来做测试，使用unsigned
 short来溢出一下：</p>
-<figure class="highlight c"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs c"><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;stdio.h&gt;</span></span><br><br><span class="hljs-type">int</span> <span class="hljs-title function_">main</span><span class="hljs-params">()</span> &#123;<br>    <span class="hljs-type">unsigned</span> <span class="hljs-type">short</span> v = <span class="hljs-number">65535</span>;             <span class="hljs-comment">// 所能表示的最大数，B1111 1111 1111 1111</span><br>    <span class="hljs-type">unsigned</span> <span class="hljs-type">short</span> overflow = v + <span class="hljs-number">1</span>;      <span class="hljs-comment">// 此时overflow是B(1) 0000 0000 0000 0000，最高位进位后溢出被丢弃，最终结果为0。   </span><br>    <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;overflow=%hu\n&quot;</span>, overflow);   <span class="hljs-comment">// 输出overflow=0</span><br>&#125;<br></code></pre></div></td></tr></table></figure>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;stdio.h&gt;</span></span><br><br><span class="hljs-type">int</span> <span class="hljs-title function_">main</span><span class="hljs-params">()</span> &#123;<br>    <span class="hljs-type">unsigned</span> <span class="hljs-type">short</span> v = <span class="hljs-number">65535</span>;             <span class="hljs-comment">// 所能表示的最大数，B1111 1111 1111 1111</span><br>    <span class="hljs-type">unsigned</span> <span class="hljs-type">short</span> overflow = v + <span class="hljs-number">1</span>;      <span class="hljs-comment">// 此时overflow是B(1) 0000 0000 0000 0000，最高位进位后溢出被丢弃，最终结果为0。   </span><br>    <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;overflow=%hu\n&quot;</span>, overflow);   <span class="hljs-comment">// 输出overflow=0</span><br>&#125;<br></code></pre></td></tr></table></figure>
 <p>对于有符号数来说，其实也没什么不同，计算机依然是墨守成规的对每个位进行相加，按需进位：</p>
-<figure class="highlight c"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs c"><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;stdio.h&gt;</span></span><br><br><span class="hljs-type">int</span> <span class="hljs-title function_">main</span><span class="hljs-params">()</span> &#123;<br>    <span class="hljs-type">short</span> v = <span class="hljs-number">32767</span>;                        <span class="hljs-comment">// 所能表示的最大正数，B0111 1111 1111 1111</span><br>    <span class="hljs-type">short</span> overflow = v + <span class="hljs-number">1</span>;                 <span class="hljs-comment">// 此时overflow是B1000 0000 0000 0000，次高位进位后导致符号位变成1，该值为-32768的补码   </span><br>    <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;overflow=%hd\n&quot;</span>, overflow);     <span class="hljs-comment">// 输出overflow=-32768</span><br><br>    v = <span class="hljs-number">-32768</span>;                             <span class="hljs-comment">// 所能表示的最小负数，B1000 0000 0000 0000</span><br>    overflow = v - <span class="hljs-number">1</span>;                       <span class="hljs-comment">// 相当于v + (-1), -1的补码是B1111 1111 1111 1111，相加后最高位溢出，得到B(1) 0111 1111 1111 1111</span><br>                                            <span class="hljs-comment">// 最高位丢弃，值为32767</span><br>    <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;overflow=%hd\n&quot;</span>, overflow);     <span class="hljs-comment">// 输出overflow=32767</span><br>&#125;<br></code></pre></div></td></tr></table></figure>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;stdio.h&gt;</span></span><br><br><span class="hljs-type">int</span> <span class="hljs-title function_">main</span><span class="hljs-params">()</span> &#123;<br>    <span class="hljs-type">short</span> v = <span class="hljs-number">32767</span>;                        <span class="hljs-comment">// 所能表示的最大正数，B0111 1111 1111 1111</span><br>    <span class="hljs-type">short</span> overflow = v + <span class="hljs-number">1</span>;                 <span class="hljs-comment">// 此时overflow是B1000 0000 0000 0000，次高位进位后导致符号位变成1，该值为-32768的补码   </span><br>    <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;overflow=%hd\n&quot;</span>, overflow);     <span class="hljs-comment">// 输出overflow=-32768</span><br><br>    v = <span class="hljs-number">-32768</span>;                             <span class="hljs-comment">// 所能表示的最小负数，B1000 0000 0000 0000</span><br>    overflow = v - <span class="hljs-number">1</span>;                       <span class="hljs-comment">// 相当于v + (-1), -1的补码是B1111 1111 1111 1111，相加后最高位溢出，得到B(1) 0111 1111 1111 1111</span><br>                                            <span class="hljs-comment">// 最高位丢弃，值为32767</span><br>    <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;overflow=%hd\n&quot;</span>, overflow);     <span class="hljs-comment">// 输出overflow=32767</span><br>&#125;<br></code></pre></td></tr></table></figure>
 <p>减法相当于是对负数做加法，而加法运算也同样是老老实实的按位操作，在中央处理器眼里从来都没有什么符号位，更没有什么负权。我们可以发现一个规律，向上溢出（正溢出）和向下溢出（负溢出）形成了一个周期环，所有的值都在<span
 class="math inline">\(-2^w~2^{w-1}\)</span>之间反复横跳、周而复始。</p>
 <p><img src="2023-05-15-22-48-15.png" srcset="/img/loading.gif" lazyload /></p>
@@ -384,7 +419,7 @@ x86系列的MUL,IMUL），然而这些乘法指令相当慢，相比于其他整
 <p>首先我们得前置介绍一些位移指令，位移指令其实很简单，它分为左移和右移：前者就是将每个二进制位都想左侧的高位移动K位，低位用0补齐；而后者则相反，将每个二进制位都向右移动K位，低位丢弃、至于最高位嘛，则分两种情况，一种叫逻辑右移、另一种叫算数右移，逻辑右移很简单，就是在高位补K个0，但算数右移则根据最高位进行补齐，也就是说，如果右移前，最高位是1，那么就用1来补齐位移后的最高K个位。</p>
 <p>可别小瞧这位移指令，举个例子，我们对<code>B0001</code>(十进制等于1)进行左移操作，移动2位，结果就是B0100（十进制等于4），其效果相当于是乘以2的某个幂数，移动K位，就是乘以<span
 class="math inline">\(2^k\)</span>。聪明的编译器根据一些数学上的技巧可以把复杂的与2的幂数对不齐的乘法转换为某个K位左移操作，进而再通过加减法进行补足。比如语句<code>n = num * 63;</code>的x86汇编指令可能是这样的：</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter hljs"><div class="hljs code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></div></td><td class="code"><div class="hljs code-wrapper"><pre><code class="hljs assembly">mov ecx, dword ptr [num]; 把num初始值赋值给ecx寄存器<br>shl ecx, 6              ; 对ecx左移6位，相当于乘上2^6=64，此时ecx值为num*64                 <br>sub ecx, dword ptr [num]; 对ecx进行减法操作，减去一个num，相当于ecx=num*64-num，即ecx最终值为num * 63<br>...                     ; 其他指令，将ecx结果赋值给变量n<br></code></pre></div></td></tr></table></figure>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs assembly">mov ecx, dword ptr [num]; 把num初始值赋值给ecx寄存器<br>shl ecx, 6              ; 对ecx左移6位，相当于乘上2^6=64，此时ecx值为num*64                 <br>sub ecx, dword ptr [num]; 对ecx进行减法操作，减去一个num，相当于ecx=num*64-num，即ecx最终值为num * 63<br>...                     ; 其他指令，将ecx结果赋值给变量n<br></code></pre></td></tr></table></figure>
 <p>考虑到这一技巧较为复杂，且和入门二进制关系不大，我们暂且按下不表，留待日后研讨。</p>
 <p>除法相比乘法更加复杂、执行速度也更慢，类似乘法的左移优化，除法也有围绕2的幂数通过右移来加速的技巧。</p>
 <h3 id="浮点数">浮点数</h3>
@@ -428,40 +463,96 @@ class="math inline">\(V=(-1)^s \times M \times
 by 玉涵，完稿于2023年5月16日夜
 </p>
 
-            </div>
-            <hr>
-            <div>
-              <div class="post-metas mb-3">
-                
-                  <div class="post-meta mr-3">
-                    <i class="iconfont icon-category"></i>
-                    
-                      <a class="hover-with-bg" href="/categories/%E7%BC%96%E7%A8%8B%E5%AF%BC%E8%AE%BA/">编程导论</a>
-                    
-                  </div>
-                
-                
-                  <div class="post-meta">
-                    <i class="iconfont icon-tags"></i>
-                    
-                      <a class="hover-with-bg" href="/tags/%E6%A0%BC%E7%89%A9%E8%87%B4%E7%9F%A5/">格物致知</a>
-                    
-                  </div>
                 
               </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E7%BC%96%E7%A8%8B%E5%AF%BC%E8%AE%BA/" class="category-chain-item">编程导论</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/%E6%A0%BC%E7%89%A9%E8%87%B4%E7%9F%A5/" class="print-no-link">#格物致知</a>
+      
+    </div>
+  
+</div>
+
+
               
-                <p class="note note-warning">
-                  
-                    本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！
-                  
-                </p>
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>格物致知(1)——你什么进制？我什么进制？</div>
+      <div>https://r00tk1ts.github.io/2023/05/06/格物致知(1)——你什么进制？我什么进制？/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>r00tk1t</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2023年5月6日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
               
               
-                <div class="post-prevnext">
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
                   <article class="post-prev col-6">
                     
                     
-                      <a href="/2023/06/13/%E6%A0%BC%E7%89%A9%E8%87%B4%E7%9F%A5(2)%E2%80%94%E2%80%94%E8%AF%AD%E8%A8%80%E5%8D%83%E7%99%BE%EF%BC%8C%E6%AE%8A%E9%80%94%E5%90%8C%E5%BD%92/">
+                      <a href="/2023/06/13/%E6%A0%BC%E7%89%A9%E8%87%B4%E7%9F%A5(2)%E2%80%94%E2%80%94%E8%AF%AD%E8%A8%80%E5%8D%83%E7%99%BE%EF%BC%8C%E6%AE%8A%E9%80%94%E5%90%8C%E5%BD%92/" title="格物致知(2)——语言千百，殊途同归">
                         <i class="iconfont icon-arrowleft"></i>
                         <span class="hidden-mobile">格物致知(2)——语言千百，殊途同归</span>
                         <span class="visible-mobile">上一篇</span>
@@ -471,7 +562,7 @@ by 玉涵，完稿于2023年5月16日夜
                   <article class="post-next col-6">
                     
                     
-                      <a href="/2023/04/13/%E6%A0%BC%E7%89%A9%E8%87%B4%E7%9F%A5(0)%E2%80%94%E2%80%94%E7%B3%BB%E7%BB%9F%E6%BC%AB%E6%B8%B8/">
+                      <a href="/2023/04/13/%E6%A0%BC%E7%89%A9%E8%87%B4%E7%9F%A5(0)%E2%80%94%E2%80%94%E7%B3%BB%E7%BB%9F%E6%BC%AB%E6%B8%B8/" title="格物致知(0)——系统漫游">
                         <span class="hidden-mobile">格物致知(0)——系统漫游</span>
                         <span class="visible-mobile">下一篇</span>
                         <i class="iconfont icon-arrowright"></i>
@@ -487,19 +578,59 @@ by 玉涵，完稿于2023年5月16日夜
         </div>
       </div>
     </div>
-    
-      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
-        <div id="toc">
-  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
   <div class="toc-body" id="toc-body"></div>
 </div>
 
-      </div>
-    
+
+
+  </aside>
+
+
+    </div>
   </div>
 </div>
 
-<!-- Custom -->
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+  
+  
+
+
+
+
+
+
+
 
 
     
@@ -524,35 +655,37 @@ by 玉涵，完稿于2023年5月16日夜
       <div class="modal-body mx-3">
         <div class="md-form mb-5">
           <input type="text" id="local-search-input" class="form-control validate">
-          <label data-error="x" data-success="v"
-                 for="local-search-input">关键词</label>
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
         </div>
         <div class="list-group" id="local-search-result"></div>
       </div>
     </div>
   </div>
 </div>
+
     
 
     
   </main>
 
-  <footer class="text-center mt-5 py-3">
-  <div class="footer-content">
-     <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
-  </div>
+  <footer>
+    <div class="footer-inner">
   
-
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
   
-
   
-</footer>
-
-
-  <!-- SCRIPTS -->
   
-  <script  src="https://cdn.jsdelivr.net/npm/nprogress@0/nprogress.min.js" ></script>
-  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0/nprogress.min.css" />
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
 
   <script>
     NProgress.configure({"showSpinner":false,"trickleSpeed":100})
@@ -563,15 +696,27 @@ by 玉涵，完稿于2023年5月16日夜
   </script>
 
 
-<script  src="https://cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js" ></script>
-<script  src="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/js/bootstrap.min.js" ></script>
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
 <script  src="/js/events.js" ></script>
 <script  src="/js/plugins.js" ></script>
 
-<!-- Plugins -->
 
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
 
-  <script  src="/js/local-search.js" ></script>
 
 
 
@@ -581,98 +726,158 @@ by 玉涵，完稿于2023年5月16日夜
 
 
 
-  
-
-
 
   
-    <script  src="https://cdn.jsdelivr.net/npm/tocbot@4/dist/tocbot.min.js" ></script>
-  
-  
-    <script  src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.js" ></script>
-  
-  
-    <script  src="https://cdn.jsdelivr.net/npm/anchor-js@4/anchor.min.js" ></script>
-  
-  
-    <script defer src="https://cdn.jsdelivr.net/npm/clipboard@2/dist/clipboard.min.js" ></script>
-  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
 
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
 
-
-
-
-
-  <script  src="https://cdn.jsdelivr.net/npm/typed.js@2/lib/typed.min.js" ></script>
-  <script>
-    (function (window, document) {
-      var typing = Fluid.plugins.typing;
-      var title = document.getElementById('subtitle').title;
-      
-        typing(title);
-      
-    })(window, document);
-  </script>
-
-
-
-
-
-  
-
-  
-    <!-- MathJax -->
-    <script>
-      MathJax = {
-        tex: {
-          inlineMath: [['$', '$'], ['\\(', '\\)']]
-        },
-        loader: {
-          load: ['ui/lazy']
-        },
-        options: {
-          renderActions: {
-            findScript: [10, doc => {
-              document.querySelectorAll('script[type^="math/tex"]').forEach(node => {
-                const display = !!node.type.match(/; *mode=display/);
-                const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
-                const text = document.createTextNode('');
-                node.parentNode.replaceChild(text, node);
-                math.start = { node: text, delim: '', n: 0 };
-                math.end = { node: text, delim: '', n: 0 };
-                doc.math.push(math);
-              });
-            }, '', false],
-            insertedScript: [200, () => {
-              document.querySelectorAll('mjx-container').forEach(node => {
-                let target = node.parentNode;
-                if (target.nodeName.toLowerCase() === 'li') {
-                  target.parentNode.classList.add('has-jax');
-                }
-              });
-            }, '', false]
-          }
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
         }
-      };
-    </script>
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
 
-    <script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js" ></script>
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
 
   
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  
+      <script>
+        if (!window.MathJax) {
+          window.MathJax = {
+            tex    : {
+              inlineMath: { '[+]': [['$', '$']] }
+            },
+            loader : {
+              load: ['ui/lazy']
+            },
+            options: {
+              renderActions: {
+                insertedScript: [200, () => {
+                  document.querySelectorAll('mjx-container').forEach(node => {
+                    let target = node.parentNode;
+                    if (target.nodeName.toLowerCase() === 'li') {
+                      target.parentNode.classList.add('has-jax');
+                    }
+                  });
+                }, '', false]
+              }
+            }
+          };
+        } else {
+          MathJax.startup.document.state(0);
+          MathJax.texReset();
+          MathJax.typeset();
+          MathJax.typesetPromise();
+        }
+
+        Fluid.events.registerRefreshCallback(function() {
+          if ('MathJax' in window && MathJax.startup.document && typeof MathJax.startup.document.state === 'function') {
+            MathJax.startup.document.state(0);
+            MathJax.texReset();
+            MathJax.typeset();
+            MathJax.typesetPromise();
+          }
+        });
+      </script>
+    
+
+  <script  src="https://lib.baomitu.com/mathjax/3.2.2/es5/tex-mml-chtml.js" ></script>
+
+  <script  src="/js/local-search.js" ></script>
 
 
 
 
 
-
-
-
-
-
-
-<!-- 主题的启动项 保持在最底部 -->
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
 <script  src="/js/boot.js" ></script>
 
 
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
 </body>
 </html>
