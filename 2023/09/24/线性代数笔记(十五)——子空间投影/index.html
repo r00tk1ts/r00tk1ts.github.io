@@ -16,25 +16,26 @@
   <meta name="author" content="r00tk1t">
   <meta name="keywords" content="">
   
-    <meta name="description" content="这一讲从正交的角度来探讨四个子空间具有的性质。 正交向量与子空间 一图胜千言：  本节的所有内容都在阐释上面这张图。 正交 何为正交？从空间角度来看，正交就是垂直。无论是两个向量之间的正交，还是空间的正交，它们在线性代数中都意味着：垂直。 向量正交  如图，\(x\)和\(y\)两个向量相互垂直，根据中学知识，我们知道两个向量垂直则意味着这两个向量的内积为0，即：\(x^Ty&#x3D;0\)。 这一结论可">
+    <meta name="description" content="这一讲从向量的投影入手，从二维延展到高维空间，将投影用矩阵形式表示出来。然后回到上一节的遗留的话题：\(A^TA\hat x&#x3D;A^Tb\)常在工程中被用来求解最优近似解，但并没有解释该解为何为最优，这一节会对此做出解释。 子空间投影 二维空间投影  如图所示，在二维空间中，向量\(p\)就是\(b\)在\(a\)上的投影，即\(p&#x3D;xa\)，显然他们的差值是\(b-p&#x3D;e\)，\(e\)与\(a\">
 <meta property="og:type" content="article">
-<meta property="og:title" content="线性代数笔记(十四)——正交向量与子空间">
-<meta property="og:url" content="https://r00tk1ts.github.io/2023/09/21/%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B0%E7%AC%94%E8%AE%B0(%E5%8D%81%E5%9B%9B)%E2%80%94%E2%80%94%E6%AD%A3%E4%BA%A4%E5%90%91%E9%87%8F%E4%B8%8E%E5%AD%90%E7%A9%BA%E9%97%B4/index.html">
+<meta property="og:title" content="线性代数笔记(十五)——子空间投影">
+<meta property="og:url" content="https://r00tk1ts.github.io/2023/09/24/%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B0%E7%AC%94%E8%AE%B0(%E5%8D%81%E4%BA%94)%E2%80%94%E2%80%94%E5%AD%90%E7%A9%BA%E9%97%B4%E6%8A%95%E5%BD%B1/index.html">
 <meta property="og:site_name" content="玉涵的技能书">
-<meta property="og:description" content="这一讲从正交的角度来探讨四个子空间具有的性质。 正交向量与子空间 一图胜千言：  本节的所有内容都在阐释上面这张图。 正交 何为正交？从空间角度来看，正交就是垂直。无论是两个向量之间的正交，还是空间的正交，它们在线性代数中都意味着：垂直。 向量正交  如图，\(x\)和\(y\)两个向量相互垂直，根据中学知识，我们知道两个向量垂直则意味着这两个向量的内积为0，即：\(x^Ty&#x3D;0\)。 这一结论可">
+<meta property="og:description" content="这一讲从向量的投影入手，从二维延展到高维空间，将投影用矩阵形式表示出来。然后回到上一节的遗留的话题：\(A^TA\hat x&#x3D;A^Tb\)常在工程中被用来求解最优近似解，但并没有解释该解为何为最优，这一节会对此做出解释。 子空间投影 二维空间投影  如图所示，在二维空间中，向量\(p\)就是\(b\)在\(a\)上的投影，即\(p&#x3D;xa\)，显然他们的差值是\(b-p&#x3D;e\)，\(e\)与\(a\">
 <meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="https://r00tk1ts.github.io/2023/09/21/%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B0%E7%AC%94%E8%AE%B0(%E5%8D%81%E5%9B%9B)%E2%80%94%E2%80%94%E6%AD%A3%E4%BA%A4%E5%90%91%E9%87%8F%E4%B8%8E%E5%AD%90%E7%A9%BA%E9%97%B4/2023-09-21-14-59-27.png">
-<meta property="og:image" content="https://r00tk1ts.github.io/2023/09/21/%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B0%E7%AC%94%E8%AE%B0(%E5%8D%81%E5%9B%9B)%E2%80%94%E2%80%94%E6%AD%A3%E4%BA%A4%E5%90%91%E9%87%8F%E4%B8%8E%E5%AD%90%E7%A9%BA%E9%97%B4/2023-09-21-15-01-50.png">
-<meta property="article:published_time" content="2023-09-21T06:57:02.000Z">
-<meta property="article:modified_time" content="2023-09-22T03:58:17.622Z">
+<meta property="og:image" content="https://r00tk1ts.github.io/2023/09/24/%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B0%E7%AC%94%E8%AE%B0(%E5%8D%81%E4%BA%94)%E2%80%94%E2%80%94%E5%AD%90%E7%A9%BA%E9%97%B4%E6%8A%95%E5%BD%B1/2023-09-25-10-59-35.png">
+<meta property="og:image" content="https://r00tk1ts.github.io/2023/09/24/%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B0%E7%AC%94%E8%AE%B0(%E5%8D%81%E4%BA%94)%E2%80%94%E2%80%94%E5%AD%90%E7%A9%BA%E9%97%B4%E6%8A%95%E5%BD%B1/2023-09-25-11-42-06.png">
+<meta property="og:image" content="https://r00tk1ts.github.io/2023/09/24/%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B0%E7%AC%94%E8%AE%B0(%E5%8D%81%E4%BA%94)%E2%80%94%E2%80%94%E5%AD%90%E7%A9%BA%E9%97%B4%E6%8A%95%E5%BD%B1/2023-09-25-14-56-45.png">
+<meta property="article:published_time" content="2023-09-24T02:41:02.000Z">
+<meta property="article:modified_time" content="2023-09-25T07:40:54.943Z">
 <meta property="article:author" content="r00tk1t">
 <meta property="article:tag" content="MIT-18.06-linear_algebra">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="https://r00tk1ts.github.io/2023/09/21/%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B0%E7%AC%94%E8%AE%B0(%E5%8D%81%E5%9B%9B)%E2%80%94%E2%80%94%E6%AD%A3%E4%BA%A4%E5%90%91%E9%87%8F%E4%B8%8E%E5%AD%90%E7%A9%BA%E9%97%B4/2023-09-21-14-59-27.png">
+<meta name="twitter:image" content="https://r00tk1ts.github.io/2023/09/24/%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B0%E7%AC%94%E8%AE%B0(%E5%8D%81%E4%BA%94)%E2%80%94%E2%80%94%E5%AD%90%E7%A9%BA%E9%97%B4%E6%8A%95%E5%BD%B1/2023-09-25-10-59-35.png">
   
   
   
-  <title>线性代数笔记(十四)——正交向量与子空间 - 玉涵的技能书</title>
+  <title>线性代数笔记(十五)——子空间投影 - 玉涵的技能书</title>
 
   <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
 
@@ -200,7 +201,7 @@
       <div class="banner-text text-center fade-in-up">
         <div class="h2">
           
-            <span id="subtitle" data-typed-text="线性代数笔记(十四)——正交向量与子空间"></span>
+            <span id="subtitle" data-typed-text="线性代数笔记(十五)——子空间投影"></span>
           
         </div>
 
@@ -211,8 +212,8 @@
     
       <span class="post-meta">
         <i class="iconfont icon-date-fill" aria-hidden="true"></i>
-        <time datetime="2023-09-21 14:57" pubdate>
-          2023年9月21日 下午
+        <time datetime="2023-09-24 10:41" pubdate>
+          2023年9月24日 上午
         </time>
       </span>
     
@@ -223,7 +224,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          2.3k 字
+          3.2k 字
         
       </span>
     
@@ -234,7 +235,7 @@
         
         
         
-          20 分钟
+          27 分钟
         
       </span>
     
@@ -271,164 +272,213 @@
       <div class="container nopadding-x-md" id="board-ctn">
         <div id="board">
           <article class="post-content mx-auto">
-            <h1 id="seo-header">线性代数笔记(十四)——正交向量与子空间</h1>
+            <h1 id="seo-header">线性代数笔记(十五)——子空间投影</h1>
             
             
               <div class="markdown-body">
                 
-                <p>这一讲从正交的角度来探讨四个子空间具有的性质。</p>
-<h1 id="正交向量与子空间">正交向量与子空间</h1>
-<p>一图胜千言：</p>
-<p><img src="2023-09-21-14-59-27.png" srcset="/img/loading.gif" lazyload /></p>
-<p>本节的所有内容都在阐释上面这张图。</p>
-<h2 id="正交">正交</h2>
-<p>何为正交？从空间角度来看，正交就是垂直。无论是两个向量之间的正交，还是空间的正交，它们在线性代数中都意味着：垂直。</p>
-<h3 id="向量正交">向量正交</h3>
-<p><img src="2023-09-21-15-01-50.png" srcset="/img/loading.gif" lazyload /></p>
-<p>如图，<span class="math inline">\(x\)</span>和<span
-class="math inline">\(y\)</span>两个向量相互垂直，根据中学知识，我们知道两个向量垂直则意味着这两个向量的内积为0，即：<span
-class="math inline">\(x^Ty=0\)</span>。</p>
-<p>这一结论可以用勾股定理来证明： <span class="math display">\[
-\begin{aligned}
-|x|^2+|y|^2=|x+y|^2 \\
-x^Tx+y^Ty = (x+y)^T(x+y) \\
-0 = x^Ty+y^Tx \\
-易知x^Ty = y^Tx，故：2x^Ty=0 \\
-得到：x^Ty=0
-\end{aligned}
+                <p>这一讲从向量的投影入手，从二维延展到高维空间，将投影用矩阵形式表示出来。然后回到上一节的遗留的话题：<span
+class="math inline">\(A^TA\hat
+x=A^Tb\)</span>常在工程中被用来求解最优近似解，但并没有解释该解为何为最优，这一节会对此做出解释。</p>
+<h1 id="子空间投影">子空间投影</h1>
+<h2 id="二维空间投影">二维空间投影</h2>
+<p><img src="2023-09-25-10-59-35.png" srcset="/img/loading.gif" lazyload /></p>
+<p>如图所示，在二维空间中，向量<span
+class="math inline">\(p\)</span>就是<span
+class="math inline">\(b\)</span>在<span
+class="math inline">\(a\)</span>上的投影，即<span
+class="math inline">\(p=xa\)</span>，显然他们的差值是<span
+class="math inline">\(b-p=e\)</span>，<span
+class="math inline">\(e\)</span>与<span
+class="math inline">\(a\)</span>垂直： <span class="math display">\[
+a^Te=a^T(b-p)=a^T(b-ax)=0
 \]</span></p>
-<p>进一步，如果两个向量中其中某一个是零向量，那这两个向量一定正交。</p>
-<h3 id="空间正交">空间正交</h3>
-<p>所谓空间的正交，就是：一个空间中的任意一个向量，都与另一个空间中的任意一个向量正交。</p>
-<p>直觉上，我们可能会误以为三维直角坐标系中如<span
-class="math inline">\(xy\)</span>平面<span
-class="math inline">\(xz\)</span>平面正交，但实际上它们并不正交。这一点很容易证伪，我们选择两个平面交线<span
-class="math inline">\(x\)</span>轴上的向量，任取两个，显然它们并不垂直。</p>
-<blockquote>
-<p>反过来，这一事实也意味着：如果两个平面在某个非零向量处相交，那么它们一定不正交。</p>
-</blockquote>
-<p>那么怎么样的两个空间可能会正交呢？我们先从<span
-class="math inline">\(R^2\)</span>的子空间来分析，一个平面上的子空间有：</p>
-<ul>
-<li>整个平面<span class="math inline">\(P\)</span></li>
-<li>平面<span class="math inline">\(P\)</span>上任意过原点的直线<span
-class="math inline">\(L\)</span></li>
-<li>原点零向量</li>
-</ul>
-<p><span class="math inline">\(P\)</span>与<span
-class="math inline">\(L\)</span>永远不可能正交；当<span
-class="math inline">\(L1\)</span>与<span
-class="math inline">\(L2\)</span>在原点处垂直时，<span
-class="math inline">\(L1\)</span>和<span
-class="math inline">\(L2\)</span>正交；<span
-class="math inline">\(L\)</span>与<span
-class="math inline">\(0\)</span>永远正交。</p>
-<p>高维空间也可以由此继续做推理。</p>
-<h3 id="矩阵子空间的正交">矩阵子空间的正交</h3>
-<p>回归到矩阵，为什么我们可以笃定零空间和行空间是正交的呢？实际上我们只需要从行视角和零空间视角分别来看<span
-class="math inline">\(Ax=0\)</span>即可窥得端倪：</p>
-<p><span class="math display">\[
-Ax=\begin{bmatrix}row_1 of A\\ row_2 of A\\ row_3 of A\\ ...\\ row_m of
-A
-\end{bmatrix}\begin{bmatrix}x_1\\ x_2\\ x_3\\ ...\\x_n
-\end{bmatrix}=\begin{bmatrix}row_1 of A \cdot x\\ row_2 of A \cdot x\\
-row_3 of A \cdot x\\ ... \\row_n of A \cdot x
-\end{bmatrix}=\begin{bmatrix}0\\ 0\\ 0\\ ...\\ 0
-\end{bmatrix}
-\]</span></p>
-<p>从行视角看，<span
-class="math inline">\(A\)</span>中每个行向量与向量<span
-class="math inline">\(x\)</span>的内积都是<span
-class="math inline">\(0\)</span>，而从零空间视角看，<span
-class="math inline">\(x\)</span>可以是零空间任意一个向量，因此，这就意味着<span
-class="math inline">\(A\)</span>中的每个行向量都与零空间的任意向量垂直。此外，行空间的所有向量都是由<span
-class="math inline">\(A\)</span>中行向量线性组合得到，因此无论怎么组合，都无非表示成诸如<span
-class="math inline">\(c\cdot row_1 + d\cdot row_2 + ... + z\cdot
-row_m\)</span>，结果依然是<span class="math inline">\(0\)</span>。</p>
-<p><strong>由此证得矩阵的行空间与零空间正交。同理，我们对矩阵进行转置，可以得到列空间与左零空间正交。</strong></p>
-<p>此外，行空间和零空间的关系，更像是把一个空间一分为二所得到的两个子空间：</p>
-<ul>
-<li>行空间与零空间的维数之和是<span class="math inline">\(n\)</span>。
-<ul>
-<li>行空间维数是<span
-class="math inline">\(r\)</span>，零空间维数是<span
-class="math inline">\(n-r\)</span>。</li>
-<li>它们都是<span class="math inline">\(R^n\)</span>的子空间。</li>
-</ul></li>
-<li>列空间与左零空间的维数之和是<span class="math inline">\(m\)</span>。
-<ul>
-<li>列空间维数是<span
-class="math inline">\(r\)</span>，左零空间维数是<span
-class="math inline">\(m-r\)</span>。</li>
-<li>它们都是<span class="math inline">\(R^m\)</span>的子空间。</li>
-</ul></li>
-</ul>
-<p>进一步，我们把行空间和零空间称作为<span
-class="math inline">\(R^n\)</span>中的正交补，列空间和左零空间称为<span
-class="math inline">\(R^m\)</span>中的正交补。</p>
-<blockquote>
-<p>所谓正交补，就是指对于一个空间<span
-class="math inline">\(S\)</span>，另一个空间<span
-class="math inline">\(T\)</span>囊括了所有垂直于<span
-class="math inline">\(S\)</span>的向量而不是局部，这里的一分为二描述的是一种彻底程度。</p>
-</blockquote>
-<h2 id="无解方程的最优解">无解方程的最优解</h2>
-<p>现实世界中，矩阵的数据源于测量，测量就难免有误差甚至错误，从而导致<span
-class="math inline">\(Ax=b\)</span>无解。</p>
-<p>什么样的<span
-class="math inline">\(Ax=b\)</span>有解呢？我们知道<span
-class="math inline">\(A\)</span>得是可逆的，当<span
-class="math inline">\(m\)</span>很大，<span
-class="math inline">\(n\)</span>很小时，我们可以通过不断的移除某些行，丢弃这些坏数据，让方程有解。这听上去是个合理的方法，但实际上却难以执行。为什么呢？因为我们根本无法判断究竟哪些行是脏数据。</p>
-<p>对于这一困难，工程上常常会进行妥协：我们可以去求近似的最优解，类似于一种拟合。</p>
-<p>怎么求近似解呢？在已知<span
-class="math inline">\(Ax=b\)</span>无解的前提下，我们可以尝试在方程两侧同时左乘<span
-class="math inline">\(A^T\)</span>，无解方程就变成<span
-class="math inline">\(A^TA\hat x=A^Tb\)</span>。</p>
-<blockquote>
-<p>这里的<span class="math inline">\(\hat x\)</span>不是解<span
-class="math inline">\(x\)</span>，<span
-class="math inline">\(x\)</span>已经是无解的了，这里只是尝试找到一个近似解。</p>
-</blockquote>
-<p>通过前面课程的学习，我们知道<span
-class="math inline">\(A^TA\)</span>矩阵是一种对称方阵，此时如果<span
-class="math inline">\(A^TA\)</span>可逆，那么解<span
-class="math inline">\(\hat x\)</span>就容易求得。</p>
-<p>然而<span
-class="math inline">\(A^TA\)</span>也不见得就可逆，怎么去判断<span
-class="math inline">\(A^TA\)</span>是否可逆呢？先说结论：当<span
-class="math inline">\(A\)</span>中各列线性相关时，<span
-class="math inline">\(A^TA\)</span>不可逆。</p>
-<p>为了证明这一点，需要先得到两个性质：</p>
+<p>代入<span class="math inline">\(p=xa\)</span>，得到<span
+class="math inline">\(p=a\frac{a^Tb}{a^Ta}\)</span>。</p>
+<p>可以看到<span
+class="math inline">\(p\)</span>的形式中，分母是一个值，而分子中包含了<span
+class="math inline">\(b\)</span>，这也就表明投影得到的<span
+class="math inline">\(p\)</span>向量是通过前面的系数矩阵作用到<span
+class="math inline">\(b\)</span>上完成的，形式上写作：<span
+class="math inline">\(p=Pb\)</span>，其中这个系数矩阵<span
+class="math inline">\(P\)</span>我们称之为投影矩阵，即<span
+class="math inline">\(P=a\frac{a^T}{a^Tb}\)</span>。</p>
+<p>这个<span class="math inline">\(P\)</span>矩阵有两个有取的性质：</p>
 <ol type="1">
-<li><span
-class="math inline">\(N(A^TA)=N(A)\)</span>：二者具有相同的零空间。
+<li>由前面课程所学的知识，我们知道<span
+class="math inline">\(P\)</span>是个对称阵，因此有<span
+class="math inline">\(P^T=P\)</span>。</li>
+<li><span class="math inline">\(P^2=P\)</span>。
 <ol type="1">
-<li>对于<span class="math inline">\(A^TAx=0\)</span>有：<span
-class="math inline">\(x^TA^TAx=(Ax)^T(Ax)=0\)</span>，因此<span
-class="math inline">\(Ax=0\)</span></li>
-</ol></li>
-<li>rank(A^TA)=rank(A)：二者具有相同的秩。
-<ol type="1">
-<li>由性质1可知二者零空间维数相同，且二者具有相同的列数，因此秩相等。</li>
+<li>由<span
+class="math inline">\(P^2=\frac{a(a^Ta)a^T}{(a^Ta)^2}\)</span>，而<span
+class="math inline">\(a^Ta\)</span>是内积，化简得到<span
+class="math inline">\(P\)</span>。</li>
+<li>这一点很容易看出来，<span
+class="math inline">\(P^2\)</span>相当于对<span
+class="math inline">\(b\)</span>在<span
+class="math inline">\(a\)</span>上投影得到的<span
+class="math inline">\(p\)</span>继续再做一次投影，显然<span
+class="math inline">\(p\)</span>在<span
+class="math inline">\(a\)</span>上的投影是它本身。</li>
 </ol></li>
 </ol>
-<p>而<span class="math inline">\(A^TA\)</span>若可逆，则意味着<span
-class="math inline">\(N(A^TA)\)</span>只有零向量，既然<span
-class="math inline">\(N(A)\)</span>与<span
-class="math inline">\(N(A^TA)\)</span>相同，也就意味着<span
-class="math inline">\(N(A)\)</span>中也只能有零向量，此时，<span
-class="math inline">\(A\)</span>中各列线性无关。证毕。</p>
+<h3 id="投影的意义">投影的意义</h3>
+<p>为什么要做投影呢？回到上一节的<span
+class="math inline">\(Ax=b\)</span>问题，我们知道<span
+class="math inline">\(Ax\)</span>总是在<span
+class="math inline">\(A\)</span>的列空间中，但是<span
+class="math inline">\(b\)</span>不一定。那么退而求其次，什么样的<span
+class="math inline">\(x\)</span>可以最逼近<span
+class="math inline">\(b\)</span>呢？换言之，就是让<span
+class="math inline">\(b\)</span>的变化能够最小，而变化最小恰恰是通过投影来实现（所以<span
+class="math inline">\(e\)</span>被视为误差），投影得到的<span
+class="math inline">\(p\)</span>就是<span
+class="math inline">\(A\)</span>列空间中最接近<span
+class="math inline">\(b\)</span>的那一个。</p>
+<h2 id="三维空间投影">三维空间投影</h2>
+<p><img src="2023-09-25-11-42-06.png" srcset="/img/loading.gif" lazyload /></p>
+<p>延展到三维也并无二致，如图所示，<span
+class="math inline">\(a_1\)</span>和<span
+class="math inline">\(a_2\)</span>是构成平面的一组基，<span
+class="math inline">\(p\)</span>是<span
+class="math inline">\(b\)</span>在平面上的投影，<span
+class="math inline">\(p\)</span>可以表示为分别投影在这组基的每个向量上的投影和：<span
+class="math inline">\(p=\hat x_1a_1+\hat x_2a_2\)</span>，矩阵形式写作：
+<span class="math display">\[
+p=A\hat x, 其中A=\begin{bmatrix}a1&amp;a2\end{bmatrix}, \hat
+x=\begin{bmatrix}\hat x_1\\ \hat x_2\end{bmatrix}
+\]</span></p>
+<p>此平面即为矩阵<span
+class="math inline">\(A\)</span>的列空间，由于<span
+class="math inline">\(b\)</span>不在平面上，因此<span
+class="math inline">\(Ax=b\)</span>无解，<span
+class="math inline">\(A\hat x=p\)</span>中的<span
+class="math inline">\(\hat x\)</span>就是最优解。</p>
+<p>同样地，有<span class="math inline">\(e=b-p=b-A\hat
+x\)</span>与平面垂直(<span
+class="math inline">\(A\)</span>的列空间)，因此<span
+class="math inline">\(A^Te=0\)</span>： <span class="math display">\[
+\begin{bmatrix}a_1^T\\ a_2^T\end{bmatrix}(b-A\hat x)=\begin{bmatrix}0\\
+0\end{bmatrix}
+\]</span></p>
+<blockquote>
+<p>这与二维投影的<span
+class="math inline">\(a^T(b-xa)=0\)</span>并不差别，只不过二维空间的<span
+class="math inline">\(A^T\)</span>只有一列罢了。</p>
+</blockquote>
+<blockquote>
+<p>由<span
+class="math inline">\(A^Te=0\)</span>可知，由于列空间与左零空间正交，e一定在<span
+class="math inline">\(A\)</span>的左零空间。</p>
+</blockquote>
+<p><strong>化简上式，可得：<span class="math inline">\(A^TA\hat
+x=A^Tb\)</span>，而这恰恰就是上一节我们谈及为了解决<span
+class="math inline">\(Ax=b\)</span>无解时的工程惯用法式子。至此，我们总算理解了同时左乘<span
+class="math inline">\(A^T\)</span>的物理意义。</strong></p>
+<p>继续求解，当且仅当<span
+class="math inline">\(A^TA\)</span>可逆时，我们可以求出最优解：<span
+class="math inline">\(\hat
+x=(A^TA)^{-1}A^Tb\)</span>。而在上一讲的最后，我们推理出如果<span
+class="math inline">\(A\)</span>的各列线性无关，那么<span
+class="math inline">\(A^TA\)</span>可逆。</p>
+<blockquote>
+<p>相比于求解<span class="math inline">\(Ax=b\)</span>，只有当<span
+class="math inline">\(A\)</span>可逆时，<span
+class="math inline">\(x\)</span>才有解。而在对<span
+class="math inline">\(b\)</span>进行了在<span
+class="math inline">\(A\)</span>列空间的投影后，求解<span
+class="math inline">\(\hat
+x\)</span>的条件得到了适当的放宽，此时只要求<span
+class="math inline">\(A\)</span>的列向量线性无关即可。在实际工程项目中，我们测量得到的<span
+class="math inline">\(m\times n\)</span>矩阵常常<span
+class="math inline">\(m\)</span>很大，<span
+class="math inline">\(n\)</span>很小，因此容易保证。</p>
+</blockquote>
+<p>因此，投影向量<span class="math inline">\(p=A\hat
+x=A(A^TA)^{-1}A^Tb\)</span>，投影矩阵为<span
+class="math inline">\(A(A^TA)^{-1}A^T\)</span>（二维空间得<span
+class="math inline">\(\frac{aa^T}{a^Ta}\)</span>）。</p>
+<blockquote>
+<p>若<span class="math inline">\(A\)</span>本身可逆，投影矩阵<span
+class="math inline">\(A(A^TA)^{-1}A^T\)</span>就可进一步化简，此时<span
+class="math inline">\((A^TA)^{-1}\)</span>就可以拆成<span
+class="math inline">\(A^{-1}(A^T)^{-1}\)</span>，此时<span
+class="math inline">\(A(A^TA)^{-1}A^T=AA^{-1}(A^T)^{-1}A^T=I\)</span>，即得到单位阵。这一结论显然，因为<span
+class="math inline">\(A\)</span>若本身可逆，那么<span
+class="math inline">\(Ax=b\)</span>就有解，<span
+class="math inline">\(b\)</span>本身就在<span
+class="math inline">\(A\)</span>的列空间，投影<span
+class="math inline">\(b\)</span>到<span
+class="math inline">\(A\)</span>的列空间当然得到其本身，此时投影矩阵可不就是单位阵。</p>
+</blockquote>
+<h2 id="最小二乘法">最小二乘法</h2>
+<p>前面也已经提到，投影的方式让我们得到了最优近似解，而<span
+class="math inline">\(e\)</span>向量就是其中的误差。实际上这一思想与我们做线性回归时，使用最小二乘法拟合直线的理论基础不谋而合。</p>
+<p><img src="2023-09-25-14-56-45.png" srcset="/img/loading.gif" lazyload /></p>
+<p>对上述直线，我们想通过三个点来拟合一条直线<span
+class="math inline">\(y=Cx+D\)</span>，我们将已知的三个点<span
+class="math inline">\((1,1),(2,2),(3,2)\)</span>带入方程： <span
+class="math display">\[
+\begin{cases}
+C+D=1\\ 2C+D=2\\ 3C+D=2
+\end{cases}
+\]</span></p>
+<p>写作矩阵形式为： <span class="math display">\[
+Ax=\begin{bmatrix}1&amp;1\\ 2&amp;1\\
+3&amp;1\end{bmatrix}\begin{bmatrix}
+C\\ D\end{bmatrix}=\begin{bmatrix}1\\ 2\\ 2\end{bmatrix}
+\]</span></p>
+<p>显然<span
+class="math inline">\(x\)</span>无解，三点根本不共线，于是利用投影找最优近似解。由于<span
+class="math inline">\(A\)</span>中各列线性无关，所以<span
+class="math inline">\(A^TA\hat x=b\)</span>有解，展开写作： <span
+class="math display">\[
+\begin{bmatrix}1&amp;2&amp;3\\
+1&amp;1&amp;1\end{bmatrix}\begin{bmatrix}1&amp;1\\ 2&amp;1\\
+3&amp;1\end{bmatrix}\begin{bmatrix}
+C\\ D\end{bmatrix}=\begin{bmatrix}1&amp;2&amp;3\\
+1&amp;1&amp;1\end{bmatrix}\begin{bmatrix}
+1\\ 2\\ 2\end{bmatrix}
+\]</span></p>
+<p>矩阵乘法运算得： <span class="math display">\[
+\begin{bmatrix}14&amp;6\\ 6&amp;3\end{bmatrix}\begin{bmatrix}
+C\\ D\end{bmatrix}=\begin{bmatrix}11\\ 5\end{bmatrix}
+\]</span></p>
+<p>亦即： <span class="math display">\[
+\begin{cases}
+14C+6D=11\\ 6C+3D=5
+\end{cases}
+\]</span></p>
+<p>求得：<span class="math inline">\(C=\frac{1}{2},
+D=\frac{2}{3}\)</span>。</p>
+<h3 id="微积分解法与投影矩阵的联系">微积分解法与投影矩阵的联系</h3>
+<p>如果用传统微积分来解最小二乘，就需要对误差方程：<span
+class="math inline">\(E=(C+D-1)^2+(2C+D-2)^2+(3C+D-2)^2\)</span>求最小值，方程有两个未知数，分别对<span
+class="math inline">\(C\)</span>和<span
+class="math inline">\(D\)</span>计算偏导的零值： <span
+class="math display">\[
+\begin{cases}
+2C+2(D-1)+8C+4(D-2)+18C+6(D-2)=0\\
+2D+2(C-1)+2D+2(2C-2)+2D+2(3C-2)=0
+\end{cases}
+\]</span></p>
+<p>化简得到： <span class="math display">\[
+\begin{cases}
+14C+6D=11\\ 6C+3D=5
+\end{cases}
+\]</span></p>
+<p>可以看出这里的两个式子其实和投影矩阵法得到的两个方程一模一样。</p>
 <h1 id="附录">附录</h1>
 <h2 id="视频">视频</h2>
-<iframe src="//player.bilibili.com/player.html?aid=382989698&amp;bvid=BV16Z4y1U7oU&amp;cid=570087382&amp;p=14&amp;autoplay=0" scrolling="no" border="0" width="100%" height="500" frameborder="no" framespacing="0" allowfullscreen="true">
+<iframe src="//player.bilibili.com/player.html?aid=382989698&amp;bvid=BV16Z4y1U7oU&amp;cid=570093730&amp;p=15&amp;autoplay=0" scrolling="no" border="0" width="100%" height="500" frameborder="no" framespacing="0" allowfullscreen="true">
 </iframe>
 <h2 id="参考链接">参考链接</h2>
 <ul>
 <li><a
-target="_blank" rel="noopener" href="https://github.com/MLNLP-World/MIT-Linear-Algebra-Notes/blob/master/%5B14%5D%20%E6%AD%A3%E4%BA%A4%E5%90%91%E9%87%8F%E4%B8%8E%E5%AD%90%E7%A9%BA%E9%97%B4/%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B014.pdf">正交向量与子空间</a></li>
-<li><a target="_blank" rel="noopener" href="https://rqtn.github.io/2019/08/12/LA-Lec14/">Lec14 -
-正交向量与子空间</a></li>
+target="_blank" rel="noopener" href="https://github.com/MLNLP-World/MIT-Linear-Algebra-Notes/blob/master/%5B15%5D%20%E5%AD%90%E7%A9%BA%E9%97%B4%E6%8A%95%E5%BD%B1/%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B015.pdf">子空间投影</a></li>
+<li><a target="_blank" rel="noopener" href="https://rqtn.github.io/2019/08/12/LA-Lec15/">Lec15 -
+子空间投影</a></li>
 <li><a
 target="_blank" rel="noopener" href="https://github.com/kf-liu/The-Art-of-Linear-Algebra-zh-CN">线性代数的艺术</a></li>
 </ul>
@@ -477,8 +527,8 @@ target="_blank" rel="noopener" href="https://github.com/kf-liu/The-Art-of-Linear
 
   <div class="license-box my-3">
     <div class="license-title">
-      <div>线性代数笔记(十四)——正交向量与子空间</div>
-      <div>https://r00tk1ts.github.io/2023/09/21/线性代数笔记(十四)——正交向量与子空间/</div>
+      <div>线性代数笔记(十五)——子空间投影</div>
+      <div>https://r00tk1ts.github.io/2023/09/24/线性代数笔记(十五)——子空间投影/</div>
     </div>
     <div class="license-meta">
       
@@ -490,7 +540,7 @@ target="_blank" rel="noopener" href="https://github.com/kf-liu/The-Art-of-Linear
       
         <div class="license-meta-item license-meta-date">
           <div>发布于</div>
-          <div>2023年9月21日</div>
+          <div>2023年9月24日</div>
         </div>
       
       
@@ -522,18 +572,12 @@ target="_blank" rel="noopener" href="https://github.com/kf-liu/The-Art-of-Linear
                   <article class="post-prev col-6">
                     
                     
-                      <a href="/2023/09/24/%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B0%E7%AC%94%E8%AE%B0(%E5%8D%81%E4%BA%94)%E2%80%94%E2%80%94%E5%AD%90%E7%A9%BA%E9%97%B4%E6%8A%95%E5%BD%B1/" title="线性代数笔记(十五)——子空间投影">
-                        <i class="iconfont icon-arrowleft"></i>
-                        <span class="hidden-mobile">线性代数笔记(十五)——子空间投影</span>
-                        <span class="visible-mobile">上一篇</span>
-                      </a>
-                    
                   </article>
                   <article class="post-next col-6">
                     
                     
-                      <a href="/2023/06/13/%E6%A0%BC%E7%89%A9%E8%87%B4%E7%9F%A5(2)%E2%80%94%E2%80%94%E8%AF%AD%E8%A8%80%E5%8D%83%E7%99%BE%EF%BC%8C%E6%AE%8A%E9%80%94%E5%90%8C%E5%BD%92/" title="格物致知(2)——语言千百，殊途同归">
-                        <span class="hidden-mobile">格物致知(2)——语言千百，殊途同归</span>
+                      <a href="/2023/09/21/%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B0%E7%AC%94%E8%AE%B0(%E5%8D%81%E5%9B%9B)%E2%80%94%E2%80%94%E6%AD%A3%E4%BA%A4%E5%90%91%E9%87%8F%E4%B8%8E%E5%AD%90%E7%A9%BA%E9%97%B4/" title="线性代数笔记(十四)——正交向量与子空间">
+                        <span class="hidden-mobile">线性代数笔记(十四)——正交向量与子空间</span>
                         <span class="visible-mobile">下一篇</span>
                         <i class="iconfont icon-arrowright"></i>
                       </a>
