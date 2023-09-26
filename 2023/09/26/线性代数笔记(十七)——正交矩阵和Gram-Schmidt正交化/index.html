@@ -16,25 +16,24 @@
   <meta name="author" content="r00tk1t">
   <meta name="keywords" content="">
   
-    <meta name="description" content="在上一讲的基础上继续深度展开。 投影矩阵和最小二乘 上一讲已经渗透了投影矩阵的概念，并以简单的线性回归作为示例，对最小二乘法和投影矩阵加以联系。 投影矩阵 投影矩阵\(P&#x3D;A(A^TA)^{-1}A^T\)，其物理意义是将向量\(b\)投影到\(A\)的列空间中。 投影有两种极限情况：  如果\(b\)本身就在\(A\)的列空间中，那么\(Pb&#x3D;b\)，此时\(P&#x3D;I\)。 如果\(b\)垂直于\">
+    <meta name="description" content="书接上一回标准正交基，讲述了该正交向量组的特性与优势，并介绍了一种将一组向量标准化为标准正交向量组的重要方法：Gram-Schmidt正交化。 正交矩阵和Gram-Schmidt正交化 标准正交基 标准正交向量组构成的空间基被称为标准正交基，它有两个特性：对标准正交向量组中任意向量\(q\)，有： \[ \begin{cases} q_i^Tq_j&#x3D;0 \space (i\neq j) \\ q_">
 <meta property="og:type" content="article">
-<meta property="og:title" content="线性代数笔记(十六)——投影矩阵和最小二乘">
-<meta property="og:url" content="https://r00tk1ts.github.io/2023/09/25/%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B0%E7%AC%94%E8%AE%B0(%E5%8D%81%E5%85%AD)%E2%80%94%E2%80%94%E6%8A%95%E5%BD%B1%E7%9F%A9%E9%98%B5%E5%92%8C%E6%9C%80%E5%B0%8F%E4%BA%8C%E4%B9%98/index.html">
+<meta property="og:title" content="线性代数笔记(十七)——正交矩阵和Gram-Schmidt正交化">
+<meta property="og:url" content="https://r00tk1ts.github.io/2023/09/26/%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B0%E7%AC%94%E8%AE%B0(%E5%8D%81%E4%B8%83)%E2%80%94%E2%80%94%E6%AD%A3%E4%BA%A4%E7%9F%A9%E9%98%B5%E5%92%8CGram-Schmidt%E6%AD%A3%E4%BA%A4%E5%8C%96/index.html">
 <meta property="og:site_name" content="玉涵的技能书">
-<meta property="og:description" content="在上一讲的基础上继续深度展开。 投影矩阵和最小二乘 上一讲已经渗透了投影矩阵的概念，并以简单的线性回归作为示例，对最小二乘法和投影矩阵加以联系。 投影矩阵 投影矩阵\(P&#x3D;A(A^TA)^{-1}A^T\)，其物理意义是将向量\(b\)投影到\(A\)的列空间中。 投影有两种极限情况：  如果\(b\)本身就在\(A\)的列空间中，那么\(Pb&#x3D;b\)，此时\(P&#x3D;I\)。 如果\(b\)垂直于\">
+<meta property="og:description" content="书接上一回标准正交基，讲述了该正交向量组的特性与优势，并介绍了一种将一组向量标准化为标准正交向量组的重要方法：Gram-Schmidt正交化。 正交矩阵和Gram-Schmidt正交化 标准正交基 标准正交向量组构成的空间基被称为标准正交基，它有两个特性：对标准正交向量组中任意向量\(q\)，有： \[ \begin{cases} q_i^Tq_j&#x3D;0 \space (i\neq j) \\ q_">
 <meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="https://r00tk1ts.github.io/2023/09/25/%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B0%E7%AC%94%E8%AE%B0(%E5%8D%81%E5%85%AD)%E2%80%94%E2%80%94%E6%8A%95%E5%BD%B1%E7%9F%A9%E9%98%B5%E5%92%8C%E6%9C%80%E5%B0%8F%E4%BA%8C%E4%B9%98/2023-09-25-16-19-32.png">
-<meta property="og:image" content="https://r00tk1ts.github.io/2023/09/25/%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B0%E7%AC%94%E8%AE%B0(%E5%8D%81%E5%85%AD)%E2%80%94%E2%80%94%E6%8A%95%E5%BD%B1%E7%9F%A9%E9%98%B5%E5%92%8C%E6%9C%80%E5%B0%8F%E4%BA%8C%E4%B9%98/2023-09-26-12-02-09.png">
-<meta property="article:published_time" content="2023-09-25T07:51:39.000Z">
-<meta property="article:modified_time" content="2023-09-26T04:46:03.950Z">
+<meta property="og:image" content="https://r00tk1ts.github.io/2023/09/26/%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B0%E7%AC%94%E8%AE%B0(%E5%8D%81%E4%B8%83)%E2%80%94%E2%80%94%E6%AD%A3%E4%BA%A4%E7%9F%A9%E9%98%B5%E5%92%8CGram-Schmidt%E6%AD%A3%E4%BA%A4%E5%8C%96/2023-09-26-16-02-58.png">
+<meta property="article:published_time" content="2023-09-26T07:08:39.000Z">
+<meta property="article:modified_time" content="2023-09-26T08:31:16.418Z">
 <meta property="article:author" content="r00tk1t">
 <meta property="article:tag" content="MIT-18.06-linear_algebra">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="https://r00tk1ts.github.io/2023/09/25/%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B0%E7%AC%94%E8%AE%B0(%E5%8D%81%E5%85%AD)%E2%80%94%E2%80%94%E6%8A%95%E5%BD%B1%E7%9F%A9%E9%98%B5%E5%92%8C%E6%9C%80%E5%B0%8F%E4%BA%8C%E4%B9%98/2023-09-25-16-19-32.png">
+<meta name="twitter:image" content="https://r00tk1ts.github.io/2023/09/26/%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B0%E7%AC%94%E8%AE%B0(%E5%8D%81%E4%B8%83)%E2%80%94%E2%80%94%E6%AD%A3%E4%BA%A4%E7%9F%A9%E9%98%B5%E5%92%8CGram-Schmidt%E6%AD%A3%E4%BA%A4%E5%8C%96/2023-09-26-16-02-58.png">
   
   
   
-  <title>线性代数笔记(十六)——投影矩阵和最小二乘 - 玉涵的技能书</title>
+  <title>线性代数笔记(十七)——正交矩阵和Gram-Schmidt正交化 - 玉涵的技能书</title>
 
   <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
 
@@ -200,7 +199,7 @@
       <div class="banner-text text-center fade-in-up">
         <div class="h2">
           
-            <span id="subtitle" data-typed-text="线性代数笔记(十六)——投影矩阵和最小二乘"></span>
+            <span id="subtitle" data-typed-text="线性代数笔记(十七)——正交矩阵和Gram-Schmidt正交化"></span>
           
         </div>
 
@@ -211,8 +210,8 @@
     
       <span class="post-meta">
         <i class="iconfont icon-date-fill" aria-hidden="true"></i>
-        <time datetime="2023-09-25 15:51" pubdate>
-          2023年9月25日 下午
+        <time datetime="2023-09-26 15:08" pubdate>
+          2023年9月26日 下午
         </time>
       </span>
     
@@ -223,7 +222,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          1.4k 字
+          3.1k 字
         
       </span>
     
@@ -234,7 +233,7 @@
         
         
         
-          12 分钟
+          26 分钟
         
       </span>
     
@@ -271,94 +270,180 @@
       <div class="container nopadding-x-md" id="board-ctn">
         <div id="board">
           <article class="post-content mx-auto">
-            <h1 id="seo-header">线性代数笔记(十六)——投影矩阵和最小二乘</h1>
+            <h1 id="seo-header">线性代数笔记(十七)——正交矩阵和Gram-Schmidt正交化</h1>
             
             
               <div class="markdown-body">
                 
-                <p>在上一讲的基础上继续深度展开。</p>
-<h1 id="投影矩阵和最小二乘">投影矩阵和最小二乘</h1>
-<p>上一讲已经渗透了投影矩阵的概念，并以简单的线性回归作为示例，对最小二乘法和投影矩阵加以联系。</p>
-<h2 id="投影矩阵">投影矩阵</h2>
-<p>投影矩阵<span
-class="math inline">\(P=A(A^TA)^{-1}A^T\)</span>，其物理意义是将向量<span
-class="math inline">\(b\)</span>投影到<span
-class="math inline">\(A\)</span>的列空间中。</p>
-<p>投影有两种极限情况：</p>
-<ul>
-<li>如果<span class="math inline">\(b\)</span>本身就在<span
-class="math inline">\(A\)</span>的列空间中，那么<span
-class="math inline">\(Pb=b\)</span>，此时<span
-class="math inline">\(P=I\)</span>。</li>
-<li>如果<span class="math inline">\(b\)</span>垂直于<span
-class="math inline">\(A\)</span>列空间，此时<span
-class="math inline">\(Pb=0\)</span>，根据正交补的概念，<span
-class="math inline">\(b\)</span>是<span
-class="math inline">\(A\)</span>左零空间的向量，有<span
-class="math inline">\(A^Tb=0\)</span>。</li>
-</ul>
-<p><strong>综上可以归纳：任意向量<span
-class="math inline">\(b\)</span>都可以拆解成两个分量，一个分量<span
-class="math inline">\(p\)</span>在<span
-class="math inline">\(A\)</span>的列空间中，另一分量<span
-class="math inline">\(e\)</span>在<span
-class="math inline">\(A\)</span>的左零空间中。</strong></p>
-<p><img src="2023-09-25-16-19-32.png" srcset="/img/loading.gif" lazyload /></p>
-<p><span class="math inline">\(p\)</span>是投影矩阵<span
-class="math inline">\(P\)</span>作用于<span
-class="math inline">\(b\)</span>在<span
-class="math inline">\(A\)</span>列空间的投影得到的分量，同理，如果想要投影到左零空间，那么投影矩阵就应该是<span
-class="math inline">\(I-P\)</span>。</p>
-<blockquote>
-<p>因为<span class="math inline">\(p=Pb, e=b-p\)</span>，所以<span
-class="math inline">\(e=b-Pb=(I-P)b\)</span>。</p>
-</blockquote>
-<h2 id="再探最小二乘">再探最小二乘</h2>
-<p>还是回到例题：平面上三个点<span class="math inline">\((1,1), (2,2),
-(3,2)\)</span>做线性回归。</p>
-<p><img src="2023-09-26-12-02-09.png" srcset="/img/loading.gif" lazyload /></p>
-<p>上一节我们分别通过微积分和投影矩阵两种方法进行了拟合，最终发现所求解的方程完全一致。实际上，在微积分求解法中，我们本质上算的是误差向量<span
-class="math inline">\(e1,e2,e3\)</span>模的平方和，为了让平方和最小，通过求导数找极值的方式列出了求解方程。而在投影法中，投影的本质其实就是将向量<span
-class="math inline">\(b\)</span>投影到<span
-class="math inline">\(A\)</span>列空间中最近的一点，换句话说，就是把<span
-class="math inline">\(p1,p2,p3\)</span>分别投影到所需求解的直线上去。</p>
-<p><strong>因此，微积分算最小二乘(least
-square)和投影矩阵具有相同的内核，也就不难理解为何二者最终需求解的解方程组殊途同归了。</strong></p>
-<p>最终我们求得<span
-class="math inline">\(y=\frac{1}{2}x+\frac{2}{3}\)</span>，得到: <span
-class="math display">\[
-b=\begin{bmatrix}1\\ 2\\ 2\end{bmatrix}, p=\begin{bmatrix}\frac{7}{6}\\
-\frac{10}{6} \\
-\frac{13}{6}\end{bmatrix},e=\begin{bmatrix}-\frac{1}{6}\\ \frac{2}{6}\\
--\frac{1}{6}\end{bmatrix}
-\]</span></p>
-<p>简单验证一下，可以发现<span class="math inline">\(e\)</span>与<span
-class="math inline">\(p\)</span>垂直。</p>
+                <p>书接上一回标准正交基，讲述了该正交向量组的特性与优势，并介绍了一种将一组向量标准化为标准正交向量组的重要方法：Gram-Schmidt正交化。</p>
+<h1 id="正交矩阵和gram-schmidt正交化">正交矩阵和Gram-Schmidt正交化</h1>
 <h2 id="标准正交基">标准正交基</h2>
-<p>互相垂直的各列一定是线性无关的。于是，我们可以找到空间里的一组基，它们彼此相互垂直，这组基我们称之为正交基。</p>
-<p>参考三维直角坐标系，我们常常选用<span
-class="math inline">\(\begin{bmatrix}1\\ 0\\
-0\end{bmatrix},\begin{bmatrix}0\\ 1\\ 0\end{bmatrix},\begin{bmatrix}0\\
-0\\ 1\end{bmatrix}\)</span>作为标准基，也就是对应<span
-class="math inline">\(x,y,z\)</span>三个轴。</p>
+<p>标准正交向量组构成的空间基被称为标准正交基，它有两个特性：对标准正交向量组中任意向量<span
+class="math inline">\(q\)</span>，有： <span class="math display">\[
+\begin{cases}
+q_i^Tq_j=0 \space (i\neq j) \\
+q_i^Tq_j=1 \space (i=j)
+\end{cases}
+\]</span></p>
+<p>即：向量彼此垂直，模均为<span class="math inline">\(1\)</span>。</p>
+<h2 id="标准正交矩阵">标准正交矩阵</h2>
+<p>将标准正交向量组中的<span
+class="math inline">\(q_1,q_2,...,q_n\)</span>组成的矩阵<span
+class="math inline">\(Q\)</span>被称为正交矩阵： <span
+class="math display">\[
+Q=\begin{bmatrix}q_1&amp; q_2&amp; q_3&amp; ...&amp; q_n\end{bmatrix}
+\]</span></p>
+<p>显然，正交矩阵<span
+class="math inline">\(Q\)</span>具有一个良好的性质：<span
+class="math inline">\(Q^TQ=I\)</span> <span class="math display">\[
+Q^TQ=\begin{bmatrix}q_1\\ q_2\\ q_3\\ ...\\
+q_n\end{bmatrix}\begin{bmatrix}
+q_1&amp; q_2&amp; q_3&amp; ...&amp;
+q_n\end{bmatrix}=\begin{bmatrix}1&amp; 0&amp; ...&amp; 0&amp;0\\ 0&amp;
+1&amp; ...&amp; 0&amp; 0\\ ...&amp; ...&amp; ...&amp; ...&amp; ...\\
+0&amp; 0&amp; ...&amp; 1&amp; 0\\ 0&amp; 0&amp; ...&amp; 0&amp;
+1\end{bmatrix}=I
+\]</span></p>
+<h3 id="正交矩阵">正交矩阵</h3>
+<p><strong>特别地，当<span
+class="math inline">\(Q\)</span>为方阵时，我们称这样的<span
+class="math inline">\(Q\)</span>为正交矩阵。</strong></p>
+<p>正交矩阵有更丰富的性质，此时的方阵<span
+class="math inline">\(Q\)</span>有逆矩阵，由<span
+class="math inline">\(Q^TQ=I\)</span>可知，<span
+class="math inline">\(Q^{-1}=Q^T\)</span>。</p>
+<blockquote>
+<p>置换矩阵就是个经典案例。</p>
+</blockquote>
+<h3 id="标准正交矩阵的应用">标准正交矩阵的应用</h3>
+<p>标准正交矩阵可以应用到投影矩阵上，我们知道：<span
+class="math inline">\(P=A(A^TA)^{-1}A^T\)</span>，当<span
+class="math inline">\(A\)</span>是标准正交矩阵时，有：<span
+class="math inline">\(Q(Q^TQ)^{-1}Q^T=QQ^T\)</span>。特别地，若<span
+class="math inline">\(Q\)</span>为方阵，此时<span
+class="math inline">\(QQ^T=QQ^{-1}=I\)</span>。（说明此时投影矩阵就是单位阵<span
+class="math inline">\(I\)</span>）</p>
+<p><span
+class="math inline">\(P\)</span>的计算得到了极大的简化，对于<span
+class="math inline">\(P=QQ^T\)</span>，根据前面几讲的知识，我们知道<span
+class="math inline">\(QQ^T\)</span>有着一些特性：</p>
 <ul>
-<li>由于彼此相互垂直，故为一组正交基。</li>
-<li>由于每个基向量都是单位向量，故称作标准正交基。</li>
+<li>是对称阵，即<span class="math inline">\(P=P^T\)</span></li>
+<li>乘方不变性，即<span class="math inline">\(P^2=P\)</span></li>
 </ul>
-<p>当然，标准正交基不止这一种，例如二维空间的标准正交基还可以是：<span
-class="math inline">\(\begin{bmatrix}\cos\theta\\
-\sin\theta\end{bmatrix},\begin{bmatrix}-\sin\theta\\
-\cos\theta\end{bmatrix}\)</span>。</p>
+<p>此外，对于前两讲中的拟合方程：<span class="math inline">\(A^TA\hat
+x=A^Tb\)</span>，若<span
+class="math inline">\(A\)</span>为标准正交矩阵，那么方程就变成了<span
+class="math inline">\(\hat x=Q^Tb\)</span>。<span
+class="math inline">\(\hat x\)</span>的每个分量<span
+class="math inline">\(\hat x_i=q_i^Tb\)</span>，即都是<span
+class="math inline">\(Q\)</span>中对应列向量与<span
+class="math inline">\(b\)</span>的内积。</p>
+<blockquote>
+<p>这个式子的物理意义就是：对已知标准正交基，向量<span
+class="math inline">\(b\)</span>在第<span
+class="math inline">\(i\)</span>个基上的投影就是对应基向量<span
+class="math inline">\(q_i^Tb\)</span>。</p>
+</blockquote>
+<p>因此，如果我们选择标准正交向量组作为基时，投影矩阵相关公式中的诸多计算都得到了极大的简化。</p>
+<h2 id="gram-schmidt正交化">Gram-Schmidt正交化</h2>
+<p>在标准正交矩阵的应用中我们可以看到，如果能够在实际运算中采用标准正交向量组，那就可以简化相当多的运算量。然而实际情况是，我们往往拿到的都只是一组线性无关的向量，它们恰好构成标准正交基的可能性微乎其微。那么有没有一种方法，可以将任意的线性无关向量组转换为标准正交基呢？</p>
+<p><strong>答案是肯定的，这种方法就是”Gram-Schmidt正交化“。</strong></p>
+<p>Gram-Schmidt正交化的过程很简单： <span class="math display">\[
+线性无关向量a,b\rightarrow 正交向量A,B\rightarrow
+标准正交向量q_1=\frac{A}{||A||}, q_2=\frac{B}{||B||}
+\]</span></p>
+<blockquote>
+<p>第一步转为正交向量的过程被称作Graham，第二步标准化为模1的过程被称作Schmidt。</p>
+</blockquote>
+<p>第二步标准化的过程很好理解，对每个分量除以模量即可，正交化的过程关键在于第一步，怎么找到<span
+class="math inline">\(A\)</span>和<span
+class="math inline">\(B\)</span>。</p>
+<p>以不共线的两个<span
+class="math inline">\(a,b\)</span>向量为例，怎么转换成正交基呢？这就要用到投影：</p>
+<p><img src="2023-09-26-16-02-58.png" srcset="/img/loading.gif" lazyload /></p>
+<p>我们先将<span class="math inline">\(a\)</span>向量固定，设为<span
+class="math inline">\(A\)</span>，然后将<span
+class="math inline">\(b\)</span>向量投影到<span
+class="math inline">\(A\)</span>上得到<span
+class="math inline">\(p\)</span>，此时误差向量<span
+class="math inline">\(e=b-p\)</span>所在直线的方向实际上就是另一个基向量<span
+class="math inline">\(B\)</span>的方向，取投影长度为<span
+class="math inline">\(B\)</span>的长度。于是有： <span
+class="math display">\[
+B=b-\frac{AA^Tb}{A^TA}
+\]</span></p>
+<p>式子里<span class="math inline">\(A^Tb\)</span>和<span
+class="math inline">\(A^TA\)</span>都是内积标量值，因此上式一般写作：<span
+class="math inline">\(B=b-\frac{A^Tb}{A^TA}A\)</span>的形式。</p>
+<p>得到<span
+class="math inline">\(A,B\)</span>之后，第二步就是做标准化了：<span
+class="math inline">\(q_1=\frac{A}{||A||},
+q_2=\frac{B}{||B||}\)</span>。</p>
+<p>延展到三维空间，对于向量<span
+class="math inline">\(a,b,c\)</span>要怎么做正交化呢？我们可以如法炮制，首先<span
+class="math inline">\(A,B\)</span>的寻找方法不变： <span
+class="math display">\[
+A=a,B=b-\frac{AA^Tb}{A^TA}
+\]</span></p>
+<p><span class="math inline">\(C\)</span>的计算如出一辙，我们分别让<span
+class="math inline">\(c\)</span>在<span
+class="math inline">\(A\)</span>和<span
+class="math inline">\(B\)</span>上进行投影，然后再减去投影得到的两个向量即为<span
+class="math inline">\(C\)</span>： <span class="math display">\[
+C=c-\frac{A^Tc}{A^TA}A-\frac{B^Tc}{B^TB}B
+\]</span></p>
+<p>最后再对<span class="math inline">\(A,B,C\)</span>标准化即可。</p>
+<h3 id="示例">示例</h3>
+<p>有<span class="math inline">\(a=\begin{bmatrix}1\\ 1\\
+1\end{bmatrix}, b=\begin{bmatrix}1\\ 0\\
+2\end{bmatrix}\)</span>，求标准正交矩阵<span
+class="math inline">\(Q\)</span>。</p>
+<p>解：</p>
+<p>先固定<span class="math inline">\(A=a=\begin{bmatrix}1\\ 1\\
+1\end{bmatrix}\)</span>，用<span class="math inline">\(b\)</span>在<span
+class="math inline">\(A\)</span>上投影，差值即为: <span
+class="math display">\[
+B=b-\frac{A^Tb}{A^TA}A=\begin{bmatrix}1\\ 0\\
+2\end{bmatrix}-\frac{3}{3}\begin{bmatrix}1\\ 1\\
+1\end{bmatrix}=\begin{bmatrix}0\\ -1\\ 1\end{bmatrix}
+\]</span></p>
+<p>标准化后得到： <span class="math display">\[
+Q=\begin{bmatrix}\frac{1}{\sqrt{3}}&amp; 0\\ \frac{1}{\sqrt{3}}&amp;
+-\frac{1}{\sqrt{2}}\\ \frac{1}{\sqrt{3}}&amp;
+\frac{1}{\sqrt{2}}\end{bmatrix}
+\]</span></p>
+<h2 id="引申矩阵的qr分解">引申：矩阵的QR分解</h2>
+<p>用消元法视角来看<span
+class="math inline">\(A\)</span>的分解，可以看做<span
+class="math inline">\(A=LU\)</span>，<span
+class="math inline">\(L\)</span>是进行行变换的下三角阵，<span
+class="math inline">\(U\)</span>是上三角阵。</p>
+<p>以同样的眼光来看Gram-Schmidt正交化，有<span
+class="math inline">\(A=QR\)</span>，其中<span
+class="math inline">\(Q\)</span>为标准正交化阵，<span
+class="math inline">\(R\)</span>是一个上三角阵。 <span
+class="math display">\[
+\begin{bmatrix}a_1&amp; a_2\end{bmatrix}=\begin{bmatrix}q_1&amp;
+q_2\end{bmatrix}\begin{bmatrix}a_1^Tq_1&amp; a_2^Tq_1\\ a_1^Tq_2&amp;
+a_2^Tq_2\end{bmatrix}
+\]</span></p>
+<p>显然左下角<span class="math inline">\(a_1^Tq_2=0\)</span>(<span
+class="math inline">\(a1是A方向，\)</span>q2<span
+class="math inline">\(是\)</span>B<span
+class="math inline">\(方向\)</span>)，拓展到高维会发现下三角都是<span
+class="math inline">\(0\)</span>，因为后构造的向量总是垂直于前面的向量。这也是Gram-Schmidt正交化的一个性质。</p>
 <h1 id="附录">附录</h1>
 <h2 id="视频">视频</h2>
-<iframe src="//player.bilibili.com/player.html?aid=382989698&amp;bvid=BV16Z4y1U7oU&amp;cid=570095287&amp;p=16&amp;autoplay=0" scrolling="no" border="0" width="100%" height="500" frameborder="no" framespacing="0" allowfullscreen="true">
+<iframe src="//player.bilibili.com/player.html?aid=382989698&amp;bvid=BV16Z4y1U7oU&amp;cid=570089959&amp;p=17&amp;autoplay=0" scrolling="no" border="0" width="100%" height="500" frameborder="no" framespacing="0" allowfullscreen="true">
 </iframe>
 <h2 id="参考链接">参考链接</h2>
 <ul>
 <li><a
-target="_blank" rel="noopener" href="https://github.com/MLNLP-World/MIT-Linear-Algebra-Notes/blob/master/%5B16%5D%20%E6%8A%95%E5%BD%B1%E7%9F%A9%E9%98%B5%E5%92%8C%E6%9C%80%E5%B0%8F%E4%BA%8C%E4%B9%98/%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B016.pdf">投影矩阵和最小二乘</a></li>
-<li><a target="_blank" rel="noopener" href="https://rqtn.github.io/2019/08/12/LA-Lec16/">Lec16 -
-投影矩阵和最小二乘法</a></li>
+target="_blank" rel="noopener" href="https://github.com/MLNLP-World/MIT-Linear-Algebra-Notes/blob/master/%5B17%5D%20%E6%AD%A3%E4%BA%A4%E7%9F%A9%E9%98%B5%E5%92%8CGram-Schmidt%20%E6%AD%A3%E4%BA%A4%E5%8C%96/%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B017.pdf">正交矩阵和Gram-Schmidt
+正交化</a></li>
+<li><a target="_blank" rel="noopener" href="https://rqtn.github.io/2019/08/12/LA-Lec17/">Lec17 -
+正交矩阵和 Gram-Schmidt 正交化</a></li>
 <li><a
 target="_blank" rel="noopener" href="https://github.com/kf-liu/The-Art-of-Linear-Algebra-zh-CN">线性代数的艺术</a></li>
 </ul>
@@ -407,8 +492,8 @@ target="_blank" rel="noopener" href="https://github.com/kf-liu/The-Art-of-Linear
 
   <div class="license-box my-3">
     <div class="license-title">
-      <div>线性代数笔记(十六)——投影矩阵和最小二乘</div>
-      <div>https://r00tk1ts.github.io/2023/09/25/线性代数笔记(十六)——投影矩阵和最小二乘/</div>
+      <div>线性代数笔记(十七)——正交矩阵和Gram-Schmidt正交化</div>
+      <div>https://r00tk1ts.github.io/2023/09/26/线性代数笔记(十七)——正交矩阵和Gram-Schmidt正交化/</div>
     </div>
     <div class="license-meta">
       
@@ -420,7 +505,7 @@ target="_blank" rel="noopener" href="https://github.com/kf-liu/The-Art-of-Linear
       
         <div class="license-meta-item license-meta-date">
           <div>发布于</div>
-          <div>2023年9月25日</div>
+          <div>2023年9月26日</div>
         </div>
       
       
@@ -452,18 +537,12 @@ target="_blank" rel="noopener" href="https://github.com/kf-liu/The-Art-of-Linear
                   <article class="post-prev col-6">
                     
                     
-                      <a href="/2023/09/26/%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B0%E7%AC%94%E8%AE%B0(%E5%8D%81%E4%B8%83)%E2%80%94%E2%80%94%E6%AD%A3%E4%BA%A4%E7%9F%A9%E9%98%B5%E5%92%8CGram-Schmidt%E6%AD%A3%E4%BA%A4%E5%8C%96/" title="线性代数笔记(十七)——正交矩阵和Gram-Schmidt正交化">
-                        <i class="iconfont icon-arrowleft"></i>
-                        <span class="hidden-mobile">线性代数笔记(十七)——正交矩阵和Gram-Schmidt正交化</span>
-                        <span class="visible-mobile">上一篇</span>
-                      </a>
-                    
                   </article>
                   <article class="post-next col-6">
                     
                     
-                      <a href="/2023/09/24/%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B0%E7%AC%94%E8%AE%B0(%E5%8D%81%E4%BA%94)%E2%80%94%E2%80%94%E5%AD%90%E7%A9%BA%E9%97%B4%E6%8A%95%E5%BD%B1/" title="线性代数笔记(十五)——子空间投影">
-                        <span class="hidden-mobile">线性代数笔记(十五)——子空间投影</span>
+                      <a href="/2023/09/25/%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B0%E7%AC%94%E8%AE%B0(%E5%8D%81%E5%85%AD)%E2%80%94%E2%80%94%E6%8A%95%E5%BD%B1%E7%9F%A9%E9%98%B5%E5%92%8C%E6%9C%80%E5%B0%8F%E4%BA%8C%E4%B9%98/" title="线性代数笔记(十六)——投影矩阵和最小二乘">
+                        <span class="hidden-mobile">线性代数笔记(十六)——投影矩阵和最小二乘</span>
                         <span class="visible-mobile">下一篇</span>
                         <i class="iconfont icon-arrowright"></i>
                       </a>
