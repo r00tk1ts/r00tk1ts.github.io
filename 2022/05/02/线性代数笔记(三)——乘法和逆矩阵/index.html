@@ -220,7 +220,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          3.7k 字
+          3.1k 字
         
       </span>
     
@@ -231,7 +231,7 @@
         
         
         
-          31 分钟
+          27 分钟
         
       </span>
     
@@ -275,186 +275,73 @@
                 
                 <p>这一讲是对矩阵乘法和逆矩阵的深入说明。矩阵乘法主要介绍了按不同视角来理解的多种计算方式。逆矩阵则给出了求解非奇异矩阵的逆矩阵的方法。</p>
 <span id="more"></span>
-<h1 id="乘法和逆矩阵">乘法和逆矩阵</h1>
-<h2 id="矩阵乘法的视觉意义">矩阵乘法的视觉意义</h2>
-<p>矩阵乘法<span class="math inline">\(AB=C\)</span>，其中<span
-class="math inline">\(A\)</span>是<span class="math inline">\(m\times
-n\)</span>阵，<span class="math inline">\(B\)</span>是<span
-class="math inline">\(n\times p\)</span>阵，我们知道得到的<span
-class="math inline">\(C\)</span>是一个<span
-class="math inline">\(m\times p\)</span>阵。对于<span
-class="math inline">\(C\)</span>中第<span
-class="math inline">\(i\)</span>行第<span
-class="math inline">\(j\)</span>列元素<span
-class="math inline">\(C_{ij}\)</span>。</p>
+<h1 id="乘法和逆矩阵"><a href="#乘法和逆矩阵" class="headerlink" title="乘法和逆矩阵"></a>乘法和逆矩阵</h1><h2 id="矩阵乘法的视觉意义"><a href="#矩阵乘法的视觉意义" class="headerlink" title="矩阵乘法的视觉意义"></a>矩阵乘法的视觉意义</h2><p>矩阵乘法$AB=C$，其中$A$是$m\times n$阵，$B$是$n\times p$阵，我们知道得到的$C$是一个$m\times p$阵。对于$C$中第$i$行第$j$列元素$C_{ij}$。</p>
 <p>从不同视角看矩阵乘法，我们可以给出不同的计算式：</p>
-<h3 id="从每个元素的角度">从每个元素的角度</h3>
-<p>有： <span class="math display">\[
-c_{ij}=row_i\cdot column_j = \sum_{k=i}^na_{ik}b_{kj}
-\]</span></p>
-<p>其中<span class="math inline">\(a_{ik}\)</span>是矩阵<span
-class="math inline">\(A\)</span>的第<span
-class="math inline">\(i\)</span>行第<span
-class="math inline">\(k\)</span>列元素，<span
-class="math inline">\(b_{kj}\)</span>是<span
-class="math inline">\(B\)</span>矩阵第<span
-class="math inline">\(k\)</span>行第<span
-class="math inline">\(j\)</span>列元素。 <span
-class="math inline">\(c_{ij}\)</span>可以看成是<span
-class="math inline">\(A\)</span>的第<span
-class="math inline">\(i\)</span>行乘以<span
-class="math inline">\(B\)</span>的第<span
-class="math inline">\(j\)</span>列。</p>
-<h3 id="列的线性组合">列的线性组合</h3>
-<p>从列的角度看，<span class="math inline">\(C\)</span>的各列是<span
-class="math inline">\(A\)</span>中各列的线性组合，组合方式由<span
-class="math inline">\(B\)</span>来确定。比如<span
-class="math inline">\(C\)</span>的第一列是 <span
-class="math inline">\(A\)</span>中各列相对于<span
-class="math inline">\(B\)</span>的第一列的一个线性组合。</p>
-<p><span class="math display">\[
+<h3 id="从每个元素的角度"><a href="#从每个元素的角度" class="headerlink" title="从每个元素的角度"></a>从每个元素的角度</h3><p>有：</p>
+<script type="math/tex; mode=display">
+c_{ij}=row_i\cdot column_j = \sum_{k=i}^na_{ik}b_{kj}</script><p>其中$a<em>{ik}$是矩阵$A$的第$i$行第$k$列元素，$b</em>{kj}$是$B$矩阵第$k$行第$j$列元素。<br>$c_{ij}$可以看成是$A$的第$i$行乘以$B$的第$j$列。</p>
+<h3 id="列的线性组合"><a href="#列的线性组合" class="headerlink" title="列的线性组合"></a>列的线性组合</h3><p>从列的角度看，$C$的各列是$A$中各列的线性组合，组合方式由$B$来确定。比如$C$的第一列是 $A$中各列相对于$B$的第一列的一个线性组合。</p>
+<script type="math/tex; mode=display">
 \begin{bmatrix}
-&amp;&amp;
-\\ A_{col1}&amp;A_{col2}&amp;\cdots&amp;A_{coln}
-\\ &amp;&amp;\end{bmatrix}\begin{bmatrix}
-\cdots&amp;b_{1j}&amp;\cdots
-\\ \cdots&amp;b_{2j}&amp;\cdots
-\\ \cdots&amp;\vdots&amp;\cdots
-\\ \cdots&amp;b_{nj}&amp;\cdots
-\\ \end{bmatrix}=\begin{bmatrix}
-&amp;&amp;
-\\
-\cdots&amp;\left(b_{1j}A_{col1}+b_{2j}A_{col2}+\cdots+b_{nj}A_{coln}\right)&amp;\cdots
-\\ &amp;&amp;\end{bmatrix}
-\]</span></p>
-<p>上面的运算为<span class="math inline">\(B\)</span>的第<span
-class="math inline">\(j\)</span>个列向量右乘矩阵<span
-class="math inline">\(A\)</span>，求得的结果就是<span
-class="math inline">\(C\)</span>矩阵的第<span
-class="math inline">\(j\)</span>列，即<span
-class="math inline">\(C\)</span>的第<span
-class="math inline">\(j\)</span>列是<span
-class="math inline">\(A\)</span>的列向量以<span
-class="math inline">\(B\)</span>的第<span
-class="math inline">\(j\)</span>列作为系数所求得的线性组合，<span
-class="math inline">\(C_j=b_{1j}A_{col1}+b_{2j}A_{col2}+\cdots+b_{nj}A_{coln}\)</span>。</p>
-<h3 id="行的线性组合">行的线性组合</h3>
-<p><span class="math inline">\(C\)</span>的各行是<span
-class="math inline">\(B\)</span>中各行的一个线性组合，组合方式由<span
-class="math inline">\(A\)</span>决定。比如<span
-class="math inline">\(C\)</span>的第一行是<span
-class="math inline">\(B\)</span>中各行相对于<span
-class="math inline">\(A\)</span>的第一行的一个线性组合。</p>
-<p><span class="math display">\[
+ &&
+ \\ A_{col1}&A_{col2}&\cdots&A_{coln}
+ \\ &&\end{bmatrix}\begin{bmatrix}
+ \cdots&b_{1j}&\cdots
+ \\ \cdots&b_{2j}&\cdots
+ \\ \cdots&\vdots&\cdots
+ \\ \cdots&b_{nj}&\cdots
+ \\ \end{bmatrix}=\begin{bmatrix}
+ &&
+ \\ \cdots&\left(b_{1j}A_{col1}+b_{2j}A_{col2}+\cdots+b_{nj}A_{coln}\right)&\cdots
+ \\ &&\end{bmatrix}</script><p>上面的运算为$B$的第$j$个列向量右乘矩阵$A$，求得的结果就是$C$矩阵的第$j$列，即$C$的第$j$列是$A$的列向量以$B$的第$j$列作为系数所求得的线性组合，$C<em>j=b</em>{1j}A<em>{col1}+b</em>{2j}A<em>{col2}+\cdots+b</em>{nj}A_{coln}$。</p>
+<h3 id="行的线性组合"><a href="#行的线性组合" class="headerlink" title="行的线性组合"></a>行的线性组合</h3><p>$C$的各行是$B$中各行的一个线性组合，组合方式由$A$决定。比如$C$的第一行是$B$中各行相对于$A$的第一行的一个线性组合。</p>
+<script type="math/tex; mode=display">
 \begin{bmatrix}
-\vdots&amp;\vdots&amp;\vdots&amp;\vdots
-\\ a_{i1}&amp;a_{i2}&amp;\cdots&amp;a_{in}
-\\ \vdots&amp;\vdots&amp;\vdots&amp;\vdots
+ \vdots&\vdots&\vdots&\vdots
+ \\ a_{i1}&a_{i2}&\cdots&a_{in}
+ \\ \vdots&\vdots&\vdots&\vdots
 \end{bmatrix}
 \begin{bmatrix}
-&amp;B_{row1}&amp;
-\\ &amp;B_{row2}&amp;
-\\ &amp;\vdots&amp;
-\\ &amp;B_{rown}&amp;
+ &B_{row1}&
+ \\ &B_{row2}&
+ \\ &\vdots&
+ \\ &B_{rown}&
 \end{bmatrix}=\begin{bmatrix}
-\vdots
-\\ \left(a_{i1}B_{row1}+a_{i2}B_{row2}+\cdots+a_{in}B_{rown}\right)
-\\ \vdots
-\end{bmatrix}
-\]</span></p>
-<p>上面的运算为<span class="math inline">\(A\)</span>的第<span
-class="math inline">\(i\)</span>个行向量左乘矩阵<span
-class="math inline">\(B\)</span>，求得的结果就是<span
-class="math inline">\(C\)</span>矩阵的第<span
-class="math inline">\(i\)</span>行，即<span
-class="math inline">\(C\)</span>的第<span
-class="math inline">\(i\)</span>行是<span
-class="math inline">\(B\)</span>的行向量以<span
-class="math inline">\(A\)</span>的第<span
-class="math inline">\(i\)</span>行作为系数所求的的线性组合，<span
-class="math inline">\(C_i=a_{i1}B_{row1}+a_{i2}B_{row2}+\cdots+a_{in}B_{rown}\)</span>。</p>
-<h3 id="从矩阵的角度看">从矩阵的角度看</h3>
-<p><span class="math inline">\(A\)</span>的列乘以<span
-class="math inline">\(B\)</span>的行： <span class="math display">\[
+ \vdots
+ \\ \left(a_{i1}B_{row1}+a_{i2}B_{row2}+\cdots+a_{in}B_{rown}\right)
+ \\ \vdots
+\end{bmatrix}</script><p>上面的运算为$A$的第$i$个行向量左乘矩阵$B$，求得的结果就是$C$矩阵的第$i$行，即$C$的第$i$行是$B$的行向量以$A$的第$i$行作为系数所求的的线性组合，$C<em>i=a</em>{i1}B<em>{row1}+a</em>{i2}B<em>{row2}+\cdots+a</em>{in}B_{rown}$。</p>
+<h3 id="从矩阵的角度看"><a href="#从矩阵的角度看" class="headerlink" title="从矩阵的角度看"></a>从矩阵的角度看</h3><p>$A$的列乘以$B$的行：</p>
+<script type="math/tex; mode=display">
 \begin{bmatrix}
-&amp;&amp;
-\\ A_{col1}&amp;A_{col2}&amp;\cdots&amp;A_{coln}
-\\ &amp;&amp;
+ &&
+ \\ A_{col1}&A_{col2}&\cdots&A_{coln}
+ \\ &&
 \end{bmatrix}
 \begin{bmatrix}
-&amp;B_{row1}&amp;
-\\ &amp;B_{row2}&amp;
-\\ &amp;\vdots&amp;
-\\ &amp;B_{rown}&amp;
-\end{bmatrix}=A_{col1}B_{row1}+A_{col2}B_{row2}+\cdots+A_{coln}B_{rown}
-\]</span></p>
-<p><span class="math inline">\(A_{coli}B_{rowi}\)</span>是一个<span
-class="math inline">\(m\times 1\)</span>向量乘以一个<span
-class="math inline">\(1\times p\)</span>向量，其结果是一个<span
-class="math inline">\(m\times p\)</span>矩阵，而所有的<span
-class="math inline">\(m\times p\)</span>矩阵之和就是计算结果。</p>
-<h3 id="分块来看">分块来看</h3>
-<p><span class="math display">\[
-\left[\begin{array}{c|c}A_1&amp;A_2\\ \hline
-A_3&amp;A_4\end{array}\right]\left[\begin{array}{c|c}B_1&amp;B_2\\
-\hline
-B_3&amp;B_4\end{array}\right]=\left[\begin{array}{c|c}A_1B_1+A_2B_3&amp;A_1B_2+A_2B_4\\
-\hline A_3B_1+A_4B_3&amp;A_3B_2+A_4B_4\end{array}\right]
-\]</span></p>
-<p>简写成： <span class="math display">\[
-\left[\begin{array}{c|c}A_1&amp;A_2\\ \hline
-A_3&amp;A_4\end{array}\right]\left[\begin{array}{c|c}B_1&amp;B_2\\
-\hline
-B_3&amp;B_4\end{array}\right]=\left[\begin{array}{c|c}C_1&amp;C_2\\
-\hline C_3&amp;C_4\end{array}\right]
-\]</span></p>
-<p>可以看到 矩阵完全可以拆成多个块，各块的关联关系也一目了然。</p>
-<h2 id="逆矩阵">逆矩阵</h2>
-<p>逆矩阵分为左逆和右逆，不是所有方阵都可逆，对于方阵来说，左逆和右逆是相等的。</p>
+ &B_{row1}&
+ \\ &B_{row2}&
+ \\ &\vdots&
+ \\ &B_{rown}&
+\end{bmatrix}=A_{col1}B_{row1}+A_{col2}B_{row2}+\cdots+A_{coln}B_{rown}</script><p>$A<em>{coli}B</em>{rowi}$是一个$m\times 1$向量乘以一个$1\times p$向量，其结果是一个$m\times p$矩阵，而所有的$m\times p$矩阵之和就是计算结果。</p>
+<h3 id="分块来看"><a href="#分块来看" class="headerlink" title="分块来看"></a>分块来看</h3><script type="math/tex; mode=display">
+\left[\begin{array}{c|c}A_1&A_2\\ \hline A_3&A_4\end{array}\right]\left[\begin{array}{c|c}B_1&B_2\\ \hline B_3&B_4\end{array}\right]=\left[\begin{array}{c|c}A_1B_1+A_2B_3&A_1B_2+A_2B_4\\ \hline A_3B_1+A_4B_3&A_3B_2+A_4B_4\end{array}\right]</script><p>简写成：</p>
+<script type="math/tex; mode=display">
+\left[\begin{array}{c|c}A_1&A_2\\ \hline A_3&A_4\end{array}\right]\left[\begin{array}{c|c}B_1&B_2\\ \hline B_3&B_4\end{array}\right]=\left[\begin{array}{c|c}C_1&C_2\\ \hline C_3&C_4\end{array}\right]</script><p>可以看到 矩阵完全可以拆成多个块，各块的关联关系也一目了然。</p>
+<h2 id="逆矩阵"><a href="#逆矩阵" class="headerlink" title="逆矩阵"></a>逆矩阵</h2><p>逆矩阵分为左逆和右逆，不是所有方阵都可逆，对于方阵来说，左逆和右逆是相等的。</p>
 <p>对这些有逆的矩阵，我们称其为可逆的或非奇异的。</p>
-<p>如何判断一个矩阵是可逆的？从列图像来看，如果<span
-class="math inline">\(A^{-1}\)</span>存在，那么有<span
-class="math inline">\(AA^{-1}=I\)</span>，如果<span
-class="math inline">\(A\)</span>中各列无法线性组合成单位阵，则矩阵不可逆。相反，如果可以找到非零向量<span
-class="math inline">\(x\)</span>使得<span
-class="math inline">\(Ax=0\)</span>有解，那么<span
-class="math inline">\(A\)</span>也是不可逆的（某些列是相关的，反证法非常容易求证）。</p>
-<p>那么如何求解一个逆矩阵呢？可以采用高斯-若尔当思想：
-构造这样一个增广矩阵： <span
-class="math inline">\(\left[\begin{array}{cc|cc}1&amp;3&amp;1&amp;0\\
-2&amp;7&amp;0&amp;1\end{array}\right]\)</span>，</p>
-<p>右侧补充一个单位阵<span
-class="math inline">\(I\)</span>，接下来用消元法将左侧变为单位矩阵：</p>
-<p><span class="math display">\[
-\left[\begin{array}{cc|cc}1&amp;3&amp;1&amp;0\\
-2&amp;7&amp;0&amp;1\end{array}\right]\xrightarrow{row_2-2row_1}\left[\begin{array}{cc|cc}1&amp;3&amp;1&amp;0\\
-0&amp;1&amp;-2&amp;1\end{array}\right]\xrightarrow{row_1-3row_2}\left[\begin{array}{cc|cc}1&amp;0&amp;7&amp;-3\\
-0&amp;1&amp;-2&amp;1\end{array}\right]
-\]</span></p>
-<p>于是，我们就将矩阵从<span
-class="math inline">\(\left[\begin{array}{c|c}A&amp;I\end{array}\right]\)</span>变为<span
-class="math inline">\(\left[\begin{array}{c|c}I&amp;A^{-1}\end{array}\right]\)</span></p>
-<p>而高斯-若尔当思想的本质是使用消元矩阵<span
-class="math inline">\(E\)</span>，对<span
-class="math inline">\(A\)</span>进行操作，<span
-class="math inline">\(E\left[\begin{array}{c|c}A&amp;I\end{array}\right]\)</span>，利用一步步消元有<span
-class="math inline">\(EA=I\)</span>，进而得到<span
-class="math inline">\(\left[\begin{array}{c|c}I&amp;E\end{array}\right]\)</span>，其实这个消元矩阵<span
-class="math inline">\(E\)</span>就是<span
-class="math inline">\(A^{-1}\)</span>，而高斯-若尔当法中的<span
-class="math inline">\(I\)</span>只是负责记录消元的每一步操作，待消元完成，逆矩阵就自然出现了。</p>
-<p><strong>结论：如果矩阵可以通过行变换变成<span
-class="math inline">\(I\)</span>，那么矩阵就是可逆的。</strong></p>
-<h1 id="附录">附录</h1>
-<h2 id="视频">视频</h2>
-<iframe src="//player.bilibili.com/player.html?aid=382989698&amp;bvid=BV16Z4y1U7oU&amp;cid=569894536&amp;p=3&amp;autoplay=0" width="100%" height="500" scrolling="no" border="0" frameborder="no" framespacing="0" allowfullscreen="true">
-</iframe>
-<h2 id="参考链接">参考链接</h2>
-<ul>
-<li><a
-target="_blank" rel="noopener" href="https://github.com/MLNLP-World/MIT-Linear-Algebra-Notes/blob/master/%5B03%5D%E4%B9%98%E6%B3%95%E5%92%8C%E9%80%86%E7%9F%A9%E9%98%B5/%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B0%5B%E4%B8%89%5D.pdf">乘法和逆矩阵</a></li>
-<li><a
-target="_blank" rel="noopener" href="https://github.com/kf-liu/The-Art-of-Linear-Algebra-zh-CN">线性代数的艺术</a></li>
+<p>如何判断一个矩阵是可逆的？从列图像来看，如果$A^{-1}$存在，那么有$AA^{-1}=I$，如果$A$中各列无法线性组合成单位阵，则矩阵不可逆。相反，如果可以找到非零向量$x$使得$Ax=0$有解，那么$A$也是不可逆的（某些列是相关的，反证法非常容易求证）。</p>
+<p>那么如何求解一个逆矩阵呢？可以采用高斯-若尔当思想：<br>构造这样一个增广矩阵：<br>$\left[\begin{array}{cc|cc}1&amp;3&amp;1&amp;0\ 2&amp;7&amp;0&amp;1\end{array}\right]$，</p>
+<p>右侧补充一个单位阵$I$，接下来用消元法将左侧变为单位矩阵：</p>
+<script type="math/tex; mode=display">
+\left[\begin{array}{cc|cc}1&3&1&0\\ 2&7&0&1\end{array}\right]\xrightarrow{row_2-2row_1}\left[\begin{array}{cc|cc}1&3&1&0\\ 0&1&-2&1\end{array}\right]\xrightarrow{row_1-3row_2}\left[\begin{array}{cc|cc}1&0&7&-3\\ 0&1&-2&1\end{array}\right]</script><p>于是，我们就将矩阵从$\left[\begin{array}{c|c}A&amp;I\end{array}\right]$变为$\left[\begin{array}{c|c}I&amp;A^{-1}\end{array}\right]$</p>
+<p>而高斯-若尔当思想的本质是使用消元矩阵$E$，对$A$进行操作，$E\left[\begin{array}{c|c}A&amp;I\end{array}\right]$，利用一步步消元有$EA=I$，进而得到$\left[\begin{array}{c|c}I&amp;E\end{array}\right]$，其实这个消元矩阵$E$就是$A^{-1}$，而高斯-若尔当法中的$I$只是负责记录消元的每一步操作，待消元完成，逆矩阵就自然出现了。</p>
+<p><strong>结论：如果矩阵可以通过行变换变成$I$，那么矩阵就是可逆的。</strong></p>
+<h1 id="附录"><a href="#附录" class="headerlink" title="附录"></a>附录</h1><h2 id="视频"><a href="#视频" class="headerlink" title="视频"></a>视频</h2><iframe src="//player.bilibili.com/player.html?aid=382989698&bvid=BV16Z4y1U7oU&cid=569894536&p=3&autoplay=0" width="100%" height="500" scrolling="no" border="0" frameborder="no" framespacing="0" allowfullscreen="true"> </iframe>
+
+<h2 id="参考链接"><a href="#参考链接" class="headerlink" title="参考链接"></a>参考链接</h2><ul>
+<li><a target="_blank" rel="noopener" href="https://github.com/MLNLP-World/MIT-Linear-Algebra-Notes/blob/master/%5B03%5D%E4%B9%98%E6%B3%95%E5%92%8C%E9%80%86%E7%9F%A9%E9%98%B5/%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B0%5B%E4%B8%89%5D.pdf">乘法和逆矩阵</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/kf-liu/The-Art-of-Linear-Algebra-zh-CN">线性代数的艺术</a></li>
 </ul>
 
                 

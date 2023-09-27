@@ -220,7 +220,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          2.5k 字
+          2.2k 字
         
       </span>
     
@@ -231,7 +231,7 @@
         
         
         
-          21 分钟
+          19 分钟
         
       </span>
     
@@ -275,79 +275,39 @@
                 
                 <p>这一讲主要介绍了<strong>列空间</strong>和<strong>零空间</strong>。二者都是四个基本子空间的重要成员。</p>
 <span id="more"></span>
-<h1 id="列空间和零空间">列空间和零空间</h1>
-<h2 id="子空间的并和交">子空间的并和交</h2>
-<p>某向量空间的两个子空间<span class="math inline">\(S\)</span>和<span
-class="math inline">\(T\)</span>，它们的并（<span
-class="math inline">\(S\cup T\)</span>）不一定是子空间，但它们的交(<span
-class="math inline">\(S\cap
-T\)</span>)一定是子空间，这一点是显而易见的：以<span
-class="math inline">\(R^3\)</span>举例，过原点的某个平面<span
-class="math inline">\(P\)</span>是一个子空间，过原点的某条直线<span
-class="math inline">\(L\)</span>也是一个子空间，如果<span
-class="math inline">\(L\)</span>不在平面<span
-class="math inline">\(P\)</span>上，那么我们从原点出发，取<span
-class="math inline">\(L\)</span>上的任意向量<span
-class="math inline">\(v\)</span>和平面<span
-class="math inline">\(P\)</span>上的任意向量<span
-class="math inline">\(w\)</span>，对二者进行加法操作，得到的向量<span
-class="math inline">\(v+w\)</span>既不在平面<span
-class="math inline">\(P\)</span>上，也不在直线<span
-class="math inline">\(L\)</span>上，所以子空间的交不一定是子空间（直线<span
-class="math inline">\(L\)</span>在平面<span
-class="math inline">\(P\)</span>上时才是）；而对于<span
-class="math inline">\(P\)</span>和<span
-class="math inline">\(L\)</span>的交来说，要么只有一个原点，要么是<span
-class="math inline">\(L\)</span>（此时<span
-class="math inline">\(L\)</span>在平面<span
-class="math inline">\(P\)</span>之内），它们的交依然是一个子空间。</p>
-<p>沿此思路扩展到高维空间亦是如此，子空间的并放宽了限制条件导致规则被破坏，而子空间的交则实际上是进行了更严格的限制，(<span
-class="math inline">\(S\cap T\)</span>)既满足<span
-class="math inline">\(S\)</span>的法则，也满足<span
-class="math inline">\(T\)</span>的法则，因此它当然是子空间。</p>
+<h1 id="列空间和零空间"><a href="#列空间和零空间" class="headerlink" title="列空间和零空间"></a>列空间和零空间</h1><h2 id="子空间的并和交"><a href="#子空间的并和交" class="headerlink" title="子空间的并和交"></a>子空间的并和交</h2><p>某向量空间的两个子空间$S$和$T$，它们的并（$S\cup T$）不一定是子空间，但它们的交($S\cap T$)一定是子空间，这一点是显而易见的：以$R^3$举例，过原点的某个平面$P$是一个子空间，过原点的某条直线$L$也是一个子空间，如果$L$不在平面$P$上，那么我们从原点出发，取$L$上的任意向量$v$和平面$P$上的任意向量$w$，对二者进行加法操作，得到的向量$v+w$既不在平面$P$上，也不在直线$L$上，所以子空间的交不一定是子空间（直线$L$在平面$P$上时才是）；而对于$P$和$L$的交来说，要么只有一个原点，要么是$L$（此时$L$在平面$P$之内），它们的交依然是一个子空间。</p>
+<p>沿此思路扩展到高维空间亦是如此，子空间的并放宽了限制条件导致规则被破坏，而子空间的交则实际上是进行了更严格的限制，($S\cap T$)既满足$S$的法则，也满足$T$的法则，因此它当然是子空间。</p>
 <blockquote>
 <p>严格的证明需要对数乘封闭和加法封闭分别进行论证。</p>
 </blockquote>
-<h2 id="列空间大小">列空间大小</h2>
-<p><span class="math display">\[
+<h2 id="列空间大小"><a href="#列空间大小" class="headerlink" title="列空间大小"></a>列空间大小</h2><script type="math/tex; mode=display">
 \begin{bmatrix}
-a_{11} &amp; a_{12} &amp; \cdots &amp; a_{1(n-1)} &amp; a_{1n}
-\\ a_{21} &amp; a_{22} &amp; \cdots &amp; a_{2(n-1)} &amp; a_{2n}
-\\ \vdots &amp; \vdots &amp; \ddots &amp; \vdots &amp; \vdots
-\\ a_{m1} &amp; a_{m2} &amp; \cdots &amp; a_{m(n-1)} &amp; a_{mn}
+ a_{11} & a_{12} & \cdots & a_{1(n-1)} & a_{1n} 
+ \\ a_{21} & a_{22} & \cdots & a_{2(n-1)} & a_{2n} 
+ \\ \vdots & \vdots & \ddots & \vdots & \vdots 
+ \\ a_{m1} & a_{m2} & \cdots & a_{m(n-1)} & a_{mn} 
 \end{bmatrix}\cdot
 \begin{bmatrix}
-x_{1}
-\\ x_{2}
-\\ \vdots
-\\ x_{n-1}
-\\ x_{n}
+ x_{1} 
+ \\ x_{2} 
+ \\ \vdots 
+ \\ x_{n-1} 
+ \\ x_{n} 
 \end{bmatrix}=
 \begin{bmatrix}
-b_{1}
-\\ b_{2}
-\\ \vdots
-\\ b_{m}
-\end{bmatrix}
-\]</span></p>
-<p>矩阵<span
-class="math inline">\(A\)</span>的列空间是由它的各列线性组合构成。在探究列空间的大小时，又将回到这个问题：<span
-class="math inline">\(Ax=b\)</span>是否对任意的<span
-class="math inline">\(b\)</span>都有解？或者退一步，什么样的<span
-class="math inline">\(b\)</span>方程组才有解？</p>
-<p>从列空间的视角出发，这一问题有更加具象的回答方式：<strong><span
-class="math inline">\(Ax=b\)</span>有解，当且仅当<span
-class="math inline">\(b\)</span>属于<span
-class="math inline">\(A\)</span>的列空间。只有当<span
-class="math inline">\(b\)</span>是<span
-class="math inline">\(A\)</span>各列的线性组合时，<span
-class="math inline">\(Ax=b\)</span>才有解。</strong></p>
-<p>举个例子： <span class="math display">\[
+ b_{1} 
+ \\ b_{2} 
+ \\ \vdots 
+ \\ b_{m} 
+\end{bmatrix}</script><p>矩阵$A$的列空间是由它的各列线性组合构成。在探究列空间的大小时，又将回到这个问题：$Ax=b$是否对任意的$b$都有解？或者退一步，什么样的$b$方程组才有解？</p>
+<p>从列空间的视角出发，这一问题有更加具象的回答方式：<strong>$Ax=b$有解，当且仅当$b$属于$A$的列空间。只有当$b$是$A$各列的线性组合时，$Ax=b$才有解。</strong></p>
+<p>举个例子：</p>
+<script type="math/tex; mode=display">
 Ax=\begin{bmatrix}
-1 &amp; 1 &amp; 2
-\\ 2 &amp; 1 &amp; 3
-\\ 3 &amp; 1 &amp; 4
-\\ 4 &amp; 1 &amp; 5
+1 & 1 & 2
+\\ 2 & 1 & 3
+\\ 3 & 1 & 4
+\\ 4 & 1 & 5
 \end{bmatrix}\cdot
 \begin{bmatrix}
 x_1
@@ -358,75 +318,36 @@ b_1
 \\ b_2
 \\ b_3
 \\ b_4
-\end{bmatrix}=b
-\]</span></p>
-<p><span class="math inline">\(A\)</span>的三个列向量构成的是<span
-class="math inline">\(R^4\)</span>的一个子空间，由于列向量仅有3个，显然无论如何线性组合也无法铺满整个四维空间（正如两个三维向量无法铺满整个三维空间一样，它最多只能构成一个平面），因此，我们无法保证任意的向量<span
-class="math inline">\(b\)</span>，方程组都有解。当且仅当<span
-class="math inline">\(b\)</span>在三个列向量构成的<span
-class="math inline">\(R^4\)</span>子空间之内时，方程组才有解。</p>
-<p>此外，我们还注意到，第三个列向量<span
-class="math inline">\(\begin{bmatrix}2\\3\\4\\5\end{bmatrix}\)</span>是前两个列向量的线性组合（两者相加），也就是说，第三个列向量对于线性组合来说毫无贡献，三个列向量最终形成的是一个<span
-class="math inline">\(R^4\)</span>空间内的平面。</p>
+\end{bmatrix}=b</script><p>$A$的三个列向量构成的是$R^4$的一个子空间，由于列向量仅有3个，显然无论如何线性组合也无法铺满整个四维空间（正如两个三维向量无法铺满整个三维空间一样，它最多只能构成一个平面），因此，我们无法保证任意的向量$b$，方程组都有解。当且仅当$b$在三个列向量构成的$R^4$子空间之内时，方程组才有解。</p>
+<p>此外，我们还注意到，第三个列向量$\begin{bmatrix}2\3\4\5\end{bmatrix}$是前两个列向量的线性组合（两者相加），也就是说，第三个列向量对于线性组合来说毫无贡献，三个列向量最终形成的是一个$R^4$空间内的平面。</p>
 <p>因此，矩阵列空间的大小实际上与各列的线性无关性有关系，越多的列线性无关，那么它们能构成的列空间就越大，越多的列线性相关，那么其中相关的那一部分对列空间的构建就毫无贡献。</p>
-<h2 id="零空间">零空间</h2>
-<p>所谓零空间，就是由<span
-class="math inline">\(Ax=0\)</span>的所有解向量<span
-class="math inline">\(x\)</span>构成的空间。</p>
-<p>还是考虑上例： <span class="math display">\[
+<h2 id="零空间"><a href="#零空间" class="headerlink" title="零空间"></a>零空间</h2><p>所谓零空间，就是由$Ax=0$的所有解向量$x$构成的空间。</p>
+<p>还是考虑上例：</p>
+<script type="math/tex; mode=display">
 \begin{bmatrix}
-1 &amp; 1 &amp; 2
-\\ 2 &amp; 1 &amp; 3
-\\ 3 &amp; 1 &amp; 4
-\\ 4 &amp; 1 &amp; 5
+1 & 1 & 2
+\\ 2 & 1 & 3
+\\ 3 & 1 & 4
+\\ 4 & 1 & 5
 \end{bmatrix}\cdot
 \begin{bmatrix}
 x_1
 \\ x_2
 \\ x_3
-\end{bmatrix}=0
-\]</span></p>
-<p><span class="math inline">\(x\)</span>有三个分量，所以<span
-class="math inline">\(x\)</span>构成的是一个<span
-class="math inline">\(R^3\)</span>的子空间。因此，对于<span
-class="math inline">\(m*n\)</span>的矩阵来说，其列空间是<span
-class="math inline">\(R^m\)</span>的子空间（列向量的维数），零空间是<span
-class="math inline">\(R^n\)</span>的子空间（列向量的个数）。</p>
-<p>显然，零空间一定包含零向量：所有<span
-class="math inline">\(x_i\)</span>都为0显然是一个解，另一方面，不难证明零空间本身也是一个向量空间，满足矩阵加法与数乘的封闭性。</p>
+\end{bmatrix}=0</script><p>$x$有三个分量，所以$x$构成的是一个$R^3$的子空间。因此，对于$m*n$的矩阵来说，其列空间是$R^m$的子空间（列向量的维数），零空间是$R^n$的子空间（列向量的个数）。</p>
+<p>显然，零空间一定包含零向量：所有$x_i$都为0显然是一个解，另一方面，不难证明零空间本身也是一个向量空间，满足矩阵加法与数乘的封闭性。</p>
 <blockquote>
-<p>零空间内任取两个向量<span class="math inline">\(v\)</span>和<span
-class="math inline">\(w\)</span>，由于<span
-class="math inline">\(Av=Aw=0\)</span>，故<span
-class="math inline">\(A(v+w)=0\)</span>，<span
-class="math inline">\(c(Av)=A(cv)=0\)</span>，证毕。</p>
+<p>零空间内任取两个向量$v$和$w$，由于$Av=Aw=0$，故$A(v+w)=0$，$c(Av)=A(cv)=0$，证毕。</p>
+<p>特别注意：零空间不是零向量空间，零向量空间只包含一个零向量，本质上是$R^0$，零空间是一种子空间，可以包含无数个向量。</p>
 </blockquote>
-<blockquote>
-<p>特别注意：零空间不是零向量空间，零向量空间只包含一个零向量，本质上是<span
-class="math inline">\(R^0\)</span>，零空间是一种子空间，可以包含无数个向量。</p>
-</blockquote>
-<p>针对上例，由于第三列是前两列的加和，我们可以轻松拿到一个特解：<span
-class="math inline">\(\begin{bmatrix}1\\1\\-1\end{bmatrix}\)</span>，其零空间就是：<span
-class="math inline">\(C\begin{bmatrix}1\\1\\-1\end{bmatrix}\)</span>（<span
-class="math inline">\(C\)</span>表示任意常数），即<span
-class="math inline">\(R^3\)</span>中的一条过原点的直线。</p>
-<h3 id="思考">思考</h3>
-<p>如果<span class="math inline">\(b\not=0\)</span>，那么对于<span
-class="math inline">\(x\)</span>的求解是否也能够找到一个向量空间呢？</p>
-<p>答案是不能：若 <span
-class="math inline">\(b\not=0\)</span>，那么<span
-class="math inline">\(x\)</span>就不可能等于<span
-class="math inline">\(0\)</span>，这就意味着如果要形成向量空间，那么它无法包含零向量，这一点就已经违背了空间的法则。因此，解集无法构成一个向量空间。</p>
-<h1 id="附录">附录</h1>
-<h2 id="视频">视频</h2>
-<iframe src="//player.bilibili.com/player.html?aid=382989698&amp;bvid=BV16Z4y1U7oU&amp;cid=569895746&amp;p=6&amp;autoplay=0" scrolling="no" border="0" width="100%" height="500" frameborder="no" framespacing="0" allowfullscreen="true">
-</iframe>
-<h2 id="参考链接">参考链接</h2>
-<ul>
-<li><a
-target="_blank" rel="noopener" href="https://github.com/MLNLP-World/MIT-Linear-Algebra-Notes/blob/master/%5B06%5D%20%E5%88%97%E7%A9%BA%E9%97%B4%E5%92%8C%E9%9B%B6%E7%A9%BA%E9%97%B4/%E5%88%97%E7%A9%BA%E9%97%B4%E5%92%8C%E9%9B%B6%E7%A9%BA%E9%97%B4.pdf">列空间和零空间</a></li>
-<li><a
-target="_blank" rel="noopener" href="https://github.com/kf-liu/The-Art-of-Linear-Algebra-zh-CN">线性代数的艺术</a></li>
+<p>针对上例，由于第三列是前两列的加和，我们可以轻松拿到一个特解：$\begin{bmatrix}1\1\-1\end{bmatrix}$，其零空间就是：$C\begin{bmatrix}1\1\-1\end{bmatrix}$（$C$表示任意常数），即$R^3$中的一条过原点的直线。</p>
+<h3 id="思考"><a href="#思考" class="headerlink" title="思考"></a>思考</h3><p>如果$b\not=0$，那么对于$x$的求解是否也能够找到一个向量空间呢？</p>
+<p>答案是不能：若 $b\not=0$，那么$x$就不可能等于$0$，这就意味着如果要形成向量空间，那么它无法包含零向量，这一点就已经违背了空间的法则。因此，解集无法构成一个向量空间。</p>
+<h1 id="附录"><a href="#附录" class="headerlink" title="附录"></a>附录</h1><h2 id="视频"><a href="#视频" class="headerlink" title="视频"></a>视频</h2><iframe src="//player.bilibili.com/player.html?aid=382989698&bvid=BV16Z4y1U7oU&cid=569895746&p=6&autoplay=0" scrolling="no" border="0" width="100%" height="500" frameborder="no" framespacing="0" allowfullscreen="true"> </iframe>
+
+<h2 id="参考链接"><a href="#参考链接" class="headerlink" title="参考链接"></a>参考链接</h2><ul>
+<li><a target="_blank" rel="noopener" href="https://github.com/MLNLP-World/MIT-Linear-Algebra-Notes/blob/master/%5B06%5D%20%E5%88%97%E7%A9%BA%E9%97%B4%E5%92%8C%E9%9B%B6%E7%A9%BA%E9%97%B4/%E5%88%97%E7%A9%BA%E9%97%B4%E5%92%8C%E9%9B%B6%E7%A9%BA%E9%97%B4.pdf">列空间和零空间</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/kf-liu/The-Art-of-Linear-Algebra-zh-CN">线性代数的艺术</a></li>
 </ul>
 
                 

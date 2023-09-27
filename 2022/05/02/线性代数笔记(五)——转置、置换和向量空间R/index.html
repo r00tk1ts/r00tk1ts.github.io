@@ -16,12 +16,12 @@
   <meta name="author" content="r00tk1t">
   <meta name="keywords" content="">
   
-    <meta name="description" content="这一讲内容包括转置、置换和向量空间\(R\)，实际上是基于\(A&#x3D;LU\)的剖解提纲挈领，形而上学，引出线性代数的核心内容——向量空间。">
+    <meta name="description" content="这一讲内容包括转置、置换和向量空间$R$，实际上是基于$A&#x3D;LU$的剖解提纲挈领，形而上学，引出线性代数的核心内容——向量空间。">
 <meta property="og:type" content="article">
 <meta property="og:title" content="线性代数笔记(五)——转置、置换和向量空间R">
 <meta property="og:url" content="https://r00tk1ts.github.io/2022/05/02/%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B0%E7%AC%94%E8%AE%B0(%E4%BA%94)%E2%80%94%E2%80%94%E8%BD%AC%E7%BD%AE%E3%80%81%E7%BD%AE%E6%8D%A2%E5%92%8C%E5%90%91%E9%87%8F%E7%A9%BA%E9%97%B4R/index.html">
 <meta property="og:site_name" content="玉涵的技能书">
-<meta property="og:description" content="这一讲内容包括转置、置换和向量空间\(R\)，实际上是基于\(A&#x3D;LU\)的剖解提纲挈领，形而上学，引出线性代数的核心内容——向量空间。">
+<meta property="og:description" content="这一讲内容包括转置、置换和向量空间$R$，实际上是基于$A&#x3D;LU$的剖解提纲挈领，形而上学，引出线性代数的核心内容——向量空间。">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2022-05-02T14:37:02.000Z">
 <meta property="article:modified_time" content="2023-09-13T08:05:13.121Z">
@@ -220,7 +220,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          1.1k 字
+          997 字
         
       </span>
     
@@ -273,75 +273,44 @@
             
               <div class="markdown-body">
                 
-                <p>这一讲内容包括转置、置换和向量空间<span
-class="math inline">\(R\)</span>，实际上是基于<span
-class="math inline">\(A=LU\)</span>的剖解提纲挈领，形而上学，引出线性代数的核心内容——向量空间。</p>
+                <p>这一讲内容包括转置、置换和向量空间$R$，实际上是基于$A=LU$的剖解提纲挈领，形而上学，引出线性代数的核心内容——向量空间。</p>
 <span id="more"></span>
-<h1 id="转置置换和向量空间r">转置、置换和向量空间R</h1>
-<p>对于可逆矩阵<span
-class="math inline">\(A\)</span>，在消元过程中可能会遇到主元为0的情况，此时就需要进行行变换，而行变换的本质实际上就是左乘一个置换矩阵<span
-class="math inline">\(P\)</span>而已。上一讲中已经讲过了置换矩阵<span
-class="math inline">\(P\)</span>，当它左乘矩阵<span
-class="math inline">\(A\)</span>时，从行视角来看实际上就是对<span
-class="math inline">\(A\)</span>的行进行交换。当行变换找到新的不为0的主元时，消元得以继续进行。所以完全体应该写作<span
-class="math inline">\(PA=LU\)</span>。</p>
-<h2 id="对称矩阵">对称矩阵</h2>
-<p>转置以后矩阵没有发生变化的矩阵，称为对称矩阵，即<span
-class="math inline">\(A^T=A\)</span>（置换矩阵群中有4个就是对称矩阵）。例如：
-<span class="math display">\[
+<h1 id="转置、置换和向量空间R"><a href="#转置、置换和向量空间R" class="headerlink" title="转置、置换和向量空间R"></a>转置、置换和向量空间R</h1><p>对于可逆矩阵$A$，在消元过程中可能会遇到主元为0的情况，此时就需要进行行变换，而行变换的本质实际上就是左乘一个置换矩阵$P$而已。上一讲中已经讲过了置换矩阵$P$，当它左乘矩阵$A$时，从行视角来看实际上就是对$A$的行进行交换。当行变换找到新的不为0的主元时，消元得以继续进行。所以完全体应该写作$PA=LU$。</p>
+<h2 id="对称矩阵"><a href="#对称矩阵" class="headerlink" title="对称矩阵"></a>对称矩阵</h2><p>转置以后矩阵没有发生变化的矩阵，称为对称矩阵，即$A^T=A$（置换矩阵群中有4个就是对称矩阵）。例如：</p>
+<script type="math/tex; mode=display">
 \begin{bmatrix}
-3 &amp; 1 &amp; 7
-\\ 1 &amp; 2 &amp; 9
-\\ 7 &amp; 9 &amp; 4
-\end{bmatrix}
-\]</span></p>
-<p>如何得到对称阵呢？一种简单的生成方法是：矩阵的转置和矩阵自身相乘<span
-class="math inline">\((R^TR)\)</span>。</p>
-<p>证明如下： <span class="math display">\[
-(R^TR)^T = R^T(R^T)^T = R^TR
-\]</span></p>
-<p>可以看到，<span class="math inline">\(R^TR\)</span>转置后还是<span
-class="math inline">\(R^TR\)</span>，故为对称阵。</p>
-<h2 id="向量空间">向量空间</h2>
-<p>所谓向量空间，它表示的是由一组向量集合共同构成的某个空间。然而，并非任意的向量集合都可以组成空间，空间必须得满足这一法则：对线性运算（加法与数乘）封闭。如果集合内任意向量的线性运算结果仍然在空间之内，那么构成的就是向量空间。显然，向量空间至少包含原点（<span
-class="math inline">\(v-v=0\)</span>），也就是零向量。</p>
+3 & 1 & 7 
+\\ 1 & 2 & 9 
+\\ 7 & 9 & 4 
+\end{bmatrix}</script><p>如何得到对称阵呢？一种简单的生成方法是：矩阵的转置和矩阵自身相乘$(R^TR)$。</p>
+<p>证明如下：</p>
+<script type="math/tex; mode=display">
+(R^TR)^T = R^T(R^T)^T = R^TR</script><p>可以看到，$R^TR$转置后还是$R^TR$，故为对称阵。</p>
+<h2 id="向量空间"><a href="#向量空间" class="headerlink" title="向量空间"></a>向量空间</h2><p>所谓向量空间，它表示的是由一组向量集合共同构成的某个空间。然而，并非任意的向量集合都可以组成空间，空间必须得满足这一法则：对线性运算（加法与数乘）封闭。如果集合内任意向量的线性运算结果仍然在空间之内，那么构成的就是向量空间。显然，向量空间至少包含原点（$v-v=0$），也就是零向量。</p>
 <p>高维向量空间又包含各种低维的向量子空间。</p>
-<h3 id="二维向量空间">二维向量空间</h3>
-<p>对于<span
-class="math inline">\(R^2\)</span>来说，向量空间内的子空间可以轻易的枚举：</p>
+<h3 id="二维向量空间"><a href="#二维向量空间" class="headerlink" title="二维向量空间"></a>二维向量空间</h3><p>对于$R^2$来说，向量空间内的子空间可以轻易的枚举：</p>
 <ul>
-<li><span class="math inline">\(R^2\)</span>本身（构成一个平面）</li>
+<li>$R^2$本身（构成一个平面）</li>
 <li>任何过原点的直线</li>
 <li>零向量空间(只包含零向量)</li>
 </ul>
-<h3 id="三维向量空间">三维向量空间</h3>
-<p>进一步，扩展到<span
-class="math inline">\(R^3\)</span>，子空间就多了一个维度：</p>
+<h3 id="三维向量空间"><a href="#三维向量空间" class="headerlink" title="三维向量空间"></a>三维向量空间</h3><p>进一步，扩展到$R^3$，子空间就多了一个维度：</p>
 <ul>
-<li><span class="math inline">\(R^3\)</span>本身</li>
+<li>$R^3$本身</li>
 <li>任何过原点的平面</li>
 <li>任何过原点的直线</li>
 <li>零向量空间(只包含零向量)</li>
 </ul>
-<p>显然，<span
-class="math inline">\(R^2\)</span>的向量子空间是更高维度<span
-class="math inline">\(R^3\)</span>子空间的子集，以此类推。</p>
-<h3 id="列空间简述">列空间简述</h3>
-<p>那么矩阵是如何构建向量子空间的呢？显而易见的方法是通过枚举列向量来构造：即选取各列进行线性组合，所有线性组合的结果构成的就是一个特定的子空间，这个子空间一般称作矩阵的列空间，记为<span
-class="math inline">\(C(A)\)</span>，它也是矩阵4大子空间中的一个。</p>
+<p>显然，$R^2$的向量子空间是更高维度$R^3$子空间的子集，以此类推。</p>
+<h3 id="列空间简述"><a href="#列空间简述" class="headerlink" title="列空间简述"></a>列空间简述</h3><p>那么矩阵是如何构建向量子空间的呢？显而易见的方法是通过枚举列向量来构造：即选取各列进行线性组合，所有线性组合的结果构成的就是一个特定的子空间，这个子空间一般称作矩阵的列空间，记为$C(A)$，它也是矩阵4大子空间中的一个。</p>
 <blockquote>
 <p>这一讲主要是为了让大家先接受向量空间这一概念，因为线性代数的核心都是围绕着向量空间来描摹，如果不能在脑海中将矩阵投射成向量空间来理解，那么后续的课程也都无法真正掌握。</p>
 </blockquote>
-<h1 id="附录">附录</h1>
-<h2 id="视频">视频</h2>
-<iframe src="//player.bilibili.com/player.html?aid=382989698&amp;bvid=BV16Z4y1U7oU&amp;cid=569897195&amp;p=5&amp;autoplay=0" scrolling="no" border="0" width="100%" height="500" frameborder="no" framespacing="0" allowfullscreen="true">
-</iframe>
-<h2 id="参考链接">参考链接</h2>
-<ul>
-<li><a
-target="_blank" rel="noopener" href="https://github.com/MLNLP-World/MIT-Linear-Algebra-Notes/blob/master/%5B05%5D%20%E8%BD%AC%E7%BD%AE-%E8%BD%AC%E6%8D%A2-%E5%90%91%E9%87%8F%E7%A9%BA%E9%97%B4%20R/%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B0%5B%E4%BA%94%5D.pdf">转置-转换-向量空间R</a></li>
-<li><a
-target="_blank" rel="noopener" href="https://github.com/kf-liu/The-Art-of-Linear-Algebra-zh-CN">线性代数的艺术</a></li>
+<h1 id="附录"><a href="#附录" class="headerlink" title="附录"></a>附录</h1><h2 id="视频"><a href="#视频" class="headerlink" title="视频"></a>视频</h2><iframe src="//player.bilibili.com/player.html?aid=382989698&bvid=BV16Z4y1U7oU&cid=569897195&p=5&autoplay=0" scrolling="no" border="0" width="100%" height="500" frameborder="no" framespacing="0" allowfullscreen="true"> </iframe>
+
+<h2 id="参考链接"><a href="#参考链接" class="headerlink" title="参考链接"></a>参考链接</h2><ul>
+<li><a target="_blank" rel="noopener" href="https://github.com/MLNLP-World/MIT-Linear-Algebra-Notes/blob/master/%5B05%5D%20%E8%BD%AC%E7%BD%AE-%E8%BD%AC%E6%8D%A2-%E5%90%91%E9%87%8F%E7%A9%BA%E9%97%B4%20R/%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B0%5B%E4%BA%94%5D.pdf">转置-转换-向量空间R</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/kf-liu/The-Art-of-Linear-Algebra-zh-CN">线性代数的艺术</a></li>
 </ul>
 
                 

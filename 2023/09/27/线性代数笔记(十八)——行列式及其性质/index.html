@@ -24,7 +24,7 @@
 <meta property="og:description" content="从本讲开始进入线性代数的第二部分：行列式与特征值。许多国内教材都是把行列式放在第一章，这对于理解线性代数这门语言来说是非常离谱的操作。行列式因方阵而生，它的值与特性与方阵息息相关，在求解特征值过程中行列式发挥了极大的作用。我们要着重于理解其背后的机理、探索本质，而不是死记硬背几个公式或是掌握一些trick手法解几道算术题。 行列式及其性质每个方阵都有行列式，行列式是跟该方阵有关的一个数字，行列式的">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2023-09-27T07:16:03.000Z">
-<meta property="article:modified_time" content="2023-09-27T08:28:07.115Z">
+<meta property="article:modified_time" content="2023-09-27T08:31:15.407Z">
 <meta property="article:author" content="r00tk1t">
 <meta property="article:tag" content="MIT-18.06-linear_algebra">
 <meta name="twitter:card" content="summary_large_image">
@@ -335,7 +335,7 @@ a_1b_1&0&...&0 \\
 <ul>
 <li>性质10：$\det A^T=\det A$。<br>$A=LU$，可知$A^T=U^TL^T$，根据性质9：$\det A^T=\det U^T \det L^T, \det A=\det U \det L$，且已知三角阵转置后还是三角阵，故$\det U=\det U^T, \det L^T=\det L$，因此$\det A^T=\det A$。</li>
 </ul>
-<h2 id="二阶方阵的行列式"><a href="#二阶方阵的行列式" class="headerlink" title="二阶方阵的行列式"></a>二阶方阵的行列式</h2><p>根据上述的性质，我们可以很容易推出二阶方阵：$\begin{vmatrix}a&amp;b \c&amp;d\end{vmatrix}$的行列式为$ad-bc$。</p>
+<h2 id="二阶方阵的行列式"><a href="#二阶方阵的行列式" class="headerlink" title="二阶方阵的行列式"></a>二阶方阵的行列式</h2><p>根据上述的性质，我们可以很容易推出二阶方阵：$\begin{vmatrix}a&amp;b\ c&amp;d \end{vmatrix}$的行列式为$ad-bc$。</p>
 <p>熟练掌握这些行列式的特性，不仅可以让我们快速求解行列式，还可以看出矩阵的变换与行列式变化的联动关系。</p>
 <h1 id="附录"><a href="#附录" class="headerlink" title="附录"></a>附录</h1><h2 id="视频"><a href="#视频" class="headerlink" title="视频"></a>视频</h2><p><iframe src="//player.bilibili.com/player.html?aid=382989698&bvid=BV16Z4y1U7oU&cid=570090316&p=18&autoplay=0" scrolling="no" border="0" width="100%" height="500" frameborder="no" framespacing="0" allowfullscreen="true"> </iframe></p>
 <h2 id="参考链接"><a href="#参考链接" class="headerlink" title="参考链接"></a>参考链接</h2><ul>

@@ -16,12 +16,12 @@
   <meta name="author" content="r00tk1t">
   <meta name="keywords" content="">
   
-    <meta name="description" content="这一讲作为第一部分的最后一节内容，主要着重于描述线性代数的应用。 图和网络 有向图 给定一个有向图：4节点，5条边  可以用如下方式来抽象描述： \[ \begin{array}{c | c c c c} &amp; node_1 &amp; node_2 &amp; node_3 &amp; node_4 \\ \hline edge_1 &amp; -1     &amp; 1      &amp;a">
+    <meta name="description" content="这一讲作为第一部分的最后一节内容，主要着重于描述线性代数的应用。 图和网络有向图给定一个有向图：4节点，5条边  可以用如下方式来抽象描述：  \begin{array}{c | c c c c} &amp; node_1 &amp; node_2 &amp; node_3 &amp; node_4 \\ \hline  edge_1 &amp; -1     &amp; 1      &amp; 0      &amp; 0 \\ edge_2 &amp; 0">
 <meta property="og:type" content="article">
 <meta property="og:title" content="线性代数笔记(十二)——图和网络">
 <meta property="og:url" content="https://r00tk1ts.github.io/2022/05/14/%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B0%E7%AC%94%E8%AE%B0(%E5%8D%81%E4%BA%8C)%E2%80%94%E2%80%94%E5%9B%BE%E5%92%8C%E7%BD%91%E7%BB%9C/index.html">
 <meta property="og:site_name" content="玉涵的技能书">
-<meta property="og:description" content="这一讲作为第一部分的最后一节内容，主要着重于描述线性代数的应用。 图和网络 有向图 给定一个有向图：4节点，5条边  可以用如下方式来抽象描述： \[ \begin{array}{c | c c c c} &amp; node_1 &amp; node_2 &amp; node_3 &amp; node_4 \\ \hline edge_1 &amp; -1     &amp; 1      &amp;a">
+<meta property="og:description" content="这一讲作为第一部分的最后一节内容，主要着重于描述线性代数的应用。 图和网络有向图给定一个有向图：4节点，5条边  可以用如下方式来抽象描述：  \begin{array}{c | c c c c} &amp; node_1 &amp; node_2 &amp; node_3 &amp; node_4 \\ \hline  edge_1 &amp; -1     &amp; 1      &amp; 0      &amp; 0 \\ edge_2 &amp; 0">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://r00tk1ts.github.io/2022/05/14/%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B0%E7%AC%94%E8%AE%B0(%E5%8D%81%E4%BA%8C)%E2%80%94%E2%80%94%E5%9B%BE%E5%92%8C%E7%BD%91%E7%BB%9C/2022-05-14-16-56-35.png">
 <meta property="article:published_time" content="2022-05-14T08:51:02.000Z">
@@ -222,7 +222,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          3.1k 字
+          2.6k 字
         
       </span>
     
@@ -233,7 +233,7 @@
         
         
         
-          27 分钟
+          22 分钟
         
       </span>
     
@@ -276,92 +276,67 @@
               <div class="markdown-body">
                 
                 <p>这一讲作为第一部分的最后一节内容，主要着重于描述线性代数的应用。</p>
-<h1 id="图和网络">图和网络</h1>
-<h2 id="有向图">有向图</h2>
-<p>给定一个有向图：4节点，5条边</p>
-<p><img src="2022-05-14-16-56-35.png" srcset="/img/loading.gif" lazyload /></p>
-<p>可以用如下方式来抽象描述： <span class="math display">\[
+<h1 id="图和网络"><a href="#图和网络" class="headerlink" title="图和网络"></a>图和网络</h1><h2 id="有向图"><a href="#有向图" class="headerlink" title="有向图"></a>有向图</h2><p>给定一个有向图：4节点，5条边</p>
+<p><img src="2022-05-14-16-56-35.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<p>可以用如下方式来抽象描述：</p>
+<script type="math/tex; mode=display">
 \begin{array}{c | c c c c}
-&amp; node_1 &amp; node_2 &amp; node_3 &amp; node_4
-\\ \hline
-edge_1 &amp; -1     &amp; 1      &amp; 0      &amp; 0
-\\ edge_2 &amp; 0      &amp; -1     &amp; 1      &amp; 0
-\\ edge_3 &amp; -1     &amp; 0      &amp; 1      &amp; 0
-\\ edge_4 &amp; -1     &amp; 0      &amp; 0      &amp; 1
-\\ edge_5 &amp; 0      &amp; 0      &amp; -1     &amp; 1
-\end{array}
-\]</span></p>
-<p>写成<span class="math inline">\(5\times 4\)</span>矩阵来表示如下：
-<span class="math display">\[
+& node_1 & node_2 & node_3 & node_4
+\\ \hline 
+edge_1 & -1     & 1      & 0      & 0
+\\ edge_2 & 0      & -1     & 1      & 0
+\\ edge_3 & -1     & 0      & 1      & 0
+\\ edge_4 & -1     & 0      & 0      & 1
+\\ edge_5 & 0      & 0      & -1     & 1
+\end{array}</script><p>写成$5\times 4$矩阵来表示如下：</p>
+<script type="math/tex; mode=display">
 A=\begin{bmatrix}
--1 &amp; 1 &amp; 0 &amp; 0
-\\ 0 &amp; -1 &amp; 1 &amp; 0
-\\ -1 &amp; 0 &amp; 1 &amp; 0
-\\ -1 &amp; 0 &amp; 0 &amp; 1
-\\ 0 &amp; 0 &amp; -1 &amp; 1
-\end{bmatrix}
-\]</span></p>
-<p>这种矩阵叫做关联矩阵，其中每一列代表一个节点，每一行代表一条边（正负代表方向）。关联矩阵一般是稀疏阵，因为每一行只有两个非零元素。通过观察前三行，可以看出这三个行向量线性相关，而实际上，它的物理意义就是这三个向量（三条边）可以形成回路。</p>
-<h3 id="a的零空间"><span class="math inline">\(A\)</span>的零空间</h3>
-<p>矩阵<span class="math inline">\(A\)</span>的零空间可以通过解<span
-class="math inline">\(Ax=0\)</span>来得到，有： <span
-class="math display">\[
+-1 & 1 & 0 & 0 
+\\ 0 & -1 & 1 & 0
+\\ -1 & 0 & 1 & 0
+\\ -1 & 0 & 0 & 1
+\\ 0 & 0 & -1 & 1
+\end{bmatrix}</script><p>这种矩阵叫做关联矩阵，其中每一列代表一个节点，每一行代表一条边（正负代表方向）。关联矩阵一般是稀疏阵，因为每一行只有两个非零元素。通过观察前三行，可以看出这三个行向量线性相关，而实际上，它的物理意义就是这三个向量（三条边）可以形成回路。</p>
+<h3 id="A-的零空间"><a href="#A-的零空间" class="headerlink" title="$A$的零空间"></a>$A$的零空间</h3><p>矩阵$A$的零空间可以通过解$Ax=0$来得到，有：</p>
+<script type="math/tex; mode=display">
 Ax=
 \begin{bmatrix}
--1 &amp; 1 &amp; 0 &amp; 0
-\\ 0 &amp; -1 &amp; 1 &amp; 0
-\\ -1 &amp; 0 &amp; 1 &amp; 0
-\\ -1 &amp; 0 &amp; 0 &amp; 1
-\\ 0 &amp; 0 &amp; -1 &amp; 1
+-1 & 1 & 0 & 0 
+\\ 0 & -1 & 1 & 0 
+\\ -1 & 0 & 1 & 0 
+\\ -1 & 0 & 0 & 1 
+\\ 0 & 0 & -1 & 1
 \end{bmatrix}
 \begin{bmatrix}
 x_1
 \\ x_2
 \\ x_3
 \\ x_4
-\end{bmatrix}=0
-\]</span></p>
-<p>展开得： <span class="math display">\[
+\end{bmatrix}=0</script><p>展开得：</p>
+<script type="math/tex; mode=display">
 \begin{bmatrix}
-x_2-x_1
-\\ x_3-x_2
-\\ x_3-x_1
-\\ x_4-x_1
-\\ x_4-x_3
+x_2-x_1 
+\\ x_3-x_2 
+\\ x_3-x_1 
+\\ x_4-x_1 
+\\ x_4-x_3 
 \end{bmatrix}=
 \begin{bmatrix}
 0
 \\ 0
 \\ 0
 \\ 0
-\\ 0
-\end{bmatrix}
-\]</span></p>
-<p>引入矩阵的实际意义：将<span
-class="math inline">\(x=\begin{bmatrix}x_1 &amp; x_2 &amp; x_3 &amp;
-x_4\end{bmatrix}\)</span>视为各节点电势，则式子中的诸如<span
-class="math inline">\(x_2-x_1\)</span>的元素，可以看做该边上的电势差。容易看出其中一个解<span
-class="math inline">\(x=\begin{bmatrix}1\\ 1\\ 1\\
-1\end{bmatrix}\)</span>，即等电势情况，此时电势差为<span
-class="math inline">\(0\)</span>。化简<span
-class="math inline">\(A\)</span>易得<span
-class="math inline">\(rank(A)=3\)</span>，所以其零空间维数应为<span
-class="math inline">\(n-r=4-3=1\)</span>，即<span
-class="math inline">\(\begin{bmatrix}1\\1\\1\\1\end{bmatrix}\)</span>就是其零空间的一组基。</p>
-<p>Q: 那么以电势为例，零空间的物理意义是什么呢？ A:
-电势差和电流的形成之间有着直接关系，<span
-class="math inline">\(b=0\)</span>说明我们求解的情况是各个边上都没有电流（或者说电势差）的情况，而我们最后所得到的解就意味着，当各点电势相等时，边上电流（电势差）为零，符合我们的常识。而这就是零空间的物理意义。</p>
-<h3 id="a的左零空间"><span
-class="math inline">\(A\)</span>的左零空间</h3>
-<p><span class="math inline">\(A\)</span>的左零空间是什么呢？或者说<span
-class="math inline">\(A^T\)</span>的零空间是什么呢？即求<span
-class="math inline">\(A^Ty=0\)</span>： <span class="math display">\[
+\\ 0 
+\end{bmatrix}</script><p>引入矩阵的实际意义：将$x=\begin{bmatrix}x_1 &amp; x_2 &amp; x_3 &amp; x_4\end{bmatrix}$视为各节点电势，则式子中的诸如$x_2-x_1$的元素，可以看做该边上的电势差。容易看出其中一个解$x=\begin{bmatrix}1\ 1\ 1\ 1\end{bmatrix}$，即等电势情况，此时电势差为$0$。化简$A$易得$rank(A)=3$，所以其零空间维数应为$n-r=4-3=1$，即$\begin{bmatrix}1\1\1\1\end{bmatrix}$就是其零空间的一组基。</p>
+<p>Q: 那么以电势为例，零空间的物理意义是什么呢？<br>A: 电势差和电流的形成之间有着直接关系，$b=0$说明我们求解的情况是各个边上都没有电流（或者说电势差）的情况，而我们最后所得到的解就意味着，当各点电势相等时，边上电流（电势差）为零，符合我们的常识。而这就是零空间的物理意义。</p>
+<h3 id="A-的左零空间"><a href="#A-的左零空间" class="headerlink" title="$A$的左零空间"></a>$A$的左零空间</h3><p>$A$的左零空间是什么呢？或者说$A^T$的零空间是什么呢？即求$A^Ty=0$：</p>
+<script type="math/tex; mode=display">
 A^Ty=0=
 \begin{bmatrix}
--1 &amp; 0 &amp; -1 &amp; -1 &amp; 0
-\\ 1 &amp; -1 &amp; 0 &amp; 0 &amp; 0
-\\ 0 &amp; 1 &amp; 1 &amp; 0 &amp; -1
-\\ 0 &amp; 0 &amp; 0 &amp; 1 &amp; 1
+-1 & 0 & -1 & -1 & 0 
+\\ 1 & -1 & 0 & 0 & 0 
+\\ 0 & 1 & 1 & 0 & -1 
+\\ 0 & 0 & 0 & 1 & 1
 \end{bmatrix}
 \begin{bmatrix}
 y_1
@@ -380,13 +355,8 @@ y_1
 \\ 0
 \\ 0
 \\ 0
-\end{bmatrix}
-\]</span></p>
-<p>接着说上文提到的的电势差，引入<span
-class="math inline">\(y\)</span>的实际物理意义：即各边上的电流。电流和电势差的关系服从欧姆定律：边上的电流值是边上电势差的倍数，这个倍速就是边的电导，亦即电阻的倒数，通常我们把这个常数视为一个系数矩阵记为<span
-class="math inline">\(C\)</span>。于是，矩阵<span
-class="math inline">\(C\)</span>就将电势差与电流联系了起来： <span
-class="math display">\[
+\end{bmatrix}</script><p>接着说上文提到的的电势差，引入$y$的实际物理意义：即各边上的电流。电流和电势差的关系服从欧姆定律：边上的电流值是边上电势差的倍数，这个倍速就是边的电导，亦即电阻的倒数，通常我们把这个常数视为一个系数矩阵记为$C$。于是，矩阵$C$就将电势差与电流联系了起来：</p>
+<script type="math/tex; mode=display">
 y=\begin{bmatrix}
 y_1
 \\ y_2
@@ -399,82 +369,35 @@ x_2-x_1
 \\ x_3-x_1
 \\ x_4-x_1
 \\ x_4-x_3
-\end{bmatrix}
-\]</span></p>
-<p>实际上<span
-class="math inline">\(A^Ty=0\)</span>阐释的就是“基尔霍夫电流定律”（KCL），基尔霍夫电流定律是一个平衡方程，守恒定律，它说明了流入等于流出，电荷在结点上不会积累。</p>
-<p>对于<span
-class="math inline">\(A^T\)</span>，根据上文得出其零空间的维数是<span
-class="math inline">\(2\)</span>，则零空间的基应该有两个向量。假设<span
-class="math inline">\(y_1=1\)</span>，也就是令<span
-class="math inline">\(1\)</span>安培的电流在边<span
-class="math inline">\(1\)</span>上流动，由图看出<span
-class="math inline">\(y_2\)</span>也应该为<span
-class="math inline">\(1\)</span>，再令<span
-class="math inline">\(y_3=-1\)</span>，也就是让<span
-class="math inline">\(1\)</span>安培的电流流回节点<span
-class="math inline">\(1\)</span>，得出<span
-class="math inline">\(y_4=y_5=0\)</span>；</p>
-<p>得到一个符合KCL的向量<span class="math inline">\(\begin{bmatrix}1\\
-1\\ -1\\ 0\\
-0\end{bmatrix}\)</span>，代回方程组发现此向量即为一个解，这个解发生在节点<span
-class="math inline">\(1,2,3\)</span>组成的回路中，该解即为零空间的一个基。</p>
-<p>如法炮制可以得出另一个基向量：<span
-class="math inline">\(\begin{bmatrix}0\\ 0\\ 1\\ -1\\
-1\end{bmatrix}\)</span>，这实际上是节点<span
-class="math inline">\(1,3,4\)</span>构成的回路。</p>
-<p>如此，我们得到<span
-class="math inline">\(N(A^T)\)</span>的一组基为<span
-class="math inline">\(\begin{bmatrix}1\\ 1\\ -1\\ 0\\
-0\end{bmatrix}\quad\begin{bmatrix}0\\ 0\\ 1\\ -1\\
-1\end{bmatrix}\)</span>。</p>
+\end{bmatrix}</script><p>实际上$A^Ty=0$阐释的就是“基尔霍夫电流定律”（KCL），基尔霍夫电流定律是一个平衡方程，守恒定律，它说明了流入等于流出，电荷在结点上不会积累。</p>
+<p>对于$A^T$，根据上文得出其零空间的维数是$2$，则零空间的基应该有两个向量。假设$y_1=1$，也就是令$1$安培的电流在边$1$上流动，由图看出$y_2$也应该为$1$，再令$y_3=-1$，也就是让$1$安培的电流流回节点$1$，得出$y_4=y_5=0$；</p>
+<p>得到一个符合KCL的向量$\begin{bmatrix}1\ 1\ -1\ 0\ 0\end{bmatrix}$，代回方程组发现此向量即为一个解，这个解发生在节点$1,2,3$组成的回路中，该解即为零空间的一个基。</p>
+<p>如法炮制可以得出另一个基向量：$\begin{bmatrix}0\ 0\ 1\ -1\ 1\end{bmatrix}$，这实际上是节点$1,3,4$构成的回路。</p>
+<p>如此，我们得到$N(A^T)$的一组基为$\begin{bmatrix}1\ 1\ -1\ 0\ 0\end{bmatrix}\quad\begin{bmatrix}0\ 0\ 1\ -1\ 1\end{bmatrix}$。</p>
 <blockquote>
-<p>节点<span
-class="math inline">\(1,2,3,4\)</span>构成的大回路实际上是两个基向量回路的叠加。</p>
+<p>节点$1,2,3,4$构成的大回路实际上是两个基向量回路的叠加。</p>
 </blockquote>
-<h3 id="a的行空间"><span class="math inline">\(A\)</span>的行空间</h3>
-<p>亦即<span
-class="math inline">\(A^T\)</span>的列空间，方便起见我们直接计算<span
-class="math inline">\(A^T\)</span>的列空间： <span
-class="math display">\[
+<h3 id="A-的行空间"><a href="#A-的行空间" class="headerlink" title="$A$的行空间"></a>$A$的行空间</h3><p>亦即$A^T$的列空间，方便起见我们直接计算$A^T$的列空间：</p>
+<script type="math/tex; mode=display">
 A^T=
 \begin{bmatrix}
--1 &amp; 0 &amp; -1 &amp; -1 &amp; 0
-\\ 1 &amp; -1 &amp; 0 &amp; 0 &amp; 0
-\\ 0 &amp; 1 &amp; 1 &amp; 0 &amp; -1
-\\ 0 &amp; 0 &amp; 0 &amp; 1 &amp; 1
-\end{bmatrix}
-\]</span></p>
-<p>显然，<span class="math inline">\(A^T\)</span>的主列为第<span
-class="math inline">\(1,2,4\)</span>列，对应在图中就是边<span
-class="math inline">\(1,2,4\)</span>，可以发现这三条边没有组成回路（<strong>换句话说，线性无关等价于没有回路</strong>）。由<span
-class="math inline">\(4\)</span>个节点与<span
-class="math inline">\(3\)</span>条边组成的图没有回路，就表明<span
-class="math inline">\(A^T\)</span>的对应列向量线性无关，也就是（<span
-class="math inline">\(nodes-1\)</span>）条边线性无关。</p>
+-1 & 0 & -1 & -1 & 0
+\\ 1 & -1 & 0 & 0 & 0
+\\ 0 & 1 & 1 & 0 & -1
+\\ 0 & 0 & 0 & 1 & 1
+\end{bmatrix}</script><p>显然，$A^T$的主列为第$1,2,4$列，对应在图中就是边$1,2,4$，可以发现这三条边没有组成回路（<strong>换句话说，线性无关等价于没有回路</strong>）。由$4$个节点与$3$条边组成的图没有回路，就表明$A^T$的对应列向量线性无关，也就是（$nodes-1$）条边线性无关。</p>
 <blockquote>
 <p>没有回路的图叫作树。</p>
 </blockquote>
-<p>再看左零空间的维数公式：<span class="math inline">\(dim
-N(A^T)=m-r\)</span>，左零空间的维数就是相互无关的回路的数量，于是得到<span
-class="math inline">\(loops=edges-(nodes-1)\)</span>，整理得： <span
-class="math display">\[
-nodes-edges+loops=1
-\]</span></p>
-<p>此等式对任何图均有效，任何图都有此拓扑性质，这就是著名的欧拉公式：
-<span class="math display">\[
-节点数-边数+最小回路数=1
-\]</span></p>
-<h1 id="附录">附录</h1>
-<h2 id="视频">视频</h2>
-<iframe src="//player.bilibili.com/player.html?aid=382989698&amp;bvid=BV16Z4y1U7oU&amp;cid=570094064&amp;p=12&amp;autoplay=0" scrolling="no" border="0" width="100%" height="500" frameborder="no" framespacing="0" allowfullscreen="true">
-</iframe>
-<h2 id="参考链接">参考链接</h2>
-<ul>
-<li><a
-target="_blank" rel="noopener" href="https://github.com/MLNLP-World/MIT-Linear-Algebra-Notes/blob/master/%5B12%5D%20%E7%9F%A9%E9%98%B5%E5%BA%94%E7%94%A8%EF%BC%9A%E5%9B%BE%E4%B8%8E%E7%BD%91%E7%BB%9C/%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B012.pdf">矩阵应用：图与网络</a></li>
-<li><a
-target="_blank" rel="noopener" href="https://github.com/kf-liu/The-Art-of-Linear-Algebra-zh-CN">线性代数的艺术</a></li>
+<p>再看左零空间的维数公式：$dim N(A^T)=m-r$，左零空间的维数就是相互无关的回路的数量，于是得到$loops=edges-(nodes-1)$，整理得：</p>
+<script type="math/tex; mode=display">
+nodes-edges+loops=1</script><p>此等式对任何图均有效，任何图都有此拓扑性质，这就是著名的欧拉公式：</p>
+<script type="math/tex; mode=display">
+节点数-边数+最小回路数=1</script><h1 id="附录"><a href="#附录" class="headerlink" title="附录"></a>附录</h1><h2 id="视频"><a href="#视频" class="headerlink" title="视频"></a>视频</h2><iframe src="//player.bilibili.com/player.html?aid=382989698&bvid=BV16Z4y1U7oU&cid=570094064&p=12&autoplay=0" scrolling="no" border="0" width="100%" height="500" frameborder="no" framespacing="0" allowfullscreen="true"> </iframe>
+
+<h2 id="参考链接"><a href="#参考链接" class="headerlink" title="参考链接"></a>参考链接</h2><ul>
+<li><a target="_blank" rel="noopener" href="https://github.com/MLNLP-World/MIT-Linear-Algebra-Notes/blob/master/%5B12%5D%20%E7%9F%A9%E9%98%B5%E5%BA%94%E7%94%A8%EF%BC%9A%E5%9B%BE%E4%B8%8E%E7%BD%91%E7%BB%9C/%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B012.pdf">矩阵应用：图与网络</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/kf-liu/The-Art-of-Linear-Algebra-zh-CN">线性代数的艺术</a></li>
 </ul>
 
                 
