@@ -16,12 +16,12 @@
   <meta name="author" content="r00tk1t">
   <meta name="keywords" content="">
   
-    <meta name="description" content="在上一讲的基础上继续深度展开。 投影矩阵和最小二乘上一讲已经渗透了投影矩阵的概念，并以简单的线性回归作为示例，对最小二乘法和投影矩阵加以联系。 投影矩阵投影矩阵$P&#x3D;A(A^TA)^{-1}A^T$，其物理意义是将向量$b$投影到$A$的列空间中。 投影有两种极限情况：  如果$b$本身就在$A$的列空间中，那么$Pb&#x3D;b$，此时$P&#x3D;I$。 如果$b$垂直于$A$列空间，此时$Pb&#x3D;0$，根据正">
+    <meta name="description" content="在上一讲的基础上继续深度展开。 投影矩阵和最小二乘 上一讲已经渗透了投影矩阵的概念，并以简单的线性回归作为示例，对最小二乘法和投影矩阵加以联系。 投影矩阵 投影矩阵\(P&#x3D;A(A^TA)^{-1}A^T\)，其物理意义是将向量\(b\)投影到\(A\)的列空间中。 投影有两种极限情况：  如果\(b\)本身就在\(A\)的列空间中，那么\(Pb&#x3D;b\)，此时\(P&#x3D;I\)。 如果\(b\)垂直于\">
 <meta property="og:type" content="article">
 <meta property="og:title" content="线性代数笔记(十六)——投影矩阵和最小二乘">
 <meta property="og:url" content="https://r00tk1ts.github.io/2023/09/25/%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B0%E7%AC%94%E8%AE%B0(%E5%8D%81%E5%85%AD)%E2%80%94%E2%80%94%E6%8A%95%E5%BD%B1%E7%9F%A9%E9%98%B5%E5%92%8C%E6%9C%80%E5%B0%8F%E4%BA%8C%E4%B9%98/index.html">
 <meta property="og:site_name" content="玉涵的技能书">
-<meta property="og:description" content="在上一讲的基础上继续深度展开。 投影矩阵和最小二乘上一讲已经渗透了投影矩阵的概念，并以简单的线性回归作为示例，对最小二乘法和投影矩阵加以联系。 投影矩阵投影矩阵$P&#x3D;A(A^TA)^{-1}A^T$，其物理意义是将向量$b$投影到$A$的列空间中。 投影有两种极限情况：  如果$b$本身就在$A$的列空间中，那么$Pb&#x3D;b$，此时$P&#x3D;I$。 如果$b$垂直于$A$列空间，此时$Pb&#x3D;0$，根据正">
+<meta property="og:description" content="在上一讲的基础上继续深度展开。 投影矩阵和最小二乘 上一讲已经渗透了投影矩阵的概念，并以简单的线性回归作为示例，对最小二乘法和投影矩阵加以联系。 投影矩阵 投影矩阵\(P&#x3D;A(A^TA)^{-1}A^T\)，其物理意义是将向量\(b\)投影到\(A\)的列空间中。 投影有两种极限情况：  如果\(b\)本身就在\(A\)的列空间中，那么\(Pb&#x3D;b\)，此时\(P&#x3D;I\)。 如果\(b\)垂直于\">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://r00tk1ts.github.io/2023/09/25/%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B0%E7%AC%94%E8%AE%B0(%E5%8D%81%E5%85%AD)%E2%80%94%E2%80%94%E6%8A%95%E5%BD%B1%E7%9F%A9%E9%98%B5%E5%92%8C%E6%9C%80%E5%B0%8F%E4%BA%8C%E4%B9%98/2023-09-25-16-19-32.png">
 <meta property="og:image" content="https://r00tk1ts.github.io/2023/09/25/%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B0%E7%AC%94%E8%AE%B0(%E5%8D%81%E5%85%AD)%E2%80%94%E2%80%94%E6%8A%95%E5%BD%B1%E7%9F%A9%E9%98%B5%E5%92%8C%E6%9C%80%E5%B0%8F%E4%BA%8C%E4%B9%98/2023-09-26-12-02-09.png">
@@ -223,7 +223,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          1.3k 字
+          1.4k 字
         
       </span>
     
@@ -277,39 +277,90 @@
               <div class="markdown-body">
                 
                 <p>在上一讲的基础上继续深度展开。</p>
-<h1 id="投影矩阵和最小二乘"><a href="#投影矩阵和最小二乘" class="headerlink" title="投影矩阵和最小二乘"></a>投影矩阵和最小二乘</h1><p>上一讲已经渗透了投影矩阵的概念，并以简单的线性回归作为示例，对最小二乘法和投影矩阵加以联系。</p>
-<h2 id="投影矩阵"><a href="#投影矩阵" class="headerlink" title="投影矩阵"></a>投影矩阵</h2><p>投影矩阵$P=A(A^TA)^{-1}A^T$，其物理意义是将向量$b$投影到$A$的列空间中。</p>
+<h1 id="投影矩阵和最小二乘">投影矩阵和最小二乘</h1>
+<p>上一讲已经渗透了投影矩阵的概念，并以简单的线性回归作为示例，对最小二乘法和投影矩阵加以联系。</p>
+<h2 id="投影矩阵">投影矩阵</h2>
+<p>投影矩阵<span
+class="math inline">\(P=A(A^TA)^{-1}A^T\)</span>，其物理意义是将向量<span
+class="math inline">\(b\)</span>投影到<span
+class="math inline">\(A\)</span>的列空间中。</p>
 <p>投影有两种极限情况：</p>
 <ul>
-<li>如果$b$本身就在$A$的列空间中，那么$Pb=b$，此时$P=I$。</li>
-<li>如果$b$垂直于$A$列空间，此时$Pb=0$，根据正交补的概念，$b$是$A$左零空间的向量，有$A^Tb=0$。</li>
+<li>如果<span class="math inline">\(b\)</span>本身就在<span
+class="math inline">\(A\)</span>的列空间中，那么<span
+class="math inline">\(Pb=b\)</span>，此时<span
+class="math inline">\(P=I\)</span>。</li>
+<li>如果<span class="math inline">\(b\)</span>垂直于<span
+class="math inline">\(A\)</span>列空间，此时<span
+class="math inline">\(Pb=0\)</span>，根据正交补的概念，<span
+class="math inline">\(b\)</span>是<span
+class="math inline">\(A\)</span>左零空间的向量，有<span
+class="math inline">\(A^Tb=0\)</span>。</li>
 </ul>
-<p><strong>综上可以归纳：任意向量$b$都可以拆解成两个分量，一个分量$p$在$A$的列空间中，另一分量$e$在$A$的左零空间中。</strong></p>
-<p><img src="2023-09-25-16-19-32.png" srcset="/img/loading.gif" lazyload alt=""></p>
-<p>$p$是投影矩阵$P$作用于$b$在$A$列空间的投影得到的分量，同理，如果想要投影到左零空间，那么投影矩阵就应该是$I-P$。</p>
+<p><strong>综上可以归纳：任意向量<span
+class="math inline">\(b\)</span>都可以拆解成两个分量，一个分量<span
+class="math inline">\(p\)</span>在<span
+class="math inline">\(A\)</span>的列空间中，另一分量<span
+class="math inline">\(e\)</span>在<span
+class="math inline">\(A\)</span>的左零空间中。</strong></p>
+<p><img src="2023-09-25-16-19-32.png" srcset="/img/loading.gif" lazyload /></p>
+<p><span class="math inline">\(p\)</span>是投影矩阵<span
+class="math inline">\(P\)</span>作用于<span
+class="math inline">\(b\)</span>在<span
+class="math inline">\(A\)</span>列空间的投影得到的分量，同理，如果想要投影到左零空间，那么投影矩阵就应该是<span
+class="math inline">\(I-P\)</span>。</p>
 <blockquote>
-<p>因为$p=Pb, e=b-p$，所以$e=b-Pb=(I-P)b$。</p>
+<p>因为<span class="math inline">\(p=Pb, e=b-p\)</span>，所以<span
+class="math inline">\(e=b-Pb=(I-P)b\)</span>。</p>
 </blockquote>
-<h2 id="再探最小二乘"><a href="#再探最小二乘" class="headerlink" title="再探最小二乘"></a>再探最小二乘</h2><p>还是回到例题：平面上三个点$(1,1), (2,2), (3,2)$做线性回归。</p>
-<p><img src="2023-09-26-12-02-09.png" srcset="/img/loading.gif" lazyload alt=""></p>
-<p>上一节我们分别通过微积分和投影矩阵两种方法进行了拟合，最终发现所求解的方程完全一致。实际上，在微积分求解法中，我们本质上算的是误差向量$e1,e2,e3$模的平方和，为了让平方和最小，通过求导数找极值的方式列出了求解方程。而在投影法中，投影的本质其实就是将向量$b$投影到$A$列空间中最近的一点，换句话说，就是把$p1,p2,p3$分别投影到所需求解的直线上去。</p>
-<p><strong>因此，微积分算最小二乘(least square)和投影矩阵具有相同的内核，也就不难理解为何二者最终需求解的解方程组殊途同归了。</strong></p>
-<p>最终我们求得$y=\frac{1}{2}x+\frac{2}{3}$，得到:</p>
-<script type="math/tex; mode=display">
-b=\begin{bmatrix}1\\ 2\\ 2\end{bmatrix}, p=\begin{bmatrix}\frac{7}{6}\\ \frac{10}{6} \\ \frac{13}{6}\end{bmatrix},e=\begin{bmatrix}-\frac{1}{6}\\ \frac{2}{6}\\ -\frac{1}{6}\end{bmatrix}</script><p>简单验证一下，可以发现$e$与$p$垂直。</p>
-<h2 id="标准正交基"><a href="#标准正交基" class="headerlink" title="标准正交基"></a>标准正交基</h2><p>互相垂直的各列一定是线性无关的。于是，我们可以找到空间里的一组基，它们彼此相互垂直，这组基我们称之为正交基。</p>
-<p>参考三维直角坐标系，我们常常选用$\begin{bmatrix}1\ 0\ 0\end{bmatrix},\begin{bmatrix}0\ 1\ 0\end{bmatrix},\begin{bmatrix}0\ 0\ 1\end{bmatrix}$作为标准基，也就是对应$x,y,z$三个轴。</p>
+<h2 id="再探最小二乘">再探最小二乘</h2>
+<p>还是回到例题：平面上三个点<span class="math inline">\((1,1), (2,2),
+(3,2)\)</span>做线性回归。</p>
+<p><img src="2023-09-26-12-02-09.png" srcset="/img/loading.gif" lazyload /></p>
+<p>上一节我们分别通过微积分和投影矩阵两种方法进行了拟合，最终发现所求解的方程完全一致。实际上，在微积分求解法中，我们本质上算的是误差向量<span
+class="math inline">\(e1,e2,e3\)</span>模的平方和，为了让平方和最小，通过求导数找极值的方式列出了求解方程。而在投影法中，投影的本质其实就是将向量<span
+class="math inline">\(b\)</span>投影到<span
+class="math inline">\(A\)</span>列空间中最近的一点，换句话说，就是把<span
+class="math inline">\(p1,p2,p3\)</span>分别投影到所需求解的直线上去。</p>
+<p><strong>因此，微积分算最小二乘(least
+square)和投影矩阵具有相同的内核，也就不难理解为何二者最终需求解的解方程组殊途同归了。</strong></p>
+<p>最终我们求得<span
+class="math inline">\(y=\frac{1}{2}x+\frac{2}{3}\)</span>，得到: <span
+class="math display">\[
+b=\begin{bmatrix}1\\ 2\\ 2\end{bmatrix}, p=\begin{bmatrix}\frac{7}{6}\\
+\frac{10}{6} \\
+\frac{13}{6}\end{bmatrix},e=\begin{bmatrix}-\frac{1}{6}\\ \frac{2}{6}\\
+-\frac{1}{6}\end{bmatrix}
+\]</span></p>
+<p>简单验证一下，可以发现<span class="math inline">\(e\)</span>与<span
+class="math inline">\(p\)</span>垂直。</p>
+<h2 id="标准正交基">标准正交基</h2>
+<p>互相垂直的各列一定是线性无关的。于是，我们可以找到空间里的一组基，它们彼此相互垂直，这组基我们称之为正交基。</p>
+<p>参考三维直角坐标系，我们常常选用<span
+class="math inline">\(\begin{bmatrix}1\\ 0\\
+0\end{bmatrix},\begin{bmatrix}0\\ 1\\ 0\end{bmatrix},\begin{bmatrix}0\\
+0\\ 1\end{bmatrix}\)</span>作为标准基，也就是对应<span
+class="math inline">\(x,y,z\)</span>三个轴。</p>
 <ul>
 <li>由于彼此相互垂直，故为一组正交基。</li>
 <li>由于每个基向量都是单位向量，故称作标准正交基。</li>
 </ul>
-<p>当然，标准正交基不止这一种，例如二维空间的标准正交基还可以是：$\begin{bmatrix}\cos\theta\ \sin\theta\end{bmatrix},\begin{bmatrix}-\sin\theta\ \cos\theta\end{bmatrix}$。</p>
-<h1 id="附录"><a href="#附录" class="headerlink" title="附录"></a>附录</h1><h2 id="视频"><a href="#视频" class="headerlink" title="视频"></a>视频</h2><iframe src="//player.bilibili.com/player.html?aid=382989698&bvid=BV16Z4y1U7oU&cid=570095287&p=16&autoplay=0" scrolling="no" border="0" width="100%" height="500" frameborder="no" framespacing="0" allowfullscreen="true"> </iframe>
-
-<h2 id="参考链接"><a href="#参考链接" class="headerlink" title="参考链接"></a>参考链接</h2><ul>
-<li><a target="_blank" rel="noopener" href="https://github.com/MLNLP-World/MIT-Linear-Algebra-Notes/blob/master/%5B16%5D%20%E6%8A%95%E5%BD%B1%E7%9F%A9%E9%98%B5%E5%92%8C%E6%9C%80%E5%B0%8F%E4%BA%8C%E4%B9%98/%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B016.pdf">投影矩阵和最小二乘</a></li>
-<li><a target="_blank" rel="noopener" href="https://rqtn.github.io/2019/08/12/LA-Lec16/">Lec16 - 投影矩阵和最小二乘法</a></li>
-<li><a target="_blank" rel="noopener" href="https://github.com/kf-liu/The-Art-of-Linear-Algebra-zh-CN">线性代数的艺术</a></li>
+<p>当然，标准正交基不止这一种，例如二维空间的标准正交基还可以是：<span
+class="math inline">\(\begin{bmatrix}\cos\theta\\
+\sin\theta\end{bmatrix},\begin{bmatrix}-\sin\theta\\
+\cos\theta\end{bmatrix}\)</span>。</p>
+<h1 id="附录">附录</h1>
+<h2 id="视频">视频</h2>
+<iframe src="//player.bilibili.com/player.html?aid=382989698&amp;bvid=BV16Z4y1U7oU&amp;cid=570095287&amp;p=16&amp;autoplay=0" scrolling="no" border="0" width="100%" height="500" frameborder="no" framespacing="0" allowfullscreen="true">
+</iframe>
+<h2 id="参考链接">参考链接</h2>
+<ul>
+<li><a
+target="_blank" rel="noopener" href="https://github.com/MLNLP-World/MIT-Linear-Algebra-Notes/blob/master/%5B16%5D%20%E6%8A%95%E5%BD%B1%E7%9F%A9%E9%98%B5%E5%92%8C%E6%9C%80%E5%B0%8F%E4%BA%8C%E4%B9%98/%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B016.pdf">投影矩阵和最小二乘</a></li>
+<li><a target="_blank" rel="noopener" href="https://rqtn.github.io/2019/08/12/LA-Lec16/">Lec16 -
+投影矩阵和最小二乘法</a></li>
+<li><a
+target="_blank" rel="noopener" href="https://github.com/kf-liu/The-Art-of-Linear-Algebra-zh-CN">线性代数的艺术</a></li>
 </ul>
 
                 

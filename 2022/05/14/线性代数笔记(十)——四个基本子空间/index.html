@@ -220,7 +220,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          2.4k 字
+          2.7k 字
         
       </span>
     
@@ -231,7 +231,7 @@
         
         
         
-          20 分钟
+          23 分钟
         
       </span>
     
@@ -275,69 +275,142 @@
                 
                 <p>这一讲系统地讲解了矩阵的四个基本子空间：行空间，列空间，零空间和左零空间。他们关系密切且极其重要，对于每个子空间，我们探索了基和维数并高度概括了其背后的关联性。</p>
 <span id="more"></span>
-<h1 id="四个基本子空间"><a href="#四个基本子空间" class="headerlink" title="四个基本子空间"></a>四个基本子空间</h1><p>现有$m \times n$矩阵$A$，已知$rank(A)=r, r\le min(n,m)$，则有：</p>
+<h1 id="四个基本子空间">四个基本子空间</h1>
+<p>现有<span class="math inline">\(m \times n\)</span>矩阵<span
+class="math inline">\(A\)</span>，已知<span
+class="math inline">\(rank(A)=r, r\le min(n,m)\)</span>，则有：</p>
 <ul>
-<li>列空间$C(A) \in \mathbb{R}^m, dim C(A)=r$。</li>
-<li>零空间$N(A) \in \mathbb{R}^n, dim N(A)=n-r$。</li>
-<li>行空间$C(A^T) \in \mathbb{R}^n, dim C(A^T)=r$。</li>
-<li>左零空间$N(A^T) \in \mathbb{R}^m, dim N(A^T)=m-r$。</li>
+<li>列空间<span class="math inline">\(C(A) \in \mathbb{R}^m, dim
+C(A)=r\)</span>。</li>
+<li>零空间<span class="math inline">\(N(A) \in \mathbb{R}^n, dim
+N(A)=n-r\)</span>。</li>
+<li>行空间<span class="math inline">\(C(A^T) \in \mathbb{R}^n, dim
+C(A^T)=r\)</span>。</li>
+<li>左零空间<span class="math inline">\(N(A^T) \in \mathbb{R}^m, dim
+N(A^T)=m-r\)</span>。</li>
 </ul>
-<p>根据上一讲的内容，列空间和零空间的维数和基我们都已了然于胸，而实际上，行空间和左零空间也如出一辙，不过就是把$A$做了转置以后，如法炮制得到的列空间和零空间。</p>
+<p>根据上一讲的内容，列空间和零空间的维数和基我们都已了然于胸，而实际上，行空间和左零空间也如出一辙，不过就是把<span
+class="math inline">\(A\)</span>做了转置以后，如法炮制得到的列空间和零空间。</p>
 <blockquote>
 <p>列空间的基：主元所在列的所有向量；零空间的基：所有线性无关的特解。</p>
 </blockquote>
 <p>事实上，除了先转置再如法炮制的法子以外，对于行空间和左零空间，我们还有更便捷的求解方法。</p>
-<h2 id="行空间"><a href="#行空间" class="headerlink" title="行空间"></a>行空间</h2><p>假如我们换个角度思考，直接来看$A$的行向量组，消元得到：<br>$<br>A=\begin{bmatrix}<br>1 &amp; 2 &amp; 3 &amp; 1<br>\ 1 &amp; 1 &amp; 2 &amp; 1<br>\ 1 &amp; 2 &amp; 3 &amp; 1<br>\end{bmatrix}<br>\underrightarrow{消元}<br>\begin{bmatrix}<br>1 &amp; 0 &amp; 1 &amp; 1<br>\ 0 &amp; 1 &amp; 1 &amp; 0<br>\ 0 &amp; 0 &amp; 0 &amp; 0<br>\end{bmatrix}=R<br>$</p>
-<p>消元的本质是做行变换，此时A的列空间发生变化（$C(R) \neq C(A)$），但却并不影响行空间。可以在$R$中看出前两行就是行空间的一组基。所以，可以得出无论对于矩阵$A$还是$R$，其行空间的一组基，可以由$R$矩阵的前$r$行向量组成。</p>
+<h2 id="行空间">行空间</h2>
+假如我们换个角度思考，直接来看<span
+class="math inline">\(A\)</span>的行向量组，消元得到： $ A=
+<span class="math display">\[\begin{bmatrix}
+1 &amp; 2 &amp; 3 &amp; 1
+\\ 1 &amp; 1 &amp; 2 &amp; 1
+\\ 1 &amp; 2 &amp; 3 &amp; 1
+\end{bmatrix}
+\underrightarrow{消元}
+\begin{bmatrix}
+1 &amp; 0 &amp; 1 &amp; 1
+\\ 0 &amp; 1 &amp; 1 &amp; 0
+\\ 0 &amp; 0 &amp; 0 &amp; 0
+\end{bmatrix}\]</span>
+<p>=R $</p>
+<p>消元的本质是做行变换，此时A的列空间发生变化（<span
+class="math inline">\(C(R) \neq
+C(A)\)</span>），但却并不影响行空间。可以在<span
+class="math inline">\(R\)</span>中看出前两行就是行空间的一组基。所以，可以得出无论对于矩阵<span
+class="math inline">\(A\)</span>还是<span
+class="math inline">\(R\)</span>，其行空间的一组基，可以由<span
+class="math inline">\(R\)</span>矩阵的前<span
+class="math inline">\(r\)</span>行向量组成。</p>
 <blockquote>
-<p>这里的$R$就是第七讲提到的简化行阶梯形式。</p>
+<p>这里的<span
+class="math inline">\(R\)</span>就是第七讲提到的简化行阶梯形式。</p>
 </blockquote>
-<h2 id="左零空间"><a href="#左零空间" class="headerlink" title="左零空间"></a>左零空间</h2><p>对于左零空间，有$A^Ty=0 \rightarrow (A^Ty)^T=0^T\rightarrow y^TA=0$，因此得名。</p>
-<p>从转置视角来看，零空间的向量是A列向量的线性组合得到，同理左零空间的向量就是A行向量的线性组合。由此联想到前面的$R$最简消元，$R$的最后一个零行代表着行的线性组合产生了零向量，因此有：$EA=R$，矩阵$E$的最后一行向量就是将$A$各行组合得到零向量的方式。</p>
-<p>还记得怎么得到$E$吗？采用Gauss-Jordan消元，将增广矩阵$\left[\begin{array}{c|c}A<em>{m \times n} &amp; I</em>{m \times m}\end{array}\right]$中$A$的部分划为简化行阶梯形式$\left[\begin{array}{c|c}R<em>{m \times n} &amp; E</em>{m \times m}\end{array}\right]$，$E$将$A$变为$R$的同时，也把$I$变成了$E$，化简完毕我们就得到了矩阵$E$，而它则会把所有的行变换操作记录下来。</p>
-<p>本例中：</p>
-<script type="math/tex; mode=display">
-\left[\begin{array}{c|c}A_{m \times n} & I_{m \times m}\end{array}\right]=\left[\begin{array}
+<h2 id="左零空间">左零空间</h2>
+<p>对于左零空间，有<span class="math inline">\(A^Ty=0 \rightarrow
+(A^Ty)^T=0^T\rightarrow y^TA=0\)</span>，因此得名。</p>
+<p>从转置视角来看，零空间的向量是A列向量的线性组合得到，同理左零空间的向量就是A行向量的线性组合。由此联想到前面的<span
+class="math inline">\(R\)</span>最简消元，<span
+class="math inline">\(R\)</span>的最后一个零行代表着行的线性组合产生了零向量，因此有：<span
+class="math inline">\(EA=R\)</span>，矩阵<span
+class="math inline">\(E\)</span>的最后一行向量就是将<span
+class="math inline">\(A\)</span>各行组合得到零向量的方式。</p>
+<p>还记得怎么得到<span
+class="math inline">\(E\)</span>吗？采用Gauss-Jordan消元，将增广矩阵<span
+class="math inline">\(\left[\begin{array}{c|c}A_{m \times n} &amp; I_{m
+\times m}\end{array}\right]\)</span>中<span
+class="math inline">\(A\)</span>的部分划为简化行阶梯形式<span
+class="math inline">\(\left[\begin{array}{c|c}R_{m \times n} &amp; E_{m
+\times m}\end{array}\right]\)</span>，<span
+class="math inline">\(E\)</span>将<span
+class="math inline">\(A\)</span>变为<span
+class="math inline">\(R\)</span>的同时，也把<span
+class="math inline">\(I\)</span>变成了<span
+class="math inline">\(E\)</span>，化简完毕我们就得到了矩阵<span
+class="math inline">\(E\)</span>，而它则会把所有的行变换操作记录下来。</p>
+<p>本例中： <span class="math display">\[
+\left[\begin{array}{c|c}A_{m \times n} &amp; I_{m \times
+m}\end{array}\right]=\left[\begin{array}
 {c c c c|c c c}
-1 & 2 & 3 & 1 & 1 & 0 & 0 
-\\ 1 & 1 & 2 & 1 & 0 & 1 & 0 
-\\ 1 & 2 & 3 & 1 & 0 & 0 & 1
+1 &amp; 2 &amp; 3 &amp; 1 &amp; 1 &amp; 0 &amp; 0
+\\ 1 &amp; 1 &amp; 2 &amp; 1 &amp; 0 &amp; 1 &amp; 0
+\\ 1 &amp; 2 &amp; 3 &amp; 1 &amp; 0 &amp; 0 &amp; 1
 \end{array}\right]
 \underrightarrow{消元}
 \left[
 \begin{array}
 {c c c c|c c c}
-1 & 0 & 1 & 1 & -1 & 2 & 0 
-\\ 0 & 1 & 1 & 0 & 1 & -1 & 0 
-\\ 0 & 0 & 0 & 0 & -1 & 0 & 1 
+1 &amp; 0 &amp; 1 &amp; 1 &amp; -1 &amp; 2 &amp; 0
+\\ 0 &amp; 1 &amp; 1 &amp; 0 &amp; 1 &amp; -1 &amp; 0
+\\ 0 &amp; 0 &amp; 0 &amp; 0 &amp; -1 &amp; 0 &amp; 1
 \end{array}
 \right]
-=\left[\begin{array}{c|c}R_{m \times n} & E_{m \times m}\end{array}\right]</script><p>则</p>
-<script type="math/tex; mode=display">
+=\left[\begin{array}{c|c}R_{m \times n} &amp; E_{m \times
+m}\end{array}\right]
+\]</span></p>
+<p>则 <span class="math display">\[
 EA=\begin{bmatrix}
--1 & 2  & 0 
-\\ 1  & -1 & 0 
-\\ -1 & 0  & 1 
+-1 &amp; 2  &amp; 0
+\\ 1  &amp; -1 &amp; 0
+\\ -1 &amp; 0  &amp; 1
 \end{bmatrix}
 \cdot
 \begin{bmatrix}
-1 & 2 & 3 & 1 
-\\ 1 & 1 & 2 & 1 
-\\ 1 & 2 & 3 & 1
+1 &amp; 2 &amp; 3 &amp; 1
+\\ 1 &amp; 1 &amp; 2 &amp; 1
+\\ 1 &amp; 2 &amp; 3 &amp; 1
 \end{bmatrix}=
 \begin{bmatrix}
-1 & 0 & 1 & 1 
-\\ 0 & 1 & 1 & 0 
-\\ 0 & 0 & 0 & 0 
-\end{bmatrix}=R</script><p>很明显，式中$E$的最后一行对$A$的行做线性组合后（行视角：-1个行1+0个行2+1个行3），得到$R$的最后一行，即$0$向量，也就是$y^TA=0$。另一方面，$E$的第三行对应的行向量就是矩阵$A$的左零空间的基，维数是1。</p>
-<h2 id="矩阵空间"><a href="#矩阵空间" class="headerlink" title="矩阵空间"></a>矩阵空间</h2><p>不只是向量可以构建出空间，万物皆可构造出空间，只要满足加法和数乘的封闭性即可。</p>
-<p>举个例子，矩阵可以同向量一样，做求和、数乘。那么什么样的矩阵构成的空间满足封闭性呢？<br>比如，设所有$3 \times 3$矩阵组成的矩阵空间为$M$。则上三角矩阵、对称矩阵、对角矩阵（前两者的交集）都可以构成矩阵空间。</p>
-<p>观察一下对角矩阵，如果取：$\begin{bmatrix}<br>1 &amp; 0 &amp; 0<br>\ 0 &amp; 0 &amp; 0<br>\ 0 &amp; 0 &amp; 0<br>\end{bmatrix} \quad<br>\begin{bmatrix}<br>1 &amp; 0 &amp; 0<br>\ 0 &amp; 3 &amp; 0<br>\ 0 &amp; 0 &amp; 0<br>\end{bmatrix} \quad<br>\begin{bmatrix}<br>0 &amp; 0 &amp; 0<br>\ 0 &amp; 0 &amp; 0<br>\ 0 &amp; 0 &amp; 7<br>\end{bmatrix}$ ，可以发现，任何三阶对角矩阵均可用这三个矩阵的线性组合生成，因此，他们生成了三阶对角矩阵空间，即这三个矩阵是三阶对角矩阵空间的一组基。</p>
-<h1 id="附录"><a href="#附录" class="headerlink" title="附录"></a>附录</h1><h2 id="视频"><a href="#视频" class="headerlink" title="视频"></a>视频</h2><iframe src="//player.bilibili.com/player.html?aid=382989698&bvid=BV16Z4y1U7oU&cid=569896824&p=10&autoplay=0" scrolling="no" border="0" width="100%" height="500" frameborder="no" framespacing="0" allowfullscreen="true"> </iframe>
-
-<h2 id="参考链接"><a href="#参考链接" class="headerlink" title="参考链接"></a>参考链接</h2><ul>
-<li><a target="_blank" rel="noopener" href="https://github.com/MLNLP-World/MIT-Linear-Algebra-Notes/blob/master/%5B10%5D%20%E5%9B%9B%E4%B8%AA%E5%9F%BA%E6%9C%AC%E5%AD%90%E7%A9%BA%E9%97%B4/%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B010.pdf">四个基本子空间</a></li>
-<li><a target="_blank" rel="noopener" href="https://github.com/kf-liu/The-Art-of-Linear-Algebra-zh-CN">线性代数的艺术</a></li>
+1 &amp; 0 &amp; 1 &amp; 1
+\\ 0 &amp; 1 &amp; 1 &amp; 0
+\\ 0 &amp; 0 &amp; 0 &amp; 0
+\end{bmatrix}=R
+\]</span></p>
+<p>很明显，式中<span class="math inline">\(E\)</span>的最后一行对<span
+class="math inline">\(A\)</span>的行做线性组合后（行视角：-1个行1+0个行2+1个行3），得到<span
+class="math inline">\(R\)</span>的最后一行，即<span
+class="math inline">\(0\)</span>向量，也就是<span
+class="math inline">\(y^TA=0\)</span>。另一方面，<span
+class="math inline">\(E\)</span>的第三行对应的行向量就是矩阵<span
+class="math inline">\(A\)</span>的左零空间的基，维数是1。</p>
+<h2 id="矩阵空间">矩阵空间</h2>
+<p>不只是向量可以构建出空间，万物皆可构造出空间，只要满足加法和数乘的封闭性即可。</p>
+<p>举个例子，矩阵可以同向量一样，做求和、数乘。那么什么样的矩阵构成的空间满足封闭性呢？
+比如，设所有<span class="math inline">\(3 \times
+3\)</span>矩阵组成的矩阵空间为<span
+class="math inline">\(M\)</span>。则上三角矩阵、对称矩阵、对角矩阵（前两者的交集）都可以构成矩阵空间。</p>
+<p>观察一下对角矩阵，如果取：<span class="math inline">\(\begin{bmatrix}
+1 &amp; 0 &amp; 0 \\ 0 &amp; 0 &amp; 0 \\ 0 &amp; 0 &amp; 0
+\end{bmatrix} \quad \begin{bmatrix} 1 &amp; 0 &amp; 0 \\ 0 &amp; 3 &amp;
+0 \\ 0 &amp; 0 &amp; 0 \end{bmatrix} \quad \begin{bmatrix} 0 &amp; 0
+&amp; 0 \\ 0 &amp; 0 &amp; 0 \\ 0 &amp; 0 &amp; 7 \end{bmatrix}\)</span>
+，可以发现，任何三阶对角矩阵均可用这三个矩阵的线性组合生成，因此，他们生成了三阶对角矩阵空间，即这三个矩阵是三阶对角矩阵空间的一组基。</p>
+<h1 id="附录">附录</h1>
+<h2 id="视频">视频</h2>
+<iframe src="//player.bilibili.com/player.html?aid=382989698&amp;bvid=BV16Z4y1U7oU&amp;cid=569896824&amp;p=10&amp;autoplay=0" scrolling="no" border="0" width="100%" height="500" frameborder="no" framespacing="0" allowfullscreen="true">
+</iframe>
+<h2 id="参考链接">参考链接</h2>
+<ul>
+<li><a
+target="_blank" rel="noopener" href="https://github.com/MLNLP-World/MIT-Linear-Algebra-Notes/blob/master/%5B10%5D%20%E5%9B%9B%E4%B8%AA%E5%9F%BA%E6%9C%AC%E5%AD%90%E7%A9%BA%E9%97%B4/%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B010.pdf">四个基本子空间</a></li>
+<li><a
+target="_blank" rel="noopener" href="https://github.com/kf-liu/The-Art-of-Linear-Algebra-zh-CN">线性代数的艺术</a></li>
 </ul>
 
                 
