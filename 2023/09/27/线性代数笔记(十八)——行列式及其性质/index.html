@@ -16,24 +16,22 @@
   <meta name="author" content="r00tk1t">
   <meta name="keywords" content="">
   
-    <meta name="description" content="书接上一回标准正交基，讲述了该正交向量组的特性与优势，并介绍了一种将一组向量标准化为标准正交向量组的重要方法：Gram-Schmidt正交化。 正交矩阵和Gram-Schmidt正交化 标准正交基 标准正交向量组构成的空间基被称为标准正交基，它有两个特性：对标准正交向量组中任意向量\(q\)，有： \[ \begin{cases} q_i^Tq_j&#x3D;0 \space (i\neq j) \\ q_">
+    <meta name="description" content="从本讲开始进入线性代数的第二部分：行列式与特征值。许多国内教材都是把行列式放在第一章，这对于理解线性代数这门语言来说是非常离谱的操作。行列式因方阵而生，它的值与特性与方阵息息相关，在求解特征值过程中行列式发挥了极大的作用。我们要着重于理解其背后的机理、探索本质，而不是死记硬背几个公式或是掌握一些trick手法解几道算术题。 行列式及其性质每个方阵都有行列式，行列式是跟该方阵有关的一个数字，行列式的">
 <meta property="og:type" content="article">
-<meta property="og:title" content="线性代数笔记(十七)——正交矩阵和Gram-Schmidt正交化">
-<meta property="og:url" content="https://r00tk1ts.github.io/2023/09/26/%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B0%E7%AC%94%E8%AE%B0(%E5%8D%81%E4%B8%83)%E2%80%94%E2%80%94%E6%AD%A3%E4%BA%A4%E7%9F%A9%E9%98%B5%E5%92%8CGram-Schmidt%E6%AD%A3%E4%BA%A4%E5%8C%96/index.html">
+<meta property="og:title" content="线性代数笔记(十八)——行列式及其性质">
+<meta property="og:url" content="https://r00tk1ts.github.io/2023/09/27/%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B0%E7%AC%94%E8%AE%B0(%E5%8D%81%E5%85%AB)%E2%80%94%E2%80%94%E8%A1%8C%E5%88%97%E5%BC%8F%E5%8F%8A%E5%85%B6%E6%80%A7%E8%B4%A8/index.html">
 <meta property="og:site_name" content="玉涵的技能书">
-<meta property="og:description" content="书接上一回标准正交基，讲述了该正交向量组的特性与优势，并介绍了一种将一组向量标准化为标准正交向量组的重要方法：Gram-Schmidt正交化。 正交矩阵和Gram-Schmidt正交化 标准正交基 标准正交向量组构成的空间基被称为标准正交基，它有两个特性：对标准正交向量组中任意向量\(q\)，有： \[ \begin{cases} q_i^Tq_j&#x3D;0 \space (i\neq j) \\ q_">
+<meta property="og:description" content="从本讲开始进入线性代数的第二部分：行列式与特征值。许多国内教材都是把行列式放在第一章，这对于理解线性代数这门语言来说是非常离谱的操作。行列式因方阵而生，它的值与特性与方阵息息相关，在求解特征值过程中行列式发挥了极大的作用。我们要着重于理解其背后的机理、探索本质，而不是死记硬背几个公式或是掌握一些trick手法解几道算术题。 行列式及其性质每个方阵都有行列式，行列式是跟该方阵有关的一个数字，行列式的">
 <meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="https://r00tk1ts.github.io/2023/09/26/%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B0%E7%AC%94%E8%AE%B0(%E5%8D%81%E4%B8%83)%E2%80%94%E2%80%94%E6%AD%A3%E4%BA%A4%E7%9F%A9%E9%98%B5%E5%92%8CGram-Schmidt%E6%AD%A3%E4%BA%A4%E5%8C%96/2023-09-26-16-02-58.png">
-<meta property="article:published_time" content="2023-09-26T07:08:39.000Z">
-<meta property="article:modified_time" content="2023-09-26T08:31:16.418Z">
+<meta property="article:published_time" content="2023-09-27T07:16:03.000Z">
+<meta property="article:modified_time" content="2023-09-27T08:28:07.115Z">
 <meta property="article:author" content="r00tk1t">
 <meta property="article:tag" content="MIT-18.06-linear_algebra">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="https://r00tk1ts.github.io/2023/09/26/%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B0%E7%AC%94%E8%AE%B0(%E5%8D%81%E4%B8%83)%E2%80%94%E2%80%94%E6%AD%A3%E4%BA%A4%E7%9F%A9%E9%98%B5%E5%92%8CGram-Schmidt%E6%AD%A3%E4%BA%A4%E5%8C%96/2023-09-26-16-02-58.png">
   
   
   
-  <title>线性代数笔记(十七)——正交矩阵和Gram-Schmidt正交化 - 玉涵的技能书</title>
+  <title>线性代数笔记(十八)——行列式及其性质 - 玉涵的技能书</title>
 
   <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
 
@@ -199,7 +197,7 @@
       <div class="banner-text text-center fade-in-up">
         <div class="h2">
           
-            <span id="subtitle" data-typed-text="线性代数笔记(十七)——正交矩阵和Gram-Schmidt正交化"></span>
+            <span id="subtitle" data-typed-text="线性代数笔记(十八)——行列式及其性质"></span>
           
         </div>
 
@@ -210,8 +208,8 @@
     
       <span class="post-meta">
         <i class="iconfont icon-date-fill" aria-hidden="true"></i>
-        <time datetime="2023-09-26 15:08" pubdate>
-          2023年9月26日 下午
+        <time datetime="2023-09-27 15:16" pubdate>
+          2023年9月27日 下午
         </time>
       </span>
     
@@ -222,7 +220,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          3.1k 字
+          2.4k 字
         
       </span>
     
@@ -233,7 +231,7 @@
         
         
         
-          26 分钟
+          21 分钟
         
       </span>
     
@@ -270,182 +268,80 @@
       <div class="container nopadding-x-md" id="board-ctn">
         <div id="board">
           <article class="post-content mx-auto">
-            <h1 id="seo-header">线性代数笔记(十七)——正交矩阵和Gram-Schmidt正交化</h1>
+            <h1 id="seo-header">线性代数笔记(十八)——行列式及其性质</h1>
             
             
               <div class="markdown-body">
                 
-                <p>书接上一回标准正交基，讲述了该正交向量组的特性与优势，并介绍了一种将一组向量标准化为标准正交向量组的重要方法：Gram-Schmidt正交化。</p>
-<h1 id="正交矩阵和gram-schmidt正交化">正交矩阵和Gram-Schmidt正交化</h1>
-<h2 id="标准正交基">标准正交基</h2>
-<p>标准正交向量组构成的空间基被称为标准正交基，它有两个特性：对标准正交向量组中任意向量<span
-class="math inline">\(q\)</span>，有： <span class="math display">\[
-\begin{cases}
-q_i^Tq_j=0 \space (i\neq j) \\
-q_i^Tq_j=1 \space (i=j)
-\end{cases}
-\]</span></p>
-<p>即：向量彼此垂直，模均为<span class="math inline">\(1\)</span>。</p>
-<h2 id="标准正交矩阵">标准正交矩阵</h2>
-<p>将标准正交向量组中的<span
-class="math inline">\(q_1,q_2,...,q_n\)</span>组成的矩阵<span
-class="math inline">\(Q\)</span>被称为正交矩阵： <span
-class="math display">\[
-Q=\begin{bmatrix}q_1&amp; q_2&amp; q_3&amp; ...&amp; q_n\end{bmatrix}
-\]</span></p>
-<p>显然，正交矩阵<span
-class="math inline">\(Q\)</span>具有一个良好的性质：<span
-class="math inline">\(Q^TQ=I\)</span> <span class="math display">\[
-Q^TQ=\begin{bmatrix}q_1\\ q_2\\ q_3\\ ...\\
-q_n\end{bmatrix}\begin{bmatrix}
-q_1&amp; q_2&amp; q_3&amp; ...&amp;
-q_n\end{bmatrix}=\begin{bmatrix}1&amp; 0&amp; ...&amp; 0&amp;0\\ 0&amp;
-1&amp; ...&amp; 0&amp; 0\\ ...&amp; ...&amp; ...&amp; ...&amp; ...\\
-0&amp; 0&amp; ...&amp; 1&amp; 0\\ 0&amp; 0&amp; ...&amp; 0&amp;
-1\end{bmatrix}=I
-\]</span></p>
-<h3 id="正交矩阵">正交矩阵</h3>
-<p><strong>特别地，当<span
-class="math inline">\(Q\)</span>为方阵时，我们称这样的<span
-class="math inline">\(Q\)</span>为正交矩阵。</strong></p>
-<p>正交矩阵有更丰富的性质，此时的方阵<span
-class="math inline">\(Q\)</span>有逆矩阵，由<span
-class="math inline">\(Q^TQ=I\)</span>可知，<span
-class="math inline">\(Q^{-1}=Q^T\)</span>。</p>
-<blockquote>
-<p>置换矩阵就是个经典案例。</p>
-</blockquote>
-<h3 id="标准正交矩阵的应用">标准正交矩阵的应用</h3>
-<p>标准正交矩阵可以应用到投影矩阵上，我们知道：<span
-class="math inline">\(P=A(A^TA)^{-1}A^T\)</span>，当<span
-class="math inline">\(A\)</span>是标准正交矩阵时，有：<span
-class="math inline">\(Q(Q^TQ)^{-1}Q^T=QQ^T\)</span>。特别地，若<span
-class="math inline">\(Q\)</span>为方阵，此时<span
-class="math inline">\(QQ^T=QQ^{-1}=I\)</span>。（说明此时投影矩阵就是单位阵<span
-class="math inline">\(I\)</span>）</p>
-<p><span
-class="math inline">\(P\)</span>的计算得到了极大的简化，对于<span
-class="math inline">\(P=QQ^T\)</span>，根据前面几讲的知识，我们知道<span
-class="math inline">\(QQ^T\)</span>有着一些特性：</p>
-<ul>
-<li>是对称阵，即<span class="math inline">\(P=P^T\)</span></li>
-<li>乘方不变性，即<span class="math inline">\(P^2=P\)</span></li>
+                <p>从本讲开始进入线性代数的第二部分：行列式与特征值。许多国内教材都是把行列式放在第一章，这对于理解线性代数这门语言来说是非常离谱的操作。行列式因方阵而生，它的值与特性与方阵息息相关，在求解特征值过程中行列式发挥了极大的作用。我们要着重于理解其背后的机理、探索本质，而不是死记硬背几个公式或是掌握一些trick手法解几道算术题。</p>
+<h1 id="行列式及其性质"><a href="#行列式及其性质" class="headerlink" title="行列式及其性质"></a>行列式及其性质</h1><p>每个方阵都有行列式，行列式是跟该方阵有关的一个数字，行列式的值隐含了该方阵的许多特性，例如，行列式为$0$的方阵一定不可逆，可逆的方阵行列式值一定不为$0$。</p>
+<p>行列式数学上写作$\begin{vmatrix}A\end{vmatrix}$，一般记为$\det A$。</p>
+<h2 id="行列式的三大基础特性"><a href="#行列式的三大基础特性" class="headerlink" title="行列式的三大基础特性"></a>行列式的三大基础特性</h2><ul>
+<li>性质1：单位阵 $\det I=1$。</li>
+<li>性质2：交换任意两行后，行列式值的符号取反。</li>
+<li>性质3：<ul>
+<li>a: 行列式可以按行提取矩阵的系数，即:$\begin{vmatrix}ta&amp;tb \ c&amp;d \ \end{vmatrix}=t\begin{vmatrix}a&amp;b \ c&amp;d\end{vmatrix}$。</li>
+<li>b: 行列式的行具有线性，即：$\begin{vmatrix}  a+a’&amp;b+b’ \  c&amp;d \ \end{vmatrix}=\begin{vmatrix}  a&amp;b \  c&amp;d\end{vmatrix}+\begin{vmatrix}  a’&amp;b’ \  c&amp;d\end{vmatrix}$</li>
 </ul>
-<p>此外，对于前两讲中的拟合方程：<span class="math inline">\(A^TA\hat
-x=A^Tb\)</span>，若<span
-class="math inline">\(A\)</span>为标准正交矩阵，那么方程就变成了<span
-class="math inline">\(\hat x=Q^Tb\)</span>。<span
-class="math inline">\(\hat x\)</span>的每个分量<span
-class="math inline">\(\hat x_i=q_i^Tb\)</span>，即都是<span
-class="math inline">\(Q\)</span>中对应列向量与<span
-class="math inline">\(b\)</span>的内积。</p>
+</li>
+</ul>
 <blockquote>
-<p>这个式子的物理意义就是：对已知标准正交基，向量<span
-class="math inline">\(b\)</span>在第<span
-class="math inline">\(i\)</span>个基上的投影就是对应基向量<span
-class="math inline">\(q_i^Tb\)</span>。</p>
+<p>注意3b里的线性是指行的线性，而非行列式具有线性。</p>
 </blockquote>
-<p>因此，如果我们选择标准正交向量组作为基时，投影矩阵相关公式中的诸多计算都得到了极大的简化。</p>
-<h2 id="gram-schmidt正交化">Gram-Schmidt正交化</h2>
-<p>在标准正交矩阵的应用中我们可以看到，如果能够在实际运算中采用标准正交向量组，那就可以简化相当多的运算量。然而实际情况是，我们往往拿到的都只是一组线性无关的向量，它们恰好构成标准正交基的可能性微乎其微。那么有没有一种方法，可以将任意的线性无关向量组转换为标准正交基呢？</p>
-<p><strong>答案是肯定的，这种方法就是”Gram-Schmidt正交化“。</strong></p>
-<p>Gram-Schmidt正交化的过程很简单： <span class="math display">\[
-线性无关向量a,b\rightarrow 正交向量A,B\rightarrow
-标准正交向量q_1=\frac{A}{||A||}, q_2=\frac{B}{||B||}
-\]</span></p>
-<blockquote>
-<p>第一步转为正交向量的过程被称作Graham，第二步标准化为模1的过程被称作Schmidt。</p>
-</blockquote>
-<p>第二步标准化的过程很好理解，对每个分量除以模量即可，正交化的过程关键在于第一步，怎么找到<span
-class="math inline">\(A\)</span>和<span
-class="math inline">\(B\)</span>。</p>
-<p>以不共线的两个<span
-class="math inline">\(a,b\)</span>向量为例，怎么转换成正交基呢？这就要用到投影：</p>
-<p><img src="2023-09-26-16-02-58.png" srcset="/img/loading.gif" lazyload /></p>
-<p>我们先将<span class="math inline">\(a\)</span>向量固定，设为<span
-class="math inline">\(A\)</span>，然后将<span
-class="math inline">\(b\)</span>向量投影到<span
-class="math inline">\(A\)</span>上得到<span
-class="math inline">\(p\)</span>，此时误差向量<span
-class="math inline">\(e=b-p\)</span>所在直线的方向实际上就是另一个基向量<span
-class="math inline">\(B\)</span>的方向，取投影长度为<span
-class="math inline">\(B\)</span>的长度。于是有： <span
-class="math display">\[
-B=b-\frac{AA^Tb}{A^TA}
-\]</span></p>
-<p>式子里<span class="math inline">\(A^Tb\)</span>和<span
-class="math inline">\(A^TA\)</span>都是内积标量值，因此上式一般写作：<span
-class="math inline">\(B=b-\frac{A^Tb}{A^TA}A\)</span>的形式。</p>
-<p>得到<span
-class="math inline">\(A,B\)</span>之后，第二步就是做标准化了：<span
-class="math inline">\(q_1=\frac{A}{||A||},
-q_2=\frac{B}{||B||}\)</span>。</p>
-<p>延展到三维空间，对于向量<span
-class="math inline">\(a,b,c\)</span>要怎么做正交化呢？我们可以如法炮制，首先<span
-class="math inline">\(A,B\)</span>的寻找方法不变： <span
-class="math display">\[
-A=a,B=b-\frac{AA^Tb}{A^TA}
-\]</span></p>
-<p><span class="math inline">\(C\)</span>的计算如出一辙，我们分别让<span
-class="math inline">\(c\)</span>在<span
-class="math inline">\(A\)</span>和<span
-class="math inline">\(B\)</span>上进行投影，然后再减去投影得到的两个向量即为<span
-class="math inline">\(C\)</span>： <span class="math display">\[
-C=c-\frac{A^Tc}{A^TA}A-\frac{B^Tc}{B^TB}B
-\]</span></p>
-<p>最后再对<span class="math inline">\(A,B,C\)</span>标准化即可。</p>
-<h3 id="示例">示例</h3>
-<p>有<span class="math inline">\(a=\begin{bmatrix}1\\ 1\\
-1\end{bmatrix}, b=\begin{bmatrix}1\\ 0\\
-2\end{bmatrix}\)</span>，求标准正交矩阵<span
-class="math inline">\(Q\)</span>。</p>
-<p>解：</p>
-<p>先固定<span class="math inline">\(A=a=\begin{bmatrix}1\\ 1\\
-1\end{bmatrix}\)</span>，用<span class="math inline">\(b\)</span>在<span
-class="math inline">\(A\)</span>上投影，差值即为: <span
-class="math display">\[
-B=b-\frac{A^Tb}{A^TA}A=\begin{bmatrix}1\\ 0\\
-2\end{bmatrix}-\frac{3}{3}\begin{bmatrix}1\\ 1\\
-1\end{bmatrix}=\begin{bmatrix}0\\ -1\\ 1\end{bmatrix}
-\]</span></p>
-<p>标准化后得到： <span class="math display">\[
-Q=\begin{bmatrix}\frac{1}{\sqrt{3}}&amp; 0\\ \frac{1}{\sqrt{3}}&amp;
--\frac{1}{\sqrt{2}}\\ \frac{1}{\sqrt{3}}&amp;
-\frac{1}{\sqrt{2}}\end{bmatrix}
-\]</span></p>
-<h2 id="引申矩阵的qr分解">引申：矩阵的QR分解</h2>
-<p>用消元法视角来看<span
-class="math inline">\(A\)</span>的分解，可以看做<span
-class="math inline">\(A=LU\)</span>，<span
-class="math inline">\(L\)</span>是进行行变换的下三角阵，<span
-class="math inline">\(U\)</span>是上三角阵。</p>
-<p>以同样的眼光来看Gram-Schmidt正交化，有<span
-class="math inline">\(A=QR\)</span>，其中<span
-class="math inline">\(Q\)</span>为标准正交化阵，<span
-class="math inline">\(R\)</span>是一个上三角阵。 <span
-class="math display">\[
-\begin{bmatrix}a_1&amp; a_2\end{bmatrix}=\begin{bmatrix}q_1&amp;
-q_2\end{bmatrix}\begin{bmatrix}a_1^Tq_1&amp; a_2^Tq_1\\ a_1^Tq_2&amp;
-a_2^Tq_2\end{bmatrix}
-\]</span></p>
-<p>显然左下角<span class="math inline">\(a_1^Tq_2=0\)</span>(<span
-class="math inline">\(a1是A方向，\)</span>q2<span
-class="math inline">\(是\)</span>B<span
-class="math inline">\(方向\)</span>)，拓展到高维会发现下三角都是<span
-class="math inline">\(0\)</span>，因为后构造的向量总是垂直于前面的向量。这也是Gram-Schmidt正交化的一个性质。</p>
-<h1 id="附录">附录</h1>
-<h2 id="视频">视频</h2>
-<iframe src="//player.bilibili.com/player.html?aid=382989698&amp;bvid=BV16Z4y1U7oU&amp;cid=570089959&amp;p=17&amp;autoplay=0" scrolling="no" border="0" width="100%" height="500" frameborder="no" framespacing="0" allowfullscreen="true">
-</iframe>
-<h2 id="参考链接">参考链接</h2>
+<h2 id="衍生推导特性"><a href="#衍生推导特性" class="headerlink" title="衍生推导特性"></a>衍生推导特性</h2><p>其他的特性都可以根据三大基础特性来进行推导，它们也十分重要，在我们计算行列式和推导其他特性的过程中常常用到。</p>
 <ul>
-<li><a
-target="_blank" rel="noopener" href="https://github.com/MLNLP-World/MIT-Linear-Algebra-Notes/blob/master/%5B17%5D%20%E6%AD%A3%E4%BA%A4%E7%9F%A9%E9%98%B5%E5%92%8CGram-Schmidt%20%E6%AD%A3%E4%BA%A4%E5%8C%96/%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B017.pdf">正交矩阵和Gram-Schmidt
-正交化</a></li>
-<li><a target="_blank" rel="noopener" href="https://rqtn.github.io/2019/08/12/LA-Lec17/">Lec17 -
-正交矩阵和 Gram-Schmidt 正交化</a></li>
-<li><a
-target="_blank" rel="noopener" href="https://github.com/kf-liu/The-Art-of-Linear-Algebra-zh-CN">线性代数的艺术</a></li>
+<li>性质4：如果存在相等的两行，则行列式为$0$。<br>可以用性质2来证明，交换相等的两行，行列式的值会取反，但此时方阵并没有任何改变，因此只有行列式为$0$值才能满足性质2。</li>
+<li>性质5：从$k$行中减去$i$行的$l$倍，行列式不发生改变。<strong>换言之，行列式不因矩阵消元而改变。</strong> 这一性质对列变换也同样生效（相当于先转置，行变换后再转置回来，就是列变换）。<br>根据性质3，可知：<script type="math/tex; mode=display">
+\begin{vmatrix}
+a&b \\
+c-la&d-lb
+\end{vmatrix}=\begin{vmatrix}
+a&b \\
+c&d
+\end{vmatrix}-l\begin{vmatrix}
+a&b \\
+a&b
+\end{vmatrix}</script>再根据刚推导的性质4，等号右边第二项行列式为$0$，性质5得证。</li>
+<li>性质6：如果方阵的某一行全为$0$，则行列式为$0$。<br>由性质3或性质5推理显然。</li>
+<li>性质7：上三角$U$方阵的行列式值等于对角线上元素的乘积。$\det U=d_1d_2\cdot d_n$：<script type="math/tex; mode=display">
+U=\begin{vmatrix}
+d_1&*&...&* \\
+0&d_2&...&* \\
+...&...&...&... \\
+0&0&...&d_n
+\end{vmatrix}</script>由性质5，从最后一行开始，将对角线元素上方的非零元素依次变为$0$，行列式值不变。此时可以得到只有对角线元素的对角阵$D$。再根据性质3a，提取所有的对角线元素$d_i$华为单位阵，结合性质1得证。</li>
+<li>性质8：当且仅当$A$是奇异矩阵时（不可逆），$\det A=0$。<br>由性质7，如果$A$是可逆，那么消元得到的上三角$U$对角线上的各行都有主元，行列式必不为$0$。反之，消元后会出现全零行，有性质6可知行列式为$0$。</li>
+<li>性质9：$\det AB=\det A \cdot \det B$，行列式具备乘法性质。<br>由性质5，可以把$A$和$B$通过行变换最终转为对角阵$A’,B’$，此时$\det A’=\det A, \det B’=\det B$。而两个对角矩阵相乘的结果显而易见：<script type="math/tex; mode=display">
+\begin{bmatrix}
+a_1&0&...&0 \\
+0&a_2&...&0 \\
+...&...&...&...\\
+0&0&...&a_n
+\end{bmatrix}\begin{bmatrix}
+b_1&0&...&0 \\
+0&b_2&...&0 \\
+...&...&...&...\\
+0&0&...&b_n
+\end{bmatrix}=\begin{bmatrix}
+a_1b_1&0&...&0 \\
+0&a_2b_2&...&0 \\
+...&...&...&...\\
+0&0&...&a_nb_n
+\end{bmatrix}</script>由性质7可知$\det A’B’=(a_1\cdot a_2\cdot …\cdot a_n)(b_1\cdot b_2\cdot …\cdot b_n)$，故$\det A’B’=\det A’ \det B’$。另一方面，$AB$转为$A’B’$的过程实际上就是分别左乘一个矩阵对$A$做行变换，再右乘一个矩阵对$B$做列变换，得到$A’B’$，由性质5可知$\det AB=\det A’B’$，故$\det AB = \det A \det B$。</li>
+</ul>
+<blockquote>
+<p>根据性质9，可以轻松求得$A$逆矩阵的行列式，因为$\det I=\det A^{-1} \cdot \det A=1$，所以行列式互为倒数（如果$A$不可逆，可以看出式子也不成立）。此外还可以看出$\det A^2=(\det A)^2$。</p>
+</blockquote>
+<ul>
+<li>性质10：$\det A^T=\det A$。<br>$A=LU$，可知$A^T=U^TL^T$，根据性质9：$\det A^T=\det U^T \det L^T, \det A=\det U \det L$，且已知三角阵转置后还是三角阵，故$\det U=\det U^T, \det L^T=\det L$，因此$\det A^T=\det A$。</li>
+</ul>
+<h2 id="二阶方阵的行列式"><a href="#二阶方阵的行列式" class="headerlink" title="二阶方阵的行列式"></a>二阶方阵的行列式</h2><p>根据上述的性质，我们可以很容易推出二阶方阵：$\begin{vmatrix}a&amp;b \c&amp;d\end{vmatrix}$的行列式为$ad-bc$。</p>
+<p>熟练掌握这些行列式的特性，不仅可以让我们快速求解行列式，还可以看出矩阵的变换与行列式变化的联动关系。</p>
+<h1 id="附录"><a href="#附录" class="headerlink" title="附录"></a>附录</h1><h2 id="视频"><a href="#视频" class="headerlink" title="视频"></a>视频</h2><p><iframe src="//player.bilibili.com/player.html?aid=382989698&bvid=BV16Z4y1U7oU&cid=570090316&p=18&autoplay=0" scrolling="no" border="0" width="100%" height="500" frameborder="no" framespacing="0" allowfullscreen="true"> </iframe></p>
+<h2 id="参考链接"><a href="#参考链接" class="headerlink" title="参考链接"></a>参考链接</h2><ul>
+<li><a target="_blank" rel="noopener" href="https://github.com/MLNLP-World/MIT-Linear-Algebra-Notes/blob/master/%5B18%2C19%5D%20%E8%A1%8C%E5%88%97%E5%BC%8F%E4%BB%8B%E7%BB%8D/%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B018%2C19.pdf">行列式介绍</a></li>
+<li><a target="_blank" rel="noopener" href="https://rqtn.github.io/2019/08/12/LA-Lec18/">行列式及其性质</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/kf-liu/The-Art-of-Linear-Algebra-zh-CN">线性代数的艺术</a></li>
 </ul>
 
                 
@@ -492,8 +388,8 @@ target="_blank" rel="noopener" href="https://github.com/kf-liu/The-Art-of-Linear
 
   <div class="license-box my-3">
     <div class="license-title">
-      <div>线性代数笔记(十七)——正交矩阵和Gram-Schmidt正交化</div>
-      <div>https://r00tk1ts.github.io/2023/09/26/线性代数笔记(十七)——正交矩阵和Gram-Schmidt正交化/</div>
+      <div>线性代数笔记(十八)——行列式及其性质</div>
+      <div>https://r00tk1ts.github.io/2023/09/27/线性代数笔记(十八)——行列式及其性质/</div>
     </div>
     <div class="license-meta">
       
@@ -505,7 +401,7 @@ target="_blank" rel="noopener" href="https://github.com/kf-liu/The-Art-of-Linear
       
         <div class="license-meta-item license-meta-date">
           <div>发布于</div>
-          <div>2023年9月26日</div>
+          <div>2023年9月27日</div>
         </div>
       
       
@@ -537,18 +433,12 @@ target="_blank" rel="noopener" href="https://github.com/kf-liu/The-Art-of-Linear
                   <article class="post-prev col-6">
                     
                     
-                      <a href="/2023/09/27/%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B0%E7%AC%94%E8%AE%B0(%E5%8D%81%E5%85%AB)%E2%80%94%E2%80%94%E8%A1%8C%E5%88%97%E5%BC%8F%E5%8F%8A%E5%85%B6%E6%80%A7%E8%B4%A8/" title="线性代数笔记(十八)——行列式及其性质">
-                        <i class="iconfont icon-arrowleft"></i>
-                        <span class="hidden-mobile">线性代数笔记(十八)——行列式及其性质</span>
-                        <span class="visible-mobile">上一篇</span>
-                      </a>
-                    
                   </article>
                   <article class="post-next col-6">
                     
                     
-                      <a href="/2023/09/25/%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B0%E7%AC%94%E8%AE%B0(%E5%8D%81%E5%85%AD)%E2%80%94%E2%80%94%E6%8A%95%E5%BD%B1%E7%9F%A9%E9%98%B5%E5%92%8C%E6%9C%80%E5%B0%8F%E4%BA%8C%E4%B9%98/" title="线性代数笔记(十六)——投影矩阵和最小二乘">
-                        <span class="hidden-mobile">线性代数笔记(十六)——投影矩阵和最小二乘</span>
+                      <a href="/2023/09/26/%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B0%E7%AC%94%E8%AE%B0(%E5%8D%81%E4%B8%83)%E2%80%94%E2%80%94%E6%AD%A3%E4%BA%A4%E7%9F%A9%E9%98%B5%E5%92%8CGram-Schmidt%E6%AD%A3%E4%BA%A4%E5%8C%96/" title="线性代数笔记(十七)——正交矩阵和Gram-Schmidt正交化">
+                        <span class="hidden-mobile">线性代数笔记(十七)——正交矩阵和Gram-Schmidt正交化</span>
                         <span class="visible-mobile">下一篇</span>
                         <i class="iconfont icon-arrowright"></i>
                       </a>
