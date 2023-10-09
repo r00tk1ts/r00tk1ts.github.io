@@ -16,25 +16,24 @@
   <meta name="author" content="r00tk1t">
   <meta name="keywords" content="">
   
-    <meta name="description" content="这一节从行列式的性质出发，对行列式三个方面的应用进行描述：求逆矩阵、克莱姆法则和体积。">
+    <meta name="description" content="本节讨论了线性代数中非常重要的两个概念：特征值与特征向量。">
 <meta property="og:type" content="article">
-<meta property="og:title" content="线性代数笔记(二十)——行列式应用">
-<meta property="og:url" content="https://r00tk1ts.github.io/2023/10/09/%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B0%E7%AC%94%E8%AE%B0(%E4%BA%8C%E5%8D%81)%E2%80%94%E2%80%94%E8%A1%8C%E5%88%97%E5%BC%8F%E5%BA%94%E7%94%A8/index.html">
+<meta property="og:title" content="线性代数笔记(二十一)——特征方程">
+<meta property="og:url" content="https://r00tk1ts.github.io/2023/10/09/%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B0%E7%AC%94%E8%AE%B0(%E4%BA%8C%E5%8D%81%E4%B8%80)%E2%80%94%E2%80%94%E7%89%B9%E5%BE%81%E6%96%B9%E7%A8%8B/index.html">
 <meta property="og:site_name" content="玉涵的技能书">
-<meta property="og:description" content="这一节从行列式的性质出发，对行列式三个方面的应用进行描述：求逆矩阵、克莱姆法则和体积。">
+<meta property="og:description" content="本节讨论了线性代数中非常重要的两个概念：特征值与特征向量。">
 <meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="https://r00tk1ts.github.io/2023/10/09/%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B0%E7%AC%94%E8%AE%B0(%E4%BA%8C%E5%8D%81)%E2%80%94%E2%80%94%E8%A1%8C%E5%88%97%E5%BC%8F%E5%BA%94%E7%94%A8/2023-10-09-14-21-48.png">
-<meta property="og:image" content="https://r00tk1ts.github.io/2023/10/09/%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B0%E7%AC%94%E8%AE%B0(%E4%BA%8C%E5%8D%81)%E2%80%94%E2%80%94%E8%A1%8C%E5%88%97%E5%BC%8F%E5%BA%94%E7%94%A8/2023-10-09-15-14-10.png">
-<meta property="article:published_time" content="2023-10-09T02:56:10.000Z">
-<meta property="article:modified_time" content="2023-10-09T07:14:24.851Z">
+<meta property="og:image" content="https://r00tk1ts.github.io/2023/10/09/%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B0%E7%AC%94%E8%AE%B0(%E4%BA%8C%E5%8D%81%E4%B8%80)%E2%80%94%E2%80%94%E7%89%B9%E5%BE%81%E6%96%B9%E7%A8%8B/2023-10-09-19-47-38.png">
+<meta property="article:published_time" content="2023-10-09T11:06:51.000Z">
+<meta property="article:modified_time" content="2023-10-09T12:03:04.545Z">
 <meta property="article:author" content="r00tk1t">
 <meta property="article:tag" content="MIT-18.06-linear_algebra">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="https://r00tk1ts.github.io/2023/10/09/%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B0%E7%AC%94%E8%AE%B0(%E4%BA%8C%E5%8D%81)%E2%80%94%E2%80%94%E8%A1%8C%E5%88%97%E5%BC%8F%E5%BA%94%E7%94%A8/2023-10-09-14-21-48.png">
+<meta name="twitter:image" content="https://r00tk1ts.github.io/2023/10/09/%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B0%E7%AC%94%E8%AE%B0(%E4%BA%8C%E5%8D%81%E4%B8%80)%E2%80%94%E2%80%94%E7%89%B9%E5%BE%81%E6%96%B9%E7%A8%8B/2023-10-09-19-47-38.png">
   
   
   
-  <title>线性代数笔记(二十)——行列式应用 - 玉涵的技能书</title>
+  <title>线性代数笔记(二十一)——特征方程 - 玉涵的技能书</title>
 
   <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
 
@@ -200,7 +199,7 @@
       <div class="banner-text text-center fade-in-up">
         <div class="h2">
           
-            <span id="subtitle" data-typed-text="线性代数笔记(二十)——行列式应用"></span>
+            <span id="subtitle" data-typed-text="线性代数笔记(二十一)——特征方程"></span>
           
         </div>
 
@@ -211,8 +210,8 @@
     
       <span class="post-meta">
         <i class="iconfont icon-date-fill" aria-hidden="true"></i>
-        <time datetime="2023-10-09 10:56" pubdate>
-          2023年10月9日 上午
+        <time datetime="2023-10-09 19:06" pubdate>
+          2023年10月9日 晚上
         </time>
       </span>
     
@@ -223,7 +222,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          3.6k 字
+          2.5k 字
         
       </span>
     
@@ -234,7 +233,7 @@
         
         
         
-          30 分钟
+          21 分钟
         
       </span>
     
@@ -271,166 +270,63 @@
       <div class="container nopadding-x-md" id="board-ctn">
         <div id="board">
           <article class="post-content mx-auto">
-            <h1 id="seo-header">线性代数笔记(二十)——行列式应用</h1>
+            <h1 id="seo-header">线性代数笔记(二十一)——特征方程</h1>
             
             
               <div class="markdown-body">
                 
-                <p>这一节从行列式的性质出发，对行列式三个方面的应用进行描述：求逆矩阵、克莱姆法则和体积。</p>
+                <p>本节讨论了线性代数中非常重要的两个概念：特征值与特征向量。</p>
 <span id="more"></span>
-<h1 id="行列式应用">行列式应用</h1>
-<h2 id="求逆矩阵">求逆矩阵</h2>
-<p>我们已经学过了用高斯-若尔当求逆矩阵的方法，尽管从实用角度出发高斯若尔当求逆法相当好用，但毕竟不够直观。而借助行列式，我们可以给出一个更直观的求逆矩阵的代数表达式：</p>
-<p><span class="math display">\[
-A^{-1}=\frac{1}{|A|}C^T
-\]</span></p>
-<p>这里的<span
-class="math inline">\(C\)</span>被称作代数余子式矩阵，矩阵的每个元素是由<span
-class="math inline">\(A\)</span>中对应位置元素的代数余子式组成，其转置矩阵一般也称其为伴随矩阵，记为<span
-class="math inline">\(C^T\)</span>。</p>
-<p>这一代数表达式的证明也很简单，两边同时左乘<span
-class="math inline">\(A\)</span>，则问题转化为证明：<span
-class="math inline">\(AC^T=|A|I\)</span>，展开观察： <span
-class="math display">\[
-AC^T=\begin{bmatrix}a_{11}&amp;...&amp;a_{1n} \\...&amp;...&amp;...\\
-a_{n1}&amp;...&amp;a_{nn}\end{bmatrix}\begin{bmatrix}
-C_{11}&amp;...&amp;C_{n1}\\ ...&amp;...&amp;...\\
-C_{1n}&amp;...&amp;C_{nn}\end{bmatrix}
-\]</span></p>
-<p>根据乘法运算，可以发现<span
-class="math inline">\(A\)</span>中每一个行向量与<span
-class="math inline">\(C^T\)</span>中对应列向量做内积后得到的正是<span
-class="math inline">\(\det(A)\)</span>（使用上一节的代数余子式计算行列式公式得到）。举个例子，第1行与第1列内积得到<span
-class="math inline">\(\det(A)\)</span>，第2行与第2列内积也得到<span
-class="math inline">\(\det(A)\)</span>，以此类推。因此，乘法运算得到的最终矩阵中主对角线上的元素都是<span
-class="math inline">\(\det(A)\)</span>：</p>
-<p><span class="math display">\[
-\begin{bmatrix}
-a_{11}&amp;...&amp;a_{1n} \\...&amp;...&amp;...\\
-a_{n1}&amp;...&amp;a_{nn}\end{bmatrix}\begin{bmatrix}
-C_{11}&amp;...&amp;C_{n1}\\ ...&amp;...&amp;...\\
-C_{1n}&amp;...&amp;C_{nn}\end{bmatrix}=\begin{bmatrix}
-|A|&amp;...&amp;...\\ ...&amp;|A|&amp;...\\
-...&amp;...&amp;|A|\end{bmatrix}
-\]</span></p>
-<p>再来观察其他位置，比如我们观察<span
-class="math inline">\(i=1,j=2\)</span>的元素，它是第1行与第2列的内积：<span
-class="math inline">\(a_{11}C_{21}+a_{12}C_{22}+...+a_{1n}C_{2n}\)</span>，类似主对角线的元素，思考一下：什么样的矩阵的行列式的代数余子式公式会这样展开呢？答案很简单：
-<span class="math display">\[
-\begin{bmatrix}
-a_{11}&amp;a_{12}&amp;...&amp;a_{1n}\\
-a_{11}&amp;a_{12}&amp;...&amp;a_{1n}\\
-a_{31}&amp;a_{32}&amp;...&amp;a_{3n}\\
-...&amp;...&amp;...\\
-a_{n1}&amp;a_{n2}&amp;...&amp;a_{nn}
-\end{bmatrix}
-\]</span></p>
-<p>对于上式展开形式，只需要将原本的矩阵<span
-class="math inline">\(A\)</span>中第二行全部换成第一行，再去求行列式，就刚好可写作<span
-class="math inline">\(a_{11}C_{21}+a_{12}C_{22}+...+a_{1n}C_{2n}\)</span>。另一方面，我们知道有相同两行的矩阵行列式值为0，因此，<span
-class="math inline">\(a_{11}C_{21}+a_{12}C_{22}+...+a_{1n}C_{2n}=0\)</span>。</p>
-<p>故最终的乘积矩阵中，主对角线元素皆为<span
-class="math inline">\(\det(A)\)</span>，其他元素皆为<span
-class="math inline">\(0\)</span>： <span class="math display">\[
-\begin{bmatrix}|A|&amp;0&amp;...&amp;0\\ 0&amp;|A|&amp;...&amp;0\\
-...&amp;...&amp;...&amp;...\\ 0&amp;0&amp;...&amp;|A|\end{bmatrix}
-\]</span></p>
-<p>综上，原式<span
-class="math inline">\(A^{-1}=\frac{1}{|A|}C^T\)</span>得证。根据逆矩阵公式，可以看到：当改变原矩阵中的元素时会给逆矩阵带来怎样的变化，具体表现为：<span
-class="math inline">\(det(A)\)</span>发生了改变、<span
-class="math inline">\(C^T\)</span>也发生了改变。</p>
-<h2 id="克莱姆法则">克莱姆法则</h2>
-<p>使用上述求逆矩阵公式，对于方程<span
-class="math inline">\(Ax=b\)</span>我们也可以不必使用消元法，而是换成逆矩阵公式来求解：
-<span class="math display">\[
-x=A^{-1}b=\frac{1}{|A|}C^Tb
-\]</span></p>
-<p>这里的<span
-class="math inline">\(C^Tb\)</span>展开就是每一个代数余子式<span
-class="math inline">\(C\)</span>乘<span
-class="math inline">\(b\)</span>的各个分量。余子式乘数字的形式是不是很眼熟？这不就是某个矩阵的行列式计算公式嘛。那么什么样的矩阵可以展开成这样的行列式计算式呢？这次从列的视角出发，我们将矩阵<span
-class="math inline">\(A\)</span>中<span
-class="math inline">\(C_i\)</span>对应列<span
-class="math inline">\(A_i\)</span>替换为<span
-class="math inline">\(b\)</span>，即可得到这样的计算式展开，我们将替换后的矩阵记为<span
-class="math inline">\(B_i\)</span>，于是有： <span
-class="math display">\[
-x_1=\frac{|B_1|}{|A|}, x_2=\frac{|B_2|}{|A|},
-x_3=\frac{|B_3|}{|A|}...,x_n=\frac{|B_n|}{|A|}
-\]</span></p>
-<p><span class="math inline">\(x\)</span>的每个分量都是对应的<span
-class="math inline">\(C_i^Tb\)</span>得到，因此，若想要求得每个分量的值，只需要构造矩阵<span
-class="math inline">\(B_i\)</span>并计算其行列式值即可。 <span
-class="math display">\[
-B_1=\begin{bmatrix}
-b_1&amp;a_{12}&amp;...&amp;a_{1n}\\
-b_2&amp;a_{22}&amp;...&amp;a_{2n}\\
-b_3&amp;a_{32}&amp;...&amp;a_{3n}\\
-...&amp;...&amp;...&amp;...\\
-b_n&amp;a_{n2}&amp;...&amp;a_{nn}
-\end{bmatrix}
-\]</span></p>
-<p>按第一列展开成代数余子式公式：即第一个分量<span
-class="math inline">\(x_1=\frac{C_1^Tb}{|A|}\)</span>，其中<span
-class="math inline">\(|B_1|=C_1^Tb\)</span>。即：<span
-class="math inline">\(|B_1|=b_1C_{11}+b_2C_{21}+...+b_nC_{n1}\)</span>。</p>
-<p>克莱姆法则很漂亮，但是并不实用。相对于消元法，如果使用克莱姆法则来求解<span
-class="math inline">\(Ax=b\)</span>，那么就需要求出共计<span
-class="math inline">\(n+1\)</span>个矩阵的行列式，这个计算量对人类来说太大了，但这种代数表达式的表示法可能对于计算机算法来说却更加友好，也更加具体。</p>
-<h2 id="体积">体积</h2>
-<p>对3阶矩阵<span
-class="math inline">\(A\)</span>，其行列式的绝对值<span
-class="math inline">\(|det(A)|\)</span>就是以矩阵<span
-class="math inline">\(A\)</span>行（列）向量为边所构成的平行六面体的体积。行列式的符号对应左手系和右手系。</p>
-<p><img src="2023-10-09-14-21-48.png" srcset="/img/loading.gif" lazyload /></p>
-<p>行列式的绝对值为什么等于体积呢？我们知道三大基础性质定义了行列式，因此如果我们能够证明体积也具有这三大性质，那么就可以知道体积一定等于行列式。</p>
-<h3 id="性质1">性质1</h3>
-<p>对单位阵<span class="math inline">\(I\)</span>来说，体积就是<span
-class="math inline">\(1\)</span>，这是显而易见的。</p>
-<h3 id="性质2">性质2</h3>
-<p>交换两行并不会改变空间六面体，绝对值也不变。</p>
-<h3 id="性质3a">性质3a</h3>
-<p>相当于对其中的某一边进行缩放，体积当然也跟着缩放系数进行缩放，这一点显然。</p>
-<h3 id="性质3b">性质3b</h3>
-<p>这个性质不太好证明，为了便捷我们这里在2阶矩阵上验证。</p>
-<p>对于二阶矩阵，行列式就是两条边组成的平行四边形的面积。</p>
-<p><img src="2023-10-09-15-14-10.png" srcset="/img/loading.gif" lazyload /></p>
-<p>从二维图像上可以看出，<span
-class="math inline">\((a+a&#39;,b+b&#39;)\)</span>与<span
-class="math inline">\((c,d)\)</span>围成的平行四边形的面积刚好就是<span
-class="math inline">\((a,b),(c,d)\)</span>围成的四边形与<span
-class="math inline">\((a&#39;,b&#39;),(c,d)\)</span>围成的四边形的总和。即：
-<span class="math display">\[
-\begin{vmatrix}a+a&#39;&amp;b+b&#39;\\
-c&amp;d\end{vmatrix}=\begin{vmatrix}
-a&amp;b\\ c&amp;d
-\end{vmatrix}+\begin{vmatrix}
-a&#39;&amp;b&#39;\\ c&amp;d
-\end{vmatrix}
-\]</span></p>
-<p>高维空间与此类似，本质上都是等价替换。</p>
-<h3 id="求三角形的面积">求三角形的面积</h3>
-<p>受此启发，对平面任意三点<span
-class="math inline">\((x_1,y_1),(x_2,y_2),(x_3,y_3)\)</span>构成的三角形围成的面积就是：<span
-class="math inline">\(\frac{1}{2}\begin{vmatrix}x_1&amp;y_1&amp;1\\
-x_2&amp;y_2&amp;1\\ x_3&amp;y_3&amp;1\end{vmatrix}\)</span>。</p>
-<blockquote>
-<p>第三列全为1相当于把平面投影到三维空间，而三点共面。</p>
-</blockquote>
-<p>再根据行列式性质令行2和行3减去行1，使得第三列除了首个元素外全归0，此时按代数余子式展开，得到面积值为：<span
-class="math inline">\(\frac{1}{2}((x_2-x_1)(y_3-y_1)-(x_3-x_1)(y_2-y_1))\)</span>。</p>
-<h1 id="附录">附录</h1>
-<h2 id="视频">视频</h2>
-<iframe src="//player.bilibili.com/player.html?aid=382989698&amp;bvid=BV16Z4y1U7oU&amp;cid=570093614&amp;p=20&amp;autoplay=0" scrolling="no" border="0" width="100%" height="500" frameborder="no" framespacing="0" allowfullscreen="true">
-</iframe>
-<h2 id="参考链接">参考链接</h2>
+<h1 id="特征方程"><a href="#特征方程" class="headerlink" title="特征方程"></a>特征方程</h1><p>对于$Ax=b$我们往往做这样的解读：矩阵$A$乘以向量$x$，实际上是让$A$作用到向量$x$上，得到新的向量$b$。这里的$A$像是一个函数，$x$作为输入，$b$作为输出。在诸多$Ax$当中，我们尤其对这样的一类特殊群体感兴趣：</p>
+<script type="math/tex; mode=display">
+Ax=\lambda x</script><p>对非零向量$x$来说，上式意味着$A$发生作用之后，$x$和$Ax$依然保持同一方向。<strong>此时，我们把满足这个条件的非零向量$x$称为$A$的特征向量，$\lambda$称为$A$的特征值。而上式则被称为特征方程。</strong></p>
+<h2 id="特征值-lambda-0"><a href="#特征值-lambda-0" class="headerlink" title="特征值$\lambda=0$"></a>特征值$\lambda=0$</h2><p>对特征方程来说，这里有个比较特殊的case：当$\lambda$为$0$时，易得$Ax=0$，即特征值为0的特征向量$x$位于$A$的零空间中。显然，对于奇异矩阵来说，必然存在非零向量满足$Ax=0$，这也就意味着：若矩阵$A$是奇异矩阵，那么它必有一个$\lambda=0$的特征值。</p>
+<h2 id="投影矩阵"><a href="#投影矩阵" class="headerlink" title="投影矩阵"></a>投影矩阵</h2><p>若矩阵$A$是一个投影矩阵（$P=A(A^TA)^{-1}A^T$），那么它的特征值有哪些呢？</p>
+<p>我们取比较特殊的向量：</p>
 <ul>
-<li><a
-target="_blank" rel="noopener" href="https://github.com/MLNLP-World/MIT-Linear-Algebra-Notes/blob/master/%5B20%5D%20%E5%85%8B%E8%8E%B1%E5%A7%86%E6%B3%95%E5%88%99%E3%80%81%E9%80%86%E7%9F%A9%E9%98%B5%E3%80%81%E4%BD%93%E7%A7%AF/%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B020.pdf">克莱姆法则、逆矩阵、体积</a></li>
-<li><a
-target="_blank" rel="noopener" href="https://rqtn.github.io/2019/08/31/LA-Lec20/">克拉默法则、逆矩阵、体积</a></li>
-<li><a
-target="_blank" rel="noopener" href="https://github.com/kf-liu/The-Art-of-Linear-Algebra-zh-CN">线性代数的艺术</a></li>
+<li>对于向量$b$在$P$上做投影，当且仅当$b$本身已经处于投影空间中时（也就是$P$的列空间），$Pb$才和$b$方向相同。因此，投影空间中的所有向量都是投影矩阵的特征向量，它们的特征值都是$1$。</li>
+<li>对于垂直于投影空间的法向量$e$，有$Pe=0$，因此投影空间的所有法向量（即$P$的左零空间）都是投影矩阵的特征向量，它们的特征值都是$0$。</li>
+</ul>
+<h2 id="二阶置换矩阵"><a href="#二阶置换矩阵" class="headerlink" title="二阶置换矩阵"></a>二阶置换矩阵</h2><p>二阶置换矩阵$A=\begin{bmatrix}0&amp;1\ 1&amp;0\end{bmatrix}$，它的作用是交换二维向量$x$的两个元素。根据特征值和特征向量的定义，使用瞪眼法可以看出：</p>
+<ul>
+<li>$A$有特征值为$1$的特征向量，$x_1=\begin{bmatrix}1\ 1\end{bmatrix}$。</li>
+<li>$A$有特征值为$-1$的特征向量，$x_2=\begin{bmatrix}-1\ 1\end{bmatrix}$</li>
+</ul>
+<h2 id="特征方程求解"><a href="#特征方程求解" class="headerlink" title="特征方程求解"></a>特征方程求解</h2><p>通用的求解方法可以对特征方程进行转化：$(A-\lambda I)x=0$，若$x$有非零解，则意味着$A-\lambda I$是奇异矩阵，故$\det(A-\lambda I)=0$。</p>
+<p>根据行列式展开生成的代数余子式，我们知道它是个$\lambda$的$n$次方程，因此$n$阶矩阵应有$n$个特征值，它们之中可能有相同的值，其中可能有实数，也可能有虚数。</p>
+<h3 id="示例"><a href="#示例" class="headerlink" title="示例"></a>示例</h3><p>比如有矩阵$A=\begin{bmatrix}3&amp;1\1&amp;3\end{bmatrix}$，求特征值和特征向量。</p>
+<p>解：</p>
+<p>构造矩阵$\begin{bmatrix}3-\lambda &amp;1\1&amp;3-\lambda \end{bmatrix}$，其行列式带入化简得：$\lambda ^2-6\lambda +8=0$。</p>
+<p>求得两个特征值$\lambda_1=4, \lambda_2=2$。带入求解特征向量分别为：$x_1=\begin{bmatrix}1\ 1\end{bmatrix}$，$x_2=\begin{bmatrix}-1\ 1\end{bmatrix}$。</p>
+<p>另一方面，我们也发现该矩阵和二阶置换矩阵相比，两个特征向量完全相同，只是特征值发生了偏移（全部增加了3个单位）。事实上，这其中有着这样的规律，考虑：$A=\begin{bmatrix}0&amp;1\1&amp;0\end{bmatrix}+3I$，原方程变为：$(A+3I)x=\lambda x+3x=(\lambda+3)x$，这里可以看出$x$前后是没有变化的，即特征向量不变，但新的特征值变为了$\lambda+3$。</p>
+<blockquote>
+<p>但是这一推理对于加一般矩阵$B$来说是不成立的，这是因为你无法保证$A$和$B$有同样的特征向量$x$，我们无法得出$(A+B)x=(\lambda+\alpha)x$的结论，这是因为本质上$x$有差异(应该写作$Ax=\lambda x, By=\alpha y$)。</p>
+</blockquote>
+<h3 id="特征值的性质"><a href="#特征值的性质" class="headerlink" title="特征值的性质"></a>特征值的性质</h3><p>上面的例子其实也能看出，特征值的和与积有着一些明显特性：</p>
+<ul>
+<li>矩阵的特征值之和等于矩阵的迹。</li>
+<li>矩阵的特征值之积等于矩阵的行列式。</li>
+</ul>
+<p>这两个性质的证明比较繁琐，但其本质就是韦达定理，这里限于篇幅不做展开论证。</p>
+<p><img src="2023-10-09-19-47-38.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<h3 id="旋转矩阵"><a href="#旋转矩阵" class="headerlink" title="旋转矩阵"></a>旋转矩阵</h3><p>对于旋转矩阵$Q=\begin{bmatrix}\cos90^\circ&amp;-sin90^\circ\ sin90^\circ&amp;cos90^\circ\end{bmatrix}=\begin{bmatrix}0&amp;-1\ 1&amp;0\end{bmatrix}$，作用到$x$可以让向量旋转$90^\circ$，利用特征值的性质，我们得到方程：</p>
+<script type="math/tex; mode=display">
+\begin{cases}
+\lambda_1+\lambda_2=0 \\
+\lambda_1\cdot\lambda_2=1
+\end{cases}</script><p>得到特征值$\lambda_1=i,\lambda_2=-i$。尽管矩阵全部都是实数，但得到的两个特征值却是虚数。</p>
+<blockquote>
+<p>实际上，矩阵如果是对称的，那么特征值一定都是实数。越接近对称，特征值就越可能是实数，相反，越不对称，比如像上例中的反对称矩阵($A^T=-A$)，其特征值往往是虚数。实数特征值让特征向量伸缩，而虚数则让其旋转。</p>
+</blockquote>
+<h3 id="上三角阵"><a href="#上三角阵" class="headerlink" title="上三角阵"></a>上三角阵</h3><p>上三角阵的情况更糟糕，有$A=\begin{bmatrix}3&amp;1\ 0&amp;3\end{bmatrix}$，求特征值和特征向量。</p>
+<p>带入$\det(A-\lambda I)=0$，得到$\lambda_1=\lambda_2=3$，此时两个特征值相等，意味着特征向量相同（都是$x=\begin{bmatrix}1\ 0\end{bmatrix}$）。</p>
+<p>对于这种二阶退化矩阵，我们只能找到一个方向上的特征向量而非两个。推广到高阶，对特化矩阵而言，重复的特征值会导致特征向量的缺失。</p>
+<h1 id="附录"><a href="#附录" class="headerlink" title="附录"></a>附录</h1><h2 id="视频"><a href="#视频" class="headerlink" title="视频"></a>视频</h2><iframe src="//player.bilibili.com/player.html?aid=382989698&bvid=BV16Z4y1U7oU&cid=570098690&p=21&autoplay=0" scrolling="no" width="100%" height="500" border="0" frameborder="no" framespacing="0" allowfullscreen="true"> </iframe>
+
+<h2 id="参考链接"><a href="#参考链接" class="headerlink" title="参考链接"></a>参考链接</h2><ul>
+<li><a target="_blank" rel="noopener" href="https://github.com/MLNLP-World/MIT-Linear-Algebra-Notes/blob/master/%5B21%5D%20%E7%89%B9%E5%BE%81%E5%80%BC%E5%92%8C%E7%89%B9%E5%BE%81%E5%90%91%E9%87%8F/%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B021.pdf">特征值和特征向量</a></li>
+<li><a target="_blank" rel="noopener" href="https://rqtn.github.io/2019/09/01/LA-Lec21/">特征值和特征向量</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/kf-liu/The-Art-of-Linear-Algebra-zh-CN">线性代数的艺术</a></li>
 </ul>
 
                 
@@ -477,8 +373,8 @@ target="_blank" rel="noopener" href="https://github.com/kf-liu/The-Art-of-Linear
 
   <div class="license-box my-3">
     <div class="license-title">
-      <div>线性代数笔记(二十)——行列式应用</div>
-      <div>https://r00tk1ts.github.io/2023/10/09/线性代数笔记(二十)——行列式应用/</div>
+      <div>线性代数笔记(二十一)——特征方程</div>
+      <div>https://r00tk1ts.github.io/2023/10/09/线性代数笔记(二十一)——特征方程/</div>
     </div>
     <div class="license-meta">
       
@@ -522,18 +418,12 @@ target="_blank" rel="noopener" href="https://github.com/kf-liu/The-Art-of-Linear
                   <article class="post-prev col-6">
                     
                     
-                      <a href="/2023/10/09/%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B0%E7%AC%94%E8%AE%B0(%E4%BA%8C%E5%8D%81%E4%B8%80)%E2%80%94%E2%80%94%E7%89%B9%E5%BE%81%E6%96%B9%E7%A8%8B/" title="线性代数笔记(二十一)——特征方程">
-                        <i class="iconfont icon-arrowleft"></i>
-                        <span class="hidden-mobile">线性代数笔记(二十一)——特征方程</span>
-                        <span class="visible-mobile">上一篇</span>
-                      </a>
-                    
                   </article>
                   <article class="post-next col-6">
                     
                     
-                      <a href="/2023/09/28/%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B0%E7%AC%94%E8%AE%B0(%E5%8D%81%E4%B9%9D)%E2%80%94%E2%80%94%E8%A1%8C%E5%88%97%E5%BC%8F%E5%85%AC%E5%BC%8F/" title="线性代数笔记(十九)——行列式公式">
-                        <span class="hidden-mobile">线性代数笔记(十九)——行列式公式</span>
+                      <a href="/2023/10/09/%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B0%E7%AC%94%E8%AE%B0(%E4%BA%8C%E5%8D%81)%E2%80%94%E2%80%94%E8%A1%8C%E5%88%97%E5%BC%8F%E5%BA%94%E7%94%A8/" title="线性代数笔记(二十)——行列式应用">
+                        <span class="hidden-mobile">线性代数笔记(二十)——行列式应用</span>
                         <span class="visible-mobile">下一篇</span>
                         <i class="iconfont icon-arrowright"></i>
                       </a>
