@@ -16,17 +16,17 @@
   <meta name="author" content="r00tk1t">
   <meta name="keywords" content="">
   
-    <meta name="description" content="在上一讲的基础上继续深度展开。 投影矩阵和最小二乘 上一讲已经渗透了投影矩阵的概念，并以简单的线性回归作为示例，对最小二乘法和投影矩阵加以联系。 投影矩阵 投影矩阵\(P&#x3D;A(A^TA)^{-1}A^T\)，其物理意义是将向量\(b\)投影到\(A\)的列空间中。 投影有两种极限情况：  如果\(b\)本身就在\(A\)的列空间中，那么\(Pb&#x3D;b\)，此时\(P&#x3D;I\)。 如果\(b\)垂直于\">
+    <meta name="description" content="在上一讲的基础上继续深度展开。">
 <meta property="og:type" content="article">
 <meta property="og:title" content="线性代数笔记(十六)——投影矩阵和最小二乘">
 <meta property="og:url" content="https://r00tk1ts.github.io/2023/09/25/%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B0%E7%AC%94%E8%AE%B0(%E5%8D%81%E5%85%AD)%E2%80%94%E2%80%94%E6%8A%95%E5%BD%B1%E7%9F%A9%E9%98%B5%E5%92%8C%E6%9C%80%E5%B0%8F%E4%BA%8C%E4%B9%98/index.html">
 <meta property="og:site_name" content="玉涵的技能书">
-<meta property="og:description" content="在上一讲的基础上继续深度展开。 投影矩阵和最小二乘 上一讲已经渗透了投影矩阵的概念，并以简单的线性回归作为示例，对最小二乘法和投影矩阵加以联系。 投影矩阵 投影矩阵\(P&#x3D;A(A^TA)^{-1}A^T\)，其物理意义是将向量\(b\)投影到\(A\)的列空间中。 投影有两种极限情况：  如果\(b\)本身就在\(A\)的列空间中，那么\(Pb&#x3D;b\)，此时\(P&#x3D;I\)。 如果\(b\)垂直于\">
+<meta property="og:description" content="在上一讲的基础上继续深度展开。">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://r00tk1ts.github.io/2023/09/25/%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B0%E7%AC%94%E8%AE%B0(%E5%8D%81%E5%85%AD)%E2%80%94%E2%80%94%E6%8A%95%E5%BD%B1%E7%9F%A9%E9%98%B5%E5%92%8C%E6%9C%80%E5%B0%8F%E4%BA%8C%E4%B9%98/2023-09-25-16-19-32.png">
 <meta property="og:image" content="https://r00tk1ts.github.io/2023/09/25/%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B0%E7%AC%94%E8%AE%B0(%E5%8D%81%E5%85%AD)%E2%80%94%E2%80%94%E6%8A%95%E5%BD%B1%E7%9F%A9%E9%98%B5%E5%92%8C%E6%9C%80%E5%B0%8F%E4%BA%8C%E4%B9%98/2023-09-26-12-02-09.png">
 <meta property="article:published_time" content="2023-09-25T07:51:39.000Z">
-<meta property="article:modified_time" content="2023-09-26T04:46:03.950Z">
+<meta property="article:modified_time" content="2023-10-09T02:57:48.306Z">
 <meta property="article:author" content="r00tk1t">
 <meta property="article:tag" content="MIT-18.06-linear_algebra">
 <meta name="twitter:card" content="summary_large_image">
@@ -277,6 +277,7 @@
               <div class="markdown-body">
                 
                 <p>在上一讲的基础上继续深度展开。</p>
+<span id="more"></span>
 <h1 id="投影矩阵和最小二乘">投影矩阵和最小二乘</h1>
 <p>上一讲已经渗透了投影矩阵的概念，并以简单的线性回归作为示例，对最小二乘法和投影矩阵加以联系。</p>
 <h2 id="投影矩阵">投影矩阵</h2>

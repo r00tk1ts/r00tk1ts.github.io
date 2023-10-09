@@ -16,16 +16,16 @@
   <meta name="author" content="r00tk1t">
   <meta name="keywords" content="">
   
-    <meta name="description" content="书接上一回标准正交基，讲述了该正交向量组的特性与优势，并介绍了一种将一组向量标准化为标准正交向量组的重要方法：Gram-Schmidt正交化。 正交矩阵和Gram-Schmidt正交化 标准正交基 标准正交向量组构成的空间基被称为标准正交基，它有两个特性：对标准正交向量组中任意向量\(q\)，有： \[ \begin{cases} q_i^Tq_j&#x3D;0 \space (i\neq j) \\ q_">
+    <meta name="description" content="书接上一回标准正交基，讲述了该正交向量组的特性与优势，并介绍了一种将一组向量标准化为标准正交向量组的重要方法：Gram-Schmidt正交化。">
 <meta property="og:type" content="article">
 <meta property="og:title" content="线性代数笔记(十七)——正交矩阵和Gram-Schmidt正交化">
 <meta property="og:url" content="https://r00tk1ts.github.io/2023/09/26/%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B0%E7%AC%94%E8%AE%B0(%E5%8D%81%E4%B8%83)%E2%80%94%E2%80%94%E6%AD%A3%E4%BA%A4%E7%9F%A9%E9%98%B5%E5%92%8CGram-Schmidt%E6%AD%A3%E4%BA%A4%E5%8C%96/index.html">
 <meta property="og:site_name" content="玉涵的技能书">
-<meta property="og:description" content="书接上一回标准正交基，讲述了该正交向量组的特性与优势，并介绍了一种将一组向量标准化为标准正交向量组的重要方法：Gram-Schmidt正交化。 正交矩阵和Gram-Schmidt正交化 标准正交基 标准正交向量组构成的空间基被称为标准正交基，它有两个特性：对标准正交向量组中任意向量\(q\)，有： \[ \begin{cases} q_i^Tq_j&#x3D;0 \space (i\neq j) \\ q_">
+<meta property="og:description" content="书接上一回标准正交基，讲述了该正交向量组的特性与优势，并介绍了一种将一组向量标准化为标准正交向量组的重要方法：Gram-Schmidt正交化。">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://r00tk1ts.github.io/2023/09/26/%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B0%E7%AC%94%E8%AE%B0(%E5%8D%81%E4%B8%83)%E2%80%94%E2%80%94%E6%AD%A3%E4%BA%A4%E7%9F%A9%E9%98%B5%E5%92%8CGram-Schmidt%E6%AD%A3%E4%BA%A4%E5%8C%96/2023-09-26-16-02-58.png">
 <meta property="article:published_time" content="2023-09-26T07:08:39.000Z">
-<meta property="article:modified_time" content="2023-09-26T08:31:16.418Z">
+<meta property="article:modified_time" content="2023-10-09T02:57:52.610Z">
 <meta property="article:author" content="r00tk1t">
 <meta property="article:tag" content="MIT-18.06-linear_algebra">
 <meta name="twitter:card" content="summary_large_image">
@@ -276,6 +276,7 @@
               <div class="markdown-body">
                 
                 <p>书接上一回标准正交基，讲述了该正交向量组的特性与优势，并介绍了一种将一组向量标准化为标准正交向量组的重要方法：Gram-Schmidt正交化。</p>
+<span id="more"></span>
 <h1 id="正交矩阵和gram-schmidt正交化">正交矩阵和Gram-Schmidt正交化</h1>
 <h2 id="标准正交基">标准正交基</h2>
 <p>标准正交向量组构成的空间基被称为标准正交基，它有两个特性：对标准正交向量组中任意向量<span
