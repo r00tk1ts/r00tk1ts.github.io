@@ -16,22 +16,22 @@
   <meta name="author" content="r00tk1t">
   <meta name="keywords" content="">
   
-    <meta name="description" content="书接上回，对分解出的特征值和特征向量加以利用，利用特征向量构成的可逆矩阵\(S\)对矩阵\(A\)做对角化，抽离出特征值和特征向量矩阵。这一手法在研究矩阵的幂时非常有用，我们可以惊奇的发现对角化之后，矩阵的幂仅仅改变的是特征值，特征向量却没有发生变化。利用这一手法，我们可以构造对角矩阵来解决很多问题，比如：差分方程、斐波那契数列。">
+    <meta name="description" content="一阶线性常微分方程可以通过矩阵的特征分解来求解，将微分方程抽象成矩阵，类似于上一讲差分方程的\(u_k&#x3D;A^ku_0\)，分解出对应系数而得到围绕\(e^{Ax}\)的通解。">
 <meta property="og:type" content="article">
-<meta property="og:title" content="线性代数笔记(二十二)——对角化与A的幂">
-<meta property="og:url" content="https://r00tk1ts.github.io/2023/10/10/%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B0%E7%AC%94%E8%AE%B0(%E4%BA%8C%E5%8D%81%E4%BA%8C)%E2%80%94%E2%80%94%E5%AF%B9%E8%A7%92%E5%8C%96%E4%B8%8EA%E7%9A%84%E5%B9%82/index.html">
+<meta property="og:title" content="线性代数笔记(二十三)——微分方程">
+<meta property="og:url" content="https://r00tk1ts.github.io/2023/10/11/%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B0%E7%AC%94%E8%AE%B0(%E4%BA%8C%E5%8D%81%E4%B8%89)%E2%80%94%E2%80%94%E5%BE%AE%E5%88%86%E6%96%B9%E7%A8%8B/index.html">
 <meta property="og:site_name" content="玉涵的技能书">
-<meta property="og:description" content="书接上回，对分解出的特征值和特征向量加以利用，利用特征向量构成的可逆矩阵\(S\)对矩阵\(A\)做对角化，抽离出特征值和特征向量矩阵。这一手法在研究矩阵的幂时非常有用，我们可以惊奇的发现对角化之后，矩阵的幂仅仅改变的是特征值，特征向量却没有发生变化。利用这一手法，我们可以构造对角矩阵来解决很多问题，比如：差分方程、斐波那契数列。">
+<meta property="og:description" content="一阶线性常微分方程可以通过矩阵的特征分解来求解，将微分方程抽象成矩阵，类似于上一讲差分方程的\(u_k&#x3D;A^ku_0\)，分解出对应系数而得到围绕\(e^{Ax}\)的通解。">
 <meta property="og:locale" content="zh_CN">
-<meta property="article:published_time" content="2023-10-10T06:45:37.000Z">
-<meta property="article:modified_time" content="2023-10-10T07:58:18.177Z">
+<meta property="article:published_time" content="2023-10-11T11:07:14.000Z">
+<meta property="article:modified_time" content="2023-10-11T12:24:49.168Z">
 <meta property="article:author" content="r00tk1t">
 <meta property="article:tag" content="MIT-18.06-linear_algebra">
 <meta name="twitter:card" content="summary_large_image">
   
   
   
-  <title>线性代数笔记(二十二)——对角化与A的幂 - 玉涵的技能书</title>
+  <title>线性代数笔记(二十三)——微分方程 - 玉涵的技能书</title>
 
   <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
 
@@ -197,7 +197,7 @@
       <div class="banner-text text-center fade-in-up">
         <div class="h2">
           
-            <span id="subtitle" data-typed-text="线性代数笔记(二十二)——对角化与A的幂"></span>
+            <span id="subtitle" data-typed-text="线性代数笔记(二十三)——微分方程"></span>
           
         </div>
 
@@ -208,8 +208,8 @@
     
       <span class="post-meta">
         <i class="iconfont icon-date-fill" aria-hidden="true"></i>
-        <time datetime="2023-10-10 14:45" pubdate>
-          2023年10月10日 下午
+        <time datetime="2023-10-11 19:07" pubdate>
+          2023年10月11日 晚上
         </time>
       </span>
     
@@ -220,7 +220,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          4.4k 字
+          3.9k 字
         
       </span>
     
@@ -231,7 +231,7 @@
         
         
         
-          37 分钟
+          33 分钟
         
       </span>
     
@@ -268,217 +268,204 @@
       <div class="container nopadding-x-md" id="board-ctn">
         <div id="board">
           <article class="post-content mx-auto">
-            <h1 id="seo-header">线性代数笔记(二十二)——对角化与A的幂</h1>
+            <h1 id="seo-header">线性代数笔记(二十三)——微分方程</h1>
             
             
               <div class="markdown-body">
                 
-                <p>书接上回，对分解出的特征值和特征向量加以利用，利用特征向量构成的可逆矩阵<span
-class="math inline">\(S\)</span>对矩阵<span
-class="math inline">\(A\)</span>做对角化，抽离出特征值和特征向量矩阵。这一手法在研究矩阵的幂时非常有用，我们可以惊奇的发现对角化之后，矩阵的幂仅仅改变的是特征值，特征向量却没有发生变化。利用这一手法，我们可以构造对角矩阵来解决很多问题，比如：差分方程、斐波那契数列。</p>
+                <p>一阶线性常微分方程可以通过矩阵的特征分解来求解，将微分方程抽象成矩阵，类似于上一讲差分方程的<span
+class="math inline">\(u_k=A^ku_0\)</span>，分解出对应系数而得到围绕<span
+class="math inline">\(e^{Ax}\)</span>的通解。</p>
 <span id="more"></span>
-<h1 id="对角化和a的幂">对角化和A的幂</h1>
-<p>我们此前学过很多种矩阵<span
-class="math inline">\(A\)</span>的分解，比如<span
-class="math inline">\(LU\)</span>分解，<span
-class="math inline">\(QR\)</span>分解，它们都在特定的场景发挥作用。在我们学习了特征值与特征向量以后，还可以对矩阵<span
-class="math inline">\(A\)</span>进行对角化分解。</p>
-<h2 id="对角化">对角化</h2>
-<p>过程如下：</p>
-<ol type="1">
-<li>首先要求<span class="math inline">\(A\)</span>有<span
-class="math inline">\(n\)</span>个线性无关的特征向量，用它们构成矩阵<span
-class="math inline">\(S=\begin{bmatrix}x_1&amp;x_2&amp;...&amp;x_n\end{bmatrix}\)</span>，我们称<span
-class="math inline">\(S\)</span>为特征向量矩阵。</li>
-<li>构造<span
-class="math inline">\(AS=A\begin{bmatrix}x_1&amp;x_2&amp;...&amp;x_n\end{bmatrix}\)</span>，根据特征值的定义，得到：<span
-class="math inline">\(A\begin{bmatrix}x_1&amp;x_2&amp;...&amp;x_n\end{bmatrix}=\begin{bmatrix}\lambda_1x_1&amp;\lambda_2x_2&amp;...&amp;\lambda_n
-x_n\end{bmatrix}\)</span>。这一方程相当于把每一个<span
-class="math inline">\(Ax_i=\lambda_i x_i\)</span>组合起来。</li>
-<li><span
-class="math inline">\(\begin{bmatrix}\lambda_1x_1&amp;\lambda_2x_2&amp;...&amp;\lambda_n
-x_n\end{bmatrix}\)</span>可以展开成：<span
-class="math inline">\(\begin{bmatrix}x_1&amp;x_2&amp;...&amp;x_n\end{bmatrix}\begin{bmatrix}\lambda_1&amp;0&amp;...&amp;0\\
-0&amp;\lambda_2&amp;...&amp;0\\ ...&amp;...&amp;...&amp;...\\
-0&amp;0&amp;...&amp;\lambda_n
-\end{bmatrix}\)</span>，我们把这个由特征值构成的矩阵记为<span
-class="math inline">\(\Lambda\)</span>，于是有：<span
-class="math inline">\(AS=S\Lambda\)</span>。</li>
-<li><span
-class="math inline">\(S\)</span>的各列向量（也就是特征向量）都是线性无关的，因此<span
-class="math inline">\(S\)</span>可逆，故：<span
-class="math inline">\(S^{-1}AS=\Lambda\)</span>；同理，翻转可得：<span
-class="math inline">\(A=S\Lambda S^{-1}\)</span>。</li>
-</ol>
-<p>如此，我们就得到了矩阵<span
-class="math inline">\(A\)</span>的一种新型分解方式，根据这一分解手法，我们可以看出矩阵<span
-class="math inline">\(A\)</span>与其特征向量、特征值的关联。由于特征值构成的<span
-class="math inline">\(\Lambda\)</span>矩阵只有对角线有值（且为特征值），故这一分解过程被称之为——对角化。</p>
-<h2 id="a的幂">A的幂</h2>
-<p>对角化的分解方式有什么用呢？仔细观察<span
-class="math inline">\(A=S\Lambda
-S^{-1}\)</span>的形式，我们可以发现在计算<span
-class="math inline">\(A\)</span>的幂时这一分解非常好用：</p>
-<ul>
-<li>考虑<span class="math inline">\(A^2\)</span>，有：<span
-class="math inline">\(A^2=S\Lambda S^{-1}S\Lambda
-S^{-1}=S\Lambda^2S^{-1}\)</span>，这意味着进行幂运算的前后，特征向量没有发生改变，而特征值进行了幂运算。</li>
-<li>推广到<span class="math inline">\(A^n\)</span>，不难得到<span
-class="math inline">\(A^n=S\Lambda^nS^{-1}\)</span>。</li>
-</ul>
-<blockquote>
-<p>这与上一节我们观察得到的：<span class="math inline">\(A^2x=A\lambda
-x=\lambda^2x\)</span>如出一辙。</p>
-</blockquote>
-<h3 id="性质延展">性质延展</h3>
-<p>根据这一性质，我们可以解答这样一个问题：什么条件下，能够让矩阵<span
-class="math inline">\(A\)</span>的幂<span
-class="math inline">\(A^k\)</span>，在<span
-class="math inline">\(k\)</span>趋于<span
-class="math inline">\(\infty\)</span>时，趋近于<span
-class="math inline">\(0\)</span>？</p>
-<p>根据这一分解，答案也就显而易见了：所有的特征值都满足<span
-class="math inline">\(|\lambda_i|&lt;1\)</span>时。</p>
-<p>当然，这里的<span class="math inline">\(A\)</span>需要有<span
-class="math inline">\(n\)</span>个线性无关的特征向量，这个是前提。</p>
-<p>正如上一节的提醒：<span
-class="math inline">\(n\)</span>阶矩阵能否成功对角化分解取决于是否有<span
-class="math inline">\(n\)</span>个线性无关的特征向量，而特征向量与特征值之间有着紧密的关系：</p>
-<ul>
-<li>若矩阵<span
-class="math inline">\(A\)</span>没有重复的特征值，那么就一定有<span
-class="math inline">\(n\)</span>个线性无关的特征向量（不同的特征值对应的特征向量线性无关）。</li>
-<li>若有重复的特征值，则矩阵是否有<span
-class="math inline">\(n\)</span>个线性无关的特征向量尚待考究。</li>
-</ul>
-<blockquote>
-<p>本节不对拥有重复特征值的<span
-class="math inline">\(A\)</span>做展开，那是另一个更加深入的话题。</p>
-</blockquote>
-<h3 id="差分方程">差分方程</h3>
-<p>今有向量<span
-class="math inline">\(u_{k+1}=Au_k\)</span>，通项易得：<span
-class="math inline">\(u_k=A^ku_0\)</span>。这是一个一阶差分方程组。</p>
-<p>想要求解这一方程，需要将向量<span
-class="math inline">\(u_0\)</span>拆解成矩阵<span
-class="math inline">\(A\)</span>的线性无关的<span
-class="math inline">\(n\)</span>个特征向量的线性组合： <span
-class="math display">\[
-u_0=c_1x_1+c_2x_2+...+c_nx_n=\begin{bmatrix}
-x_1&amp;x_2&amp;...&amp;x_n\end{bmatrix}\begin{bmatrix}
-c_1\\ c_2\\ ...\\ c_n\end{bmatrix}=Sc
-\]</span></p>
-<p>我们把每一个系数构成的向量记为<span
-class="math inline">\(c\)</span>。</p>
-<p>根据特征方程： <span class="math display">\[
-Au_0=c_1Ax_1+c_2Ax_2+...+c_nAx_n=c_1\lambda_1x_1+c_2\lambda_2x_2+...+c_n\lambda_nx_n
-\]</span></p>
-<p>上式展开成矩阵乘法写作： <span class="math display">\[
-Au_0=\begin{bmatrix}
-x_1&amp;x_2&amp;...&amp;x_n
-\end{bmatrix}\begin{bmatrix}
-\lambda_1&amp;0&amp;...&amp;0 \\
-0&amp;\lambda_2&amp;...&amp;0 \\
-...&amp;...&amp;...&amp;... \\
-0&amp;0&amp;...&amp;\lambda_n
-\end{bmatrix}\begin{bmatrix}
-c_1 \\
-c_2 \\
-... \\
-c_n
-\end{bmatrix}=S\Lambda c
-\]</span></p>
-<blockquote>
-<p>相当于用对角化分解直接带入：<span class="math inline">\(Au_0=S\Lambda
-S^{-1}u_0=S\Lambda S^{-1}Sc=S\Lambda
-c\)</span>，只不过上述的展开更加立体。</p>
-</blockquote>
-<p>因此，对于<span class="math inline">\(u_k\)</span>，只需要将<span
-class="math inline">\(\lambda\)</span>做幂运算，保持<span
-class="math inline">\(c\)</span>和特征向量矩阵<span
-class="math inline">\(S\)</span>不变，即可得到。即：<span
-class="math inline">\(u_k=A^{k}u_0=S\Lambda^k
-c=c_1\lambda_1^kx_1+c_2\lambda_2^kx_2+...+c_n\lambda_n^kx_n\)</span>。</p>
-<h3 id="斐波那契数列">斐波那契数列</h3>
-<p>借助差分方程的通项计算方法，我们可以通过构造矩阵<span
-class="math inline">\(A\)</span>来求解斐波那契数列的通项。</p>
-<p>对<span
-class="math inline">\(F_{k+2}=F_{k}+F_{k+1}\)</span>，我们需要把他转化成<span
-class="math inline">\(u_{k+1}=Au_k\)</span>的形式。怎么操作呢？可以借助这样一个小技巧：
-<span class="math display">\[
-令u_k=\begin{bmatrix}F_{k+1}\\ F_{k}\end{bmatrix}
-\]</span></p>
-<p>追加一个方程组成方程组： <span class="math display">\[
+<h1 id="微分方程">微分方程</h1>
+<p>给定微分方程： <span class="math display">\[
 \begin{cases}
-F_{k+2}=F_{k}+F_{k+1} \\
-F_{k+1}=F_{k+1}
+\frac{\mathrm{d} u_1}{\mathrm{d} t}=-u_1+2u_2 \\
+\frac{\mathrm{d} u_2}{\mathrm{d} t}=u_1-2u_2  
+\end{cases}
+\]</span> 已知<span class="math inline">\(u(0)=\begin{bmatrix}1 \\
+0\end{bmatrix}\)</span>，求<span
+class="math inline">\(u(t)\)</span>。</p>
+<h2 id="微分方程的矩阵解法">微分方程的矩阵解法</h2>
+<p>方程写作<span class="math inline">\(\frac{\mathrm{d} u}{\mathrm{d}
+t}=Au\)</span>,其中<span class="math inline">\(A=\begin{bmatrix}-1&amp;2
+\\ 1&amp;-2\end{bmatrix}\)</span>。很明显<span
+class="math inline">\(A\)</span>是奇异矩阵，它的两个特征值分别是<span
+class="math inline">\(\lambda_1=0\)</span>和<span
+class="math inline">\(\lambda_2=-3\)</span>。</p>
+<p>带入特征值求特征向量，易得<span
+class="math inline">\(x_1=\begin{bmatrix}2 \\
+1\end{bmatrix},x_2=\begin{bmatrix}1 \\ -1\end{bmatrix}\)</span>。</p>
+<p>因此，方程组的通解为：<span
+class="math inline">\(u(t)=c_1e^{\lambda_1t}x_1+c_2e^{\lambda_2t}x_2\)</span>。</p>
+<blockquote>
+<p>这里是根据微分方程通解的形式，带入特征值和特征向量大胆猜测了二者之间的关系。我们可以带入原式来验证一下：<span
+class="math inline">\(取u=e^{\lambda_1t}x_1\)</span>带入<span
+class="math inline">\(\frac{\mathrm{d} u}{\mathrm{d}
+t}=Au\)</span>，得到<span
+class="math inline">\(\lambda_1e^{\lambda_1t}x_1=Ae^{\lambda_1t}x_1\)</span>，由于<span
+class="math inline">\(e^{\lambda_1t}\)</span>是个常数，因此化简后就是<span
+class="math inline">\(\lambda_1x_1=Ax_1\)</span>的形式。同理可以得到<span
+class="math inline">\(\lambda_2x_2=Ax_2\)</span>，带入得到的就是<span
+class="math inline">\(A\)</span>的特征方程，因此通解正是<span
+class="math inline">\(u(t)=c_1e^{\lambda_1t}x_1+c_2e^{\lambda_2t}x_2\)</span>。</p>
+</blockquote>
+<p>根据初始态<span
+class="math inline">\(u(0)\)</span>的值，我们带入可以求得系数<span
+class="math inline">\(c\)</span>，分别得到:<span
+class="math inline">\(c_1=\frac{1}{3},c_2=\frac{1}{3}\)</span>。</p>
+<p>综上，该微分方程的通解为：<span
+class="math inline">\(u(t)=\frac{1}{3}\begin{bmatrix}2
+\\1\end{bmatrix}+\frac{1}{3}e^{-3t}\begin{bmatrix}1
+\\-1\end{bmatrix}\)</span>。</p>
+<blockquote>
+<p>观察该通解，可以发现随着时间<span
+class="math inline">\(t\)</span>的流逝，最终的<span
+class="math inline">\(u(t)\)</span>会无线趋近于<span
+class="math inline">\(\frac{1}{3}\begin{bmatrix}2
+\\1\end{bmatrix}\)</span>。这一现象我们称之为趋于稳态。实际上，在做特征值分解时我们就可以观察到，由于<span
+class="math inline">\(A\)</span>是奇异矩阵，它的特征值其一是<span
+class="math inline">\(0\)</span>，此时<span
+class="math inline">\(e^{\lambda_1t}\)</span>始终为1，而另一个特征值是小于<span
+class="math inline">\(0\)</span>的，此时<span
+class="math inline">\(e^{\lambda_2t}\)</span>随着<span
+class="math inline">\(t\)</span>增大而无线趋近于<span
+class="math inline">\(0\)</span>。</p>
+</blockquote>
+<blockquote>
+<p><span class="math inline">\(u(0)\)</span>一开始，<span
+class="math inline">\(u_1=1,
+u_2=0\)</span>，该微分方程的物理意义在于，随着时间的流逝，<span
+class="math inline">\(u_1\)</span>逐渐减少直到趋近于<span
+class="math inline">\(\frac{2}{3}\)</span>，<span
+class="math inline">\(u_2\)</span>逐渐增加直到趋近于<span
+class="math inline">\(\frac{1}{3}\)</span>，<span
+class="math inline">\(u_1\)</span>的值在朝着<span
+class="math inline">\(u_2\)</span>流去，此消彼涨。</p>
+</blockquote>
+<h3 id="特征值与状态的关系">特征值与状态的关系</h3>
+<p>根据微分方程通解的形式，我们总结出以下结论：</p>
+<ul>
+<li>当特征值的实部全都是负数时，<span
+class="math inline">\(u(t)\)</span>将趋于<span
+class="math inline">\(0\)</span>。这里值得注意的是，对于复数特征值<span
+class="math inline">\(a+bi\)</span>的形式，只有实数部分会影响<span
+class="math inline">\(u(t)\)</span>的走势，虚数部分并不会影响。
+<ul>
+<li>比如<span class="math inline">\(\lambda=-3+6i\)</span>，计算<span
+class="math inline">\(|e^{(-3+6i)t}|\)</span>，其中<span
+class="math inline">\(e^{6it}\)</span>部分是<span
+class="math inline">\(|\cos6t+i\sin6t|=1\)</span>，这个虚部不管是什么值，他始终在复平面的单位圆上转圈。</li>
+</ul></li>
+<li>如果有一个为<span
+class="math inline">\(0\)</span>的特征值，且其他特征值的实部皆小于<span
+class="math inline">\(0\)</span>，则最终<span
+class="math inline">\(u(t)\)</span>会收敛到一个特定值。</li>
+<li>如果存在某个实部大于<span
+class="math inline">\(0\)</span>的特征值，那么最终<span
+class="math inline">\(u(t)\)</span>是发散的。</li>
+</ul>
+<h2 id="解耦与eat">解耦与<span
+class="math inline">\(e^{At}\)</span></h2>
+<p>对于上述特征方程，原方程组的两个函数<span
+class="math inline">\(u_1\)</span>和<span
+class="math inline">\(u_2\)</span>相互耦合，矩阵对角化分解的解法实际上就是对二者进行解耦，得到特征值和特征向量。我们将<span
+class="math inline">\(u\)</span>表示为特征向量的线性组合，写作：<span
+class="math inline">\(u=Sv\)</span>，代入原方程得到：<span
+class="math inline">\(S\frac{\mathrm{d} v}{\mathrm{d}
+t}=S^{-1}ASv=\Lambda v\)</span>，而<span
+class="math inline">\(\Lambda\)</span>是对角化矩阵，此时方程可以展开成：
+<span class="math display">\[
+\begin{cases}
+\frac{\mathrm{d} v_1}{\mathrm{d} t}=\lambda_1v_1 \\
+\frac{\mathrm{d} v_2}{\mathrm{d} t}=\lambda_2v_2 \\
+... \\
+\frac{\mathrm{d} v_n}{\mathrm{d} t}=\lambda_nv_n \\
 \end{cases}
 \]</span></p>
-<p>对于上述方程组，我们可以这样表达： <span class="math display">\[
-\begin{bmatrix}
-F_{k+2} \\ F_{k+1}
-\end{bmatrix}=\begin{bmatrix}1&amp;1 \\
-1&amp;0\end{bmatrix}\begin{bmatrix}
-F_{k+1} \\ F_{k}
-\end{bmatrix}
+<p>此时，新方程组的各个<span
+class="math inline">\(v_i\)</span>之间就不再耦合，其一般解形式为：<span
+class="math inline">\(v(t)=e^{\Lambda t}v(0)\)</span>。</p>
+<p>因此，<span class="math inline">\(u(t)=e^{At}u(0)=Se^{\Lambda
+t}S^{-1}u(0)\)</span></p>
+<h3 id="指数矩阵eat">指数矩阵<span
+class="math inline">\(e^{At}\)</span></h3>
+<p>这里<span class="math inline">\(e^{At}\)</span>为什么等于<span
+class="math inline">\(Se^{\Lambda
+t}S^{-1}\)</span>呢？我们可以按泰勒级数进行展开： <span
+class="math display">\[
+e^{A t}=I+A t+\frac{(A t)^2}{2}+\frac{(A t)^3}{6}+\cdots+\frac{(A
+t)^n}{n !}+\cdots
 \]</span></p>
-<p>即转化为<span
-class="math inline">\(u_{k+1}=Au_k\)</span>的形式，其中<span
-class="math inline">\(A=\begin{bmatrix}1&amp;1 \\
-1&amp;0\end{bmatrix}\)</span>。</p>
-<blockquote>
-<p>本质上是把二阶差分方程改造成一阶向量方程组。</p>
-</blockquote>
-<p>矩阵<span
-class="math inline">\(A\)</span>是对称阵，它的特征值都是实数，利用迹与行列式可以求解得到特征值<span
-class="math inline">\(\lambda_1=\frac{1+\sqrt{5}}{2},\lambda_2=\frac{1-\sqrt{5}}{2}\)</span>。代回特征方程得到特征向量<span
-class="math inline">\(x_1=\begin{bmatrix}\frac{1+\sqrt{5}}{2} \\
-1\end{bmatrix}, x_2=\begin{bmatrix}\frac{1-\sqrt{5}}{2} \\
-1\end{bmatrix}\)</span>。</p>
-<blockquote>
-<p>特征方程求解<span
-class="math inline">\(\lambda^2-\lambda-1=0\)</span>本质上就是<span
-class="math inline">\(F_{k+2}-F_{k+1}-F_{k}=0\)</span>。</p>
-</blockquote>
-<p>再根据<span class="math inline">\(u_0=\begin{bmatrix}F_1 \\
-F_0\end{bmatrix}=\begin{bmatrix}1 \\
-0\end{bmatrix}=Sc=c_1x_1+c_2x_2\)</span>，容易求得系数<span
-class="math inline">\(c_1=\frac{\sqrt{5}}{5},c_2=-\frac{\sqrt{5}}{5}\)</span>。</p>
-<p>最终代入<span
-class="math inline">\(u_k=S\Lambda^kc\)</span>，就可以求得任意通项。比如，我们希望预估斐波那契数列的第100项的值：
-<span class="math display">\[
-u_{99}=\left[\begin{array}{c}
-F_{100} \\
-F_{99}
-\end{array}\right]=\left[\begin{array}{cc}
-\frac{1+\sqrt{5}}{2} &amp; \frac{1-\sqrt{5}}{2} \\
-1 &amp; 1
-\end{array}\right]\left[\begin{array}{cc}
-\left(\frac{1+\sqrt{5}}{2}\right)^{99} &amp; 0 \\
-0 &amp; \left(\frac{1-\sqrt{5}}{2}\right)^{99}
-\end{array}\right]\left[\begin{array}{c}
-\frac{\sqrt{5}}{5} \\
--\frac{\sqrt{5}}{5}
-\end{array}\right]=\left[\begin{array}{c}
-c_1 \lambda_1^{100}+c_2 \lambda_2^{100} \\
-c_1 \lambda_1^{99}+c_2 \lambda_2^{99}
+<p>而另一方面根据<span class="math inline">\(A=S\Lambda
+S^{-1}\)</span>： <span class="math display">\[
+e^{A t}=S S^{-1}+S \Lambda S^{-1} t+\frac{S \Lambda^2 S^{-1}}{2}
+t^2+\frac{S \Lambda^3 S^{-1}}{6} t^3+\cdots+\frac{S \Lambda^n S^{-1}}{n
+!} t^n+\cdots
+\]</span></p>
+<p>提出<span class="math inline">\(S\)</span>和<span
+class="math inline">\(S^{-1}\)</span>得到： <span
+class="math display">\[
+S\left(I+\Lambda t+\frac{\Lambda^2 t^2}{2}+\frac{\Lambda^3
+t^3}{3}+\cdots+\frac{\Lambda^n t^n}{n}+\cdots\right) S^{-1} e^{A t}
+\]</span></p>
+<p>故<span class="math inline">\(e^{At}=Se^{\Lambda
+t}S^{-1}\)</span>。</p>
+<p>最后，来看看<span class="math inline">\(e^{\Lambda
+t}\)</span>展开的形状： <span class="math display">\[
+e^{\Lambda t}=\left[\begin{array}{cccc}
+e^{\lambda_1 t} &amp; 0 &amp; \cdots &amp; 0 \\
+0 &amp; e^{\lambda_2 t} &amp; \cdots &amp; 0 \\
+\vdots &amp; \vdots &amp; \ddots &amp; \vdots \\
+0 &amp; 0 &amp; \cdots &amp; e^{\lambda_n t}
 \end{array}\right]
 \]</span></p>
-<p>得通项公式：<span
-class="math inline">\(F_k=c_1\lambda_1^k+c_2\lambda_2^k\)</span>。</p>
-<p>此外，由于特征值<span
-class="math inline">\(\lambda_2\approx-0.618\)</span>，在幂增长过程中趋近于<span
-class="math inline">\(0\)</span>，预估时可以忽略。因此斐波那契数列的增长速度可以按照<span
-class="math inline">\(\lambda_1\)</span>来评估，增长速度大约为<span
-class="math inline">\(1.618\)</span>。</p>
+<blockquote>
+<p>实际上看到这里，就会发现最终判断收敛与发散的就是这个矩阵里的特征值，只不过对于微分方程来说，对角线上的元素不是<span
+class="math inline">\(\lambda_i^t\)</span>，而是<span
+class="math inline">\(e^{\lambda_it}\)</span>。</p>
+</blockquote>
+<h2 id="二阶微分方程">二阶微分方程</h2>
+<p>对于二阶微分方程来说，可以利用上一节应付斐波那契数列的构造法，将：<span
+class="math inline">\(y&#39;&#39;+by&#39;+ky=0\)</span>处理成： <span
+class="math display">\[
+u&#39;=\begin{bmatrix}y&#39;&#39; \\
+y&#39;\end{bmatrix}=\begin{bmatrix}-b &amp; -k \\ 1 &amp;
+0\end{bmatrix}\begin{bmatrix}y&#39; \\
+y\end{bmatrix}，(u=\begin{bmatrix}y&#39; \\ y\end{bmatrix})
+\]</span></p>
+<p>按照此法可以也可以推广到高阶，比如对5阶就转成一个<span
+class="math inline">\(5\times
+5\)</span>的矩阵对角化分解特征值、特征向量的问题。 <span
+class="math display">\[
+\left[\begin{array}{l}
+y^{\prime \prime \prime \prime \prime \prime} \\
+y^{\prime \prime \prime \prime} \\
+y^{\prime \prime \prime} \\
+y^{\prime \prime} \\
+y^{\prime}
+\end{array}\right]=\left[\begin{array}{ccccc}
+-b &amp; -c &amp; -d &amp; -e &amp; -f \\
+1 &amp; 0 &amp; 0 &amp; 0 &amp; 0 \\
+0 &amp; 1 &amp; 0 &amp; 0 &amp; 0 \\
+0 &amp; 0 &amp; 1 &amp; 0 &amp; 0 \\
+0 &amp; 0 &amp; 0 &amp; 1 &amp; 0
+\end{array}\right]\left[\begin{array}{l}
+y^{\prime \prime \prime \prime} \\
+y^{\prime \prime \prime} \\
+y^{\prime \prime} \\
+y^{\prime} \\
+y
+\end{array}\right]
+\]</span></p>
 <h1 id="附录">附录</h1>
 <h2 id="视频">视频</h2>
-<iframe src="//player.bilibili.com/player.html?aid=382989698&amp;bvid=BV16Z4y1U7oU&amp;cid=570099395&amp;p=22&amp;autoplay=0" scrolling="no" width="100%" height="500" border="0" frameborder="no" framespacing="0" allowfullscreen="true">
+<iframe src="//player.bilibili.com/player.html?aid=382989698&amp;bvid=BV16Z4y1U7oU&amp;cid=570099813&amp;p=23&amp;autoplay=0" scrolling="no" width="100%" height="500" border="0" frameborder="no" framespacing="0" allowfullscreen="true">
 </iframe>
 <h2 id="参考链接">参考链接</h2>
 <ul>
 <li><a
-target="_blank" rel="noopener" href="https://github.com/MLNLP-World/MIT-Linear-Algebra-Notes/blob/master/%5B22%5D%20%E5%AF%B9%E8%A7%92%E5%8C%96%E5%92%8C%20A%20%E7%9A%84%E5%B9%82/%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B022.pdf">对角化和A的幂</a></li>
+target="_blank" rel="noopener" href="https://github.com/MLNLP-World/MIT-Linear-Algebra-Notes/blob/master/%5B23%5D%20%E5%BE%AE%E5%88%86%E6%96%B9%E7%A8%8B%E5%92%8Cexp(At)/%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B023.pdf">微分方程和exp(At)</a></li>
 <li><a
 target="_blank" rel="noopener" href="https://github.com/kf-liu/The-Art-of-Linear-Algebra-zh-CN">线性代数的艺术</a></li>
 </ul>
@@ -527,8 +514,8 @@ target="_blank" rel="noopener" href="https://github.com/kf-liu/The-Art-of-Linear
 
   <div class="license-box my-3">
     <div class="license-title">
-      <div>线性代数笔记(二十二)——对角化与A的幂</div>
-      <div>https://r00tk1ts.github.io/2023/10/10/线性代数笔记(二十二)——对角化与A的幂/</div>
+      <div>线性代数笔记(二十三)——微分方程</div>
+      <div>https://r00tk1ts.github.io/2023/10/11/线性代数笔记(二十三)——微分方程/</div>
     </div>
     <div class="license-meta">
       
@@ -540,7 +527,7 @@ target="_blank" rel="noopener" href="https://github.com/kf-liu/The-Art-of-Linear
       
         <div class="license-meta-item license-meta-date">
           <div>发布于</div>
-          <div>2023年10月10日</div>
+          <div>2023年10月11日</div>
         </div>
       
       
@@ -572,18 +559,12 @@ target="_blank" rel="noopener" href="https://github.com/kf-liu/The-Art-of-Linear
                   <article class="post-prev col-6">
                     
                     
-                      <a href="/2023/10/11/%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B0%E7%AC%94%E8%AE%B0(%E4%BA%8C%E5%8D%81%E4%B8%89)%E2%80%94%E2%80%94%E5%BE%AE%E5%88%86%E6%96%B9%E7%A8%8B/" title="线性代数笔记(二十三)——微分方程">
-                        <i class="iconfont icon-arrowleft"></i>
-                        <span class="hidden-mobile">线性代数笔记(二十三)——微分方程</span>
-                        <span class="visible-mobile">上一篇</span>
-                      </a>
-                    
                   </article>
                   <article class="post-next col-6">
                     
                     
-                      <a href="/2023/10/09/%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B0%E7%AC%94%E8%AE%B0(%E4%BA%8C%E5%8D%81%E4%B8%80)%E2%80%94%E2%80%94%E7%89%B9%E5%BE%81%E6%96%B9%E7%A8%8B/" title="线性代数笔记(二十一)——特征方程">
-                        <span class="hidden-mobile">线性代数笔记(二十一)——特征方程</span>
+                      <a href="/2023/10/10/%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B0%E7%AC%94%E8%AE%B0(%E4%BA%8C%E5%8D%81%E4%BA%8C)%E2%80%94%E2%80%94%E5%AF%B9%E8%A7%92%E5%8C%96%E4%B8%8EA%E7%9A%84%E5%B9%82/" title="线性代数笔记(二十二)——对角化与A的幂">
+                        <span class="hidden-mobile">线性代数笔记(二十二)——对角化与A的幂</span>
                         <span class="visible-mobile">下一篇</span>
                         <i class="iconfont icon-arrowright"></i>
                       </a>
