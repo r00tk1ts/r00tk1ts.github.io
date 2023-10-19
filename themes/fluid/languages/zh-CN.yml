@@ -33,6 +33,11 @@ links:
   title: '友链'
   subtitle: '友情链接'
 
+doc:
+  menu: '藏经阁'
+  title: '藏经阁'
+  subtitle: '藏经阁'
+  
 page404:
   menu: '页面不存在'
   title: '页面不存在'
