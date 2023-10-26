@@ -20,7 +20,12 @@ layout: doc
 
 年轻人，你渴望力量吗？(doge)
 
+每个方向的资料都以思维导图的形式汇总，置于：https://github.com/r00tk1ts/awesome-roadmap
+
 ## 外门招式
+### C++
+十年磨一剑，霜刃未曾试。今日把示君，谁有不平事？
+
 
 ## 内功心法
 
