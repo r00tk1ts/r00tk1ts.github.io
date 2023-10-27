@@ -4,6 +4,31 @@
   
   
   <entry>
+    <title>线性代数笔记(二十六)——对称矩阵与正定性</title>
+    <link href="/2023/10/27/%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B0%E7%AC%94%E8%AE%B0(%E4%BA%8C%E5%8D%81%E5%85%AD)%E2%80%94%E2%80%94%E5%AF%B9%E7%A7%B0%E7%9F%A9%E9%98%B5%E4%B8%8E%E6%AD%A3%E5%AE%9A%E6%80%A7/"/>
+    <url>/2023/10/27/%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B0%E7%AC%94%E8%AE%B0(%E4%BA%8C%E5%8D%81%E5%85%AD)%E2%80%94%E2%80%94%E5%AF%B9%E7%A7%B0%E7%9F%A9%E9%98%B5%E4%B8%8E%E6%AD%A3%E5%AE%9A%E6%80%A7/</url>
+    
+    <content type="html"><![CDATA[<p>这一节对对称矩阵下手，分解成特征值和特征向量的对角化，研究对称矩阵的性质，引出正定性。</p><span id="more"></span><h1 id="对称矩阵与正定性"><a href="#对称矩阵与正定性" class="headerlink" title="对称矩阵与正定性"></a>对称矩阵与正定性</h1><p>对称矩阵有很多特殊的性质，它们满足：</p><ol><li>$A=A^T$</li><li>能够找到彼此正交的特征向量。</li></ol><p>根据此前掌握的特征分解知识，我们知道对于不同的特征值，分解得到的对应特征向量都是线性无关的。而对于特征值相同的情况，对称矩阵总是可以在零空间中找到彼此垂直的特征向量。</p><h2 id="对称矩阵的对角化"><a href="#对称矩阵的对角化" class="headerlink" title="对称矩阵的对角化"></a>对称矩阵的对角化</h2><p>根据上述两个性质，对称矩阵对角化便可拆解为：$A=Q\Lambda Q^T$，$Q$列向量也就是特征向量可以标准正交（模可标准化为1）。</p><blockquote><p>实际上，A的对称性可以通过$Q\Lambda Q^T$看出，$(Q\Lambda Q^T)^T=(Q^T)^T\Lambda Q^T=Q\Lambda Q^T$。</p></blockquote><p>对称矩阵有一个非常重要的性质：<strong>对称矩阵的特征值都是实数</strong>。</p><p>可以用共轭来证明，由$Ax=\lambda x$，取共轭得到$A\bar x =\bar \lambda \bar x$（$A$是实数矩阵故不变），两边同时取转置：</p><script type="math/tex; mode=display">\bar x^T A=\bar x^T\bar \lambda</script><p>两边同时乘上$x$，得到:</p><script type="math/tex; mode=display">\bar x^T A x=\bar x^T\bar \lambda x</script><p>将$Ax=\lambda x$带入左侧，得到：</p><script type="math/tex; mode=display">\bar x^T\lambda x=\bar x^T\bar \lambda x</script><p>因此，若$\bar x^Tx \neq 0$，则有$\lambda = \bar \lambda$，即特征值均为实数。</p><p>那么有没有可能$\bar x^Tx = 0$呢？我们展开来看：</p><script type="math/tex; mode=display">\bar{x}^T x=\left[\begin{array}{llll}\bar{x}_1 & \bar{x}_2 & \ldots & \bar{x}_n\end{array}\right]\left[\begin{array}{c}x_1 \\x_2 \\\ldots \\x_n\end{array}\right]=\bar{x}_1 x_1+\bar{x}_2 x_2+\cdots+\bar{x}_n x_n</script><p>其中每一项$\bar x_ix_i$都是$(a+bi)(a-bi)$，得到的都是大于0的实数，因此必有$\bar x^Tx \neq 0$。</p><blockquote><p>同理，复数矩阵若满足$\bar A^T=A$，则特征值也都将是实数。</p></blockquote><h2 id="特征值的性质"><a href="#特征值的性质" class="headerlink" title="特征值的性质"></a>特征值的性质</h2><p>特征值已经证实都是实数了，那么是否还有什么其他特殊性质呢？</p><p>实际上也是有的，这里先给结论：</p><ol><li>对称矩阵的主元正负个数，与特征值的正负个数一致。</li><li>对称矩阵的主元乘积等于特征值的乘积。它们都等于行列式的值。</li></ol><p>根据性质1，我们可以通过消元来快速确定特征值的正负值个数，无需解$n$次方程。</p><h2 id="对称矩阵的另一个视角"><a href="#对称矩阵的另一个视角" class="headerlink" title="对称矩阵的另一个视角"></a>对称矩阵的另一个视角</h2><p>对角化展开：</p><script type="math/tex; mode=display">A=Q\Lambda Q^T=\begin{bmatrix}q_1&q_2&...&q_n\end{bmatrix}\begin{bmatrix}\lambda_1&0&...&0 \\0&\lambda_2&...&0 \\...&...&...&... \\0&0&...&\lambda_n\end{bmatrix}\begin{bmatrix}q_1^T \\ q_2^T \\ ... \\ q_n^T\end{bmatrix}</script><p>由于$q_i$相互正交，中间的对角矩阵就相当于每一项的系数，最终得到的是:$A=\lambda_1 q_1q_1^T+\lambda_2 q_2q_2^T+…+\lambda_n q_nq_n^T$。</p><p>由于$q_iq_i^T$是单位向量，故$q_i^Tq_i=1$，此时就可以将$q_iq_i^T$改写成$\frac{q_iq_i^T}{q_j^Tq_j}$，显然这是投影矩阵的形式，可以理解为是$q_j$向$q_i$方向的投影。</p><p>换个角度来说：<strong>每一个对称矩阵都是一些相互垂直的投影矩阵的线性组合。</strong></p><h2 id="正定矩阵"><a href="#正定矩阵" class="headerlink" title="正定矩阵"></a>正定矩阵</h2><p>正定矩阵是指满足以下条件的一类矩阵：</p><ol><li>所有特征值都是正数。</li><li>所有主元都为正。</li><li>所有子行列式都为正。</li></ol><h1 id="附录"><a href="#附录" class="headerlink" title="附录"></a>附录</h1><h2 id="视频"><a href="#视频" class="headerlink" title="视频"></a>视频</h2><iframe src="//player.bilibili.com/player.html?aid=382989698&bvid=BV16Z4y1U7oU&cid=570102985&p=26&autoplay=0" scrolling="no" width="100%" height="500" border="0" frameborder="no" framespacing="0" allowfullscreen="true"> </iframe><h2 id="参考链接"><a href="#参考链接" class="headerlink" title="参考链接"></a>参考链接</h2><ul><li><a href="https://github.com/MLNLP-World/MIT-Linear-Algebra-Notes/blob/master/%5B26%5D%20%E5%AF%B9%E7%A7%B0%E7%9F%A9%E9%98%B5%E5%8F%8A%E6%AD%A3%E5%AE%9A%E6%80%A7/%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B026.pdf">对称矩阵及正定性</a></li><li><a href="https://github.com/kf-liu/The-Art-of-Linear-Algebra-zh-CN">线性代数的艺术</a></li></ul>]]></content>
+    
+    
+    <categories>
+      
+      <category>线性代数</category>
+      
+    </categories>
+    
+    
+    <tags>
+      
+      <tag>MIT-18.06-linear_algebra</tag>
+      
+    </tags>
+    
+  </entry>
+  
+  
+  
+  <entry>
     <title>线性代数笔记(二十四)——马尔科夫矩阵,傅里叶级数</title>
     <link href="/2023/10/13/%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B0%E7%AC%94%E8%AE%B0(%E4%BA%8C%E5%8D%81%E5%9B%9B)%E2%80%94%E2%80%94%E9%A9%AC%E5%B0%94%E7%A7%91%E5%A4%AB%E7%9F%A9%E9%98%B5-%E5%82%85%E9%87%8C%E5%8F%B6%E7%BA%A7%E6%95%B0/"/>
     <url>/2023/10/13/%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B0%E7%AC%94%E8%AE%B0(%E4%BA%8C%E5%8D%81%E5%9B%9B)%E2%80%94%E2%80%94%E9%A9%AC%E5%B0%94%E7%A7%91%E5%A4%AB%E7%9F%A9%E9%98%B5-%E5%82%85%E9%87%8C%E5%8F%B6%E7%BA%A7%E6%95%B0/</url>
