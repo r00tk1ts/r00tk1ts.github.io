@@ -4,6 +4,35 @@
   
   
   <entry>
+    <title>还在嘴硬？Trie树没你想得那么简单</title>
+    <link href="/2023/11/01/%E8%BF%98%E5%9C%A8%E5%98%B4%E7%A1%AC%EF%BC%9FTrie%E6%A0%91%E6%B2%A1%E4%BD%A0%E6%83%B3%E5%BE%97%E9%82%A3%E4%B9%88%E7%AE%80%E5%8D%95/"/>
+    <url>/2023/11/01/%E8%BF%98%E5%9C%A8%E5%98%B4%E7%A1%AC%EF%BC%9FTrie%E6%A0%91%E6%B2%A1%E4%BD%A0%E6%83%B3%E5%BE%97%E9%82%A3%E4%B9%88%E7%AE%80%E5%8D%95/</url>
+    
+    <content type="html"><![CDATA[<span id="more"></span><h1id="还在嘴硬trie树没你想得那么简单">还在嘴硬？Trie树没你想得那么简单</h1><p>Trie树，又称前缀树或字典树，相信对于大部分业界同仁来说并不陌生。尽管Trie树在数据结构领域称得上赫赫有名，但科班教材却鲜有提及，相信大部分能够认识Trie，一种是通过OI，另一种是工作中实际遇到过Trie发光发热的场景。</p><p>对Trie有一定了解的同学，往往会觉着：“不就是一种简单易懂的数据结构吗，有啥好长篇大论的？”实话实说，作为曾经的端茶倒水型OI选手，我也一度这样认为。然而，最近在研究搜索的联想词(suggestion)架构背后的各种索引时，意外的发现Trie实际上大有门道，它的工业级实现也绝不像OItemplate那么肆意。</p><p>本文会从最基础的Trie谈起，围绕查询性能与空间占用，一步步抽丝剥茧层层递进，对业界知名的几种Trie实现进行详细展开，并尝试解读为什么会这样设计，知其然，并知其所以然。然后，再给出基于业界知名的开源Trie实现库所进行的benchmark数据，并进行分析。最后，对Trie的常见应用以及衍生的数据结构进行介绍。</p><h2 id="字典树前缀树trie">字典树/前缀树/Trie</h2><p>顾名思义，字典树，是一个像查字典一样的树形结构，一般来说，我们会选择字符串作为key，它的key并非像二叉搜索树那样直接保存在每一个树节点，而是被打散分布于一条树链上。</p><p>例如，我们对key集：<code>&#123;"romane","romanes","romanus","romulus","rubens","ruber","rubes","rubicon","rubicundus","rubric"&#125;</code>，构建一棵传统Trie：</p><p><img src="2023-11-01-19-31-00.png" /></p><p>如图所示，从根节点开始，任选一条到叶子结点的树链，这条路径上的字符所组成的字符串对应了集合中的特定key，此树一共有10个叶子节点，分别对应10个key。图中的叶子结点是一个哨兵，它不存储任何字符，只是单纯代表字符串的终止。</p><p>Trie最基础的应用就是字符串的查找——判断某个字符串是否在字典中。当我们需要查找某个字符串是否存在于key集时，只需要逐字符match，层层递进，如果在遍历到最后一个字符时可以命中叶子节点，那么就代表它存在，否则在中途中任何一步没能match，就代表不存在。</p><blockquote><p>正因为这一典型应用，Trie又叫字典树。实际上，除了判断字符串是否存在，我们还可以在这个基础上，利用Trie做词频统计。只需要在每个叶子节点存储计数器即可。词频统计正是Trie的常见应用场景之一。</p></blockquote><p>这样的结构就像是一棵K叉树，我们在检索字符串的过程中，路过每层都在做同一件事：判断当前的父节点是否存在待检索字符所对应的子节点，如果有就递归向下，没有就终止。我们可以发现，具有相同前缀的字符串，它们在树中会共享非叶子节点，相比于用哈希表去存储全量key集合，共享前缀的特性从直观上来看，Trie树的体积显然更小。</p><blockquote><p>哈希表当然可以完成判断字符串是否在字典中的任务，查询时间复杂度是O(1)，这意味着它的查找很快，显然，这是用空间换来的。</p></blockquote><p>相比于哈希表，Trie的查询速度显然劣势，Trie牺牲了时间去换取了大量的空间节省，它的时间复杂度是O(len)，其中len表示查询字符串的长度。当然，时间复杂度反应的只是曲线随自变量n变化的快慢程度，真实的速度需要具体去跑评测。而对于Trie树来说，真正影响查询速度的，实际上有很多因素。另一方面，我们总说相比于哈希表，Trie树可以省空间，那么究竟能省多少呢？实际上，这又取决于Trie的具体实现。</p><h2 id="状态转移与dfa">状态转移与DFA</h2><p>待续。。。</p>]]></content>
+    
+    
+    <categories>
+      
+      <category>数据结构与算法</category>
+      
+    </categories>
+    
+    
+    <tags>
+      
+      <tag>data-structures</tag>
+      
+      <tag>algorithm</tag>
+      
+      <tag>Trie</tag>
+      
+    </tags>
+    
+  </entry>
+  
+  
+  
+  <entry>
     <title>线性代数笔记(二十六)——对称矩阵与正定性</title>
     <link href="/2023/10/27/%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B0%E7%AC%94%E8%AE%B0(%E4%BA%8C%E5%8D%81%E5%85%AD)%E2%80%94%E2%80%94%E5%AF%B9%E7%A7%B0%E7%9F%A9%E9%98%B5%E4%B8%8E%E6%AD%A3%E5%AE%9A%E6%80%A7/"/>
     <url>/2023/10/27/%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B0%E7%AC%94%E8%AE%B0(%E4%BA%8C%E5%8D%81%E5%85%AD)%E2%80%94%E2%80%94%E5%AF%B9%E7%A7%B0%E7%9F%A9%E9%98%B5%E4%B8%8E%E6%AD%A3%E5%AE%9A%E6%80%A7/</url>
@@ -388,7 +417,7 @@
     
     <categories>
       
-      <category>program-language</category>
+      <category>编程语言</category>
       
     </categories>
     
@@ -415,7 +444,7 @@
     
     <categories>
       
-      <category>program-language</category>
+      <category>编程语言</category>
       
     </categories>
     
@@ -442,7 +471,7 @@
     
     <categories>
       
-      <category>program-language</category>
+      <category>编程语言</category>
       
     </categories>
     
