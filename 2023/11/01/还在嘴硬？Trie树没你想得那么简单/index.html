@@ -42,7 +42,7 @@
 <meta property="og:image" content="https://r00tk1ts.github.io/2023/11/01/%E8%BF%98%E5%9C%A8%E5%98%B4%E7%A1%AC%EF%BC%9FTrie%E6%A0%91%E6%B2%A1%E4%BD%A0%E6%83%B3%E5%BE%97%E9%82%A3%E4%B9%88%E7%AE%80%E5%8D%95/2023-11-03-11-58-50.png">
 <meta property="og:image" content="https://r00tk1ts.github.io/2023/11/01/%E8%BF%98%E5%9C%A8%E5%98%B4%E7%A1%AC%EF%BC%9FTrie%E6%A0%91%E6%B2%A1%E4%BD%A0%E6%83%B3%E5%BE%97%E9%82%A3%E4%B9%88%E7%AE%80%E5%8D%95/2023-11-03-12-03-17.png">
 <meta property="article:published_time" content="2023-11-01T08:05:56.000Z">
-<meta property="article:modified_time" content="2023-11-03T04:05:00.515Z">
+<meta property="article:modified_time" content="2023-11-03T04:28:44.233Z">
 <meta property="article:author" content="r00tk1t">
 <meta property="article:tag" content="data-structures">
 <meta property="article:tag" content="algorithm">
@@ -253,7 +253,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          11k 字
+          12k 字
         
       </span>
     
@@ -308,15 +308,12 @@
                 
                 <p>Trie树，又称前缀树或字典树，在数据结构领域赫赫有名。相信多数人认识Trie的机缘，要么是通过OI，要么是在工作中遇到过Trie发光发热的场景。传统Trie结构并不复杂，但其实现与变种却是八仙过海各显神通。本文从Trie讲起，紧紧抓住核心的性能与空间占用，对Trie主流的几种实现进行了阐述，同时自己也真实地跑一遍benchmark，对各家吹逼的论文去伪存真。</p>
 <span id="more"></span>
-<h1
-id="还在嘴硬trie树没你想得那么简单">还在嘴硬？Trie树没你想得那么简单</h1>
-<p>Trie树，又称前缀树或字典树，相信对于大部分业界同仁来说并不陌生。尽管Trie树在数据结构领域称得上赫赫有名，但科班教材却鲜有提及，相信多数人认识Trie的机缘，要么是通过OI，要么是在工作中遇到过Trie发光发热的场景。</p>
+<h1 id="还在嘴硬？Trie树没你想得那么简单"><a href="#还在嘴硬？Trie树没你想得那么简单" class="headerlink" title="还在嘴硬？Trie树没你想得那么简单"></a>还在嘴硬？Trie树没你想得那么简单</h1><p>Trie树，又称前缀树或字典树，相信对于大部分业界同仁来说并不陌生。尽管Trie树在数据结构领域称得上赫赫有名，但科班教材却鲜有提及，相信多数人认识Trie的机缘，要么是通过OI，要么是在工作中遇到过Trie发光发热的场景。</p>
 <p>对Trie有一定了解的同学，往往会觉着：“不就是一种简单易懂的数据结构吗，有啥好长篇大论的？”实话实说，作为端茶倒水型OI老混子，我也一度这样认为。然而，最近工作中在研究搜索联想词(suggestion)背后的各种索引时，意外的发现Trie大有门道，它的工业级实现也绝不像OI的模板那么随性（只是个演示demo，生产环境没人用）。</p>
 <p>本文会从最基础的Trie谈起，围绕性能与空间占用，一步步抽丝剥茧层层递进，对业界知名的几种Trie实现进行详细展开，并尝试解读为什么会这样设计，知其然，并知其所以然。然后，再给出基于业界知名的开源Trie实现库所进行的benchmark数据，并进行分析。最后，对Trie的常见应用以及衍生的数据结构进行介绍。</p>
-<h2 id="字典树前缀树trie">字典树/前缀树/Trie</h2>
-<p>顾名思义，字典树，是一个像查字典一样的树形结构，一般来说，我们会选择字符串作为键(key)，并非像二叉搜索树那样直接保存到每一个树节点，在字典树中，键会被打散分布于一条树链上。</p>
-<p>例如，我们用键集：<code>&#123;"romane","romanes","romanus","romulus","rubens","ruber","rubes","rubicon","rubicundus","rubric"&#125;</code>，构建一棵传统Trie：</p>
-<p><img src="2023-11-01-19-31-00.png" srcset="/img/loading.gif" lazyload /></p>
+<h2 id="字典树-前缀树-Trie"><a href="#字典树-前缀树-Trie" class="headerlink" title="字典树/前缀树/Trie"></a>字典树/前缀树/Trie</h2><p>顾名思义，字典树，是一个像查字典一样的树形结构，一般来说，我们会选择字符串作为键(key)，并非像二叉搜索树那样直接保存到每一个树节点，在字典树中，键会被打散分布于一条树链上。</p>
+<p>例如，我们用键集：<code>&#123;&quot;romane&quot;,&quot;romanes&quot;,&quot;romanus&quot;,&quot;romulus&quot;,&quot;rubens&quot;,&quot;ruber&quot;,&quot;rubes&quot;,&quot;rubicon&quot;,&quot;rubicundus&quot;,&quot;rubric&quot;&#125;</code>，构建一棵传统Trie：</p>
+<p><img src="2023-11-01-19-31-00.png" srcset="/img/loading.gif" lazyload alt=""></p>
 <p>如图所示，从根节点开始，任选一条到叶子结点的树链，这条路径上的字符所组成的字符串对应了集合中的特定键，此树一共有10个叶子节点，分别对应10个键。图中的叶子结点是个哨兵，它不存储任何字符，只是单纯代表字符串的终止。</p>
 <p>Trie最基础的应用就是字符串的查找——判断某个字符串是否在字典中。当我们需要查找某个字符串是否存在于key集时，只需要逐字符match，层层递进，如果在遍历到最后一个字符时可以命中叶子节点，那么就代表它存在，否则在中途中任何一步没能match，就代表不存在。</p>
 <blockquote>
@@ -327,37 +324,30 @@ id="还在嘴硬trie树没你想得那么简单">还在嘴硬？Trie树没你想
 <p>哈希表当然可以完成判断字符串是否在字典中的任务，查询的时间复杂度是O(1)，这意味着它的查找很快，显然，这是用空间换来的。</p>
 </blockquote>
 <p>相比于哈希表，Trie的查询速度显然劣势，Trie牺牲了时间去换取了大量的空间节省，它的时间复杂度是<code>O(len)</code>，其中<code>len</code>表示查询字符串的长度。当然，时间复杂度反应的只是曲线随数据规模增长的快慢程度，真实的查询性能差异需要用具体的键集跑真实benchmark才能知晓。对于Trie树来说，真正影响查询速度的，实际上有很多因素。另一方面，我们总说相比于哈希表，Trie树更省空间，那么究竟能省多少呢？实际上，这又取决于Trie的具体实现。</p>
-<h2 id="状态转移与dfa">状态转移与DFA</h2>
-<p>实际上Trie的本质是一个DFA（确定有限状态自动机），拆分的键字符可以看作是边，而节点到子节点的过程就是一种状态转移（第i行第j列的值表示在状态i的情况下输入字符j的时候的目标状态）。比如，维基百科对Trie的几何描述图如下：</p>
-<p><img src="2023-11-02-14-32-10.png" srcset="/img/loading.gif" lazyload /></p>
-<p>键标注在节点内，边上的字符表示状态的转移，右下角带有数字的节点表示这是一个终止节点（不同于哨兵节点的表达方式，在每个树节点可以用一个标记来代表他是否是终止节点）。另一方面，键实际上不需要显式地保存在树节点中，上图只是为了方便理解Trie
-DFA的本质而做的演示。</p>
+<h2 id="状态转移与DFA"><a href="#状态转移与DFA" class="headerlink" title="状态转移与DFA"></a>状态转移与DFA</h2><p>实际上Trie的本质是一个DFA（确定有限状态自动机），拆分的键字符可以看作是边，而节点到子节点的过程就是一种状态转移（第i行第j列的值表示在状态i的情况下输入字符j的时候的目标状态）。比如，维基百科对Trie的几何描述图如下：</p>
+<p><img src="2023-11-02-14-32-10.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<p>键标注在节点内，边上的字符表示状态的转移，右下角带有数字的节点表示这是一个终止节点（不同于哨兵节点的表达方式，在每个树节点可以用一个标记来代表他是否是终止节点）。另一方面，键实际上不需要显式地保存在树节点中，上图只是为了方便理解Trie DFA的本质而做的演示。</p>
 <p>到此，我们就来到Trie树中最核心的问题：<strong>每个树节点要如何维护它可能存在的K个儿子呢？K的上限值又是多少呢？</strong></p>
-<h3 id="k与字符集">K与字符集</h3>
-<p>我们先来回答比较简单的第二个问题：K的上限值。</p>
+<h3 id="K与字符集"><a href="#K与字符集" class="headerlink" title="K与字符集"></a>K与字符集</h3><p>我们先来回答比较简单的第二个问题：K的上限值。</p>
 <p>容易想到，K取决于键集中所有不重复字符的数量，因此，最终看的是构成键集的成分。比如，对于全部小写英文字符构成的键集，K就是26；扩展到ASCII，K的上限就是128（实际上很多控制字符一般不会出现）。</p>
 <p>而日常需求中，比如搜索联想词场景，构成键集的都是一些中英文混杂字符串，汉字成千上万，如果我们维护万级别的状态转移表，不论采用何种表达方式，都无疑是一场灾难。那么退一步想想，我们平时存储这些中文字符串时，都是如何存储的呢？这取决于具体的编码方式。比如对于UTF8，不同的字符可能需要1~3个字节来进行编码，我们在构建Trie树时可以按字节作为步长来拆分键，如此，K的上限就是256。</p>
 <p>举个例子，比如对于键<code>QQ号码</code>，它被UTF8编码为<code>0x51 0x51 0x53 0xf7 0x78 0x01</code>，字符<code>Q</code>占一个字节，编码为<code>0x51</code>，后面的汉字则各占两个字节。当我们构建Trie时，就会形成一条由6个节点构成的树链（不考虑哨兵）。</p>
 <p>显然，我们通过编码解决了K可能过大的问题，而代价就是增加了树的深度，速度变慢。实际上，编码只是一种具体手段，它的本质是一种叫做“字母表缩减”的思想，通过控制字母表的大小来限制K的量级，在速度与量级上做tradeoff。</p>
-<h3 id="转移矩阵与链式存储">转移矩阵与链式存储</h3>
-<p>再回到第一个问题：树节点如何维护它的儿子。</p>
+<h3 id="转移矩阵与链式存储"><a href="#转移矩阵与链式存储" class="headerlink" title="转移矩阵与链式存储"></a>转移矩阵与链式存储</h3><p>再回到第一个问题：树节点如何维护它的儿子。</p>
 <p>DFA通常用转移矩阵来表示，行表示状态、列表示输入字符，行列共同表示状态的转移。这就意味着树上每个节点都要维护一个规模为K的数组，此时构成的Trie如下图：</p>
-<p><img src="2023-11-02-15-28-49.png" srcset="/img/loading.gif" lazyload /></p>
+<p><img src="2023-11-02-15-28-49.png" srcset="/img/loading.gif" lazyload alt=""></p>
 <figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-keyword">class</span> <span class="hljs-title class_">node</span> &#123;<br>    <span class="hljs-comment">// array of 128 elements, null if there is no child for the ASCII letter.</span><br>    node* children[<span class="hljs-number">128</span>]; <br>&#125;;<br></code></pre></td></tr></table></figure>
 <p>这种稀疏数组的实现方式查询效率很高，途径每个节点做查询都是<code>O(1)</code>的时间复杂度，但由于稀疏的现象，空间利用率很低。比如上图中的Trie，对于K=26的情况，仅仅索引4个单词，就消耗了肉眼可见的空间。</p>
 <p>当然，我们也可以放弃稀疏数组，采用链式来表示状态转移：</p>
-<p><img src="2023-11-02-15-33-13.png" srcset="/img/loading.gif" lazyload /></p>
+<p><img src="2023-11-02-15-33-13.png" srcset="/img/loading.gif" lazyload alt=""></p>
 <figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-keyword">class</span> <span class="hljs-title class_">node</span> &#123;<br>    <span class="hljs-type">char</span> symbol;<br>    node* first_child;<br>    node* next_sibiling;<br>&#125;;<br></code></pre></td></tr></table></figure>
 <p>无需K规模数组，每个节点只需要保存两个指针即可：一个指向兄弟(sibling)、一个指向儿子(children)。这下彻底稠密了，空间利用没有丝毫的浪费，但代价就是每个节点的状态转移都需要做一轮线性查询，即<code>O(K)</code>的时间复杂度。此时，字典树的查询时间复杂度变成：<code>O(K*len)</code>。</p>
 <p>我们从一个极端，步入了另一个极端（<del>我叫二极管(bushi)</del>）。</p>
-<h2 id="trie空间优化之道">Trie空间优化之道</h2>
-<p>那么，有没有什么折中的方案，让我们既能节省空间存储，又能兼顾速度呢？</p>
+<h2 id="Trie空间优化之道"><a href="#Trie空间优化之道" class="headerlink" title="Trie空间优化之道"></a>Trie空间优化之道</h2><p>那么，有没有什么折中的方案，让我们既能节省空间存储，又能兼顾速度呢？</p>
 <p>答案当然是有的，而且是八仙过海，各显神通。</p>
-<h3 id="字母表缩减大法">字母表缩减大法</h3>
-<p>最容易想到的就是利用上一节中提到的<strong>字母表缩减</strong>大法：我们可以按比特来拆分，比如以4bit-16字符的字母表来替代8bit-256字符的字母表，空间存储变为了原本的1/16，代价是树的深度增加一倍，查询耗时变为原本的2倍。</p>
+<h3 id="字母表缩减大法"><a href="#字母表缩减大法" class="headerlink" title="字母表缩减大法"></a>字母表缩减大法</h3><p>最容易想到的就是利用上一节中提到的<strong>字母表缩减</strong>大法：我们可以按比特来拆分，比如以4bit-16字符的字母表来替代8bit-256字符的字母表，空间存储变为了原本的1/16，代价是树的深度增加一倍，查询耗时变为原本的2倍。</p>
 <p><strong>本质上来讲，这是基于转移矩阵方案，通过平衡字母表大小与树的深度来二者兼顾。</strong></p>
-<h3 id="关联容器">关联容器</h3>
-<p>另一种简单的方案是改用关联容器，把字母编码单元映射到一个子节点：</p>
+<h3 id="关联容器"><a href="#关联容器" class="headerlink" title="关联容器"></a>关联容器</h3><p>另一种简单的方案是改用关联容器，把字母编码单元映射到一个子节点：</p>
 <figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-keyword">class</span> <span class="hljs-title class_">node</span> &#123;<br>    <span class="hljs-comment">// C++</span><br>    <span class="hljs-comment">// Binary search tree</span><br>    std::map&lt;<span class="hljs-type">char</span>, node*&gt; children;<br>    <br>    <span class="hljs-comment">// Hash table</span><br>    <span class="hljs-comment">// std::unordered_map&lt;char, node*&gt; children;</span><br>    <br>    <span class="hljs-comment">// Sorted array</span><br>    <span class="hljs-comment">// boost::flat_map&lt;char, node*&gt; children;</span><br>    <br>    <br>    <span class="hljs-comment">// Java</span><br>    <span class="hljs-comment">// Binary search tree</span><br>    <span class="hljs-comment">// TreeMap&lt;char, node&gt; children;</span><br>    <br>    <span class="hljs-comment">// Hash table</span><br>    <span class="hljs-comment">// HashMap&lt;char, node&gt; children;</span><br>&#125;;<br></code></pre></td></tr></table></figure>
 <p>如此，每个节点只需要按需存储转移状态，减少稀疏。关联容器可以选择二叉搜索树、有序数组或是哈希表。</p>
 <ul>
@@ -365,64 +355,46 @@ DFA的本质而做的演示。</p>
 <li>再如<code>std::unordered_map</code>是哈希表，查询时间复杂度为<code>O(1)</code>，相比于搜索树，它的性能是用空间的稀疏换来的。若选用<code>std::unordered_map</code>来存储状态转移路径，则字典树的查询时间复杂度为<code>O(len)</code>。</li>
 </ul>
 <p><strong>本质上来讲，这是通过在Trie节点的微观设计上，用关联容器取代顺序容器而做的平衡。</strong></p>
-<h3 id="树链压缩">树链压缩</h3>
-<p>前面的两种思路都是对单个节点的大小下功夫，我们可以换个角度，去尝试减少树的节点个数。观察一开始我们构建的Trie树：</p>
-<p><img src="2023-11-01-19-31-00.png" srcset="/img/loading.gif" lazyload /></p>
+<h3 id="树链压缩"><a href="#树链压缩" class="headerlink" title="树链压缩"></a>树链压缩</h3><p>前面的两种思路都是对单个节点的大小下功夫，我们可以换个角度，去尝试减少树的节点个数。观察一开始我们构建的Trie树：</p>
+<p><img src="2023-11-01-19-31-00.png" srcset="/img/loading.gif" lazyload alt=""></p>
 <p>可以发现其中有很多单一路径，既然是单一路径，那就可以应用链压的思想，对单一路径进行整合，变成：</p>
-<p><img src="2023-11-02-17-21-09.png" srcset="/img/loading.gif" lazyload /></p>
+<p><img src="2023-11-02-17-21-09.png" srcset="/img/loading.gif" lazyload alt=""></p>
 <p>核心思路也相当直观：</p>
 <ul>
 <li>懒生成：在构建Trie时，对于插入的字符无需新建节点，而是累积到现有的键上。</li>
 <li>按需分裂：当插入时遇到了有多个儿子的情况，再分裂出两个儿子节点，改写键值。</li>
 </ul>
-<p><img src="2023-11-02-17-31-09.png" srcset="/img/loading.gif" lazyload /></p>
+<p><img src="2023-11-02-17-31-09.png" srcset="/img/loading.gif" lazyload alt=""></p>
 <p>链压的思想非常广泛地应用于各种数据结构。</p>
-<h2 id="trie实现体的奇思妙想">Trie实现体的奇思妙想</h2>
-<p>以上都是比较常规的优化手法，事实上，在Trie发展的历史长河中，还诞生了诸多奇思妙想的Trie实现手法及其变种。接下来，就让我们逐一欣赏大神们的设计。</p>
-<h3 id="radix树">Radix树</h3>
-<h3 id="partricia树">Partricia树</h3>
-<p>Patricia树是压缩二进制Trie的一种特殊实现，它在其表示中利用字符串键的二进制进行编码。树中每个节点都包含一个索引，称为“skip
-number”，它存储节点的分支索引，以避免遍历期间出现空子树。</p>
+<h2 id="Trie实现体的奇思妙想"><a href="#Trie实现体的奇思妙想" class="headerlink" title="Trie实现体的奇思妙想"></a>Trie实现体的奇思妙想</h2><p>以上都是比较常规的优化手法，事实上，在Trie发展的历史长河中，还诞生了诸多奇思妙想的Trie实现手法及其变种。接下来，就让我们逐一欣赏大神们的设计。</p>
+<h3 id="Radix树"><a href="#Radix树" class="headerlink" title="Radix树"></a>Radix树</h3><h3 id="Partricia树"><a href="#Partricia树" class="headerlink" title="Partricia树"></a>Partricia树</h3><p>Patricia树是压缩二进制Trie的一种特殊实现，它在其表示中利用字符串键的二进制进行编码。树中每个节点都包含一个索引，称为“skip number”，它存储节点的分支索引，以避免遍历期间出现空子树。</p>
 <p>例如，由<code>&#123;in,integer,interval,string,structure&#125;</code>构成的Partricia树如下所示：</p>
-<p><img src="2023-11-02-19-16-43.png" srcset="/img/loading.gif" lazyload /></p>
-<p><img src="2023-11-02-19-17-05.png" srcset="/img/loading.gif" lazyload /></p>
-<p>与节点相邻的每个索引值代表"skip
-number"——即要决定分支的位的索引，比如<code>string,structure</code>的bit序列从<code>idx=1</code>开始与<code>int,integer,inteval</code>有所不同（前者是1而后者是0），故根节点(0号节点)记录"skip_number=1"，<code>string,structure</code>出现在右子树，<code>int,integer,inteval</code>出现在左子树。而对于1号节点，它的"skip_number=18"，这是因为从第18位开始，<code>in</code>和<code>interval,integer</code>有所区别，故在此处分道扬镳。</p>
-<h4 id="critbit-trie">Critbit Trie</h4>
-<p>CB
-Trie是Partricia树的Bitwise变种。Bitwise是一种特殊的Trie，可以携带一个bitmap，来高效的按位表示哪些分支是有效的。</p>
-<p>Critbit Trie全名——Critical Bit Trie，critical
-bit表示两个串的共同前缀分叉之处的比特。以下我们简称CB
-Trie。它包括两种类型的节点：</p>
+<p><img src="2023-11-02-19-16-43.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<p><img src="2023-11-02-19-17-05.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<p>与节点相邻的每个索引值代表”skip number”——即要决定分支的位的索引，比如<code>string,structure</code>的bit序列从<code>idx=1</code>开始与<code>int,integer,inteval</code>有所不同（前者是1而后者是0），故根节点(0号节点)记录”skip_number=1”，<code>string,structure</code>出现在右子树，<code>int,integer,inteval</code>出现在左子树。而对于1号节点，它的”skip_number=18”，这是因为从第18位开始，<code>in</code>和<code>interval,integer</code>有所区别，故在此处分道扬镳。</p>
+<h4 id="Critbit-Trie"><a href="#Critbit-Trie" class="headerlink" title="Critbit Trie"></a>Critbit Trie</h4><p>CB Trie是Partricia树的Bitwise变种。Bitwise是一种特殊的Trie，可以携带一个bitmap，来高效的按位表示哪些分支是有效的。</p>
+<p>Critbit Trie全名——Critical Bit Trie，critical bit表示两个串的共同前缀分叉之处的比特。以下我们简称CB Trie。它包括两种类型的节点：</p>
 <ul>
 <li>中间节点：存储critical bit的位置，以及左右两个子树</li>
 <li>叶子节点：存储整个串</li>
 </ul>
 <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-keyword">typedef</span> <span class="hljs-class"><span class="hljs-keyword">struct</span>&#123;</span><br>    <span class="hljs-type">void</span>* child[<span class="hljs-number">2</span>];     <span class="hljs-comment">// 对于中间节点，指向子节点；对于叶子结点，指向字符串。</span><br>    uint32 byte;        <span class="hljs-comment">// 当前节点匹配的长度</span><br>    uint8 otherbits;    <span class="hljs-comment">// 掩码，用来快速取得不同最高位，查询时用来做分支查找</span><br>                        <span class="hljs-comment">// newotherbits = p[newbyte]^ubytes[newbyte];</span><br>&#125;critbit0_node;<br><br><span class="hljs-keyword">typedef</span> <span class="hljs-class"><span class="hljs-keyword">struct</span>&#123;</span><br>    <span class="hljs-type">void</span>* root;         <span class="hljs-comment">// 根节点，作为入口</span><br>&#125;critbit0_tree;<br></code></pre></td></tr></table></figure>
 <p>掩码的存在加速了分支的查找，可以通过<code>newotherbits = p[newbyte] ^ ubytes[newbyte];</code>来快速取得不同的最高位，最终决定是往左还是往右。</p>
-<p>此外，如何知晓节点node是一个叶子节点，还是中间节点呢？CB
-Trie的设计上看起来并没有预留这样一个标志位。实际上，由于指针有按x字节(取决于处理器位数，32位是4，64位就是8)对齐的特性，因此指针的最低位一定是0，本着最大程度利用的原则，CB
-Trie在设计上用<code>child</code>的最低位来做标志，0表示叶子节点，1表示内部节点，比如，查找的代码如下：</p>
+<p>此外，如何知晓节点node是一个叶子节点，还是中间节点呢？CB Trie的设计上看起来并没有预留这样一个标志位。实际上，由于指针有按x字节(取决于处理器位数，32位是4，64位就是8)对齐的特性，因此指针的最低位一定是0，本着最大程度利用的原则，CB Trie在设计上用<code>child</code>的最低位来做标志，0表示叶子节点，1表示内部节点，比如，查找的代码如下：</p>
 <figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-function"><span class="hljs-type">int</span> <span class="hljs-title">critbit0_contains</span><span class="hljs-params">(critbit0_tree*t, <span class="hljs-type">const</span> <span class="hljs-type">char</span>* u)</span> </span>&#123;<br>    <span class="hljs-type">const</span> uint8* ubytes= (<span class="hljs-type">void</span>*)u;<br>    <span class="hljs-type">const</span> <span class="hljs-type">size_t</span> ulen= <span class="hljs-built_in">strlen</span>(u);<br>    uint8* p= t-&gt;root;<br>    <span class="hljs-keyword">if</span>(!p) <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>    <span class="hljs-comment">// 内部节点？</span><br>    <span class="hljs-keyword">while</span>( <span class="hljs-number">1</span> &amp; (<span class="hljs-type">intptr_t</span>)p )&#123;             <br>        critbit0_node* q = (<span class="hljs-type">void</span>*)(p<span class="hljs-number">-1</span>);  <span class="hljs-comment">// 取得真正的指针</span><br>        uint8 c = <span class="hljs-number">0</span>;<br>        <span class="hljs-keyword">if</span>(q-&gt;byte &lt; ulen) c = ubytes[q-&gt;byte];<br>        <span class="hljs-type">const</span> <span class="hljs-type">int</span> direction= (<span class="hljs-number">1</span>+(q-&gt;otherbits|c))&gt;&gt;<span class="hljs-number">8</span>;<br>        p = q-&gt;child[direction];<br>    &#125;<br>	<span class="hljs-comment">// 叶子节点!</span><br>    <span class="hljs-keyword">return</span> <span class="hljs-number">0</span> == <span class="hljs-built_in">strcmp</span>(u, (<span class="hljs-type">const</span> <span class="hljs-type">char</span>*)p);<br>&#125;<br></code></pre></td></tr></table></figure>
-<p>CB Trie的更多内容可以关注：https://cr.yp.to/critbit.html</p>
+<p>CB Trie的更多内容可以关注：<a target="_blank" rel="noopener" href="https://cr.yp.to/critbit.html">https://cr.yp.to/critbit.html</a></p>
 <blockquote>
-<p>除Critical Bit Trie外，还有一种与之类似的QP
-Trie，详见：https://dotat.at/prog/qp/README.html</p>
+<p>除Critical Bit Trie外，还有一种与之类似的QP Trie，详见：<a target="_blank" rel="noopener" href="https://dotat.at/prog/qp/README.html">https://dotat.at/prog/qp/README.html</a></p>
 </blockquote>
-<h3 id="burst-trie">Burst Trie</h3>
-<p>Burst
-Trie严格意义上已经不是字典树了，它是字典树的变种（我更愿称之为混血）。它与字典树的主要区别在于，它的叶子结点和中间节点采用了完全不同的数据结构。中间节点依然是常规的Trie节点，但叶子节点被替换成了一个容器：</p>
-<p><img src="2023-11-02-19-49-18.png" srcset="/img/loading.gif" lazyload /></p>
+<h3 id="Burst-Trie"><a href="#Burst-Trie" class="headerlink" title="Burst Trie"></a>Burst Trie</h3><p>Burst Trie严格意义上已经不是字典树了，它是字典树的变种（我更愿称之为混血）。它与字典树的主要区别在于，它的叶子结点和中间节点采用了完全不同的数据结构。中间节点依然是常规的Trie节点，但叶子节点被替换成了一个容器：</p>
+<p><img src="2023-11-02-19-49-18.png" srcset="/img/loading.gif" lazyload alt=""></p>
 <p>容器本身可以选择各种各样的实现方式，比如上图中使用了二叉搜索树（生产环境肯定是用具有平衡能力的搜索树，比如红黑树、AVL或者伸展树）。除了二叉搜索树以外，我们当然也可以用链表、哈希表来作为容器。无非就是在时间与空间上做平衡罢了。</p>
-<p>那么问题来了，在Burst
-Trie的构建过程中，何时应该分裂出叶子节点和中间节点呢？</p>
-<p>Burst
-Trie以一个空容器作为起始态，每当新元素插入时，容器的规模随之增长，直到容器被爆裂启发器(burst
-heuristic)判定为低效时，容器节点发生爆裂：容器节点先创建一个字典树中间节点，取代自己原本的位置，对于容器中的每个元素，以首字母作为新节点，除首字母外剩下的字符添加到新容器中，新容器作为新节点的子节点。如此，一个容器当触发启发器时，就会爆裂成多个容器，并生成一个新的中间节点。这个过程会递归下去，直到全部新容器都满足爆裂启发。</p>
-<p><img src="2023-11-02-19-57-51.png" srcset="/img/loading.gif" lazyload /></p>
+<p>那么问题来了，在Burst Trie的构建过程中，何时应该分裂出叶子节点和中间节点呢？</p>
+<p>Burst Trie以一个空容器作为起始态，每当新元素插入时，容器的规模随之增长，直到容器被爆裂启发器(burst heuristic)判定为低效时，容器节点发生爆裂：容器节点先创建一个字典树中间节点，取代自己原本的位置，对于容器中的每个元素，以首字母作为新节点，除首字母外剩下的字符添加到新容器中，新容器作为新节点的子节点。如此，一个容器当触发启发器时，就会爆裂成多个容器，并生成一个新的中间节点。这个过程会递归下去，直到全部新容器都满足爆裂启发。</p>
+<p><img src="2023-11-02-19-57-51.png" srcset="/img/loading.gif" lazyload alt=""></p>
 <p>上图为增加单词romule触发了爆裂启发器后的爆裂过程。</p>
 <p>既然是启发式策略，那么我们应该如何设计这一策略呢？一般来说，有三种常见手法：</p>
-<ol type="1">
+<ol>
 <li>阈值：最为简单粗暴的手法，只要容器中元素个数超出了阈值，就发生爆裂。</li>
 <li>比例：每个容器记录两个计数器，N表示容器被查询的次数，S表示命中容器中根节点的查询次数（也就是一发入魂，到访问到根节点即止）。当S/N低于某个阈值时，容器就会破裂。</li>
 <li>趋势：创建容器时，分配给容器一个资源量C。每次成功访问时，都会修改资源量。如果访问是直接命中，则增加B作为奖励，否则减少M作为惩罚。当资源量达到0时，就发生爆发。</li>
@@ -430,88 +402,71 @@ heuristic)判定为低效时，容器节点发生爆裂：容器节点先创建�
 <blockquote>
 <p>比例和趋势这两种策略，对于容器的数据结构选用像是伸展树(Splay树)时会更加契合，Splay树会将被频繁访问的节点上移到靠近root的位置，对于不均匀查询的业务场景，选择伸展树会非常有用。</p>
 </blockquote>
-<p>Burst
-Trie这类混血型数据结构，相当于解除了Trie本身结构的限制，彻底放飞自我，直接用不同的数据结构杂糅来做时间与空间上的trade
-off。</p>
-<h4 id="hat-trie">HAT Trie</h4>
-<p>HAT Trie是一种Burst
-Trie，它选择用数组型哈希表来作为容器节点的数据结构。</p>
+<p>Burst Trie这类混血型数据结构，相当于解除了Trie本身结构的限制，彻底放飞自我，直接用不同的数据结构杂糅来做时间与空间上的trade off。</p>
+<h4 id="HAT-Trie"><a href="#HAT-Trie" class="headerlink" title="HAT Trie"></a>HAT Trie</h4><p>HAT Trie是一种Burst Trie，它选择用数组型哈希表来作为容器节点的数据结构。</p>
 <p>何为数组型哈希表呢？这个就要从哈希表的碰撞谈起。我们知道哈希表是把不同的元素通过哈希函数（比如，通过最简单的模运算(一般选用一个大质数)）分配到不同的桶当中，然而，总会有不同的键被哈希到相同的桶的情况，那么怎么解决碰撞冲突呢？虽然方法五花八门，但是在生产环境中最常见的解决方案就是——拉链法。即，每个哈希桶都包含一个链表，当发生碰撞时，将新元素插入到链表末尾。</p>
 <blockquote>
 <p>当然，哈希桶也可以用别的结构，比如Java最新的HashMap就用的红黑树。本质上也是时间与空间的tradeoff。</p>
 </blockquote>
-<p>这种简单的拉链法非常好用，但它的主要问题在于对cpu
-cache不友好（链表中不同的节点它们在存储空间上未必连续，cache
-line无法一次性装载）。比如C++的<code>std::unordered_map&lt;std::string, int&gt;</code>，当访问链表中的每个节点时，我们需要进行两次解引用操作：一次用来访问下一个节点，一次用来比较自身是否相等。</p>
+<p>这种简单的拉链法非常好用，但它的主要问题在于对cpu cache不友好（链表中不同的节点它们在存储空间上未必连续，cache line无法一次性装载）。比如C++的<code>std::unordered_map&lt;std::string, int&gt;</code>，当访问链表中的每个节点时，我们需要进行两次解引用操作：一次用来访问下一个节点，一次用来比较自身是否相等。</p>
 <p>数组型哈希表则是在拉链法的基础上进行了改造，他把桶中的所有字符串统一存放在一个大数组当中，而不是由链式管理：</p>
-<p><img src="2023-11-02-20-15-53.png" srcset="/img/loading.gif" lazyload /></p>
+<p><img src="2023-11-02-20-15-53.png" srcset="/img/loading.gif" lazyload alt=""></p>
 <p>通过合理的元信息分隔符来管理每一个子串（比如上图中用长度来管理）。另一方面，这一设计也节省了<code>next</code>指针的空间，当然缺陷就是数组的规模会随着字符串的增加，而面临重新分配内存的需求。</p>
-<p>此外，HAT
-Trie对于爆裂的实现还有一些额外的补充：如上图所示，中间节点的不同字符可能存在相同的子容器节点。<code>e</code>和<code>i</code>都指向了同一个数组哈希表。出现这种现象是因为HAT
-Trie的混合爆裂方案：</p>
+<p>此外，HAT Trie对于爆裂的实现还有一些额外的补充：如上图所示，中间节点的不同字符可能存在相同的子容器节点。<code>e</code>和<code>i</code>都指向了同一个数组哈希表。出现这种现象是因为HAT Trie的混合爆裂方案：</p>
 <ul>
 <li>容器节点有两种形态，一种是单一型，另一种是混合型。</li>
-<li>混合容器节点可以拥有超过一个的父节点。
-<ul>
-<li>当从单一节点创建多个混合节点时,
-需要寻找一个分隔字符，它能尽可能平均的把单一节点分为两部分：所有首字母小于分隔字符的字符串进入左边的混合节点，其他的进入右边的混合节点。</li>
-<li>然后，父节点会对小于分隔字符的字母设置指针指向左侧混合节点，剩下的指向右侧混合节点。注意不同于单一节点,
-我们在容器中会保留原字符串的首字母，以便于分别出来自于哪个父节点.</li>
-</ul></li>
+<li>混合容器节点可以拥有超过一个的父节点。<ul>
+<li>当从单一节点创建多个混合节点时, 需要寻找一个分隔字符，它能尽可能平均的把单一节点分为两部分：所有首字母小于分隔字符的字符串进入左边的混合节点，其他的进入右边的混合节点。</li>
+<li>然后，父节点会对小于分隔字符的字母设置指针指向左侧混合节点，剩下的指向右侧混合节点。注意不同于单一节点, 我们在容器中会保留原字符串的首字母，以便于分别出来自于哪个父节点.</li>
 </ul>
-<p>HAT
-Trie在设计上也是有明显缺陷的，它的问题在于元素只是近似有序，容器节点中的元素是无序的。这也就意味着，当我们在进行前缀查找时，可能会遭遇两种情况：</p>
-<ol type="1">
+</li>
+</ul>
+<p>HAT Trie在设计上也是有明显缺陷的，它的问题在于元素只是近似有序，容器节点中的元素是无序的。这也就意味着，当我们在进行前缀查找时，可能会遭遇两种情况：</p>
+<ol>
 <li>当查询像是<code>ro</code>时，在向下遍历的过程中，<code>r</code>和<code>o</code>都有中间Trie节点，它的查找和Trie没有什么不同。甚至当我们需要拿到以<code>ro</code>为前缀的所有字符串时，效率上还会大大增加，因为<code>r-&gt;o</code>的容器子节点上的数组型哈希表里的所有元素，都是我们需要的结果，这就可以一次性打包返回。</li>
 <li>而当我们需要查找<code>roma</code>时，在向下遍历的过程中就遇到了麻烦。由于Trie中间节点只到<code>r-&gt;o</code>就中断了，我们不得不在下面的容器节点里进行一次线性的遍历。这一时间复杂度则取决于哈希表的大小上限。</li>
 </ol>
-<p>总的来说，HAT
-Trie在面对短查询前缀请求比较多的场景，在速度和内存占用方面有着相当的优势，在后文也可以看到我们进行的性能评测数据。</p>
-<p>关于HAT
-Trie的实现，可以参考：https://github.com/Tessil/array-hash</p>
-<h3 id="double-array-trie">Double Array Trie</h3>
-<p>回到一开始提到的Trie本质——DFA，而使用转移矩阵实现的Trie，尽管效率上非常优秀，但空间因其稀疏性造成极大浪费。那么有没有什么办法可以直接压缩这个转移矩阵呢？</p>
+<p>总的来说，HAT Trie在面对短查询前缀请求比较多的场景，在速度和内存占用方面有着相当的优势，在后文也可以看到我们进行的性能评测数据。</p>
+<p>关于HAT Trie的实现，可以参考：<a target="_blank" rel="noopener" href="https://github.com/Tessil/array-hash">https://github.com/Tessil/array-hash</a></p>
+<h3 id="Double-Array-Trie"><a href="#Double-Array-Trie" class="headerlink" title="Double Array Trie"></a>Double Array Trie</h3><p>回到一开始提到的Trie本质——DFA，而使用转移矩阵实现的Trie，尽管效率上非常优秀，但空间因其稀疏性造成极大浪费。那么有没有什么办法可以直接压缩这个转移矩阵呢？</p>
 <p>事实上，早在1975年，Johnson前辈就提出了用4个数组(default,base,next,check)来表示DFA的方法，可以极大的减少空间浪费。而对Trie来说，可以精简到3个数组，此时，状态转移表的行以重叠的方式分配，使得空闲的单元能够被其他的状态利用，从而减少空间浪费。在1989年，研究者Aoe又提出了3数组表达方式的另一种改进，使得可以仅用两个数组(base,check)来表达Trie树。</p>
-<h4 id="triple-array">Triple Array</h4>
-<p>先来看三数组的Trie实现，三数组Trie由以下三个数组构成：</p>
-<ol type="1">
+<h4 id="Triple-Array"><a href="#Triple-Array" class="headerlink" title="Triple Array"></a>Triple Array</h4><p>先来看三数组的Trie实现，三数组Trie由以下三个数组构成：</p>
+<ol>
 <li>base数组：每个元素都对应Trie中的一个节点。对Trie中任意节点<code>s</code>，<code>node[s]</code>表示该节点在next和check数组中的起始索引，该索引表示节点<code>s</code>在状态转移表中的行号。</li>
 <li>next数组：与check数组协同。Trie中每个节点的状态转移向量存储于next数组中。</li>
 <li>check数组：与next数组协同。用来标记next数组中的元素所属的Trie节点。</li>
 </ol>
 <p>next和check的关系如下：</p>
 <ul>
-<li>状态<code>s</code>在输入字符<code>c</code>时，目标状态为<code>t</code>，那么有:
-<ul>
+<li>状态<code>s</code>在输入字符<code>c</code>时，目标状态为<code>t</code>，那么有:<ul>
 <li><code>check[base[s]+c] = s</code></li>
 <li><code>next[base[s]+c] = t</code></li>
-</ul></li>
+</ul>
+</li>
 </ul>
 <p>形成的关系如图所示：</p>
-<p><img src="2023-11-03-10-39-05.png" srcset="/img/loading.gif" lazyload /></p>
+<p><img src="2023-11-03-10-39-05.png" srcset="/img/loading.gif" lazyload alt=""></p>
 <p>可以看到base数组指向特定的next数组单元格，而next数组单元格存储的是一个基地址，配合偏移量<code>c</code>最终找到目标状态单元格，而该单元格内存储状态<code>t</code>。</p>
 <blockquote>
-<p>状态<code>s</code>不是字符"s"，它代表Trie中任意一个节点，也就是某一个前缀字符串。<code>t</code>同理。</p>
+<p>状态<code>s</code>不是字符”s”，它代表Trie中任意一个节点，也就是某一个前缀字符串。<code>t</code>同理。</p>
 </blockquote>
 <p>根据这样的关系，当我们在find过程中从<code>s</code>去找输入<code>c</code>后的下一个状态时，即可按部就班：</p>
 <figure class="highlight fortran"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs fortran">t := base[s] + c;<br><br><span class="hljs-keyword">if</span> check[t] = s <span class="hljs-keyword">then</span> <br>    next state := next[t] <br><span class="hljs-keyword">else</span> <br>    fail <br><span class="hljs-keyword">endif</span><br></code></pre></td></tr></table></figure>
 <p>但是这种设计不得不面临一个问题：在建树过程中，每次遇到状态转移，都得保证<code>next[base[s]+c]</code>这个地址单元可用（即没被此前的操作占用）。如果地址可用，那么就可以心安理得的直接占用；但如果已经被占用了，那么就不得不进行一番腾挪：移动当前单元格所有的节点，或者对节点<code>s</code>的转移向量重新调整位置。具体执行哪一种操作，需要根据代价来权衡，在找到了空闲的新单元格后，还需要对转移向量重新计算，算法如下：</p>
 <figure class="highlight fortran"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><code class="hljs fortran"><span class="hljs-keyword">Procedure</span> Relocate(s : state; b : base_index)<br>// 先从base[s]开始向后线性查找，直到找到一个空闲格子的起始下标b<br>&#123; Move base for state s to a new place beginning at b &#125; <br>begin <br>    // 根据check[base[s] + c] = s的关系，可以遍历从状态s开始的每一个状态<br>    foreach input <span class="hljs-keyword">character</span> c for the state s <br>    &#123; i.e. foreach c such that check[base[s] + c] = s &#125; <br>    begin <br>    // 更新check数组，指向正确的父节点<br>    check[b + c] := s; &#123; mark owner &#125; <br>    // 数据从原本的next[base[s]+c]单元格，腾挪到新的next[b+c]单元格<br>    next[b + c] := next[base[s] + c]; &#123; copy <span class="hljs-keyword">data</span> &#125; <br>    // 释放原本check数组中base[s]+c的父节点指向关系<br>    check[base[s] + c] := <span class="hljs-keyword">none</span> &#123; free the cell &#125; <br>    <span class="hljs-keyword">end</span>; <br>    // 直到所有的转移状态都完成腾挪后，再更新base[s]指向的next数组下标<br>    base[s] := b<br><span class="hljs-keyword">end</span><br></code></pre></td></tr></table></figure>
-<p><img src="2023-11-03-10-53-10.png" srcset="/img/loading.gif" lazyload /></p>
+<p><img src="2023-11-03-10-53-10.png" srcset="/img/loading.gif" lazyload alt=""></p>
 <p>从本质上来讲，三数组表达方式，实际上是通过next和check的协同，来允许相邻的存储单元存储不同的节点。这一思想可以大大降低被浪费的单元格的占比，使得空间利用更加紧凑。当然，代价就是每次新增状态转移时，都可能和现有的内存布局发生冲突，此时就不得不花大力气腾挪。</p>
-<h4 id="double-array">Double Array</h4>
-<p>正如上文所述，日本研究者Jun-ichi
-Aoe精益求精，在1989年提出了进一步的简化：双数组Trie树，简称DAT。</p>
+<h4 id="Double-Array"><a href="#Double-Array" class="headerlink" title="Double Array"></a>Double Array</h4><p>正如上文所述，日本研究者Jun-ichi Aoe精益求精，在1989年提出了进一步的简化：双数组Trie树，简称DAT。</p>
 <p>双数组结构中剔除了next数组，把next的功用直接合并到了base数组中，此时base和check数组平行。base和check的关系如下：</p>
 <ul>
-<li>对状态<code>s</code>，输入字符<code>c</code>，转移到目标状态<code>t</code>。有：
-<ul>
+<li>对状态<code>s</code>，输入字符<code>c</code>，转移到目标状态<code>t</code>。有：<ul>
 <li><code>check[base[s]+c] = s</code></li>
 <li><code>base[s] + c = t</code></li>
-</ul></li>
+</ul>
+</li>
 </ul>
 <p>此时，base数组的value不再指向next数组，而是指向base自身其他的单元格：</p>
-<p><img src="2023-11-03-11-11-07.png" srcset="/img/loading.gif" lazyload /></p>
+<p><img src="2023-11-03-11-11-07.png" srcset="/img/loading.gif" lazyload alt=""></p>
 <blockquote>
 <p>相比于三数组Trie，双数组Trie优化掉了对next数组索引的存储，next与base合为一体，不再对这一”缓冲池“的元信息加以记载，从而又节省了一大笔空间。</p>
 </blockquote>
@@ -520,34 +475,24 @@ Aoe精益求精，在1989年提出了进一步的简化：双数组Trie树，简
 <p>当然，双数组Trie和三数组Trie一样，都会面临卡格子的问题。只不过，对于双数组结构来说，这回被卡主的格子在base数组中。解决的方法也与三数组结构如出一辙，无非是向后扫描+转移状态重定位罢了：</p>
 <figure class="highlight fortran"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><code class="hljs fortran"><span class="hljs-keyword">Procedure</span> Relocate(s : state, b : base_index)<br>&#123; Move base for state s to a new place beginning at b &#125;<br>begin<br>    foreach input <span class="hljs-keyword">character</span> c for the state s<br>    &#123; i.e. foreach c such that check[base[s] + c] = s &#125;<br>    begin<br>        check[b + c] := s;<br>        base[b + c] := base[base[s] + c];<br>        &#123; the node base[s] + c is to be moved to b + c; Hence, for <span class="hljs-built_in">any</span> i for which check[i] = base[s] + c, update check[i] to b + c &#125;<br>        foreach input <span class="hljs-keyword">character</span> d for the node base[s] + c<br>        begin<br>            check[base[base[s] + c] + d] := b + c <br>            check[base[s] + c] := <span class="hljs-keyword">none</span> <br>        <span class="hljs-keyword">end</span><br>    <span class="hljs-keyword">end</span><br>    base[s] := b <br><span class="hljs-keyword">end</span><br></code></pre></td></tr></table></figure>
 <p>搬迁过程如图所示：</p>
-<p><img src="2023-11-03-11-36-35.png" srcset="/img/loading.gif" lazyload /></p>
-<p>DAT的开源实现库有很多，最著名的是小日子依照DAT论文写的<a
-target="_blank" rel="noopener" href="https://github.com/s-yata/darts-clone/blob/master/doc/en/Introduction.md">darts-clone</a>，但darts-clone实际上只是个验证demo，并未达到工业级实现的标准。其中表现最优的是：<a
-target="_blank" rel="noopener" href="https://www.tkl.iis.u-tokyo.ac.jp/~ynaga/cedar/">cedar</a>，原作者在安利cedar时，也曾对主流的Trie开源库进行了性能评测，这些Trie的实现包罗了前文介绍的种种手法。</p>
+<p><img src="2023-11-03-11-36-35.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<p>DAT的开源实现库有很多，最著名的是小日子依照DAT论文写的<a target="_blank" rel="noopener" href="https://github.com/s-yata/darts-clone/blob/master/doc/en/Introduction.md">darts-clone</a>，但darts-clone实际上只是个验证demo，并未达到工业级实现的标准。其中表现最优的是：<a target="_blank" rel="noopener" href="https://www.tkl.iis.u-tokyo.ac.jp/~ynaga/cedar/">cedar</a>，原作者在安利cedar时，也曾对主流的Trie开源库进行了性能评测，这些Trie的实现包罗了前文介绍的种种手法。</p>
 <p>无序键集建Trie：</p>
-<p><img src="2023-11-03-11-58-50.png" srcset="/img/loading.gif" lazyload /></p>
+<p><img src="2023-11-03-11-58-50.png" srcset="/img/loading.gif" lazyload alt=""></p>
 <p>对有序键集建Trie：</p>
-<p><img src="2023-11-03-12-03-17.png" srcset="/img/loading.gif" lazyload /></p>
-<p>可以看到在DAT的实现中，cedar实现的Double-array prefix
-trie，在空间占用、构建时间和查询性能上有着最好的权衡。</p>
-<h2 id="benchmark">Benchmark</h2>
-<p>待续。。</p>
-<h2 id="参考链接">参考链接</h2>
-<p><a
-target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Trie#Compressed_tries">WIKIPEDIA-Trie</a>
-<a target="_blank" rel="noopener" href="https://tessil.github.io/2017/06/22/hat-trie.html">HAT-trie, a
-cache-conscious trie</a> <a
-target="_blank" rel="noopener" href="https://linux.thai.net/~thep/datrie/datrie.html">An Implementation
-of Double-Array Trie</a> <a
-target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/35193582">双数组前缀树（Double-Array
-Trie）</a> <a
-target="_blank" rel="noopener" href="https://www.ffutop.com/posts/2021-01-24-darts/">双数组前缀树</a>
-<a
-target="_blank" rel="noopener" href="http://jiangzhuti.me/posts/%E5%AD%97%E5%85%B8%E6%A0%91%E7%9A%84%E5%87%A0%E7%A7%8D%E5%AE%9E%E7%8E%B0%E6%96%B9%E5%BC%8F%E4%BB%A5%E5%8F%8A%E5%BA%94%E7%94%A8">字典树的几种实现方式以及应用</a>
-<a target="_blank" rel="noopener" href="https://www.tkl.iis.u-tokyo.ac.jp/~ynaga/cedar/">cedar - C++
-implementation of efficiently-updatable double-array trie</a> <a
-target="_blank" rel="noopener" href="https://github.com/s-yata/darts-clone">Darts-clone: A clone of
-Darts (Double-ARray Trie System)</a></p>
+<p><img src="2023-11-03-12-03-17.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<p>可以看到在DAT的实现中，cedar实现的Double-array prefix trie，在空间占用、构建时间和查询性能上有着最好的权衡。</p>
+<h2 id="Benchmark"><a href="#Benchmark" class="headerlink" title="Benchmark"></a>Benchmark</h2><p>待续。。</p>
+<h2 id="参考链接"><a href="#参考链接" class="headerlink" title="参考链接"></a>参考链接</h2><ul>
+<li><a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Trie#Compressed_tries">WIKIPEDIA-Trie</a></li>
+<li><a target="_blank" rel="noopener" href="https://tessil.github.io/2017/06/22/hat-trie.html">HAT-trie, a cache-conscious trie</a></li>
+<li><a target="_blank" rel="noopener" href="https://linux.thai.net/~thep/datrie/datrie.html">An Implementation of Double-Array Trie</a></li>
+<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/35193582">双数组前缀树（Double-Array Trie）</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.ffutop.com/posts/2021-01-24-darts/">双数组前缀树</a></li>
+<li><a target="_blank" rel="noopener" href="http://jiangzhuti.me/posts/%E5%AD%97%E5%85%B8%E6%A0%91%E7%9A%84%E5%87%A0%E7%A7%8D%E5%AE%9E%E7%8E%B0%E6%96%B9%E5%BC%8F%E4%BB%A5%E5%8F%8A%E5%BA%94%E7%94%A8">字典树的几种实现方式以及应用</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.tkl.iis.u-tokyo.ac.jp/~ynaga/cedar/">cedar - C++ implementation of efficiently-updatable double-array trie</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/s-yata/darts-clone">Darts-clone: A clone of Darts (Double-ARray Trie System)</a></li>
+</ul>
 
                 
               </div>
