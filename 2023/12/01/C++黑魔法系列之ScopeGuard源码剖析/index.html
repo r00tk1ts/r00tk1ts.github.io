@@ -1,0 +1,677 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/favicon.png">
+  <link rel="icon" href="/img/favicon.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="r00tk1t">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="众所周知，想要在C++中写出通用的框架、组件代码并不简单，一来C++本身庞然大物包罗万象，大部分开发者并不了解像是”茴字有四种写法“这种语言律师津津乐道的课题，对于晦涩难懂的模板元更是谈之色变，二来是历史悠久，在发展过程中为了向前兼容，遗留了各种特例特办的技术债，导致系统臃肿不堪。因此，尽管C++生态相当茂盛，但权威的第三方库却屈指可数（甚至其标准库都是风风雨雨缝缝补补，偷得人家boost就剩个底">
+<meta property="og:type" content="article">
+<meta property="og:title" content="C++黑魔法系列之ScopeGuard源码剖析">
+<meta property="og:url" content="https://r00tk1ts.github.io/2023/12/01/C++%E9%BB%91%E9%AD%94%E6%B3%95%E7%B3%BB%E5%88%97%E4%B9%8BScopeGuard%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90/index.html">
+<meta property="og:site_name" content="玉涵的技能书">
+<meta property="og:description" content="众所周知，想要在C++中写出通用的框架、组件代码并不简单，一来C++本身庞然大物包罗万象，大部分开发者并不了解像是”茴字有四种写法“这种语言律师津津乐道的课题，对于晦涩难懂的模板元更是谈之色变，二来是历史悠久，在发展过程中为了向前兼容，遗留了各种特例特办的技术债，导致系统臃肿不堪。因此，尽管C++生态相当茂盛，但权威的第三方库却屈指可数（甚至其标准库都是风风雨雨缝缝补补，偷得人家boost就剩个底">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2023-12-01T09:32:06.000Z">
+<meta property="article:modified_time" content="2023-12-07T12:21:42.648Z">
+<meta property="article:author" content="r00tk1t">
+<meta property="article:tag" content="cpp">
+<meta property="article:tag" content="cpp-templates">
+<meta name="twitter:card" content="summary_large_image">
+  
+  
+  
+  <title>C++黑魔法系列之ScopeGuard源码剖析 - 玉涵的技能书</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"r00tk1ts.github.io","root":"/","version":"1.9.5","typing":{"enable":true,"typeSpeed":80,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 6.1.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>玉涵的技能书</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/doc/">
+                <i class="iconfont icon-books"></i>
+                <span>藏经阁</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="C++黑魔法系列之ScopeGuard源码剖析"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2023-12-01 17:32" pubdate>
+          2023年12月1日 下午
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          4k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          33 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">C++黑魔法系列之ScopeGuard源码剖析</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <p>众所周知，想要在C++中写出通用的框架、组件代码并不简单，一来C++本身庞然大物包罗万象，大部分开发者并不了解像是”茴字有四种写法“这种语言律师津津乐道的课题，对于晦涩难懂的模板元更是谈之色变，二来是历史悠久，在发展过程中为了向前兼容，遗留了各种特例特办的技术债，导致系统臃肿不堪。因此，尽管C++生态相当茂盛，但权威的第三方库却屈指可数（甚至其标准库都是风风雨雨缝缝补补，<del>偷得人家boost就剩个底裤(bushi)</del>）。</p>
+<p>本篇文章我们来深度剖析大名鼎鼎的Facebook folly库所实现的ScopeGuard。管中窥豹，可见一斑。</p>
+<span id="more"></span>
+<h1 id="C-黑魔法系列之ScopeGuard源码剖析"><a href="#C-黑魔法系列之ScopeGuard源码剖析" class="headerlink" title="C++黑魔法系列之ScopeGuard源码剖析"></a>C++黑魔法系列之ScopeGuard源码剖析</h1><p>ScopeGuard是一种通用的RAII思想的实现。它可以保证某个函数在离开当前作用域时一定会被执行，基于这一语义，我们可以方便的编写出异常安全的代码，也可以实现像go语言中defer那样的语法糖。Facebook大名鼎鼎的folly库实现了一种通用的ScopeGuard实现，它被广泛应用于各种基础组件之上，通过模拟语法糖的形式让编写异常安全的代码变得简单。</p>
+<p>本文则是对其源码实现的解剖，但与常规解析有所不同的是，我不会一上来就逐行逆向去讨论每一处代码的细节，而是提取出全局设计思想，一步一步按部就班实现所需的能力，最终reach源代码。</p>
+<h2 id="异常触发的清洁工：makeGuard"><a href="#异常触发的清洁工：makeGuard" class="headerlink" title="异常触发的清洁工：makeGuard"></a>异常触发的清洁工：makeGuard</h2><p>在ScopeGuard的源码中，开局就给了一个应用场景案例：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><code class="hljs cpp"> <span class="hljs-function"><span class="hljs-type">void</span> <span class="hljs-title">User::addFriend</span><span class="hljs-params">(User&amp; newFriend)</span> </span>&#123;<br>    <span class="hljs-comment">// add the friend to memory</span><br>    friends_.<span class="hljs-built_in">push_back</span>(&amp;newFriend);<br> <br>    <span class="hljs-comment">// If the db insertion that follows fails, we should</span><br>    <span class="hljs-comment">// remove it from memory.</span><br>    <span class="hljs-keyword">auto</span> guard = <span class="hljs-built_in">makeGuard</span>([&amp;] &#123; friends_.<span class="hljs-built_in">pop_back</span>(); &#125;);<br> <br>    <span class="hljs-comment">// this will throw an exception upon error, which</span><br>    <span class="hljs-comment">// makes the ScopeGuard execute UserCont::pop_back()</span><br>    <span class="hljs-comment">// once the Guard&#x27;s destructor is called.</span><br>    db_-&gt;<span class="hljs-built_in">addFriend</span>(<span class="hljs-built_in">GetName</span>(), newFriend.<span class="hljs-built_in">GetName</span>());<br> <br>    <span class="hljs-comment">// an exception was not thrown, so don&#x27;t execute</span><br>    <span class="hljs-comment">// the Guard.</span><br>    guard.<span class="hljs-built_in">dismiss</span>();<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>这个案例源于Andrie大佬的这篇文章：<a target="_blank" rel="noopener" href="https://drdobbs.com/cpp/generic-change-the-way-you-write-excepti/184403758">Generic: Change the Way You Write Exception-Safe Code — Forever</a>，里面着重讲述了在C++中要如何简化编写异常安全的代码。</p>
+<p>在函数<code>addFriend</code>执行过程中，可能会抛出某个异常，而从业务逻辑视角来看，我们希望一旦有异常抛出，那么就能够触发某些清理工作的执行。在上述代码中，传递给<code>makeGuard</code>的lambda函数就是清理任务，代码中的<code>db_-&gt;addFriend(...)</code>可能会抛异常，此时就需要执行清理任务lambda，而如果在执行过程中并未抛出任何异常，则清理任务不会执行。</p>
+<p>对于这个例子，可能读者会比较奇怪，为什么要用这么”别扭“的写法呢？如果我写成：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-function"><span class="hljs-type">void</span> <span class="hljs-title">User::AddFriend</span><span class="hljs-params">(User&amp; newFriend)</span></span><br><span class="hljs-function"></span>&#123;<br>    <span class="hljs-comment">// Add the new friend to the database</span><br>    pDB_-&gt;<span class="hljs-built_in">AddFriend</span>(<span class="hljs-built_in">GetName</span>(), newFriend.<span class="hljs-built_in">GetName</span>());<br>    <span class="hljs-comment">// Add the new friend to the vector of friends</span><br>    friends_.<span class="hljs-built_in">push_back</span>(&amp;newFriend);<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>不是直接就大功告成？一旦<code>pDB_-&gt;AddFriend(GetName(), newFriend.GetName());</code>抛出了异常，那么根据C++的异常控制机理，下面的<code>friends_.push_back(&amp;newFriend);</code>不就恰恰不会执行了吗？</p>
+<p>你说得对，但是我是说如果，<code>pDB_-&gt;AddFriend(GetName(), newFriend.GetName())</code>在成功修改了外部数据库的信息后，<code>friends_.push_back(&amp;newFriend)</code>抛出了异常，阁下又该如何应对？可能大部分业务都没这么敏感，往往也有一些纠错逻辑去补偿，但既然是例子，我们暂且钻一下牛角尖。</p>
+<h3 id="try-catch-暴力解决"><a href="#try-catch-暴力解决" class="headerlink" title="try-catch 暴力解决"></a>try-catch 暴力解决</h3><p>当然，对于这段简单的代码，看起来并不需要ScopedGuard这么高级的机制，我们只需要暴力编写成：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-function"><span class="hljs-type">void</span> <span class="hljs-title">User::AddFriend</span><span class="hljs-params">(User&amp; newFriend)</span> </span>&#123;<br>    friends_.<span class="hljs-built_in">push_back</span>(&amp;newFriend);<br>    <span class="hljs-keyword">try</span> &#123;<br>        pDB_-&gt;<span class="hljs-built_in">AddFriend</span>(<span class="hljs-built_in">GetName</span>(), newFriend.<span class="hljs-built_in">GetName</span>());<br>    &#125; <span class="hljs-built_in">catch</span> (...) &#123;<br>        friends_.<span class="hljs-built_in">pop_back</span>();<br>        <span class="hljs-keyword">throw</span>;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>一样可以达成同样的效果。但是这种异常安全的代码，也带来了额外的开销：我们的程序变得臃肿，随着可能抛出异常代码块的增多，我们需要编写的try-catch块儿也更复杂，甚至还有需要嵌套的代码块儿，导致代码可维护性差，甚至晦涩难懂。</p>
+<h3 id="RAII"><a href="#RAII" class="headerlink" title="RAII"></a>RAII</h3><p>那么，有没有什么更优雅的手法呢？本质上<code>friends_.push_back(&amp;newFriend);</code>是一种资源泄露，我们可以借助RAII的思想来避免泄露：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-keyword">class</span> <span class="hljs-title class_">VectorInserter</span><br>&#123;<br><span class="hljs-keyword">public</span>:<br>    <span class="hljs-built_in">VectorInserter</span>(std::vector&lt;User*&gt;&amp; v, User&amp; u)<br>    : <span class="hljs-built_in">container_</span>(v), <span class="hljs-built_in">commit_</span>(<span class="hljs-literal">false</span>)<br>    &#123;<br>        container_.<span class="hljs-built_in">push_back</span>(&amp;u);<br>    &#125;<br>    <span class="hljs-function"><span class="hljs-type">void</span> <span class="hljs-title">Commit</span><span class="hljs-params">()</span> <span class="hljs-title">throw</span><span class="hljs-params">()</span></span><br><span class="hljs-function">    </span>&#123;<br>        commit_ = <span class="hljs-literal">true</span>;<br>    &#125;<br>    ~<span class="hljs-built_in">VectorInserter</span>()<br>    &#123;<br>        <span class="hljs-keyword">if</span> (!commit_) container_.<span class="hljs-built_in">pop_back</span>();<br>    &#125;<br><span class="hljs-keyword">private</span>:<br>    std::vector&lt;User*&gt;&amp; container_;<br>    <span class="hljs-type">bool</span> commit_;<br>&#125;;<br><br><span class="hljs-function"><span class="hljs-type">void</span> <span class="hljs-title">User::AddFriend</span><span class="hljs-params">(User&amp; newFriend)</span></span><br><span class="hljs-function"></span>&#123;<br>    <span class="hljs-function">VectorInserter <span class="hljs-title">ins</span><span class="hljs-params">(friends_, &amp;newFriend)</span></span>;<br>    pDB_-&gt;<span class="hljs-built_in">AddFriend</span>(<span class="hljs-built_in">GetName</span>(), newFriend.<span class="hljs-built_in">GetName</span>());<br>    <span class="hljs-comment">// Everything went fine, commit the vector insertion</span><br>    ins.<span class="hljs-built_in">Commit</span>();<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>这下我们通过引入<code>VectorInserter ins</code>这个局部变量来实现RAII，在代码末尾处我们通过执行<code>ins.Commit()</code>来设置其成员标记，使其在离开函数作用域之后析构之时，不去执行清理代码<code>container_.pop_back();</code>。而如果前面的代码抛出了异常，那么<code>ins.Commit();</code>将没有机会得到执行，此时<code>commit</code>就是初始值<code>false</code>，在函数作用域退出时依然会触发<code>ins</code>的析构，此时就执行了清理代码。</p>
+<p>通过对RAII思想的利用，这下子<code>AddFriend</code>的异常安全逻辑编写变得简洁多了。但是，由于我们需要编写伴生的RAII class，从整体代码设计来看依然不够优雅。另一方面，在C++中想要设计一个功能完备又正确的类可没这么简单，像是上面的<code>VectorInserter</code>，如何优雅的处理好Big Five，也是相当麻烦。</p>
+<h3 id="ScopeGuard"><a href="#ScopeGuard" class="headerlink" title="ScopeGuard"></a>ScopeGuard</h3><p>RAII的思想没错，但是需要开发者自己设计伴生类代价太大了，我们自己做一下封装，提供最精致的接口供开发者使用。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-keyword">template</span>&lt;FunctionType&gt;<br><span class="hljs-keyword">class</span> <span class="hljs-title class_">ScopeGuard</span> &#123;<br>  <span class="hljs-keyword">public</span>:<br>    <span class="hljs-function"><span class="hljs-type">void</span> <span class="hljs-title">dismiss</span><span class="hljs-params">()</span> <span class="hljs-keyword">noexcept</span> </span>&#123; dismissed_ = <span class="hljs-literal">true</span>; &#125;<br><br>    <span class="hljs-function"><span class="hljs-keyword">template</span>&lt;<span class="hljs-keyword">typename</span> Fn&gt;</span><br><span class="hljs-function">    <span class="hljs-keyword">explicit</span> <span class="hljs-title">ScopeGuard</span><span class="hljs-params">(Fn&amp;&amp; fn)</span> : function_(std::forward&lt;Fn&gt;(fn)) &#123;</span>&#125;<br><br>    <span class="hljs-built_in">ScopeGuard</span>(ScopeGuard&amp;&amp; other) <span class="hljs-keyword">noexcept</span> : <span class="hljs-built_in">function_</span>(std::<span class="hljs-built_in">move</span>(other.function_)) &#123;<br>      dismissed_ = std::<span class="hljs-built_in">exchange</span>(other.dismissed_, <span class="hljs-literal">true</span>);<br>    &#125;<br><br>    ~<span class="hljs-built_in">ScopeGuardImpl</span>() &#123;<br>      <span class="hljs-keyword">if</span> (!dismissed_) &#123;<br>        <span class="hljs-built_in">function_</span>();<br>      &#125;<br>    &#125;<br>  <br>  <span class="hljs-keyword">private</span>:<br>    <span class="hljs-type">bool</span> dismissed_;<br>    FunctionType function_;<br>&#125;;<br></code></pre></td></tr></table></figure>
+<p>待续。。。</p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90/" class="category-chain-item">源码剖析</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/cpp/" class="print-no-link">#cpp</a>
+      
+        <a href="/tags/cpp-templates/" class="print-no-link">#cpp-templates</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>C++黑魔法系列之ScopeGuard源码剖析</div>
+      <div>https://r00tk1ts.github.io/2023/12/01/C++黑魔法系列之ScopeGuard源码剖析/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>r00tk1t</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2023年12月1日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2023/11/01/%E8%BF%98%E5%9C%A8%E5%98%B4%E7%A1%AC%EF%BC%9FTrie%E6%A0%91%E6%B2%A1%E4%BD%A0%E6%83%B3%E5%BE%97%E9%82%A3%E4%B9%88%E7%AE%80%E5%8D%95/" title="还在嘴硬？Trie树没你想得那么简单">
+                        <span class="hidden-mobile">还在嘴硬？Trie树没你想得那么简单</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>
