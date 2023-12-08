@@ -114,19 +114,27 @@ void User::AddFriend(User& newFriend)
 
 通过对RAII思想的利用，这下子`AddFriend`的异常安全逻辑编写变得简洁多了。但是，由于我们需要编写伴生的RAII class，从整体代码设计来看依然不够优雅。另一方面，在C++中想要设计一个功能完备又正确的类可没这么简单，像是上面的`VectorInserter`，如何优雅的处理好Big Five，也是相当麻烦。
 
-### ScopeGuard
-RAII的思想没错，但是需要开发者自己设计伴生类代价太大了，我们自己做一下封装，提供最精致的接口供开发者使用。
+### ScopeGuard Tool
+RAII的思想没错，但是需要开发者自己设计伴生类代价太大了，我们自己做一下封装，提供最精致的接口供开发者使用。考虑到资源清理的手段多种多样，比如最通用的手法是调用某个函数对象，为了分离flag和具体手段，在设计上可以将类拆分成层级结构：
 
 ```cpp
-template<FunctionType>
-class ScopeGuard {
+class ScopeGuardImplBase {
   public:
     void dismiss() noexcept { dismissed_ = true; }
+  protected:
+     ScopeGuardImplBase(bool dismissed = false) noexcept : dismissed_(dismissed) {}
+  protected:
+    bool dismissed_;
+};
 
-    template<typename Fn>
-    explicit ScopeGuard(Fn&& fn) : function_(std::forward<Fn>(fn)) {}
+template<FunctionType>
+class ScopeGuardImpl : public ScopeGuardImplBase {
+  public:
+    explicit ScopeGuardImpl(FunctionType& fn) : function_(std::as_const(fn)) { }
+    explicit ScopeGuardImpl(const FunctionType& fn) : function_(fn) { }
+    explicit ScopeGuardImpl(FunctionType&& fn) : function_(std::move(fn)) { }
 
-    ScopeGuard(ScopeGuard&& other) noexcept : function_(std::move(other.function_)) {
+    ScopeGuardImpl(ScopeGuardImpl&& other) : function_(std::move(other.function_)) {
       dismissed_ = std::exchange(other.dismissed_, true);
     }
 
@@ -137,9 +145,22 @@ class ScopeGuard {
     }
   
   private:
-    bool dismissed_;
     FunctionType function_;
 };
 ```
+
+而对外提供的makeGuard可以设计成这样：
+
+```cpp
+template <typename F>
+ScopeGuardImpl<std::decay_t<F>> makeGuard(F&& f) {
+  return ScopeGuardImpl<std::decay_t<F>>(std::forward<F>(f));
+}
+```
+
+嗯，看起来这样就行了，我们写个例子执行一下试试。
+
+#### 风调雨顺，岁月静好
+当一切都朝着你期望的方向推进时，这代码简直泰裤辣。
 
 待续。。。
