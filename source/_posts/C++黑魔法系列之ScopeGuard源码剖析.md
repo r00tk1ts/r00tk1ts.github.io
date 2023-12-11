@@ -26,7 +26,7 @@ ScopeGuard是一种通用的RAII思想的实现。它可以保证某个函数在
  
     // If the db insertion that follows fails, we should
     // remove it from memory.
-    auto guard = makeGuard([&] { friends_.pop_back(); });
+    auto guard = makeGuard([&]() { friends_.pop_back(); });
  
     // this will throw an exception upon error, which
     // makes the ScopeGuard execute UserCont::pop_back()
@@ -127,7 +127,7 @@ class ScopeGuardImplBase {
     bool dismissed_;
 };
 
-template<FunctionType>
+template<typename FunctionType>
 class ScopeGuardImpl : public ScopeGuardImplBase {
   public:
     explicit ScopeGuardImpl(FunctionType& fn) : function_(std::as_const(fn)) { }
@@ -161,6 +161,101 @@ ScopeGuardImpl<std::decay_t<F>> makeGuard(F&& f) {
 嗯，看起来这样就行了，我们写个例子执行一下试试。
 
 #### 风调雨顺，岁月静好
-当一切都朝着你期望的方向推进时，这代码简直泰裤辣。
+当一切都朝着你期望的方向推进时，这代码简直泰裤辣：
+
+```cpp
+void unexpected() {throw std::runtime_error("oops...");}
+
+void expected() { std::cout << "everything goes well" << std::endl; }
+
+void func(std::vector<int>& friends) {
+  friends.push_back(1);
+
+  auto guard = makeGuard([&](){friends.pop_back();});
+  expected();
+  unexpected();
+  guard.dismiss();
+}
+
+int main() {
+  std::vector<int> friends;
+  try {
+    func(friends);
+  }catch(std::exception &ex) {
+    std::cerr << "exception: " << ex.what() << std::endl;
+  }
+
+  std::cout << "size=" << friends.size() << std::endl;
+  return 0;
+}
+```
+
+由于`unexpected`在执行期间抛出了某个异常，最终`friends`中的成员`1`被清理。而当我们注释掉`unexpected`的调用后，清理工作不会执行，因为`guard`被成功`dismiss`了。
+
+#### 异常，还是异常
+这样就够了吗？不，ScopeGuard的真正实现远比上面的要复杂得多。
+
+我们传递给`makeGuard`的是一个lambda对象，事实上，我们可以传递任意一个可调用对象，在C++中，它可以是一个函数、一个lambda或者是一个重载了`operator()`的`class/struct`。另一方面，`makeGuard`可以传入一个左值引用或是右值引用，于此同时，它还可以有CV限定(`const`, `volatile`)，以满足日常编程所有场景的需求。
+
+上述实现代码中，面对lvalue reference、const lvalue reference和rvalue reference，各自实现了构造器(以下简称为ctor)。其中前两者会触发`FunctionType`的copy ctor，而末者则会触发`FunctionType`的move ctor(如果有的话)。到此，就出现了第一个问题：如果`FunctionType`的copy/move ctor抛了异常，我们又该如何（一般来说，move ctor在设计上是不会抛异常的，但C++是自由的，它允许你发癫）？
+
+`makeGuard`能够保证垃圾被清理的前提，在于要成功构造出`ScopeGuardImpl`对象，而`FunctionType`的ctor一旦会抛异常，那么我们的构造就会失败，此时，垃圾清理函数当然得不到执行。
+
+比如：
+
+```cpp
+class Functor {
+  public:
+    explicit Functor(std::vector<int>& friends) : friends_(friends) {}
+
+    Functor(const Functor &rhs) : friends_(rhs.friends_) { 
+      // 这里模拟一下，抛个异常
+      throw std::runtime_error("throw exception in Functor copy ctor...");
+    }
+
+    void operator()() { friends_.pop_back(); }
+
+  private:
+    std::vector<int>& friends_;
+};
+
+void unexcepted() { throw std::runtime_error("oops..."); }
+
+void func(std::vector<int> &friends) {
+    friends.push_back(1);
+    Functor f(friends);
+    // 实参是左值引用，此时会调用到Functor的copy ctor，触发异常
+    auto guard = makeGuard(f);
+    unexcepted();
+    guard.dismiss();
+}
+
+int main() {
+  std::vector<int> friends;
+  try {
+    func(friends);
+  }catch(std::exception &ex) {
+    std::cerr << "exception: " << ex.what() << std::endl;
+  }
+
+  std::cout << "size=" << friends.size() << std::endl;
+  return 0;
+}
+```
+
+执行结果：
+```shell
+exception: throw exception in Functor copy ctor...
+size=1
+```
+
+可以看到代码在执行过程中抛出了异常，但是垃圾并没有被回收。一个小小的copy ctor异常就破了我们的招。
+
+### 异常安全的ScopeGuard
+那怎么办呢？有没有什么办法可以兜住ctor的异常呢？有，而且甚秒。
+
+Folly库在实现ScopeGuardImpl时，引入了一个叫`makeFailsafe`的成员函数，它通过在构造`ScopeGuardImpl`对象期间，嵌套构造另一个`ScopeGuardImpl`对象，并借助模板元编程中一种叫做tag-dispatch的技术对可能会抛出异常的`FunctionType`用`std::reference_wrapper`做了二次包裹，利用`std::reference_wrapper` nothrow的ctor，避免了`ScopeGuardImpl`对象构造期间可能抛出的异常。
+
+听起来相当套娃，事实上它的实现也确实复杂，我们来看一下代码：
 
 待续。。。
