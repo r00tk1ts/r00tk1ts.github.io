@@ -5,9 +5,7 @@ tags: [cpp, cpp-templates]
 category: 源码剖析
 ---
 
-众所周知，想要在C++中写出通用的框架、组件代码并不简单，一来C++本身庞然大物包罗万象，大部分开发者并不了解像是”茴字有四种写法“这种语言律师津津乐道的课题，对于晦涩难懂的模板元更是谈之色变，二来是历史悠久，在发展过程中为了向前兼容，遗留了各种特例特办的技术债，导致系统臃肿不堪。因此，尽管C++生态相当茂盛，但权威的第三方库却屈指可数（甚至其标准库都是风风雨雨缝缝补补，~~偷得人家boost就剩个底裤(bushi)~~）。
-
-本篇文章我们来深度剖析大名鼎鼎的Facebook folly库所实现的ScopeGuard。管中窥豹，可见一斑。
+众所周知，想要在C++中写出通用的框架、组件代码并不简单，一来C++本身庞然大物包罗万象，大部分开发者并不了解像是”茴字有四种写法“这种语言律师津津乐道的课题，对于晦涩难懂的模板元更是谈之色变，二来是历史悠久，在发展过程中为了向前兼容，遗留了各种特例特办的技术债，导致系统臃肿不堪。因此，尽管C++生态相当茂盛，但权威的第三方库却屈指可数（甚至其标准库都是风风雨雨缝缝补补，~~偷得人家boost就剩个底裤~~）。阅读优秀的开源代码是提升代码水平的捷径，本篇文章我们来深度剖析大名鼎鼎的Facebook folly库所实现的ScopeGuard。管中窥豹，可见一斑。
 
 <!-- more -->
 
@@ -77,7 +75,7 @@ void User::AddFriend(User& newFriend) {
 一样可以达成同样的效果。但是这种异常安全的代码，也带来了额外的开销：我们的程序变得臃肿，随着可能抛出异常代码块的增多，我们需要编写的try-catch块儿也更复杂，甚至还有需要嵌套的代码块儿，导致代码可维护性差，甚至晦涩难懂。
 
 ### RAII
-那么，有没有什么更优雅的手法呢？本质上`friends_.push_back(&newFriend);`是一种资源泄露，我们可以借助RAII的思想来避免泄露：
+那么，有没有什么更优雅的手法呢？本质上`friends_.push_back(&newFriend);`是一种资源泄露，我们可以借助RAII(Resource Acquisition Is Initialization)的思想来避免泄露：
 
 ```cpp
 class VectorInserter
@@ -114,8 +112,10 @@ void User::AddFriend(User& newFriend)
 
 通过对RAII思想的利用，这下子`AddFriend`的异常安全逻辑编写变得简洁多了。但是，由于我们需要编写伴生的RAII class，从整体代码设计来看依然不够优雅。另一方面，在C++中想要设计一个功能完备又正确的类可没这么简单，像是上面的`VectorInserter`，如何优雅的处理好Big Five，也是相当麻烦。
 
+> 注：Big Five并非C++官方的说法，它是指destructor, copy constructor, copy assignment, move constructor, move assignment这五个类中非常重要的成员函数。这一说法最早它来源于台湾知名大神侯捷的译作，熟悉C++的老玩家自当会心一笑。
+
 ### ScopeGuard Tool
-RAII的思想没错，但是需要开发者自己设计伴生类代价太大了，我们自己做一下封装，提供最精致的接口供开发者使用。考虑到资源清理的手段多种多样，比如最通用的手法是调用某个函数对象，为了分离flag和具体手段，在设计上可以将类拆分成层级结构：
+RAII的思想没错，但是需要开发者自己设计伴生类代价太大了，我总不能为了每一段这样的逻辑都编写一个伴生类吧，那岂不是违背了初心又本末倒置。因此，我们需要对伴生类的实现尽量通用化，提供最精致的接口供开发者使用。考虑到资源清理的手段多种多样，比如最通用的手法是调用某个函数对象，为了可以面向具体手段做扩展，`ScopeGuard`在设计上可以将类拆分成层级结构：
 
 ```cpp
 class ScopeGuardImplBase {
@@ -149,7 +149,7 @@ class ScopeGuardImpl : public ScopeGuardImplBase {
 };
 ```
 
-而对外提供的makeGuard可以设计成这样：
+而对外提供的`makeGuard`可以封装一下：
 
 ```cpp
 template <typename F>
@@ -158,7 +158,7 @@ ScopeGuardImpl<std::decay_t<F>> makeGuard(F&& f) {
 }
 ```
 
-嗯，看起来这样就行了，我们写个例子执行一下试试。
+嗯，看起来这样就成了，我们写个例子执行一下试试。
 
 #### 风调雨顺，岁月静好
 当一切都朝着你期望的方向推进时，这代码简直泰裤辣：
@@ -173,7 +173,7 @@ void func(std::vector<int>& friends) {
 
   auto guard = makeGuard([&](){friends.pop_back();});
   expected();
-  unexpected();
+  unexpected(); // 此处会抛出异常，导致下一行代码得不到执行
   guard.dismiss();
 }
 
@@ -195,7 +195,7 @@ int main() {
 #### 异常，还是异常
 这样就够了吗？不，ScopeGuard的真正实现远比上面的要复杂得多。
 
-我们传递给`makeGuard`的是一个lambda对象，事实上，我们可以传递任意一个可调用对象，在C++中，它可以是一个函数、一个lambda或者是一个重载了`operator()`的`class/struct`。另一方面，`makeGuard`可以传入一个左值引用或是右值引用，于此同时，它还可以有CV限定(`const`, `volatile`)，以满足日常编程所有场景的需求。
+我们传递给`makeGuard`的是一个lambda对象，事实上，我们可以传递任意一个可调用对象，在C++中，它可以是一个函数、一个lambda、一个`std::function<>`、甚至是一个重载了`operator()`的`class/struct`。另一方面，`makeGuard`可以传入一个左值引用或是右值引用，于此同时，它还可以有CV限定(`const`, `volatile`)，以满足日常编程所有场景的需求。
 
 上述实现代码中，面对lvalue reference、const lvalue reference和rvalue reference，各自实现了构造器(以下简称为ctor)。其中前两者会触发`FunctionType`的copy ctor，而末者则会触发`FunctionType`的move ctor(如果有的话)。到此，就出现了第一个问题：如果`FunctionType`的copy/move ctor抛了异常，我们又该如何（一般来说，move ctor在设计上是不会抛异常的，但C++是自由的，它允许你发癫）？
 
@@ -249,13 +249,648 @@ exception: throw exception in Functor copy ctor...
 size=1
 ```
 
-可以看到代码在执行过程中抛出了异常，但是垃圾并没有被回收。一个小小的copy ctor异常就破了我们的招。
+可以看到代码在执行过程中抛出了异常，但是垃圾并没有被回收。**防不胜防啊，一个小小的copy ctor异常就破了我们的招。**
 
 ### 异常安全的ScopeGuard
-那怎么办呢？有没有什么办法可以兜住ctor的异常呢？有，而且甚秒。
+那么，有没有什么办法可以兜住ctor的异常呢？答案是有，而且甚秒。
 
-Folly库在实现ScopeGuardImpl时，引入了一个叫`makeFailsafe`的成员函数，它通过在构造`ScopeGuardImpl`对象期间，嵌套构造另一个`ScopeGuardImpl`对象，并借助模板元编程中一种叫做tag-dispatch的技术对可能会抛出异常的`FunctionType`用`std::reference_wrapper`做了二次包裹，利用`std::reference_wrapper` nothrow的ctor，避免了`ScopeGuardImpl`对象构造期间可能抛出的异常。
+Folly库在实现ScopeGuardImpl时，引入了一个叫`makeFailsafe`的成员函数，它通过在构造`ScopeGuardImpl` A对象期间，嵌套构造另一个`ScopeGuardImpl` B对象，并借助模板元编程中一种叫做tag-dispatch的技术对可能会抛出异常的`FunctionType`用`std::reference_wrapper`做了二次包裹，利用`std::reference_wrapper`的`noexcept` ctor，确保了B在构造期间不会抛出异常，从而能够在构造A期间抛出异常的时刻，接管垃圾清理器。
 
-听起来相当套娃，事实上它的实现也确实复杂，我们来看一下代码：
+这听起来就相当套娃，事实上它的实现更加复杂，我们来升级一下代码：
+
+```cpp
+class ScopeGuardImplBase {
+  public:
+    void dismiss() noexcept { dismissed_ = true; }
+  protected:
+    ScopeGuardImplBase(bool dismissed = false) noexcept : dismissed_(dismissed) {}
+      
+    static ScopeGuardImplBase makeEmptyScopeGuard() noexcept {
+      return ScopeGuardImplBase{};
+    }
+  protected:
+    bool dismissed_;
+};
+
+template<typename FunctionType>
+class ScopeGuardImpl : public ScopeGuardImplBase {
+  public:
+    // 利用trait做tag-dispatch
+    explicit ScopeGuardImpl(FunctionType& fn) 
+      : ScopeGuardImpl(std::as_const(fn), makeFailsafe(std::is_nothrow_copy_constructible<FunctionType>{}, &fn)) { }
+
+    explicit ScopeGuardImpl(const FunctionType& fn)
+      : ScopeGuardImpl(fn, makeFailsafe(std::is_nothrow_copy_constructible<FunctionType>{}, &fn)) { }
+
+    explicit ScopeGuardImpl(FunctionType&& fn) 
+      : ScopeGuardImpl(std::move(fn), makeFailsafe(std::is_nothrow_move_constructbile<FunctionType>{}, &fn)) { }
+
+    ScopeGuardImpl(ScopeGuardImpl&& other) : function_(std::move(other.function_)) {
+      dismissed_ = std::exchange(other.dismissed_, true);
+    }
+
+    ~ScopeGuardImpl() {
+      if (!dismissed_) {
+        function_();
+      }
+    }
+  private:
+    static ScopeGuardImplBase makeFailsafe(std::true_type, const void*) noexcept {
+      return makeEmptyScopeGuard();
+    }
+
+    template <typename Fn>
+    static auto makeFailsafe(std::false_type, Fn* fn) noexcept
+        -> ScopeGuardImpl<decltype(std::ref(*fn))> {
+      return ScopeGuardImpl<decltype(std::ref(*fn))>{std::ref(*fn)};
+    }
+
+    template <typename Fn>
+    explicit ScopeGuardImpl(Fn&& fn, ScopeGuardImplBase&& failsafe)
+      : ScopeGuardImplBase{}, function_(std::forward<Fn>(fn)) {
+      failsafe.dismiss();
+    }
+  private:
+    FunctionType function_;
+};
+
+template <typename F>
+ScopeGuardImpl<std::decay_t<F>> makeGuard(F&& f) {
+  return ScopeGuardImpl<std::decay_t<F>>(std::forward<F>(f));
+}
+```
+
+我们对构造器进行了改造，若传入的是lvalue reference，则根据其copy ctor是否会抛异常而调用不同的makeFailsafe，若传入的是rvalue reference，则根据其move ctor是否会抛异常而调用不同的makeFailsafe。
+makeFailsafe的设计是一种tag-dispatch的技巧，通过类型去match不同的重载函数，最终再经重载决议确定，也算是模板元编程里一种经典if-else手法了。
+
+我们以传入左值作为例子，看一下在构造一个`ScopeGuardImpl`对象时，经历的path：
+
+对于不会抛出异常的copy ctor，流程是一目了然的：
+
+```
+=> 匹配构造器：ScopeGuardImpl(const FunctionType& fn) : ScopeGuardImpl(fn, makeFailsafe(std::is_nothrow_copy_constructible<FunctionType>{}, &fn)) { }
+    => 转发到private构造器：template<typename Fn> ScopeGuardImpl(Fn&& fn, ScopeGuardImplBase&& failsafe)，其中fn是转发引用，failsafe是右值引用
+    => 由于makeFailsafe匹配到std::true_type的版本，返回一个默认构造的ScopeGuardImplBase{}临时对象，作为failsafe参数传递
+    => 此时Fn类型被推导为const FunctionType&，形参fn由于引用折叠也被推导为const FunctionType&
+      => : ScopeGuardImplBase{}, function_(std::forward<Fn>(fn)) {failsafe.dismiss();}
+      => 成员初始化列表：基类默认构造，function_成员通过完美转发接收fn，此时会触发FunctionType的copy ctor来初始化对象
+      => 构造出的临时对象failsafe调用dismiss()，避免析构时执行execute
+    => ScopeGuardImpl对象构建完毕，大功告成
+```
+
+而对于可能会抛出异常的copy ctor，则要复杂得多：
+
+```
+=> 匹配构造器：ScopeGuardImpl(const FunctionType& fn) : ScopeGuardImpl(fn, makeFailsafe(std::is_nothrow_copy_constructible<FunctionType>{}, &fn)) { }
+  => 转发到private构造器：template<typename Fn> ScopeGuardImpl(Fn&& fn, ScopeGuardImplBase&& failsafe)，其中fn是转发引用，failsafe是右值引用
+  => 由于makeFailsafe会匹配到std::false_type的版本，返回的是另一个全新构建的ScopeGuardImpl临时对象：
+  => return ScopeGuardImpl<decltype(std::ref(*fn))>{std::ref(*fn)};
+    => 通过std::ref包裹*fn，来构建出一个std::reference_wrapper<FunctionType>临时对象
+    => 使用该临时对象显式实例化构建另一个ScopeGuardImpl<std::reference_wrapper<FunctionType>>对象
+      => 匹配调用的是右值引用版本的ctor：ScopeGuardImpl(FunctionType&& fn) : ScopeGuardImpl(std::move_if_noexcept(fn), makeFailsafe(std::is_nothrow_move_constructbile<FunctionType>){}, &fn) { }
+      => 此时的ScopeGuardImpl类模板实例化的是一个全新版本，其模板参数为std::reference_wrapper<原始FunctionType>
+      => 由于std::reference_wrapper的移动构造器在设计上已标记成了nothrow，因此，当再进行构造器转发时，makeFailsafe匹配的就是std::true_type的版本：
+        => 转发到private构造器：template<typename Fn> ScopeGuardImpl(Fn&& fn, ScopeGuardImplBase&& failsafe)，其中fn是转发引用，failsafe是右值引用
+          => failsafe又是一个默认构造的ScopeGuardImplBase{}临时对象
+          => Fn被推导为std::reference_wrapper<原始FunctionType>，参数fn被推导为std::reference_wrapper<原始FunctionType>&&右值引用型
+          => : ScopeGuardImplBase{}, function_(std::forward<Fn>(fn)) {failsafe.dismiss();}
+            => 此时的function_实际上是一个std::reference_wrapper<原始FunctionType>类型，这里经过std::reference_wrapper的move ctor最终构造了一个接收了包裹原始Functor的std::reference_wrapper
+            => 临时对象failsafe（此时是一个ScopeGuardImplBase）调用dismiss()，避免析构时执行execute
+  => 到此，临时对象ScopeGuardImpl<std::reference_wrapper<FunctionType>>构建完毕，并返回给上游作为failsafe参数
+  => 用fn和临时对象调用private构造器：
+    => template<typename Fn> ScopeGuardImpl(Fn&& fn, ScopeGuardImplBase&& failsafe) : ScopeGuardImplBase{}, function_(std::forward<Fn>(fn)) { failsafe.dismiss(); }
+    => 此时的Fn被推导为原始FunctionType，fn是const FunctionType &, failsafe是包裹了Functor对象的临时对象。
+    => 若function_(std::forward<Fn>(fn))在执行时没有抛异常，则临时对象的使命完成，它会调用到failsafe.dismiss()，即在其析构时不会调用我们的Functor对象。
+      => 此时Functor是否要调用的权利，正式交棒给了外层对象ScopeGuardImpl<FunctionType>。
+    => 若function_(std::forward<Fn>(fn))在执行时其copy ctor确实抛了异常，那么最外层的ScopeGuardImpl<FunctionType>对象就不会构造成功，构造器内的failsafe.dismiss()也得不到执行。
+      => 此时，尽管我们并没能成功构造出ScopeGuardImpl<FunctionType>对象，但最开始传入的Functor还是能够被执行。
+      => 这是由于没能执行failsafe.dismiss()操作的内层临时对象的dismiss_仍然是false，而在其析构时Functor依然得到了执行。
+```
+
+可以看到代码的实现非常的绕，但实际上核心思想就是借助`std::reference_wrapper`这个引用包裹器具有nothrow的move ctor这一特点来处理那些原本有可能会抛异常的copy/move ctor的`FunctionType`。
+
+#### log补齐代码：
+我们打印一些log，并分别用左值和右值两个案例来测试一下。
+
+```cpp
+// scope.h
+#include <iostream>
+#include <type_traits>
+#include <functional>
+#include "type_name.h"
+
+class ScopeGuardImplBase {
+  public:
+    void dismiss() noexcept { dismissed_ = true; }
+  protected:
+    ScopeGuardImplBase(bool dismissed = false) noexcept : dismissed_(dismissed) { std::cout << "construct ScopeGuardImplBase, dismissed: " << dismissed << std::endl;}
+
+    static ScopeGuardImplBase makeEmptyScopeGuard() noexcept {
+      return ScopeGuardImplBase{};
+    }
+  protected:
+    bool dismissed_;
+};
+
+template<typename FunctionType>
+class ScopeGuardImpl : public ScopeGuardImplBase {
+  public:
+    explicit ScopeGuardImpl(FunctionType& fn)
+        : ScopeGuardImpl(std::as_const(fn), makeFailsafe(std::is_nothrow_copy_constructible<FunctionType>{}, &fn)) {
+            std::cout << "const lvalue ref ctor, FunctionType: " << type_name<FunctionType>() << ", fn type: "
+                << type_name<decltype(fn)>() << std::endl;
+        }
+
+    explicit ScopeGuardImpl(const FunctionType& fn)
+        : ScopeGuardImpl(fn, makeFailsafe(std::is_nothrow_copy_constructible<FunctionType>{}, &fn)) {
+            std::cout << "lvalue ref ctor, FunctionType: " << type_name<FunctionType>() << ", fn type: "
+                << type_name<decltype(fn)>() << std::endl;
+        }
+
+    explicit ScopeGuardImpl(FunctionType&& fn)
+        : ScopeGuardImpl(std::move(fn), makeFailsafe(std::is_nothrow_move_constructible<FunctionType>{}, &fn)) {
+            std::cout << "rvalue ref ctor, FunctionType: " << type_name<FunctionType>() << ", fn type: "
+                << type_name<decltype(fn)>() << std::endl;
+        }
+
+    ScopeGuardImpl(ScopeGuardImpl&& other) : function_(std::move(other.function_)) {
+      dismissed_ = std::exchange(other.dismissed_, true);
+    }
+
+    ~ScopeGuardImpl() {
+      std::cout << "dtor, FunctionType: " << type_name<FunctionType>() << ", function_ type: " << type_name<decltype(function_)>() << std::endl;
+      if (!dismissed_) {
+        function_();
+      }
+    }
+  private:
+    static ScopeGuardImplBase makeFailsafe(std::true_type, const void*) noexcept {
+      std::cout << "true_type makeFailsafe" << std::endl;
+      return makeEmptyScopeGuard();
+    }
+
+    template <typename Fn>
+    static auto makeFailsafe(std::false_type, Fn* fn) noexcept
+        -> ScopeGuardImpl<decltype(std::ref(*fn))> {
+      std::cout << "false_type makeFailsafe, Fn type: " << type_name<Fn>() << ", fn type: " << type_name<decltype(fn)>() << std::endl;
+      return ScopeGuardImpl<decltype(std::ref(*fn))>{std::ref(*fn)};
+    }
+
+    template <typename Fn>
+    explicit ScopeGuardImpl(Fn&& fn, ScopeGuardImplBase&& failsafe)
+      : ScopeGuardImplBase{}, function_(std::forward<Fn>(fn)) {
+      std::cout << "private ctor, Fn type: " << type_name<Fn>() << ", fn type: " << type_name<decltype(fn)>() << std::endl;
+      failsafe.dismiss();
+    }
+  private:
+    FunctionType function_;
+};
+
+template <typename F>
+ScopeGuardImpl<std::decay_t<F>> makeGuard(F&& f) {
+  return ScopeGuardImpl<std::decay_t<F>>(std::forward<F>(f));
+}
+
+// type_name.h
+template <class T>
+constexpr
+std::string_view
+type_name()
+{
+    using namespace std;
+#ifdef __clang__
+    string_view p = __PRETTY_FUNCTION__;
+    return string_view(p.data() + 34, p.size() - 34 - 1);
+#elif defined(__GNUC__)
+    string_view p = __PRETTY_FUNCTION__;
+#  if __cplusplus < 201402
+    return string_view(p.data() + 36, p.size() - 36 - 1);
+#  else
+    return string_view(p.data() + 49, p.find(';', 49) - 49);
+#  endif
+#elif defined(_MSC_VER)
+    string_view p = __FUNCSIG__;
+    return string_view(p.data() + 84, p.size() - 84 - 7);
+#endif
+}
+```
+
+这里附带一个C++最好用的类型名称打印器：`type_name`
+
+#### 用例1：左值引用
+```cpp
+#include <iostream>
+#include <vector>
+#include <type_traits>
+#include <functional>
+#include "scope.h"
+
+class Functor {
+  public:
+    explicit Functor(std::vector<int>& friends) : friends_(friends) {}
+
+    Functor(const Functor &rhs) : friends_(rhs.friends_) { throw std::runtime_error("throw exception in Functor copy ctor..."); }
+
+    void operator()() { friends_.pop_back(); }
+
+  private:
+    std::vector<int>& friends_;
+};
+
+void func(std::vector<int> &friends) {
+    friends.push_back(1);
+    Functor f(friends);
+    auto guard = makeGuard(f);
+    // some code that will not throw ...
+    guard.dismiss();
+}
+
+int main() {
+  std::vector<int> friends;
+  try {
+    func(friends);
+  }catch(std::exception &ex) {
+    std::cerr << "exception: " << ex.what() << std::endl;
+  }
+
+  std::cout << "size=" << friends.size() << std::endl;
+  return 0;
+}
+```
+
+输出结果：
+
+```shell
+false_type makeFailsafe, Fn type: Functor, fn type: Functor *
+true_type makeFailsafe
+construct ScopeGuardImplBase, dismissed: 0
+construct ScopeGuardImplBase, dismissed: 0
+private ctor, Fn type: std::reference_wrapper<Functor>, fn type: std::reference_wrapper<Functor> &&
+rvalue ref ctor, FunctionType: std::reference_wrapper<Functor>, fn type: std::reference_wrapper<Functor> &&
+construct ScopeGuardImplBase, dismissed: 0
+dtor, FunctionType: std::reference_wrapper<Functor>, function_ type: std::reference_wrapper<Functor>
+exception: throw exception in Functor copy ctor...
+size=0
+```
+
+可以看到结果完全符合预期，我们的copy ctor在runtime期间确实抛出了异常，在构造外层的`ScopeGuardImpl<Functor>`对象时遭到了异常，但由于内层`ScopeGuardmpl<std::reference_wrapper<Functor>>`对象的析构还是成功执行了垃圾清理。
+
+我们把拷贝构造器抛出的异常干掉，但依然让其保持默认的`noexcept(false)`，再看看执行log：
+```cpp
+
+class Functor {
+  public:
+    explicit Functor(std::vector<int>& friends) : friends_(friends) {}
+
+    Functor(const Functor &rhs) : friends_(rhs.friends_) { }
+
+    void operator()() { friends_.pop_back(); }
+
+  private:
+    std::vector<int>& friends_;
+};
+
+void func(std::vector<int> &friends) {
+    friends.push_back(1);
+    Functor f(friends);
+    auto guard = makeGuard(f);
+    // some code that will not throw ...
+    guard.dismiss();
+}
+```
+
+```shell
+false_type makeFailsafe, Fn type: Functor, fn type: Functor *
+true_type makeFailsafe
+construct ScopeGuardImplBase, dismissed: 0
+construct ScopeGuardImplBase, dismissed: 0
+private ctor, Fn type: std::reference_wrapper<Functor>, fn type: std::reference_wrapper<Functor> &&
+rvalue ref ctor, FunctionType: std::reference_wrapper<Functor>, fn type: std::reference_wrapper<Functor> &&
+construct ScopeGuardImplBase, dismissed: 0
+private ctor, Fn type: const Functor &, fn type: const Functor &
+dtor, FunctionType: std::reference_wrapper<Functor>, function_ type: std::reference_wrapper<Functor>
+const lvalue ref ctor, FunctionType: Functor, fn type: Functor &
+dtor, FunctionType: Functor, function_ type: Functor
+size=1
+```
+此时可以看到成功构造出了两个`ScopeGuardImpl`对象，一个模板实参为`Functor`，一个模板实参为`std::reference_wrapper<Functor>`。由于我们的代码在执行期间没有抛异常，故垃圾清理函数没有被执行，符合预期。
+
+我们再让执行期间随便抛一个异常来试试：
+
+```cpp
+class Functor {
+  public:
+    explicit Functor(std::vector<int>& friends) : friends_(friends) {}
+
+    Functor(const Functor &rhs) : friends_(rhs.friends_) { }
+
+    void operator()() { friends_.pop_back(); }
+
+  private:
+    std::vector<int>& friends_;
+};
+
+void unexcepted() { throw std::runtime_error("oops..."); }
+
+void func(std::vector<int> &friends) {
+    friends.push_back(1);
+    Functor f(friends);
+    auto guard = makeGuard(f);
+    throw std::runtime_error("oops...");
+    guard.dismiss();
+}
+```
+
+```shell
+false_type makeFailsafe, Fn type: Functor, fn type: Functor *
+true_type makeFailsafe
+construct ScopeGuardImplBase, dismissed: 0
+construct ScopeGuardImplBase, dismissed: 0
+private ctor, Fn type: std::reference_wrapper<Functor>, fn type: std::reference_wrapper<Functor> &&
+rvalue ref ctor, FunctionType: std::reference_wrapper<Functor>, fn type: std::reference_wrapper<Functor> &&
+construct ScopeGuardImplBase, dismissed: 0
+private ctor, Fn type: const Functor &, fn type: const Functor &
+dtor, FunctionType: std::reference_wrapper<Functor>, function_ type: std::reference_wrapper<Functor>
+const lvalue ref ctor, FunctionType: Functor, fn type: Functor &
+dtor, FunctionType: Functor, function_ type: Functor
+exception: oops...
+size=0
+```
+垃圾函数还是得到了正确的执行，此时如果在dtor中打印`dismissed_`字段，就会发现是`ScopeGuardImpl<Functor>`的析构函数执行了垃圾清理。
+
+我们把`Functor`的copy ctor标记为`noexcept`试试：
+```cpp
+    Functor(const Functor &rhs) noexcept : friends_(rhs.friends_) { }//throw std::runtime_error("throw exception in Functor copy ctor..."); }
+```
+
+```shell
+true_type makeFailsafe
+construct ScopeGuardImplBase, dismissed: 0
+construct ScopeGuardImplBase, dismissed: 0
+private ctor, Fn type: const Functor &, fn type: const Functor &
+const lvalue ref ctor, FunctionType: Functor, fn type: Functor &
+dtor, FunctionType: Functor, function_ type: Functor
+exception: oops...
+size=0
+```
+
+通过log可以看出，此时走得就是简单路线，匹配的依然是const lvalue reference参数版本的ctor。
+
+#### 用例2：右值引用
+```cpp
+class Functor {
+  public:
+    explicit Functor(std::vector<int>& friends) : friends_(friends) {}
+
+    Functor(const Functor &rhs) noexcept : friends_(rhs.friends_) {
+        std::cout << "Functor copy ctor" << std::endl;
+    }
+    Functor(Functor &&rhs) : friends_(rhs.friends_) {
+        std::cout << "Functor move ctor" << std::endl;
+        throw std::runtime_error("oops, runtime error in Functor move ctor");
+    }
+    void operator()() { friends_.pop_back(); }
+
+  private:
+    std::vector<int>& friends_;
+};
+
+void func(std::vector<int> &friends) {
+    friends.push_back(1);
+    Functor f(friends);
+    auto guard = makeGuard(std::move(f));
+    guard.dismiss();
+}
+
+int main() {
+  std::vector<int> friends;
+  try {
+    func(friends);
+  }catch(std::exception &ex) {
+    std::cerr << "exception: " << ex.what() << std::endl;
+  }
+
+  std::cout << "size=" << friends.size() << std::endl;
+  return 0;
+}
+```
+
+执行log：
+
+```shell
+false_type makeFailsafe, Fn type: Functor, fn type: Functor *
+true_type makeFailsafe
+construct ScopeGuardImplBase, dismissed: 0
+construct ScopeGuardImplBase, dismissed: 0
+private ctor, Fn type: std::reference_wrapper<Functor>, fn type: std::reference_wrapper<Functor> &&
+rvalue ref ctor, FunctionType: std::reference_wrapper<Functor>, fn type: std::reference_wrapper<Functor> &&
+construct ScopeGuardImplBase, dismissed: 0
+Functor move ctor
+dtor, FunctionType: std::reference_wrapper<Functor>, function_ type: std::reference_wrapper<Functor>
+exception: oops, runtime error in Functor move ctor
+size=0
+```
+
+在构造外层`ScopeGuardImpl`对象时，由于`Functor`的move ctor抛出了异常，最终垃圾清理函数实际上是内层的`ScopeGuardImpl`对象所执行。
+
+若移除move ctor的异常，且标记为noexcept，则最终走的是情景一的简单路径：
+
+```cpp
+class Functor {
+  public:
+    explicit Functor(std::vector<int>& friends) : friends_(friends) {}
+
+    Functor(const Functor &rhs) noexcept : friends_(rhs.friends_) {
+        std::cout << "Functor copy ctor" << std::endl;
+    }
+    Functor(Functor &&rhs) noexcept : friends_(rhs.friends_) {
+        std::cout << "Functor move ctor" << std::endl;
+    }
+    void operator()() { friends_.pop_back(); }
+
+  private:
+    std::vector<int>& friends_;
+};
+
+void unexcepted() { throw std::runtime_error("oops..."); }
+
+void func(std::vector<int> &friends) {
+    friends.push_back(1);
+    Functor f(friends);
+    auto guard = makeGuard(std::move(f));
+    unexcepted();
+    guard.dismiss();
+}
+```
+
+执行log：
+
+```shell
+true_type makeFailsafe
+construct ScopeGuardImplBase, dismissed: 0
+construct ScopeGuardImplBase, dismissed: 0
+Functor move ctor
+private ctor, Fn type: Functor, fn type: Functor &&
+rvalue ref ctor, FunctionType: Functor, fn type: Functor &&
+dtor, FunctionType: Functor, function_ type: Functor
+exception: oops...
+size=0
+```
+
+### 登峰造极，精益求精
+到此，`ScopeGuard`的改良已经解决了我们的第一个顽疾，现在我们要面对第二个问题：如果垃圾清理器在执行过程中可能会抛出异常，我们应该怎么办？
+
+其实这个问题反倒好处理，因为这单纯就是一个设计问题，毕竟我们总不能一直递归套娃下去。Folly库给出的解法也非常简单：概不负责，自行买单！
+
+尽管是自行买单，但Folly在设计上为了精优化性能，还是允许用户传递一个非类型模板参数`InvokeNoexcept`给到`ScopeGuardImpl`，若其为true，则表示用户已承诺绝不会抛出异常，此时，如果清理器还是执行中抛了异常，那么会在程序终止之前，打印一些关键的错误信息，以示友好。
+
+> C++的noexcept只是个标记，他告诉编译期它不会抛异常，但不代表它真的不会抛异常，只不过它一旦抛了异常，就会导致进程终止。
+
+另一方面，为了精优化性能，我们还可以选择性的设计各个成员函数的noexcept标记：
+
+```cpp
+#include <iostream>
+#include <type_traits>
+#include <functional>
+#include "type_name.h"
+
+class ScopeGuardImplBase {
+  public:
+    void dismiss() noexcept { dismissed_ = true; }
+  protected:
+    ScopeGuardImplBase(bool dismissed = false) noexcept : dismissed_(dismissed) { }
+
+    static ScopeGuardImplBase makeEmptyScopeGuard() noexcept {
+      return ScopeGuardImplBase{};
+    }
+  protected:
+    bool dismissed_;
+};
+
+template<typename FunctionType, bool InvokeNoexcept>
+class ScopeGuardImpl : public ScopeGuardImplBase {
+  public:
+    explicit ScopeGuardImpl(FunctionType& fn) noexcept(std::is_nothrow_copy_constructible<FunctionType>::value)
+        : ScopeGuardImpl(std::as_const(fn), makeFailsafe(std::is_nothrow_copy_constructible<FunctionType>{}, &fn)) {
+        }
+
+    explicit ScopeGuardImpl(const FunctionType& fn) noexcept(std::is_nothrow_copy_constructible<FunctionType>::value)
+        : ScopeGuardImpl(fn, makeFailsafe(std::is_nothrow_copy_constructible<FunctionType>{}, &fn)) {
+        }
+
+    explicit ScopeGuardImpl(FunctionType&& fn) noexcept(std::is_nothrow_move_constructible<FunctionType>::value)
+        : ScopeGuardImpl(std::move_if_noexcept(fn), makeFailsafe(std::is_nothrow_move_constructible<FunctionType>{}, &fn)) {
+        }
+
+    ScopeGuardImpl(ScopeGuardImpl&& other) noexcept(std::is_nothrow_move_constructible<FunctionType>::value)
+        : function_(std::move_if_noexcept(other.function_)) {
+      dismissed_ = std::exchange(other.dismissed_, true);
+    }
+
+    ~ScopeGuardImpl() noexcept(InvokeNoexcept) {
+      if (!dismissed_) {
+        execute();
+      }
+    }
+
+  private:
+    static ScopeGuardImplBase makeFailsafe(std::true_type, const void*) noexcept {
+      return makeEmptyScopeGuard();
+    }
+
+    template <typename Fn>
+    static auto makeFailsafe(std::false_type, Fn* fn) noexcept
+        -> ScopeGuardImpl<decltype(std::ref(*fn)), InvokeNoexcept> {
+      return ScopeGuardImpl<decltype(std::ref(*fn)), InvokeNoexcept>{std::ref(*fn)};
+    }
+
+    template <typename Fn>
+    explicit ScopeGuardImpl(Fn&& fn, ScopeGuardImplBase&& failsafe)
+      : ScopeGuardImplBase{}, function_(std::forward<Fn>(fn)) {
+      failsafe.dismiss();
+    }
+
+    void terminate() noexcept {
+      std::ios_base::Init ioInit;
+      std::cerr << "This program will now terminate because a ScopeGuard callback threw an \nexception.\n";
+      std::rethrow_exception(std::current_exception());
+    }
+
+    void execute() noexcept(InvokeNoexcept) {
+      if (InvokeNoexcept) {
+        try {
+          function_();
+        } catch(std::exception &e) {
+          terminate();
+        }
+      }else {
+        function_();
+      }
+    }
+
+  private:
+    FunctionType function_;
+};
+
+template <typename F, bool INE>
+using ScopeGuardImplDecay = ScopeGuardImpl<std::decay_t<F>, INE>;
+
+// makeGuard在设计上使用InvokeNoexcept=true，这也符合使用者的期望
+template <typename F>
+ScopeGuardImplDecay<F, true> makeGuard(F&& f) noexcept(noexcept(ScopeGuardImplDecay<F, true>(
+                static_cast<F&&>(f)))) {
+  return ScopeGuardImplDecay<std::decay_t<F>, true>(std::forward<F>(f));
+}
+```
+可以看到代码里又补充了很多细节调优，诸如对`noexcept`的处理、将`std::move`换成更保守的`std::move_if_noexcept`等等。
+
+现在让我们来当一次猪比，故意传一个会抛异常的清理器进去：
+```cpp
+class Functor {
+  public:
+    explicit Functor(std::vector<int>& friends) : friends_(friends) {}
+
+    Functor(const Functor &rhs) noexcept : friends_(rhs.friends_) {
+    }
+    Functor(Functor &&rhs) noexcept : friends_(rhs.friends_) {
+    }
+    void operator()() { friends_.pop_back(); throw std::runtime_error("oops, runtime error in cleaner..."); }
+
+  private:
+    std::vector<int>& friends_;
+};
+
+void unexcepted() { throw std::runtime_error("oops..."); }
+
+void func(std::vector<int> &friends) {
+    friends.push_back(1);
+    Functor f(friends);
+    auto guard = makeGuard(std::move(f));
+    unexcepted();
+    guard.dismiss();
+}
+
+int main() {
+  std::vector<int> friends;
+  try {
+    func(friends);
+  }catch(std::exception &ex) {
+    std::cerr << "exception: " << ex.what() << std::endl;
+  }
+
+  std::cout << "size=" << friends.size() << std::endl;
+  return 0;
+}
+```
+
+执行结果：
+```cpp
+This program will now terminate because a ScopeGuard callback threw an
+exception.
+libc++abi: terminating due to uncaught exception of type std::runtime_error: oops, runtime error in cleaner...
+[1]    11720 abort      ./scope
+```
+
+可以看到进程确实终止了，也如愿打印了`terminate()`中的友好信息。
 
 待续。。。
