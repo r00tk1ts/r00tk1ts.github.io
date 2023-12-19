@@ -760,6 +760,12 @@ class ScopeGuardImplBase {
   protected:
     ScopeGuardImplBase(bool dismissed = false) noexcept : dismissed_(dismissed) { }
 
+    static void terminate() noexcept {
+      std::ios_base::Init ioInit;
+      std::cerr << "This program will now terminate because a ScopeGuard callback threw an \nexception.\n";
+      std::rethrow_exception(std::current_exception());
+    }
+
     static ScopeGuardImplBase makeEmptyScopeGuard() noexcept {
       return ScopeGuardImplBase{};
     }
@@ -808,12 +814,6 @@ class ScopeGuardImpl : public ScopeGuardImplBase {
     explicit ScopeGuardImpl(Fn&& fn, ScopeGuardImplBase&& failsafe)
       : ScopeGuardImplBase{}, function_(std::forward<Fn>(fn)) {
       failsafe.dismiss();
-    }
-
-    void terminate() noexcept {
-      std::ios_base::Init ioInit;
-      std::cerr << "This program will now terminate because a ScopeGuard callback threw an \nexception.\n";
-      std::rethrow_exception(std::current_exception());
     }
 
     void execute() noexcept(InvokeNoexcept) {
@@ -893,4 +893,218 @@ libc++abi: terminating due to uncaught exception of type std::runtime_error: oop
 
 可以看到进程确实终止了，也如愿打印了`terminate()`中的友好信息。
 
-待续。。。
+## 倒行逆施：makeDismissedGuard
+我们还可以对当前的设计做一些补充，比如支持反向操作：
+
+```cpp
+struct ScopeGuardDismissed {};
+
+class ScopeGuardImplBase {
+ public:
+  void dismiss() noexcept { dismissed_ = true; }
+  // 增加一个rehire函数，和dismiss作用相反
+  void rehire() noexcept { dismissed_ = false; }
+
+ protected:
+  ScopeGuardImplBase(bool dismissed = false) noexcept : dismissed_(dismissed) {}
+
+  static ScopeGuardImplBase makeEmptyScopeGuard() noexcept {
+    return ScopeGuardImplBase{};
+  }
+
+  bool dismissed_;
+};
+
+template <typename FunctionType, bool InvokeNoexcept>
+class ScopeGuardImpl : public ScopeGuardImplBase { 
+  public:
+    ...
+    // 增加一个构造器，初始化dismissed_=true
+    explicit ScopeGuardImpl(FunctionType&& fn, ScopeGuardDismissed) noexcept(
+      std::is_nothrow_move_constructible<FunctionType>::value)
+      : ScopeGuardImplBase{true}, function_(std::forward<FunctionType>(fn)) {}
+    ...
+};
+
+template <typename F>
+ScopeGuardImplDecay<F, true>
+makeDismissedGuard(F&& f) noexcept(
+    noexcept(ScopeGuardImplDecay<F, true>(std::forward<F>(f), ScopeGuardDismissed{}))) {
+  return ScopeGuardImplDecay<F, true>(std::forward<F>(f), ScopeGuardDismissed{});
+}
+```
+
+配合`rehire`接口，`makeDismissedGuard`就可以实现反向操作：如果遭遇了异常，则不执行传入的Functor；若一切顺利，反而会执行。
+
+## defer：优雅，永不过时
+`makeGuard()`+`dismiss()`和`makeDismissedGuard()`+`rehire()`的结对编程法已经很漂亮了，但Folly库的实现还不止于此，我们还可以用ScopeGuard来实现类似golang的defer：
+
+```cpp
+//  Example: 
+/* open scope */ {
+  some_resource_t resource;
+  some_resource_init(resource);
+  SCOPE_EXIT { some_resource_fini(resource); };
+  // 执行过SOPE_EXIT宏过后，无论后面的语句是否会抛出异常，在离开末尾作用域后都会执行后接的块语句
+  if (!cond)
+    throw 0; // the cleanup happens at end of the scope
+  else
+    return; // the cleanup happens at end of the scope
+
+  use_some_resource(resource); // may throw; cleanup will happen
+} /* close scope */
+```
+
+怎样设计才能实现这一自制语法糖呢？且看Folly的实现：
+
+```cpp
+namespace detail {
+enum class ScopeGuardOnExit {};
+
+template <typename FunctionType>
+ScopeGuardImpl<std::decay_t<FunctionType>, true> operator+(ScopeGuardOnExit, FunctionType&& fn) {
+  return ScopeGuardImpl<std::decay_t<FunctionType>, true>(std::forward<FunctionType>(fn));
+}
+} // namespace detail
+
+#define CONCATENATE(s1, s2) s1##s2
+
+#define ANONYMOUS_VARIABLE(str) \
+  CONCATENATE(CONCATENATE(CONCATENATE(str, __COUNTER__), _), __LINE__)
+
+#define SCOPE_EXIT      \
+  auto ANONYMOUS_VARIABLE(SCOPE_EXIT_STATE) = \
+    detail::ScopeGuardOnExit() + [&]() noexcept
+```
+
+可以看到`SCOPE_EXIT`宏的实现借用了运算符重载，通过在内部定义一个新类型`ScopeGuardOnExit`并重载它的`operator+`操作符，用右操作数`fn`来最终构造出`ScopeGuardImpl`对象。而右操作数实际上是一个lambda对象，它使用引用捕获，示例代码中编写的花括号体实际上是这个匿名lambda对象的body。
+
+另一方面，SCOPE_EXIT可以有复数个，也可以嵌套定义。对于前者来说，由于离开作用域后局部变量对象的析构顺序与定义时是逆序的，因此它也达成了像是go中多个defer的逆序执行效果；对于后者来说，嵌套本身就是支持的，因为局部变量的生命期只和它所在的外层作用域绑定。
+
+### 其他的变种实现
+略加变化，我们还可以实现其他变种，比如`SCOPE_FAIL`, `SCOPE_SUCCESS`:
+
+```cpp
+//  SCOPE_FAIL
+//
+//  May be useful in situations where the caller requests a resource where
+//  initializations of the resource is multi-step and may fail.
+//
+//  Example:
+// 
+{
+      some_resource_t resource;
+      some_resource_init(resource);
+      SCOPE_FAIL { some_resource_fini(resource); };
+
+      if (do_throw)
+        throw 0; // the cleanup happens at the end of the scope
+      else
+        return resource; // the cleanup does not happen
+}
+
+//  SCOPE_SUCCESS
+//
+//  In a sense, the opposite of SCOPE_FAIL.
+//
+//  Example:
+//
+{
+      folly::stop_watch<> watch;
+      SCOPE_FAIL { log_failure(watch.elapsed(); };
+      SCOPE_SUCCESS { log_success(watch.elapsed(); };
+
+      if (do_throw)
+        throw 0; // the cleanup does not happen; log failure
+      else
+        return; // the cleanup happens at the end of the scope; log success
+}
+```
+
+相比于`makeGuard()`+`dismiss()`和`makeDismissedGuard()`+`rehire()`的结对编程，这两位更是极尽优雅。
+
+在实现上也与`SCOPE_EXIT`类似，只不过它需要额外捕获当前上下文内exception处理的状态，这是`ScopeGuardImpl`所不具备的能力，因此需要再封装一层：
+
+```cpp
+namespace detail {
+/**
+ * ScopeGuard used for executing a function when leaving the current scope
+ * depending on the presence of a new uncaught exception.
+ *
+ * If the executeOnException template parameter is true, the function is
+ * executed if a new uncaught exception is present at the end of the scope.
+ * If the parameter is false, then the function is executed if no new uncaught
+ * exceptions are present at the end of the scope.
+ *
+ * Used to implement SCOPE_FAIL and SCOPE_SUCCESS below.
+ */
+template <typename FunctionType, bool ExecuteOnException>
+class ScopeGuardForNewException {
+ public:
+  explicit ScopeGuardForNewException(const FunctionType& fn) : guard_(fn) {}
+
+  explicit ScopeGuardForNewException(FunctionType&& fn)
+      : guard_(std::move(fn)) {}
+
+  ScopeGuardForNewException(ScopeGuardForNewException&& other) = default;
+
+  // 在dtor中对比初始化期间和当前的异常处理情况，来决定是否对组合的ScopeGuardImpl对象执行dismiss
+  // ExecuteOnException是个mask
+  ~ScopeGuardForNewException() noexcept(ExecuteOnException) {
+    if (ExecuteOnException != (exceptionCounter_ < std::uncaught_exceptions())) {
+      guard_.dismiss();
+    }
+  }
+
+ private:
+  void* operator new(std::size_t) = delete;
+  void operator delete(void*) = delete;
+
+  ScopeGuardImpl<FunctionType, ExecuteOnException> guard_;
+  int exceptionCounter_{std::uncaught_exceptions()};
+};
+
+enum class ScopeGuardOnFail {};
+
+// 设置mask：ExecuteOnException = true
+template <typename FunctionType>
+ScopeGuardForNewException<std::decay_t<FunctionType>, true>
+operator+(detail::ScopeGuardOnFail, FunctionType&& fn) {
+  return ScopeGuardForNewException<
+      typename std::decay<FunctionType>::type,
+      true>(std::forward<FunctionType>(fn));
+}
+
+enum class ScopeGuardOnSuccess {};
+
+// 设置mask：ExecuteOnException = false
+template <typename FunctionType>
+ScopeGuardForNewException<std::decay_t<FunctionType>, false>
+operator+(ScopeGuardOnSuccess, FunctionType&& fn) {
+  return ScopeGuardForNewException<
+      std::decay_t<FunctionType>,
+      false>(std::forward<FunctionType>(fn));
+}
+
+} // namespace detail
+
+#define SCOPE_FAIL                               \
+  auto FB_ANONYMOUS_VARIABLE(SCOPE_FAIL_STATE) = \
+      detail::ScopeGuardOnFail() + [&]() noexcept
+
+#define SCOPE_SUCCESS                               \
+  auto FB_ANONYMOUS_VARIABLE(SCOPE_SUCCESS_STATE) = \
+      detail::ScopeGuardOnSuccess() + [&]()
+```
+
+一目了然的设计，伟大，无需多言。
+
+注：在`ScopeGuardForNewException`设计中还可以看到设计者删除了operator new/delete的接口，这也是一个细节，因为ScopeGuardImpl在使用上就是作为一个栈空间临时变量对象而存在，它本就不应该被分配在堆空间上，为了避免误用，也就删除了这两个运算符。实际上，在ScopeGuardImpl的源代码里也做了一样的操作，只是前文中为了更紧凑的叙述才没写而已。
+
+## 总结
+到此，ScopeGuard源码的剖析就圆满结束了，奇怪的知识又增加了！值得注意的是：行文中的代码和Folly源代码的实现会有些细微差别，一些平台/语言标准版本的兼容代码也被我简化了，一些细节处也统一用了C++17的惯用法。拜读大师级代码的同时，也不禁感叹：啊 我好菜啊~
+
+## 参考链接
+
+- [facebook/folly](https://github.com/facebook/folly)
+- [Andrei's and Petru Marginean's CUJ article](http://drdobbs.com/184403758)
