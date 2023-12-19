@@ -234,7 +234,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          3.1k 字
+          2.8k 字
         
       </span>
     
@@ -245,7 +245,7 @@
         
         
         
-          26 分钟
+          24 分钟
         
       </span>
     
@@ -289,176 +289,68 @@
                 
                 <p>书接上一回标准正交基，讲述了该正交向量组的特性与优势，并介绍了一种将一组向量标准化为标准正交向量组的重要方法：Gram-Schmidt正交化。</p>
 <span id="more"></span>
-<h1 id="正交矩阵和gram-schmidt正交化">正交矩阵和Gram-Schmidt正交化</h1>
-<h2 id="标准正交基">标准正交基</h2>
-<p>标准正交向量组构成的空间基被称为标准正交基，它有两个特性：对标准正交向量组中任意向量<span
-class="math inline">\(q\)</span>，有： <span class="math display">\[
+<h1 id="正交矩阵和Gram-Schmidt正交化"><a href="#正交矩阵和Gram-Schmidt正交化" class="headerlink" title="正交矩阵和Gram-Schmidt正交化"></a>正交矩阵和Gram-Schmidt正交化</h1><h2 id="标准正交基"><a href="#标准正交基" class="headerlink" title="标准正交基"></a>标准正交基</h2><p>标准正交向量组构成的空间基被称为标准正交基，它有两个特性：对标准正交向量组中任意向量$q$，有：</p>
+<script type="math/tex; mode=display">
 \begin{cases}
 q_i^Tq_j=0 \space (i\neq j) \\
 q_i^Tq_j=1 \space (i=j)
-\end{cases}
-\]</span></p>
-<p>即：向量彼此垂直，模均为<span class="math inline">\(1\)</span>。</p>
-<h2 id="标准正交矩阵">标准正交矩阵</h2>
-<p>将标准正交向量组中的<span
-class="math inline">\(q_1,q_2,...,q_n\)</span>组成的矩阵<span
-class="math inline">\(Q\)</span>被称为正交矩阵： <span
-class="math display">\[
-Q=\begin{bmatrix}q_1&amp; q_2&amp; q_3&amp; ...&amp; q_n\end{bmatrix}
-\]</span></p>
-<p>显然，正交矩阵<span
-class="math inline">\(Q\)</span>具有一个良好的性质：<span
-class="math inline">\(Q^TQ=I\)</span> <span class="math display">\[
-Q^TQ=\begin{bmatrix}q_1\\ q_2\\ q_3\\ ...\\
-q_n\end{bmatrix}\begin{bmatrix}
-q_1&amp; q_2&amp; q_3&amp; ...&amp;
-q_n\end{bmatrix}=\begin{bmatrix}1&amp; 0&amp; ...&amp; 0&amp;0\\ 0&amp;
-1&amp; ...&amp; 0&amp; 0\\ ...&amp; ...&amp; ...&amp; ...&amp; ...\\
-0&amp; 0&amp; ...&amp; 1&amp; 0\\ 0&amp; 0&amp; ...&amp; 0&amp;
-1\end{bmatrix}=I
-\]</span></p>
-<h3 id="正交矩阵">正交矩阵</h3>
-<p><strong>特别地，当<span
-class="math inline">\(Q\)</span>为方阵时，我们称这样的<span
-class="math inline">\(Q\)</span>为正交矩阵。</strong></p>
-<p>正交矩阵有更丰富的性质，此时的方阵<span
-class="math inline">\(Q\)</span>有逆矩阵，由<span
-class="math inline">\(Q^TQ=I\)</span>可知，<span
-class="math inline">\(Q^{-1}=Q^T\)</span>。</p>
+\end{cases}</script><p>即：向量彼此垂直，模均为$1$。</p>
+<h2 id="标准正交矩阵"><a href="#标准正交矩阵" class="headerlink" title="标准正交矩阵"></a>标准正交矩阵</h2><p>将标准正交向量组中的$q_1,q_2,…,q_n$组成的矩阵$Q$被称为正交矩阵：</p>
+<script type="math/tex; mode=display">
+Q=\begin{bmatrix}q_1& q_2& q_3& ...& q_n\end{bmatrix}</script><p>显然，正交矩阵$Q$具有一个良好的性质：$Q^TQ=I$</p>
+<script type="math/tex; mode=display">
+Q^TQ=\begin{bmatrix}q_1\\ q_2\\ q_3\\ ...\\ q_n\end{bmatrix}\begin{bmatrix}
+q_1& q_2& q_3& ...& q_n\end{bmatrix}=\begin{bmatrix}1& 0& ...& 0&0\\ 0& 1& ...& 0& 0\\ ...& ...& ...& ...& ...\\ 0& 0& ...& 1& 0\\ 0& 0& ...& 0& 1\end{bmatrix}=I</script><h3 id="正交矩阵"><a href="#正交矩阵" class="headerlink" title="正交矩阵"></a>正交矩阵</h3><p><strong>特别地，当$Q$为方阵时，我们称这样的$Q$为正交矩阵。</strong></p>
+<p>正交矩阵有更丰富的性质，此时的方阵$Q$有逆矩阵，由$Q^TQ=I$可知，$Q^{-1}=Q^T$。</p>
 <blockquote>
 <p>置换矩阵就是个经典案例。</p>
 </blockquote>
-<h3 id="标准正交矩阵的应用">标准正交矩阵的应用</h3>
-<p>标准正交矩阵可以应用到投影矩阵上，我们知道：<span
-class="math inline">\(P=A(A^TA)^{-1}A^T\)</span>，当<span
-class="math inline">\(A\)</span>是标准正交矩阵时，有：<span
-class="math inline">\(Q(Q^TQ)^{-1}Q^T=QQ^T\)</span>。特别地，若<span
-class="math inline">\(Q\)</span>为方阵，此时<span
-class="math inline">\(QQ^T=QQ^{-1}=I\)</span>。（说明此时投影矩阵就是单位阵<span
-class="math inline">\(I\)</span>）</p>
-<p><span
-class="math inline">\(P\)</span>的计算得到了极大的简化，对于<span
-class="math inline">\(P=QQ^T\)</span>，根据前面几讲的知识，我们知道<span
-class="math inline">\(QQ^T\)</span>有着一些特性：</p>
+<h3 id="标准正交矩阵的应用"><a href="#标准正交矩阵的应用" class="headerlink" title="标准正交矩阵的应用"></a>标准正交矩阵的应用</h3><p>标准正交矩阵可以应用到投影矩阵上，我们知道：$P=A(A^TA)^{-1}A^T$，当$A$是标准正交矩阵时，有：$Q(Q^TQ)^{-1}Q^T=QQ^T$。特别地，若$Q$为方阵，此时$QQ^T=QQ^{-1}=I$。（说明此时投影矩阵就是单位阵$I$）</p>
+<p>$P$的计算得到了极大的简化，对于$P=QQ^T$，根据前面几讲的知识，我们知道$QQ^T$有着一些特性：</p>
 <ul>
-<li>是对称阵，即<span class="math inline">\(P=P^T\)</span></li>
-<li>乘方不变性，即<span class="math inline">\(P^2=P\)</span></li>
+<li>是对称阵，即$P=P^T$</li>
+<li>乘方不变性，即$P^2=P$</li>
 </ul>
-<p>此外，对于前两讲中的拟合方程：<span class="math inline">\(A^TA\hat
-x=A^Tb\)</span>，若<span
-class="math inline">\(A\)</span>为标准正交矩阵，那么方程就变成了<span
-class="math inline">\(\hat x=Q^Tb\)</span>。<span
-class="math inline">\(\hat x\)</span>的每个分量<span
-class="math inline">\(\hat x_i=q_i^Tb\)</span>，即都是<span
-class="math inline">\(Q\)</span>中对应列向量与<span
-class="math inline">\(b\)</span>的内积。</p>
+<p>此外，对于前两讲中的拟合方程：$A^TA\hat x=A^Tb$，若$A$为标准正交矩阵，那么方程就变成了$\hat x=Q^Tb$。$\hat x$的每个分量$\hat x_i=q_i^Tb$，即都是$Q$中对应列向量与$b$的内积。</p>
 <blockquote>
-<p>这个式子的物理意义就是：对已知标准正交基，向量<span
-class="math inline">\(b\)</span>在第<span
-class="math inline">\(i\)</span>个基上的投影就是对应基向量<span
-class="math inline">\(q_i^Tb\)</span>。</p>
+<p>这个式子的物理意义就是：对已知标准正交基，向量$b$在第$i$个基上的投影就是对应基向量$q_i^Tb$。</p>
 </blockquote>
 <p>因此，如果我们选择标准正交向量组作为基时，投影矩阵相关公式中的诸多计算都得到了极大的简化。</p>
-<h2 id="gram-schmidt正交化">Gram-Schmidt正交化</h2>
-<p>在标准正交矩阵的应用中我们可以看到，如果能够在实际运算中采用标准正交向量组，那就可以简化相当多的运算量。然而实际情况是，我们往往拿到的都只是一组线性无关的向量，它们恰好构成标准正交基的可能性微乎其微。那么有没有一种方法，可以将任意的线性无关向量组转换为标准正交基呢？</p>
+<h2 id="Gram-Schmidt正交化"><a href="#Gram-Schmidt正交化" class="headerlink" title="Gram-Schmidt正交化"></a>Gram-Schmidt正交化</h2><p>在标准正交矩阵的应用中我们可以看到，如果能够在实际运算中采用标准正交向量组，那就可以简化相当多的运算量。然而实际情况是，我们往往拿到的都只是一组线性无关的向量，它们恰好构成标准正交基的可能性微乎其微。那么有没有一种方法，可以将任意的线性无关向量组转换为标准正交基呢？</p>
 <p><strong>答案是肯定的，这种方法就是”Gram-Schmidt正交化“。</strong></p>
-<p>Gram-Schmidt正交化的过程很简单： <span class="math display">\[
-线性无关向量a,b\rightarrow 正交向量A,B\rightarrow
-标准正交向量q_1=\frac{A}{||A||}, q_2=\frac{B}{||B||}
-\]</span></p>
-<blockquote>
+<p>Gram-Schmidt正交化的过程很简单：</p>
+<script type="math/tex; mode=display">
+线性无关向量a,b\rightarrow 正交向量A,B\rightarrow 标准正交向量q_1=\frac{A}{||A||}, q_2=\frac{B}{||B||}</script><blockquote>
 <p>第一步转为正交向量的过程被称作Graham，第二步标准化为模1的过程被称作Schmidt。</p>
 </blockquote>
-<p>第二步标准化的过程很好理解，对每个分量除以模量即可，正交化的过程关键在于第一步，怎么找到<span
-class="math inline">\(A\)</span>和<span
-class="math inline">\(B\)</span>。</p>
-<p>以不共线的两个<span
-class="math inline">\(a,b\)</span>向量为例，怎么转换成正交基呢？这就要用到投影：</p>
-<p><img src="2023-09-26-16-02-58.png" srcset="/img/loading.gif" lazyload /></p>
-<p>我们先将<span class="math inline">\(a\)</span>向量固定，设为<span
-class="math inline">\(A\)</span>，然后将<span
-class="math inline">\(b\)</span>向量投影到<span
-class="math inline">\(A\)</span>上得到<span
-class="math inline">\(p\)</span>，此时误差向量<span
-class="math inline">\(e=b-p\)</span>所在直线的方向实际上就是另一个基向量<span
-class="math inline">\(B\)</span>的方向，取投影长度为<span
-class="math inline">\(B\)</span>的长度。于是有： <span
-class="math display">\[
-B=b-\frac{AA^Tb}{A^TA}
-\]</span></p>
-<p>式子里<span class="math inline">\(A^Tb\)</span>和<span
-class="math inline">\(A^TA\)</span>都是内积标量值，因此上式一般写作：<span
-class="math inline">\(B=b-\frac{A^Tb}{A^TA}A\)</span>的形式。</p>
-<p>得到<span
-class="math inline">\(A,B\)</span>之后，第二步就是做标准化了：<span
-class="math inline">\(q_1=\frac{A}{||A||},
-q_2=\frac{B}{||B||}\)</span>。</p>
-<p>延展到三维空间，对于向量<span
-class="math inline">\(a,b,c\)</span>要怎么做正交化呢？我们可以如法炮制，首先<span
-class="math inline">\(A,B\)</span>的寻找方法不变： <span
-class="math display">\[
-A=a,B=b-\frac{AA^Tb}{A^TA}
-\]</span></p>
-<p><span class="math inline">\(C\)</span>的计算如出一辙，我们分别让<span
-class="math inline">\(c\)</span>在<span
-class="math inline">\(A\)</span>和<span
-class="math inline">\(B\)</span>上进行投影，然后再减去投影得到的两个向量即为<span
-class="math inline">\(C\)</span>： <span class="math display">\[
-C=c-\frac{A^Tc}{A^TA}A-\frac{B^Tc}{B^TB}B
-\]</span></p>
-<p>最后再对<span class="math inline">\(A,B,C\)</span>标准化即可。</p>
-<h3 id="示例">示例</h3>
-<p>有<span class="math inline">\(a=\begin{bmatrix}1\\ 1\\
-1\end{bmatrix}, b=\begin{bmatrix}1\\ 0\\
-2\end{bmatrix}\)</span>，求标准正交矩阵<span
-class="math inline">\(Q\)</span>。</p>
+<p>第二步标准化的过程很好理解，对每个分量除以模量即可，正交化的过程关键在于第一步，怎么找到$A$和$B$。</p>
+<p>以不共线的两个$a,b$向量为例，怎么转换成正交基呢？这就要用到投影：</p>
+<p><img src="2023-09-26-16-02-58.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<p>我们先将$a$向量固定，设为$A$，然后将$b$向量投影到$A$上得到$p$，此时误差向量$e=b-p$所在直线的方向实际上就是另一个基向量$B$的方向，取投影长度为$B$的长度。于是有：</p>
+<script type="math/tex; mode=display">
+B=b-\frac{AA^Tb}{A^TA}</script><p>式子里$A^Tb$和$A^TA$都是内积标量值，因此上式一般写作：$B=b-\frac{A^Tb}{A^TA}A$的形式。</p>
+<p>得到$A,B$之后，第二步就是做标准化了：$q_1=\frac{A}{||A||}, q_2=\frac{B}{||B||}$。</p>
+<p>延展到三维空间，对于向量$a,b,c$要怎么做正交化呢？我们可以如法炮制，首先$A,B$的寻找方法不变：</p>
+<script type="math/tex; mode=display">
+A=a,B=b-\frac{AA^Tb}{A^TA}</script><p>$C$的计算如出一辙，我们分别让$c$在$A$和$B$上进行投影，然后再减去投影得到的两个向量即为$C$：</p>
+<script type="math/tex; mode=display">
+C=c-\frac{A^Tc}{A^TA}A-\frac{B^Tc}{B^TB}B</script><p>最后再对$A,B,C$标准化即可。</p>
+<h3 id="示例"><a href="#示例" class="headerlink" title="示例"></a>示例</h3><p>有$a=\begin{bmatrix}1\ 1\ 1\end{bmatrix}, b=\begin{bmatrix}1\ 0\ 2\end{bmatrix}$，求标准正交矩阵$Q$。</p>
 <p>解：</p>
-<p>先固定<span class="math inline">\(A=a=\begin{bmatrix}1\\ 1\\
-1\end{bmatrix}\)</span>，用<span class="math inline">\(b\)</span>在<span
-class="math inline">\(A\)</span>上投影，差值即为: <span
-class="math display">\[
-B=b-\frac{A^Tb}{A^TA}A=\begin{bmatrix}1\\ 0\\
-2\end{bmatrix}-\frac{3}{3}\begin{bmatrix}1\\ 1\\
-1\end{bmatrix}=\begin{bmatrix}0\\ -1\\ 1\end{bmatrix}
-\]</span></p>
-<p>标准化后得到： <span class="math display">\[
-Q=\begin{bmatrix}\frac{1}{\sqrt{3}}&amp; 0\\ \frac{1}{\sqrt{3}}&amp;
--\frac{1}{\sqrt{2}}\\ \frac{1}{\sqrt{3}}&amp;
-\frac{1}{\sqrt{2}}\end{bmatrix}
-\]</span></p>
-<h2 id="引申矩阵的qr分解">引申：矩阵的QR分解</h2>
-<p>用消元法视角来看<span
-class="math inline">\(A\)</span>的分解，可以看做<span
-class="math inline">\(A=LU\)</span>，<span
-class="math inline">\(L\)</span>是进行行变换的下三角阵，<span
-class="math inline">\(U\)</span>是上三角阵。</p>
-<p>以同样的眼光来看Gram-Schmidt正交化，有<span
-class="math inline">\(A=QR\)</span>，其中<span
-class="math inline">\(Q\)</span>为标准正交化阵，<span
-class="math inline">\(R\)</span>是一个上三角阵。 <span
-class="math display">\[
-\begin{bmatrix}a_1&amp; a_2\end{bmatrix}=\begin{bmatrix}q_1&amp;
-q_2\end{bmatrix}\begin{bmatrix}a_1^Tq_1&amp; a_2^Tq_1\\ a_1^Tq_2&amp;
-a_2^Tq_2\end{bmatrix}
-\]</span></p>
-<p>显然左下角<span class="math inline">\(a_1^Tq_2=0\)</span>(<span
-class="math inline">\(a1是A方向，\)</span>q2<span
-class="math inline">\(是\)</span>B<span
-class="math inline">\(方向\)</span>)，拓展到高维会发现下三角都是<span
-class="math inline">\(0\)</span>，因为后构造的向量总是垂直于前面的向量。这也是Gram-Schmidt正交化的一个性质。</p>
-<h1 id="附录">附录</h1>
-<h2 id="视频">视频</h2>
-<iframe src="//player.bilibili.com/player.html?aid=382989698&amp;bvid=BV16Z4y1U7oU&amp;cid=570089959&amp;p=17&amp;autoplay=0" scrolling="no" border="0" width="100%" height="500" frameborder="no" framespacing="0" allowfullscreen="true">
-</iframe>
-<h2 id="参考链接">参考链接</h2>
-<ul>
-<li><a
-target="_blank" rel="noopener" href="https://github.com/MLNLP-World/MIT-Linear-Algebra-Notes/blob/master/%5B17%5D%20%E6%AD%A3%E4%BA%A4%E7%9F%A9%E9%98%B5%E5%92%8CGram-Schmidt%20%E6%AD%A3%E4%BA%A4%E5%8C%96/%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B017.pdf">正交矩阵和Gram-Schmidt
-正交化</a></li>
-<li><a target="_blank" rel="noopener" href="https://rqtn.github.io/2019/08/12/LA-Lec17/">Lec17 -
-正交矩阵和 Gram-Schmidt 正交化</a></li>
-<li><a
-target="_blank" rel="noopener" href="https://github.com/kf-liu/The-Art-of-Linear-Algebra-zh-CN">线性代数的艺术</a></li>
+<p>先固定$A=a=\begin{bmatrix}1\ 1\ 1\end{bmatrix}$，用$b$在$A$上投影，差值即为:</p>
+<script type="math/tex; mode=display">
+B=b-\frac{A^Tb}{A^TA}A=\begin{bmatrix}1\\ 0\\ 2\end{bmatrix}-\frac{3}{3}\begin{bmatrix}1\\ 1\\ 1\end{bmatrix}=\begin{bmatrix}0\\ -1\\ 1\end{bmatrix}</script><p>标准化后得到：</p>
+<script type="math/tex; mode=display">
+Q=\begin{bmatrix}\frac{1}{\sqrt{3}}& 0\\ \frac{1}{\sqrt{3}}& -\frac{1}{\sqrt{2}}\\ \frac{1}{\sqrt{3}}& \frac{1}{\sqrt{2}}\end{bmatrix}</script><h2 id="引申：矩阵的QR分解"><a href="#引申：矩阵的QR分解" class="headerlink" title="引申：矩阵的QR分解"></a>引申：矩阵的QR分解</h2><p>用消元法视角来看$A$的分解，可以看做$A=LU$，$L$是进行行变换的下三角阵，$U$是上三角阵。</p>
+<p>以同样的眼光来看Gram-Schmidt正交化，有$A=QR$，其中$Q$为标准正交化阵，$R$是一个上三角阵。</p>
+<script type="math/tex; mode=display">
+\begin{bmatrix}a_1& a_2\end{bmatrix}=\begin{bmatrix}q_1& q_2\end{bmatrix}\begin{bmatrix}a_1^Tq_1& a_2^Tq_1\\ a_1^Tq_2& a_2^Tq_2\end{bmatrix}</script><p>显然左下角$a_1^Tq_2=0$($a1是A方向，$q2$是$B$方向$)，拓展到高维会发现下三角都是$0$，因为后构造的向量总是垂直于前面的向量。这也是Gram-Schmidt正交化的一个性质。</p>
+<h1 id="附录"><a href="#附录" class="headerlink" title="附录"></a>附录</h1><h2 id="视频"><a href="#视频" class="headerlink" title="视频"></a>视频</h2><iframe src="//player.bilibili.com/player.html?aid=382989698&bvid=BV16Z4y1U7oU&cid=570089959&p=17&autoplay=0" scrolling="no" border="0" width="100%" height="500" frameborder="no" framespacing="0" allowfullscreen="true"> </iframe>
+
+<h2 id="参考链接"><a href="#参考链接" class="headerlink" title="参考链接"></a>参考链接</h2><ul>
+<li><a target="_blank" rel="noopener" href="https://github.com/MLNLP-World/MIT-Linear-Algebra-Notes/blob/master/%5B17%5D%20%E6%AD%A3%E4%BA%A4%E7%9F%A9%E9%98%B5%E5%92%8CGram-Schmidt%20%E6%AD%A3%E4%BA%A4%E5%8C%96/%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B017.pdf">正交矩阵和Gram-Schmidt 正交化</a></li>
+<li><a target="_blank" rel="noopener" href="https://rqtn.github.io/2019/08/12/LA-Lec17/">Lec17 - 正交矩阵和 Gram-Schmidt 正交化</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/kf-liu/The-Art-of-Linear-Algebra-zh-CN">线性代数的艺术</a></li>
 </ul>
 
                 
