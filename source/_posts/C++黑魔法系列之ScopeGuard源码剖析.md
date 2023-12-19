@@ -5,7 +5,7 @@ tags: [cpp, cpp-templates]
 category: 源码剖析
 ---
 
-众所周知，想要在C++中写出通用的框架、组件代码并不简单，一来C++本身庞然大物包罗万象，大部分开发者并不了解像是”茴字有四种写法“这种语言律师津津乐道的课题，对于晦涩难懂的模板元更是谈之色变，二来是历史悠久，在发展过程中为了向前兼容，遗留了各种特例特办的技术债，导致系统臃肿不堪。因此，尽管C++生态相当茂盛，但权威的第三方库却屈指可数（甚至其标准库都是风风雨雨缝缝补补，~~偷得人家boost就剩个底裤~~）。阅读优秀的开源代码是提升代码水平的捷径，本篇文章我们来深度剖析大名鼎鼎的Facebook folly库所实现的ScopeGuard。管中窥豹，可见一斑。
+众所周知，想要在C++中写出通用的框架、组件代码并不简单，一来C++本身庞然大物包罗万象，大部分开发者并不了解像是”茴有四种写法“这种语言律师津津乐道的课题，对于晦涩难懂的模板元更是谈之色变，二来是历史悠久，在发展过程中为了向前兼容，遗留了各种特例特办的技术债，导致系统臃肿不堪。因此，尽管C++生态相当茂盛，但权威的第三方库却屈指可数（甚至其标准库都是风风雨雨缝缝补补，~~偷得人家boost就剩个底裤~~）。阅读优秀的开源代码是提升代码水平的捷径，本篇文章我们来深度剖析大名鼎鼎的Facebook folly库所实现的ScopeGuard。管中窥豹，可见一斑。
 
 <!-- more -->
 
@@ -977,7 +977,7 @@ ScopeGuardImpl<std::decay_t<FunctionType>, true> operator+(ScopeGuardOnExit, Fun
     detail::ScopeGuardOnExit() + [&]() noexcept
 ```
 
-可以看到`SCOPE_EXIT`宏的实现借用了运算符重载，通过在内部定义一个新类型`ScopeGuardOnExit`并重载它的`operator+`操作符，用右操作数`fn`来最终构造出`ScopeGuardImpl`对象。而右操作数实际上是一个lambda对象，它使用引用捕获，示例代码中编写的花括号体实际上是这个匿名lambda对象的body。
+可以看到`SCOPE_EXIT`宏的实现借用了运算符重载，通过在内部定义一个新类型`ScopeGuardOnExit`并重载它的`operator+`操作符，用右操作数`fn`来最终构造出`ScopeGuardImpl`对象。而右操作数实际上是一个lambda对象，它使用引用捕获，示例代码中编写的花括号体实际上是这个匿名lambda对象的body。实际上这里重载哪个运算符是自由的，不一定非要选择`operator+`，只要能和宏定义衔接上即可。
 
 另一方面，SCOPE_EXIT可以有复数个，也可以嵌套定义。对于前者来说，由于离开作用域后局部变量对象的析构顺序与定义时是逆序的，因此它也达成了像是go中多个defer的逆序执行效果；对于后者来说，嵌套本身就是支持的，因为局部变量的生命期只和它所在的外层作用域绑定。
 
@@ -1089,11 +1089,11 @@ operator+(ScopeGuardOnSuccess, FunctionType&& fn) {
 } // namespace detail
 
 #define SCOPE_FAIL                               \
-  auto FB_ANONYMOUS_VARIABLE(SCOPE_FAIL_STATE) = \
+  auto ANONYMOUS_VARIABLE(SCOPE_FAIL_STATE) = \
       detail::ScopeGuardOnFail() + [&]() noexcept
 
 #define SCOPE_SUCCESS                               \
-  auto FB_ANONYMOUS_VARIABLE(SCOPE_SUCCESS_STATE) = \
+  auto ANONYMOUS_VARIABLE(SCOPE_SUCCESS_STATE) = \
       detail::ScopeGuardOnSuccess() + [&]()
 ```
 
@@ -1102,9 +1102,11 @@ operator+(ScopeGuardOnSuccess, FunctionType&& fn) {
 注：在`ScopeGuardForNewException`设计中还可以看到设计者删除了operator new/delete的接口，这也是一个细节，因为ScopeGuardImpl在使用上就是作为一个栈空间临时变量对象而存在，它本就不应该被分配在堆空间上，为了避免误用，也就删除了这两个运算符。实际上，在ScopeGuardImpl的源代码里也做了一样的操作，只是前文中为了更紧凑的叙述才没写而已。
 
 ## 总结
-到此，ScopeGuard源码的剖析就圆满结束了，奇怪的知识又增加了！值得注意的是：行文中的代码和Folly源代码的实现会有些细微差别，一些平台/语言标准版本的兼容代码也被我简化了，一些细节处也统一用了C++17的惯用法。拜读大师级代码的同时，也不禁感叹：啊 我好菜啊~
+到此，ScopeGuard源码的剖析就圆满结束了，奇怪的知识又增加了！值得注意的是：行文中的代码和Folly源代码的实现会有些细微差别，一些平台/语言标准版本的兼容代码也被我简化了，一些细节处也统一用了C++17的惯用法。
+
+拜读大师级作品，掌握C++黑魔法，~~以雷霆、击碎黑暗！~~
 
 ## 参考链接
 
 - [facebook/folly](https://github.com/facebook/folly)
-- [Andrei's and Petru Marginean's CUJ article](http://drdobbs.com/184403758)
+- [Generic: Change the Way You Write Exception-Safe Code — Forever](http://drdobbs.com/184403758)
