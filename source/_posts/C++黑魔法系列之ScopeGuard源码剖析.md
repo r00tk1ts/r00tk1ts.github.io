@@ -967,8 +967,8 @@ ScopeGuardImpl<std::decay_t<FunctionType>, true> operator+(ScopeGuardOnExit, Fun
 }
 } // namespace detail
 
-#define CONCATENATE(s1, s2) s1##s2
-
+#define CONCATENATE_IMPL(s1, s2) s1##s2
+#define CONCATENATE(s1, s2) CONCATENATE_IMPL(s1, s2)
 #define ANONYMOUS_VARIABLE(str) \
   CONCATENATE(CONCATENATE(CONCATENATE(str, __COUNTER__), _), __LINE__)
 
