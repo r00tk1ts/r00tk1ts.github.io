@@ -1,0 +1,711 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/favicon.png">
+  <link rel="icon" href="/img/favicon.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="r00tk1t">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="众所周知，想要在C++中写出通用的框架、组件代码并不简单，一来C++本身庞然大物包罗万象，大部分开发者并不了解像是”茴有四种写法“这种语言律师津津乐道的课题，对于晦涩难懂的模板元更是谈之色变，二来是历史悠久，在发展过程中为了向前兼容，遗留了各种特例特办的技术债，导致系统臃肿不堪。因此，尽管C++生态相当茂盛，但权威的第三方库却屈指可数（甚至其标准库都是风风雨雨缝缝补补，偷得人家boost就剩个底裤">
+<meta property="og:type" content="article">
+<meta property="og:title" content="C++黑魔法系列之从optional到expected">
+<meta property="og:url" content="https://r00tk1ts.github.io/2024/02/01/C++%E9%BB%91%E9%AD%94%E6%B3%95%E7%B3%BB%E5%88%97%E4%B9%8B%E4%BB%8Eoptional%E5%88%B0expected/index.html">
+<meta property="og:site_name" content="玉涵的技能书">
+<meta property="og:description" content="众所周知，想要在C++中写出通用的框架、组件代码并不简单，一来C++本身庞然大物包罗万象，大部分开发者并不了解像是”茴有四种写法“这种语言律师津津乐道的课题，对于晦涩难懂的模板元更是谈之色变，二来是历史悠久，在发展过程中为了向前兼容，遗留了各种特例特办的技术债，导致系统臃肿不堪。因此，尽管C++生态相当茂盛，但权威的第三方库却屈指可数（甚至其标准库都是风风雨雨缝缝补补，偷得人家boost就剩个底裤">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2024-02-01T02:45:35.000Z">
+<meta property="article:modified_time" content="2024-02-01T11:30:19.589Z">
+<meta property="article:author" content="r00tk1t">
+<meta property="article:tag" content="cpp">
+<meta property="article:tag" content="cpp-templates">
+<meta name="twitter:card" content="summary_large_image">
+  
+  
+  
+  <title>C++黑魔法系列之从optional到expected - 玉涵的技能书</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"r00tk1ts.github.io","root":"/","version":"1.9.5","typing":{"enable":true,"typeSpeed":80,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 6.1.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>玉涵的技能书</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/doc/">
+                <i class="iconfont icon-books"></i>
+                <span>藏经阁</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="C++黑魔法系列之从optional到expected"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2024-02-01 10:45" pubdate>
+          2024年2月1日 上午
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          7.3k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          61 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">C++黑魔法系列之从optional到expected</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <p>众所周知，想要在C++中写出通用的框架、组件代码并不简单，一来C++本身庞然大物包罗万象，大部分开发者并不了解像是”茴有四种写法“这种语言律师津津乐道的课题，对于晦涩难懂的模板元更是谈之色变，二来是历史悠久，在发展过程中为了向前兼容，遗留了各种特例特办的技术债，导致系统臃肿不堪。因此，尽管C++生态相当茂盛，但权威的第三方库却屈指可数（甚至其标准库都是风风雨雨缝缝补补，<del>偷得人家boost就剩个底裤</del>）。阅读优秀的开源代码是提升代码水平的捷径，本篇文章我们解读modern C++中常用的脚手架<code>std::optional</code>，并进阶到folly库所实现的更加强大的<code>folly::Expected</code>。</p>
+<span id="more"></span>
+<h1 id="C-黑魔法系列之从optional到expected"><a href="#C-黑魔法系列之从optional到expected" class="headerlink" title="C++黑魔法系列之从optional到expected"></a>C++黑魔法系列之从optional到expected</h1><p>在日常编码过程中，我们经常会遇到这样一个问题：某些场景我们需要区分空值和默认值（一般是零值）。比如，对于一个返回值类型为<code>int</code>的函数，当值为0时，它的物理意义是什么，是真正的零值、还是代表了一种表达为空的属性（是否存在，是否有效等物理意义）？这是函数设计者需要结合实际场景来认真考虑的事。当然，二者的区分也不仅仅限定于某个语种，更不限定于函数的返回值。</p>
+<h2 id="前菜：protobuf的缺省与默认值"><a href="#前菜：protobuf的缺省与默认值" class="headerlink" title="前菜：protobuf的缺省与默认值"></a>前菜：protobuf的缺省与默认值</h2><p>大名鼎鼎的protobuf协议便在这个问题上纠结了很久，从v2的required/optional tag的强硬派重拳出击，比如协议：</p>
+<figure class="highlight protobuf"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs protobuf"><span class="hljs-comment">// proto2</span><br><span class="hljs-keyword">message </span><span class="hljs-title class_">SearchRequest</span> &#123;<br>  <span class="hljs-keyword">required</span> <span class="hljs-type">string</span> query = <span class="hljs-number">1</span>;                    # 必需<br>  <span class="hljs-keyword">optional</span> <span class="hljs-type">int32</span> page_number = <span class="hljs-number">2</span> [default=<span class="hljs-number">0</span>];   # 可选，默认值为<span class="hljs-number">0</span>，有hasPageNumber() method<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>在proto2中，被标记为required的字段是必需品，而标记了optional的字段则是可缺省的，我们可以为其赋予默认值（比如page_number被显式地设置了一个默认值0）。每一个optional字段都会生成相应的<code>hasXXX</code> method桩代码，用以检查是否缺省。</p>
+<blockquote>
+<p>实际上proto2的序列化有坑，不论optional字段是真的缺省，还是被显式赋予了一个默认值，序列化以后这个信息都会被擦除，反序列化后，haxXXX总是返回false。归根结底是把默认值和缺省混为一谈了。</p>
+<p>对proto2来说，若无显式设置默认值，则使用对应类型的零值做默认值，上例的page_number实际上不需要显式设置，这里只是为了演示才画蛇添足。</p>
+</blockquote>
+<p>在经历了大刀阔斧的升级后，v3干脆移除了required/optional tag，所有的字段通通都是optional，但同时对于原始的基础类型，也不再生成<code>haxXXX</code>这样的桩代码。那么，对于上述协议：</p>
+<figure class="highlight protobuf"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs protobuf"><span class="hljs-comment">// proto3</span><br><span class="hljs-keyword">message </span><span class="hljs-title class_">SearchRequest</span> &#123;<br>  <span class="hljs-type">string</span> query = <span class="hljs-number">1</span>;<br>  <span class="hljs-type">int32</span> page_number = <span class="hljs-number">2</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>page_number是一个基础类型，我怎么区分page_number确实是0，还是压根没填呢？在损失了<code>hasXXX</code>方法后，我们只得另辟蹊径，一般来说，有两种迂回的办法：使用oneof嵌套，或是定义wrapper类型。前者是借助了oneof的特性，后者则是绕开了只对基础型移除<code>hasXXX</code>的限制。设计师面对上述两种黑魔法的大行其道，最终还是向用户妥协，自3.15版本起，protobuf又重新支持了optional tag，此时就又可以像v2那样对page_number生成<code>hasXXX</code>的桩代码了。</p>
+<p>摆上这样一道前菜只是为了热身，更多关于protobuf的内容就不在这里展开，以免喧宾夺主。</p>
+<blockquote>
+<p>v3的改革历来争议很大，核心争论点主要集中于required，详见stackoverflow高赞回答：<a target="_blank" rel="noopener" href="https://stackoverflow.com/questions/31801257/why-required-and-optional-is-removed-in-protocol-buffers-3">https://stackoverflow.com/questions/31801257/why-required-and-optional-is-removed-in-protocol-buffers-3</a></p>
+</blockquote>
+<h2 id="函数的多返回值设计"><a href="#函数的多返回值设计" class="headerlink" title="函数的多返回值设计"></a>函数的多返回值设计</h2><p>通过前面的热身我们不难发现，默认值与空值，根本就是两个维度上的事儿，protobuf的变革历程深刻地印证了这一点。那么，对于函数返回值的设计来说，也就意味着需要返回两个值，第一个是值对应的类型，第二个则是一个布尔，用来表示是否存在或者是否成功等等。</p>
+<p>对于早期的编程语言，比如C，由于严格贯彻数学上函数的定义，返回值只能有一个，彼时，对于有多个返回值要求的场合，一般有两种解法：</p>
+<ol>
+<li>聚合多个返回值构建成新的struct</li>
+<li>通过参数传入，也就是OUT型参数</li>
+</ol>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-comment">/// function 1</span><br><span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">result</span> &#123;</span><br>  <span class="hljs-type">int</span> value;<br>  <span class="hljs-type">bool</span> exist;<br>&#125;;<br><br><span class="hljs-comment">// 此时还要注意返回指针的生命期问题</span><br><span class="hljs-keyword">struct</span> result* <span class="hljs-title function_">func1</span><span class="hljs-params">()</span> &#123; <span class="hljs-comment">// ... &#125;</span><br><br><span class="hljs-comment">/// function 2</span><br><span class="hljs-type">int</span> <span class="hljs-title function_">func2</span><span class="hljs-params">(<span class="hljs-type">bool</span> *exist)</span> &#123; <span class="hljs-comment">// ... &#125;</span><br></code></pre></td></tr></table></figure>
+<p>这其中第二种解法比较有年代感，早期C标准库、linux内核代码常见这种设计，而Windows SDK的C API则都是这种风格，甚至变本加厉，通过IN/OUT宏来标记参数去辅助接口的说明。比如，下面是Windows创建进程的C API（这个其实还算是相对清爽的）：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs c">BOOL <span class="hljs-title function_">CreateProcessA</span><span class="hljs-params">(</span><br><span class="hljs-params">  [in, optional]      LPCSTR                lpApplicationName,</span><br><span class="hljs-params">  [in, out, optional] LPSTR                 lpCommandLine,</span><br><span class="hljs-params">  [in, optional]      LPSECURITY_ATTRIBUTES lpProcessAttributes,</span><br><span class="hljs-params">  [in, optional]      LPSECURITY_ATTRIBUTES lpThreadAttributes,</span><br><span class="hljs-params">  [in]                BOOL                  bInheritHandles,</span><br><span class="hljs-params">  [in]                DWORD                 dwCreationFlags,</span><br><span class="hljs-params">  [in, optional]      LPVOID                lpEnvironment,</span><br><span class="hljs-params">  [in, optional]      LPCSTR                lpCurrentDirectory,</span><br><span class="hljs-params">  [in]                LPSTARTUPINFOA        lpStartupInfo,</span><br><span class="hljs-params">  [out]               LPPROCESS_INFORMATION lpProcessInformation</span><br><span class="hljs-params">)</span>;<br></code></pre></td></tr></table></figure>
+<p>而第一种方法则略显笨重，对于天生需要封装的结构体，这种设计是自然而然顺水推舟，但如果像是我们的需求，每次都把某种值类型和一个bool型封装成一个struct，那就显得太臃肿了。</p>
+<p>现代的编程语言大多打破了函数只能有一个返回值的常规，最经典的比如go，它可以有任意多个返回值。因此，我们可以编写：</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs go"><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">func3</span><span class="hljs-params">()</span></span> (<span class="hljs-type">int</span>, <span class="hljs-type">bool</span>) &#123; <span class="hljs-comment">// ... &#125;</span><br><br><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">main</span><span class="hljs-params">()</span></span> &#123;<br>    value, exist := func3()<br>    fmt.Printf(<span class="hljs-string">&quot;value=%d,exist=%v&quot;</span>, value, exist)<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>另一方面，尽管在语法上提供了任意多个返回值的直接支持，但在编写的代码中很少会遇到超过3个的情况。一般来说，返回值超过了3个，要么是函数的职责拆分不合理，要么是缺少结构的必要抽象(往往存在基本类型偏执)。此时，设计者会更倾向于上述的第一种解法。因此，尽管语言本身支持，但在实际编程中却另有取舍。</p>
+<p>C++是C的超集，虽然发展到如今的C++23乃至26，早就和C标准分道扬镳了，但从C继承过来的历史包袱却是浑身难受（C风格数组、函数指针、<code>const char[N]</code>的字符串字面量等等都太过于原始，与现代语言的设计格格不入，在2024年，你很难想象一个现代编程语言不支持原生的字符串基本型）。</p>
+<p>C++的STL弥补了很多语言天然的缺陷，再加上伟大的boost发光发热，硬是让这一难用的语言撑过了最艰难的蜕变期。STL提供了很多好用的容器，对于我们的需求，可以使用<code>std::pair&lt;int, bool&gt;</code>来满足：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-function">std::pair&lt;<span class="hljs-type">int</span>, <span class="hljs-type">bool</span>&gt; <span class="hljs-title">func4</span><span class="hljs-params">()</span> </span>&#123; <span class="hljs-keyword">return</span> std::<span class="hljs-built_in">make_pair</span>(<span class="hljs-number">0</span>, <span class="hljs-literal">false</span>); &#125;<br><br><span class="hljs-comment">// before C++11</span><br><span class="hljs-function"><span class="hljs-type">int</span> <span class="hljs-title">main</span><span class="hljs-params">()</span> </span>&#123;<br>    std::pair&lt;<span class="hljs-type">int</span>, <span class="hljs-type">bool</span>&gt; ret = <span class="hljs-built_in">func4</span>();<br>    std::cout &lt;&lt; ret.first &lt;&lt; <span class="hljs-string">&quot;|&quot;</span> &lt;&lt; ret.second &lt;&lt; std::endl;<br>    <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>在C++11之前，由于不支持返回类型推导，我们需要显式地定义返回值<code>ret</code>的类型，另一方面，对<code>pair</code>成员的访问，需要用<code>.first</code>，<code>.second</code>的形式。虽无go那般优雅，但也差强人意。</p>
+<p><code>pair</code>对于那些需要成对存在的场合也相当好用，比如KV型结构<code>std::map&lt;Key,Value&gt;</code>的<code>value_type</code>就是<code>std::pair&lt;const Key, Value&gt;</code>类型。</p>
+<p>而在C++11又引入了另一个非常强大的异质容器：<code>std::tuple</code>。相比于<code>std::pair</code>，<code>tuple</code>可以容纳任意多个成员，自然，<code>pair</code>能干的活它都能干：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-function">std::tuple&lt;<span class="hljs-type">int</span>, <span class="hljs-type">bool</span>&gt; <span class="hljs-title">func5</span><span class="hljs-params">()</span> </span>&#123; <span class="hljs-keyword">return</span> std::<span class="hljs-built_in">make_tuple</span>(<span class="hljs-number">0</span>, <span class="hljs-literal">false</span>); &#125;<br><br><span class="hljs-comment">// in C++11</span><br><span class="hljs-function"><span class="hljs-type">int</span> <span class="hljs-title">main</span><span class="hljs-params">()</span> </span>&#123;<br>    <span class="hljs-keyword">auto</span> ret = <span class="hljs-built_in">func5</span>();<br>    std::cout &lt;&lt; std::<span class="hljs-built_in">get</span>&lt;<span class="hljs-number">0</span>&gt;(ret) &lt;&lt; <span class="hljs-string">&quot;|&quot;</span> &lt;&lt; std::<span class="hljs-built_in">get</span>&lt;<span class="hljs-number">1</span>&gt;(ret) &lt;&lt; std::endl;<br>    <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>相比于<code>pair</code>，<code>tuple</code>的成员获取显得更加丑陋，这是为了泛用性而不得不做的牺牲。C++14和C++17相继引入了<code>std::tie</code>和语法层面的结构化绑定来遮羞：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-comment">// in C++14</span><br><span class="hljs-function"><span class="hljs-type">int</span> <span class="hljs-title">main</span><span class="hljs-params">()</span> </span>&#123;<br>    <span class="hljs-type">int</span> value;<br>    <span class="hljs-type">bool</span> exist;<br>    std::<span class="hljs-built_in">tie</span>(value, exist) = <span class="hljs-built_in">func5</span>();<br>    std::cout &lt;&lt; value &lt;&lt; <span class="hljs-string">&quot;|&quot;</span> &lt;&lt; exist &lt;&lt; std::endl;<br>    <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-comment">// in C++17</span><br><span class="hljs-function"><span class="hljs-type">int</span> <span class="hljs-title">main</span><span class="hljs-params">()</span> </span>&#123;<br>    <span class="hljs-keyword">auto</span> [value, exist] = <span class="hljs-built_in">func5</span>();<br>    std::cout &lt;&lt; value &lt;&lt; <span class="hljs-string">&quot;|&quot;</span> &lt;&lt; exist &lt;&lt; std::endl;<br>    <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>嗯，这很modern。</p>
+<h2 id="std-optional-有还是没有啊？"><a href="#std-optional-有还是没有啊？" class="headerlink" title="std::optional: 有还是没有啊？"></a><code>std::optional</code>: 有还是没有啊？</h2><p>上一节的拆分，我们既没有定义复杂的struct，也没有使用OUT型参数，而是选择了一个折中的方案：<code>pair</code>或是<code>tuple</code>来做wrapper。实际上，wrapper还可以有另一种封装方式，他不必携带多个返回值，他只需要携带额外的信息即可。对于上例来说，面向exist这个bool，使用C++的<code>std::optional</code>更为合适。</p>
+<p><code>std::optional</code>是在C++17才正式引入到标准库的，实际上这东西早在boost时代就已经发光发热相当长一段时间了。我们来看一下官方定义：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-comment">/*</span><br><span class="hljs-comment">The class template std::optional manages an optional contained value, i.e. a value that may or may not be present.</span><br><span class="hljs-comment"></span><br><span class="hljs-comment">A common use case for optional is the return value of a function that may fail. As opposed to other approaches, such as std::pair&lt;T, bool&gt;, optional handles expensive-to-construct objects well and is more readable, as the intent is expressed explicitly.</span><br><span class="hljs-comment"></span><br><span class="hljs-comment">Any instance of optional&lt;T&gt; at any given point in time either contains a value or does not contain a value.</span><br><span class="hljs-comment"></span><br><span class="hljs-comment">If an optional&lt;T&gt; contains a value, the value is guaranteed to be allocated as part of the optional object footprint, i.e. no dynamic memory allocation ever takes place. Thus, an optional object models an object, not a pointer, even though operator*() and operator-&gt;() are defined.</span><br><span class="hljs-comment"></span><br><span class="hljs-comment">When an object of type optional&lt;T&gt; is contextually converted to bool, the conversion returns true if the object contains a value and false if it does not contain a value.</span><br><span class="hljs-comment"></span><br><span class="hljs-comment">The optional object contains a value in the following conditions:</span><br><span class="hljs-comment">- The object is initialized with/assigned from a value of type T or another optional that contains a value.</span><br><span class="hljs-comment">- The object does not contain a value in the following conditions:</span><br><span class="hljs-comment">- The object is default-initialized.</span><br><span class="hljs-comment">- The object is initialized with/assigned from a value of type std::nullopt_t or an optional object that does not contain a value.</span><br><span class="hljs-comment">- The member function reset() is called.</span><br><span class="hljs-comment"></span><br><span class="hljs-comment">There are no optional references; a program is ill-formed if it instantiates an optional with a reference type. In addition, a program is ill-formed if it instantiates an optional with the (possibly cv-qualified) tag types std::nullopt_t or std::in_place_t.</span><br><span class="hljs-comment">*/</span><br><span class="hljs-keyword">template</span>&lt; <span class="hljs-keyword">class</span> <span class="hljs-title class_">T</span> &gt;<br><span class="hljs-keyword">class</span> <span class="hljs-title class_">optional</span>;<br></code></pre></td></tr></table></figure>
+<p>通过定义可以知晓，<code>optional&lt;T&gt;</code>的实例在某一时刻，要么包含一个类型为<code>T</code>的值，要么没有值。显然，对于我们的需求来说，它更加契合，毕竟，当exist为false的时候，其实返回的另一个value是没有实际意义的。关于这一点，相信有使用过go的开发者都深以为然，在go中，我们经常写：</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs go"><span class="hljs-keyword">if</span> data, err := fun(); err != <span class="hljs-literal">nil</span> &#123;<br>    <span class="hljs-comment">// do something for error case, the data generately is nil or zero-valued</span><br>    <span class="hljs-comment">// ...</span><br>&#125; <span class="hljs-keyword">else</span> &#123;<br>    <span class="hljs-comment">// use data forward</span><br>    <span class="hljs-comment">// ...</span><br>&#125;<br></code></pre></td></tr></table></figure>
+<p>而对于<code>fun</code>的设计者，不得不这样编写他的函数：</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs go"><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">fun</span><span class="hljs-params">()</span></span> ([]<span class="hljs-type">string</span>, <span class="hljs-type">error</span>) &#123;<br>    <span class="hljs-keyword">if</span> !sanityCheck() &#123;<br>      <span class="hljs-keyword">return</span> <span class="hljs-literal">nil</span>, errors.New(<span class="hljs-string">&quot;incorrect msg&quot;</span>)  <br>    &#125;<br>    <span class="hljs-keyword">return</span> []<span class="hljs-type">string</span>&#123;<span class="hljs-string">&quot;1&quot;</span>,<span class="hljs-string">&quot;2&quot;</span>,<span class="hljs-string">&quot;3&quot;</span>&#125;, <span class="hljs-literal">nil</span><br>&#125;<br></code></pre></td></tr></table></figure>
+<p>尽管返回值有两个，但其实同一时刻只有一个是有效的，另一个则按照语言的惯用法设置合理的值。</p>
+<p>有了<code>std::optional</code>，就可以这样来编写：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-function"><span class="hljs-type">bool</span> <span class="hljs-title">sanityCheck</span><span class="hljs-params">()</span></span>;<br><span class="hljs-function"><span class="hljs-type">int</span> <span class="hljs-title">calculate</span><span class="hljs-params">()</span></span>;<br><br><span class="hljs-function">std::optional&lt;<span class="hljs-type">int</span>&gt; <span class="hljs-title">func6</span><span class="hljs-params">()</span> </span>&#123; <br>    <span class="hljs-keyword">if</span> (!<span class="hljs-built_in">sanityCheck</span>()) &#123;<br>        <span class="hljs-keyword">return</span> std::<span class="hljs-literal">nullopt</span>;<br>    &#125;<br>    <span class="hljs-keyword">return</span> &#123;<span class="hljs-built_in">calculate</span>()&#125;;<br>&#125;<br><br><span class="hljs-comment">// before C++11</span><br><span class="hljs-function"><span class="hljs-type">int</span> <span class="hljs-title">main</span><span class="hljs-params">()</span> </span>&#123;<br>    <span class="hljs-keyword">if</span> (<span class="hljs-keyword">auto</span> ret = <span class="hljs-built_in">func6</span>(); ret.<span class="hljs-built_in">has_value</span>()) &#123;<br>        std::cout &lt;&lt; *ret &lt;&lt; std::endl;<br>    &#125; <span class="hljs-keyword">else</span> &#123;<br>        std::cout &lt;&lt; <span class="hljs-string">&quot;empty result&quot;</span> &lt;&lt; std::endl;<br>    &#125;<br>    <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p><code>std::optional&lt;T&gt;</code>的语义其实就是调用者告诉函数：“这个可以有”，而当函数返回的是一个<code>std::nullopt</code>时，就是反馈给调用者：“这个真没有”。</p>
+<p>待续。。。</p>
+<h2 id="参考链接"><a href="#参考链接" class="headerlink" title="参考链接"></a>参考链接</h2><ul>
+<li><a target="_blank" rel="noopener" href="https://stackoverflow.com/questions/42622015/how-to-define-an-optional-field-in-protobuf-3">How to define an optional field in protobuf 3</a></li>
+<li><a target="_blank" rel="noopener" href="https://learn.microsoft.com/en-us/windows/win32/api/processthreadsapi/nf-processthreadsapi-createprocessa">CreateProcessA function</a></li>
+</ul>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90/" class="category-chain-item">源码剖析</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/cpp/" class="print-no-link">#cpp</a>
+      
+        <a href="/tags/cpp-templates/" class="print-no-link">#cpp-templates</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>C++黑魔法系列之从optional到expected</div>
+      <div>https://r00tk1ts.github.io/2024/02/01/C++黑魔法系列之从optional到expected/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>r00tk1t</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2024年2月1日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2023/12/01/C++%E9%BB%91%E9%AD%94%E6%B3%95%E7%B3%BB%E5%88%97%E4%B9%8BScopeGuard%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90/" title="C++黑魔法系列之ScopeGuard源码剖析">
+                        <span class="hidden-mobile">C++黑魔法系列之ScopeGuard源码剖析</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>
