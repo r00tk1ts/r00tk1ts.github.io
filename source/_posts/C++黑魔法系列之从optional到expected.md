@@ -163,24 +163,38 @@ int main() {
 
 ```cpp
 /*
-The class template std::optional manages an optional contained value, i.e. a value that may or may not be present.
+The class template std::optional manages an optional contained value,
+i.e. a value that may or may not be present.
 
-A common use case for optional is the return value of a function that may fail. As opposed to other approaches, such as std::pair<T, bool>, optional handles expensive-to-construct objects well and is more readable, as the intent is expressed explicitly.
+A common use case for optional is the return value of a function that may fail. 
+As opposed to other approaches, such as std::pair<T, bool>, optional handles 
+expensive-to-construct objects well and is more readable, as the intent is expressed 
+explicitly.
 
-Any instance of optional<T> at any given point in time either contains a value or does not contain a value.
+Any instance of optional<T> at any given point in time either contains a value 
+or does not contain a value.
 
-If an optional<T> contains a value, the value is guaranteed to be allocated as part of the optional object footprint, i.e. no dynamic memory allocation ever takes place. Thus, an optional object models an object, not a pointer, even though operator*() and operator->() are defined.
+If an optional<T> contains a value, the value is guaranteed to be allocated as part 
+of the optional object footprint, i.e. no dynamic memory allocation ever takes place. 
+Thus, an optional object models an object, not a pointer, even though operator*() 
+and operator->() are defined.
 
-When an object of type optional<T> is contextually converted to bool, the conversion returns true if the object contains a value and false if it does not contain a value.
+When an object of type optional<T> is contextually converted to bool, 
+the conversion returns true if the object contains a value and false 
+if it does not contain a value.
 
 The optional object contains a value in the following conditions:
-- The object is initialized with/assigned from a value of type T or another optional that contains a value.
+- The object is initialized with/assigned from a value of type T 
+  or another optional that contains a value.
 - The object does not contain a value in the following conditions:
 - The object is default-initialized.
-- The object is initialized with/assigned from a value of type std::nullopt_t or an optional object that does not contain a value.
+- The object is initialized with/assigned from a value of type std::nullopt_t 
+  or an optional object that does not contain a value.
 - The member function reset() is called.
 
-There are no optional references; a program is ill-formed if it instantiates an optional with a reference type. In addition, a program is ill-formed if it instantiates an optional with the (possibly cv-qualified) tag types std::nullopt_t or std::in_place_t.
+There are no optional references; a program is ill-formed if it instantiates an optional 
+with a reference type. In addition, a program is ill-formed if it instantiates an optional 
+with the (possibly cv-qualified) tag types std::nullopt_t or std::in_place_t.
 */
 template< class T >
 class optional;
