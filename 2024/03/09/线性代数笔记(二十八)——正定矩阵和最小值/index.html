@@ -25,6 +25,7 @@
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://r00tk1ts.github.io/2024/03/09/%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B0%E7%AC%94%E8%AE%B0(%E4%BA%8C%E5%8D%81%E5%85%AB)%E2%80%94%E2%80%94%E6%AD%A3%E5%AE%9A%E7%9F%A9%E9%98%B5%E5%92%8C%E6%9C%80%E5%B0%8F%E5%80%BC/2024-03-09-17-41-17.png">
 <meta property="og:image" content="https://r00tk1ts.github.io/2024/03/09/%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B0%E7%AC%94%E8%AE%B0(%E4%BA%8C%E5%8D%81%E5%85%AB)%E2%80%94%E2%80%94%E6%AD%A3%E5%AE%9A%E7%9F%A9%E9%98%B5%E5%92%8C%E6%9C%80%E5%B0%8F%E5%80%BC/2024-03-09-17-46-45.png">
+<meta property="og:image" content="https://r00tk1ts.github.io/2024/03/09/%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B0%E7%AC%94%E8%AE%B0(%E4%BA%8C%E5%8D%81%E5%85%AB)%E2%80%94%E2%80%94%E6%AD%A3%E5%AE%9A%E7%9F%A9%E9%98%B5%E5%92%8C%E6%9C%80%E5%B0%8F%E5%80%BC/2024-03-09-17-52-42.png">
 <meta property="og:image" content="https://r00tk1ts.github.io/2024/03/09/%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B0%E7%AC%94%E8%AE%B0(%E4%BA%8C%E5%8D%81%E5%85%AB)%E2%80%94%E2%80%94%E6%AD%A3%E5%AE%9A%E7%9F%A9%E9%98%B5%E5%92%8C%E6%9C%80%E5%B0%8F%E5%80%BC/2024-03-09-18-16-53.png">
 <meta property="article:published_time" content="2024-03-09T09:19:57.000Z">
 <meta property="article:modified_time" content="2024-03-27T11:49:11.461Z">
@@ -236,7 +237,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          1.8k 字
+          1.7k 字
         
       </span>
     
@@ -247,7 +248,7 @@
         
         
         
-          16 分钟
+          15 分钟
         
       </span>
     
@@ -291,89 +292,55 @@
                 
                 <p>本节回归到实数域，重点讨论了正定矩阵这一主题，将之前所掌握的主元、行列式、特征值等知识联系起来，通过正定矩阵引出函数与矩阵之间的关系，介绍如何找到函数的最小值，并给出几何解释。</p>
 <span id="more"></span>
-<h1 id="正定矩阵和最小值">正定矩阵和最小值</h1>
-<p>何为正定矩阵，先从2阶方阵入手，下面给出正定矩阵的4种判定法：</p>
-<ol type="1">
-<li>特征值判定：两个特征值均为正数。即，<span
-class="math inline">\(\lambda_1 &gt; 0, \lambda_2 &gt; 0\)</span>。</li>
-<li>行列式判定：<span
-class="math inline">\(a&gt;0,ac-b^2&gt;0\)</span>，即顺序主子式均为正值。</li>
-<li>主元判定：主元皆为正数，即：<span
-class="math inline">\(a&gt;0,\frac{ac-b^2}{a} &gt; 0\)</span>。</li>
-<li>判别式：<span class="math inline">\(x^TAx &gt; 0\)</span>。</li>
+<h1 id="正定矩阵和最小值"><a href="#正定矩阵和最小值" class="headerlink" title="正定矩阵和最小值"></a>正定矩阵和最小值</h1><p>何为正定矩阵，先从2阶方阵入手，下面给出正定矩阵的4种判定法：</p>
+<ol>
+<li>特征值判定：两个特征值均为正数。即，$\lambda_1 &gt; 0, \lambda_2 &gt; 0$。</li>
+<li>行列式判定：$a&gt;0,ac-b^2&gt;0$，即顺序主子式均为正值。</li>
+<li>主元判定：主元皆为正数，即：$a&gt;0,\frac{ac-b^2}{a} &gt; 0$。</li>
+<li>判别式：$x^TAx &gt; 0$。</li>
 </ol>
 <p>此外，正定矩阵都得是正定阵。</p>
-<h2 id="二阶正定矩阵的探讨">二阶正定矩阵的探讨</h2>
-<p>对于矩阵<span class="math inline">\(A=\begin{bmatrix}2&amp;6 \\
-6&amp;?\end{bmatrix}\)</span>，根据上述判定法的行列式判定法，我们知道，这里的<span
-class="math inline">\(?\)</span>处只要填上一个大于18的数，该矩阵就是正定的。</p>
+<h2 id="二阶正定矩阵的探讨"><a href="#二阶正定矩阵的探讨" class="headerlink" title="二阶正定矩阵的探讨"></a>二阶正定矩阵的探讨</h2><p>对于矩阵$A=\begin{bmatrix}2&amp;6 \ 6&amp;?\end{bmatrix}$，根据上述判定法的行列式判定法，我们知道，这里的$?$处只要填上一个大于18的数，该矩阵就是正定的。</p>
 <p>而如果正好填18进去，此时矩阵会变成一个奇异阵，它的行列式为0，只有一个主元2，特征值分别为0和20（由迹可以轻易算出）。对于这样的矩阵，我们可以成为半正定阵。</p>
 <p>除了通过特征值、行列式和主元来判定，还可以用第四种判别式法来展开探讨：</p>
-<p><span class="math display">\[
-x^TAx=\begin{bmatrix}x_1&amp;x_2\end{bmatrix}\begin{bmatrix}
-2&amp;6\\
-6&amp;18
-\end{bmatrix}\begin{bmatrix}x_1
-\\x_2\end{bmatrix}=2x_1^2+12x_1x_2+18x_2^2
-\]</span></p>
-<p>实际上这里的2,12,18就分别代表了a,2b和c。这是一个标准的二次型，没有线性项，那么根据判别式法，对于<span
-class="math inline">\(2x_1^2+12x_1x_2+18x_2^2\)</span>是否恒大于0呢？显然不是，因为在某种取值中，其结果可能恰好为0。</p>
-<p>再来看看<span class="math inline">\(A\)</span>不是正定的情况：</p>
-<p><span class="math display">\[
-x^TAx=\begin{bmatrix}x_1&amp;x_2\end{bmatrix}\begin{bmatrix}
-2&amp;6\\
-6&amp;7
-\end{bmatrix}\begin{bmatrix}x_1
-\\x_2\end{bmatrix}=2x_1^2+12x_1x_2+7x_2^2
-\]</span></p>
-<p>这一二次型呈现在坐标轴上是一个马鞍面：</p>
-<p><img src="2024-03-09-17-41-17.png" srcset="/img/loading.gif" lazyload /></p>
+<script type="math/tex; mode=display">
+x^TAx=\begin{bmatrix}x_1&x_2\end{bmatrix}\begin{bmatrix}
+2&6\\
+6&18
+\end{bmatrix}\begin{bmatrix}x_1 \\x_2\end{bmatrix}=2x_1^2+12x_1x_2+18x_2^2</script><p>实际上这里的2,12,18就分别代表了a,2b和c。这是一个标准的二次型，没有线性项，那么根据判别式法，对于$2x_1^2+12x_1x_2+18x_2^2$是否恒大于0呢？显然不是，因为在某种取值中，其结果可能恰好为0。</p>
+<p>再来看看$A$不是正定的情况：</p>
+<script type="math/tex; mode=display">
+x^TAx=\begin{bmatrix}x_1&x_2\end{bmatrix}\begin{bmatrix}
+2&6\\
+6&7
+\end{bmatrix}\begin{bmatrix}x_1 \\x_2\end{bmatrix}=2x_1^2+12x_1x_2+7x_2^2</script><p>这一二次型呈现在坐标轴上是一个马鞍面：</p>
+<p><img src="2024-03-09-17-41-17.png" srcset="/img/loading.gif" lazyload alt=""></p>
 <p>从不同方向观察，它有着不同的性质，鞍点是某些方向的极值，但显然它不可能恒大于0。</p>
 <p>而对于正定矩阵来说：</p>
-<p><span class="math display">\[
-x^TAx=\begin{bmatrix}x_1&amp;x_2\end{bmatrix}\begin{bmatrix}
-2&amp;6\\
-6&amp;20
-\end{bmatrix}\begin{bmatrix}x_1
-\\x_2\end{bmatrix}=2x_1^2+12x_1x_2+20x_2^2
-\]</span></p>
-<p>它是一个开口始终朝上的二次型曲面，其最小值在原点取到，切面类似于二次函数曲线：</p>
-<p><img src="2024-03-09-17-46-45.png" srcset="/img/loading.gif" lazyload /></p>
-<p>利用微积分的知识，我们可以知道对于<span
-class="math inline">\(f(x,y)=2x^2+12xy+20y^2\)</span>，原点处一阶偏导数为0，二阶偏导数为正可以知道原点处是极小值（在这里也是最小值），这是微积分的求最值方法，而对于线性代数来说，我们可以通过判定矩阵是否是正定阵，来得出函数是否有最小值。</p>
-<p>将<span class="math inline">\(f(x,y)\)</span>配方：<span
-class="math inline">\(f(x,y)=2(x+3y)^2+2y^2\)</span>，显然，如果<span
-class="math inline">\(A\)</span>非正定，那么配方剩下的<span
-class="math inline">\(y^2\)</span>前的系数一定为负，而如果我们用<span
-class="math inline">\(f=1\)</span>这个平面来截取这个曲线，则得到的一定是个椭圆。</p>
+<script type="math/tex; mode=display">
+x^TAx=\begin{bmatrix}x_1&x_2\end{bmatrix}\begin{bmatrix}
+2&6\\
+6&20
+\end{bmatrix}\begin{bmatrix}x_1 \\x_2\end{bmatrix}=2x_1^2+12x_1x_2+20x_2^2</script><p>它是一个开口始终朝上的二次型曲面，其最小值在原点取到，切面类似于二次函数曲线：</p>
+<p><img src="2024-03-09-17-46-45.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<p>利用微积分的知识，我们可以知道对于$f(x,y)=2x^2+12xy+20y^2$，原点处一阶偏导数为0，二阶偏导数为正可以知道原点处是极小值（在这里也是最小值），这是微积分的求最值方法，而对于线性代数来说，我们可以通过判定矩阵是否是正定阵，来得出函数是否有最小值。</p>
+<p>将$f(x,y)$配方：$f(x,y)=2(x+3y)^2+2y^2$，显然，如果$A$非正定，那么配方剩下的$y^2$前的系数一定为负，而如果我们用$f=1$这个平面来截取这个曲线，则得到的一定是个椭圆。</p>
 <blockquote>
-<p>实际上配方法反映到线性代数里就是消元： <img
-src="2024-03-09-17-52-42.png" srcset="/img/loading.gif" lazyload /></p>
+<p>实际上配方法反映到线性代数里就是消元：<br><img src="2024-03-09-17-52-42.png" srcset="/img/loading.gif" lazyload alt=""></p>
 </blockquote>
-<h2 id="到n阶的推广">到n阶的推广</h2>
-<p>微积分中我们求二阶偏导数极值时的<span
-class="math inline">\(f_{xx},f_{yy}与f_{xy}^2\)</span>之间的关系也可以反映到矩阵的正定判定上，即二阶导数矩阵：</p>
-<p><span class="math display">\[
+<h2 id="到n阶的推广"><a href="#到n阶的推广" class="headerlink" title="到n阶的推广"></a>到n阶的推广</h2><p>微积分中我们求二阶偏导数极值时的$f<em>{xx},f</em>{yy}与f_{xy}^2$之间的关系也可以反映到矩阵的正定判定上，即二阶导数矩阵：</p>
+<script type="math/tex; mode=display">
 \begin{bmatrix}
-f_{xx} &amp; f_{xy} \\
-f_{yx} &amp; f_{yy}
-\end{bmatrix}
-\]</span></p>
-<p>这里主对角线的两个元素都是某一个方向上的n阶导数(上例n=2)，为了存在极小值，它们必须为正。而函数的求导顺序不会改变结果，所以沿着对角线的元素天然是对称的(如上例的<span
-class="math inline">\(f_{xy}=f_{yx}\)</span>)。此外，微积分中求极小值时还要求<span
-class="math inline">\(f_{xx}*f_{yy} &gt;
-f_{xy}^2\)</span>，而这一点正与判定该矩阵是否为正定阵的方法不谋而合。</p>
-<p><img src="2024-03-09-18-16-53.png" srcset="/img/loading.gif" lazyload /></p>
+f_{xx} & f_{xy} \\
+f_{yx} & f_{yy} 
+\end{bmatrix}</script><p>这里主对角线的两个元素都是某一个方向上的n阶导数(上例n=2)，为了存在极小值，它们必须为正。而函数的求导顺序不会改变结果，所以沿着对角线的元素天然是对称的(如上例的$f<em>{xy}=f</em>{yx}$)。此外，微积分中求极小值时还要求$f<em>{xx}*f</em>{yy} &gt; f_{xy}^2$，而这一点正与判定该矩阵是否为正定阵的方法不谋而合。</p>
+<p><img src="2024-03-09-18-16-53.png" srcset="/img/loading.gif" lazyload alt=""></p>
 <p>这一判断也可以推广到n维方阵。</p>
-<h2 id="视频">视频</h2>
-<iframe src="//player.bilibili.com/player.html?aid=382989698&amp;bvid=BV16Z4y1U7oU&amp;cid=570107245&amp;p=28" scrolling="no" width="100%" height="500" border="0" frameborder="no" framespacing="0" allowfullscreen="true">
-</iframe>
-<h2 id="参考链接">参考链接</h2>
-<ul>
-<li><a
-target="_blank" rel="noopener" href="https://github.com/MLNLP-World/MIT-Linear-Algebra-Notes/blob/master/%5B28%5D%20%E6%AD%A3%E5%AE%9A%E7%9F%A9%E9%98%B5%E5%92%8C%E6%9C%80%E5%B0%8F%E5%80%BC/%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B028.pdf">正定矩阵和最小值</a></li>
-<li><a
-target="_blank" rel="noopener" href="https://github.com/kf-liu/The-Art-of-Linear-Algebra-zh-CN">线性代数的艺术</a></li>
+<h2 id="视频"><a href="#视频" class="headerlink" title="视频"></a>视频</h2><iframe src="//player.bilibili.com/player.html?aid=382989698&bvid=BV16Z4y1U7oU&cid=570107245&p=28" scrolling="no" width="100%" height="500" border="0" frameborder="no" framespacing="0" allowfullscreen="true"> </iframe>
+
+<h2 id="参考链接"><a href="#参考链接" class="headerlink" title="参考链接"></a>参考链接</h2><ul>
+<li><a target="_blank" rel="noopener" href="https://github.com/MLNLP-World/MIT-Linear-Algebra-Notes/blob/master/%5B28%5D%20%E6%AD%A3%E5%AE%9A%E7%9F%A9%E9%98%B5%E5%92%8C%E6%9C%80%E5%B0%8F%E5%80%BC/%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B028.pdf">正定矩阵和最小值</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/kf-liu/The-Art-of-Linear-Algebra-zh-CN">线性代数的艺术</a></li>
 </ul>
 
                 
@@ -775,6 +742,11 @@ target="_blank" rel="noopener" href="https://github.com/kf-liu/The-Art-of-Linear
 
 
 
+  
+<script src="/js/diy/yinghua.js"></script>
+<script src="/js/diy/love.js"></script>
+
+
 
 <!-- 主题的启动项，将它保持在最底部 -->
 <!-- the boot of the theme, keep it at the bottom -->
@@ -786,5 +758,5 @@ target="_blank" rel="noopener" href="https://github.com/kf-liu/The-Art-of-Linear
   <noscript>
     <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
   </noscript>
-</body>
+<script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"log":false,"pluginJsPath":"lib/","pluginModelPath":"assets/","pluginRootPath":"live2dw/","tagMode":false});</script></body>
 </html>

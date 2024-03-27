@@ -16,12 +16,12 @@
   <meta name="author" content="r00tk1t">
   <meta name="keywords" content="">
   
-    <meta name="description" content="这一讲从向量的投影入手，从二维延展到高维空间，将投影用矩阵形式表示出来。然后回到上一节的遗留的话题：\(A^TA\hat x&#x3D;A^Tb\)常在工程中被用来求解最优近似解，但并没有解释该解为何为最优，这一节会对此做出解释。">
+    <meta name="description" content="这一讲从向量的投影入手，从二维延展到高维空间，将投影用矩阵形式表示出来。然后回到上一节的遗留的话题：$A^TA\hat x&#x3D;A^Tb$常在工程中被用来求解最优近似解，但并没有解释该解为何为最优，这一节会对此做出解释。">
 <meta property="og:type" content="article">
 <meta property="og:title" content="线性代数笔记(十五)——子空间投影">
 <meta property="og:url" content="https://r00tk1ts.github.io/2023/09/24/%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B0%E7%AC%94%E8%AE%B0(%E5%8D%81%E4%BA%94)%E2%80%94%E2%80%94%E5%AD%90%E7%A9%BA%E9%97%B4%E6%8A%95%E5%BD%B1/index.html">
 <meta property="og:site_name" content="玉涵的技能书">
-<meta property="og:description" content="这一讲从向量的投影入手，从二维延展到高维空间，将投影用矩阵形式表示出来。然后回到上一节的遗留的话题：\(A^TA\hat x&#x3D;A^Tb\)常在工程中被用来求解最优近似解，但并没有解释该解为何为最优，这一节会对此做出解释。">
+<meta property="og:description" content="这一讲从向量的投影入手，从二维延展到高维空间，将投影用矩阵形式表示出来。然后回到上一节的遗留的话题：$A^TA\hat x&#x3D;A^Tb$常在工程中被用来求解最优近似解，但并没有解释该解为何为最优，这一节会对此做出解释。">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://r00tk1ts.github.io/2023/09/24/%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B0%E7%AC%94%E8%AE%B0(%E5%8D%81%E4%BA%94)%E2%80%94%E2%80%94%E5%AD%90%E7%A9%BA%E9%97%B4%E6%8A%95%E5%BD%B1/2023-09-25-10-59-35.png">
 <meta property="og:image" content="https://r00tk1ts.github.io/2023/09/24/%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B0%E7%AC%94%E8%AE%B0(%E5%8D%81%E4%BA%94)%E2%80%94%E2%80%94%E5%AD%90%E7%A9%BA%E9%97%B4%E6%8A%95%E5%BD%B1/2023-09-25-11-42-06.png">
@@ -236,7 +236,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          3.2k 字
+          2.9k 字
         
       </span>
     
@@ -247,7 +247,7 @@
         
         
         
-          27 分钟
+          24 分钟
         
       </span>
     
@@ -289,211 +289,79 @@
             
               <div class="markdown-body">
                 
-                <p>这一讲从向量的投影入手，从二维延展到高维空间，将投影用矩阵形式表示出来。然后回到上一节的遗留的话题：<span
-class="math inline">\(A^TA\hat
-x=A^Tb\)</span>常在工程中被用来求解最优近似解，但并没有解释该解为何为最优，这一节会对此做出解释。</p>
+                <p>这一讲从向量的投影入手，从二维延展到高维空间，将投影用矩阵形式表示出来。然后回到上一节的遗留的话题：$A^TA\hat x=A^Tb$常在工程中被用来求解最优近似解，但并没有解释该解为何为最优，这一节会对此做出解释。</p>
 <span id="more"></span>
-<h1 id="子空间投影">子空间投影</h1>
-<h2 id="二维空间投影">二维空间投影</h2>
-<p><img src="2023-09-25-10-59-35.png" srcset="/img/loading.gif" lazyload /></p>
-<p>如图所示，在二维空间中，向量<span
-class="math inline">\(p\)</span>就是<span
-class="math inline">\(b\)</span>在<span
-class="math inline">\(a\)</span>上的投影，即<span
-class="math inline">\(p=xa\)</span>，显然他们的差值是<span
-class="math inline">\(b-p=e\)</span>，<span
-class="math inline">\(e\)</span>与<span
-class="math inline">\(a\)</span>垂直： <span class="math display">\[
-a^Te=a^T(b-p)=a^T(b-ax)=0
-\]</span></p>
-<p>代入<span class="math inline">\(p=xa\)</span>，得到<span
-class="math inline">\(p=a\frac{a^Tb}{a^Ta}\)</span>。</p>
-<p>可以看到<span
-class="math inline">\(p\)</span>的形式中，分母是一个值，而分子中包含了<span
-class="math inline">\(b\)</span>，这也就表明投影得到的<span
-class="math inline">\(p\)</span>向量是通过前面的系数矩阵作用到<span
-class="math inline">\(b\)</span>上完成的，形式上写作：<span
-class="math inline">\(p=Pb\)</span>，其中这个系数矩阵<span
-class="math inline">\(P\)</span>我们称之为投影矩阵，即<span
-class="math inline">\(P=a\frac{a^T}{a^Tb}\)</span>。</p>
-<p>这个<span class="math inline">\(P\)</span>矩阵有两个有取的性质：</p>
-<ol type="1">
-<li>由前面课程所学的知识，我们知道<span
-class="math inline">\(P\)</span>是个对称阵，因此有<span
-class="math inline">\(P^T=P\)</span>。</li>
-<li><span class="math inline">\(P^2=P\)</span>。
-<ol type="1">
-<li>由<span
-class="math inline">\(P^2=\frac{a(a^Ta)a^T}{(a^Ta)^2}\)</span>，而<span
-class="math inline">\(a^Ta\)</span>是内积，化简得到<span
-class="math inline">\(P\)</span>。</li>
-<li>这一点很容易看出来，<span
-class="math inline">\(P^2\)</span>相当于对<span
-class="math inline">\(b\)</span>在<span
-class="math inline">\(a\)</span>上投影得到的<span
-class="math inline">\(p\)</span>继续再做一次投影，显然<span
-class="math inline">\(p\)</span>在<span
-class="math inline">\(a\)</span>上的投影是它本身。</li>
-</ol></li>
+<h1 id="子空间投影"><a href="#子空间投影" class="headerlink" title="子空间投影"></a>子空间投影</h1><h2 id="二维空间投影"><a href="#二维空间投影" class="headerlink" title="二维空间投影"></a>二维空间投影</h2><p><img src="2023-09-25-10-59-35.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<p>如图所示，在二维空间中，向量$p$就是$b$在$a$上的投影，即$p=xa$，显然他们的差值是$b-p=e$，$e$与$a$垂直：</p>
+<script type="math/tex; mode=display">
+a^Te=a^T(b-p)=a^T(b-ax)=0</script><p>代入$p=xa$，得到$p=a\frac{a^Tb}{a^Ta}$。</p>
+<p>可以看到$p$的形式中，分母是一个值，而分子中包含了$b$，这也就表明投影得到的$p$向量是通过前面的系数矩阵作用到$b$上完成的，形式上写作：$p=Pb$，其中这个系数矩阵$P$我们称之为投影矩阵，即$P=a\frac{a^T}{a^Tb}$。</p>
+<p>这个$P$矩阵有两个有取的性质：</p>
+<ol>
+<li>由前面课程所学的知识，我们知道$P$是个对称阵，因此有$P^T=P$。</li>
+<li>$P^2=P$。<ol>
+<li>由$P^2=\frac{a(a^Ta)a^T}{(a^Ta)^2}$，而$a^Ta$是内积，化简得到$P$。</li>
+<li>这一点很容易看出来，$P^2$相当于对$b$在$a$上投影得到的$p$继续再做一次投影，显然$p$在$a$上的投影是它本身。</li>
 </ol>
-<h3 id="投影的意义">投影的意义</h3>
-<p>为什么要做投影呢？回到上一节的<span
-class="math inline">\(Ax=b\)</span>问题，我们知道<span
-class="math inline">\(Ax\)</span>总是在<span
-class="math inline">\(A\)</span>的列空间中，但是<span
-class="math inline">\(b\)</span>不一定。那么退而求其次，什么样的<span
-class="math inline">\(x\)</span>可以最逼近<span
-class="math inline">\(b\)</span>呢？换言之，就是让<span
-class="math inline">\(b\)</span>的变化能够最小，而变化最小恰恰是通过投影来实现（所以<span
-class="math inline">\(e\)</span>被视为误差），投影得到的<span
-class="math inline">\(p\)</span>就是<span
-class="math inline">\(A\)</span>列空间中最接近<span
-class="math inline">\(b\)</span>的那一个。</p>
-<h2 id="三维空间投影">三维空间投影</h2>
-<p><img src="2023-09-25-11-42-06.png" srcset="/img/loading.gif" lazyload /></p>
-<p>延展到三维也并无二致，如图所示，<span
-class="math inline">\(a_1\)</span>和<span
-class="math inline">\(a_2\)</span>是构成平面的一组基，<span
-class="math inline">\(p\)</span>是<span
-class="math inline">\(b\)</span>在平面上的投影，<span
-class="math inline">\(p\)</span>可以表示为分别投影在这组基的每个向量上的投影和：<span
-class="math inline">\(p=\hat x_1a_1+\hat x_2a_2\)</span>，矩阵形式写作：
-<span class="math display">\[
-p=A\hat x, 其中A=\begin{bmatrix}a1&amp;a2\end{bmatrix}, \hat
-x=\begin{bmatrix}\hat x_1\\ \hat x_2\end{bmatrix}
-\]</span></p>
-<p>此平面即为矩阵<span
-class="math inline">\(A\)</span>的列空间，由于<span
-class="math inline">\(b\)</span>不在平面上，因此<span
-class="math inline">\(Ax=b\)</span>无解，<span
-class="math inline">\(A\hat x=p\)</span>中的<span
-class="math inline">\(\hat x\)</span>就是最优解。</p>
-<p>同样地，有<span class="math inline">\(e=b-p=b-A\hat
-x\)</span>与平面垂直(<span
-class="math inline">\(A\)</span>的列空间)，因此<span
-class="math inline">\(A^Te=0\)</span>： <span class="math display">\[
-\begin{bmatrix}a_1^T\\ a_2^T\end{bmatrix}(b-A\hat x)=\begin{bmatrix}0\\
-0\end{bmatrix}
-\]</span></p>
-<blockquote>
-<p>这与二维投影的<span
-class="math inline">\(a^T(b-xa)=0\)</span>并不差别，只不过二维空间的<span
-class="math inline">\(A^T\)</span>只有一列罢了。</p>
+</li>
+</ol>
+<h3 id="投影的意义"><a href="#投影的意义" class="headerlink" title="投影的意义"></a>投影的意义</h3><p>为什么要做投影呢？回到上一节的$Ax=b$问题，我们知道$Ax$总是在$A$的列空间中，但是$b$不一定。那么退而求其次，什么样的$x$可以最逼近$b$呢？换言之，就是让$b$的变化能够最小，而变化最小恰恰是通过投影来实现（所以$e$被视为误差），投影得到的$p$就是$A$列空间中最接近$b$的那一个。</p>
+<h2 id="三维空间投影"><a href="#三维空间投影" class="headerlink" title="三维空间投影"></a>三维空间投影</h2><p><img src="2023-09-25-11-42-06.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<p>延展到三维也并无二致，如图所示，$a_1$和$a_2$是构成平面的一组基，$p$是$b$在平面上的投影，$p$可以表示为分别投影在这组基的每个向量上的投影和：$p=\hat x_1a_1+\hat x_2a_2$，矩阵形式写作：</p>
+<script type="math/tex; mode=display">
+p=A\hat x, 其中A=\begin{bmatrix}a1&a2\end{bmatrix}, \hat x=\begin{bmatrix}\hat x_1\\ \hat x_2\end{bmatrix}</script><p>此平面即为矩阵$A$的列空间，由于$b$不在平面上，因此$Ax=b$无解，$A\hat x=p$中的$\hat x$就是最优解。</p>
+<p>同样地，有$e=b-p=b-A\hat x$与平面垂直($A$的列空间)，因此$A^Te=0$：</p>
+<script type="math/tex; mode=display">
+\begin{bmatrix}a_1^T\\ a_2^T\end{bmatrix}(b-A\hat x)=\begin{bmatrix}0\\ 0\end{bmatrix}</script><blockquote>
+<p>这与二维投影的$a^T(b-xa)=0$并不差别，只不过二维空间的$A^T$只有一列罢了。</p>
+<p>由$A^Te=0$可知，由于列空间与左零空间正交，e一定在$A$的左零空间。</p>
 </blockquote>
+<p><strong>化简上式，可得：$A^TA\hat x=A^Tb$，而这恰恰就是上一节我们谈及为了解决$Ax=b$无解时的工程惯用法式子。至此，我们总算理解了同时左乘$A^T$的物理意义。</strong></p>
+<p>继续求解，当且仅当$A^TA$可逆时，我们可以求出最优解：$\hat x=(A^TA)^{-1}A^Tb$。而在上一讲的最后，我们推理出如果$A$的各列线性无关，那么$A^TA$可逆。</p>
 <blockquote>
-<p>由<span
-class="math inline">\(A^Te=0\)</span>可知，由于列空间与左零空间正交，e一定在<span
-class="math inline">\(A\)</span>的左零空间。</p>
+<p>相比于求解$Ax=b$，只有当$A$可逆时，$x$才有解。而在对$b$进行了在$A$列空间的投影后，求解$\hat x$的条件得到了适当的放宽，此时只要求$A$的列向量线性无关即可。在实际工程项目中，我们测量得到的$m\times  n$矩阵常常$m$很大，$n$很小，因此容易保证。</p>
 </blockquote>
-<p><strong>化简上式，可得：<span class="math inline">\(A^TA\hat
-x=A^Tb\)</span>，而这恰恰就是上一节我们谈及为了解决<span
-class="math inline">\(Ax=b\)</span>无解时的工程惯用法式子。至此，我们总算理解了同时左乘<span
-class="math inline">\(A^T\)</span>的物理意义。</strong></p>
-<p>继续求解，当且仅当<span
-class="math inline">\(A^TA\)</span>可逆时，我们可以求出最优解：<span
-class="math inline">\(\hat
-x=(A^TA)^{-1}A^Tb\)</span>。而在上一讲的最后，我们推理出如果<span
-class="math inline">\(A\)</span>的各列线性无关，那么<span
-class="math inline">\(A^TA\)</span>可逆。</p>
+<p>因此，投影向量$p=A\hat x=A(A^TA)^{-1}A^Tb$，投影矩阵为$A(A^TA)^{-1}A^T$（二维空间得$\frac{aa^T}{a^Ta}$）。</p>
 <blockquote>
-<p>相比于求解<span class="math inline">\(Ax=b\)</span>，只有当<span
-class="math inline">\(A\)</span>可逆时，<span
-class="math inline">\(x\)</span>才有解。而在对<span
-class="math inline">\(b\)</span>进行了在<span
-class="math inline">\(A\)</span>列空间的投影后，求解<span
-class="math inline">\(\hat
-x\)</span>的条件得到了适当的放宽，此时只要求<span
-class="math inline">\(A\)</span>的列向量线性无关即可。在实际工程项目中，我们测量得到的<span
-class="math inline">\(m\times n\)</span>矩阵常常<span
-class="math inline">\(m\)</span>很大，<span
-class="math inline">\(n\)</span>很小，因此容易保证。</p>
+<p>若$A$本身可逆，投影矩阵$A(A^TA)^{-1}A^T$就可进一步化简，此时$(A^TA)^{-1}$就可以拆成$A^{-1}(A^T)^{-1}$，此时$A(A^TA)^{-1}A^T=AA^{-1}(A^T)^{-1}A^T=I$，即得到单位阵。这一结论显然，因为$A$若本身可逆，那么$Ax=b$就有解，$b$本身就在$A$的列空间，投影$b$到$A$的列空间当然得到其本身，此时投影矩阵可不就是单位阵。</p>
 </blockquote>
-<p>因此，投影向量<span class="math inline">\(p=A\hat
-x=A(A^TA)^{-1}A^Tb\)</span>，投影矩阵为<span
-class="math inline">\(A(A^TA)^{-1}A^T\)</span>（二维空间得<span
-class="math inline">\(\frac{aa^T}{a^Ta}\)</span>）。</p>
-<blockquote>
-<p>若<span class="math inline">\(A\)</span>本身可逆，投影矩阵<span
-class="math inline">\(A(A^TA)^{-1}A^T\)</span>就可进一步化简，此时<span
-class="math inline">\((A^TA)^{-1}\)</span>就可以拆成<span
-class="math inline">\(A^{-1}(A^T)^{-1}\)</span>，此时<span
-class="math inline">\(A(A^TA)^{-1}A^T=AA^{-1}(A^T)^{-1}A^T=I\)</span>，即得到单位阵。这一结论显然，因为<span
-class="math inline">\(A\)</span>若本身可逆，那么<span
-class="math inline">\(Ax=b\)</span>就有解，<span
-class="math inline">\(b\)</span>本身就在<span
-class="math inline">\(A\)</span>的列空间，投影<span
-class="math inline">\(b\)</span>到<span
-class="math inline">\(A\)</span>的列空间当然得到其本身，此时投影矩阵可不就是单位阵。</p>
-</blockquote>
-<h2 id="最小二乘法">最小二乘法</h2>
-<p>前面也已经提到，投影的方式让我们得到了最优近似解，而<span
-class="math inline">\(e\)</span>向量就是其中的误差。实际上这一思想与我们做线性回归时，使用最小二乘法拟合直线的理论基础不谋而合。</p>
-<p><img src="2023-09-25-14-56-45.png" srcset="/img/loading.gif" lazyload /></p>
-<p>对上述直线，我们想通过三个点来拟合一条直线<span
-class="math inline">\(y=Cx+D\)</span>，我们将已知的三个点<span
-class="math inline">\((1,1),(2,2),(3,2)\)</span>带入方程： <span
-class="math display">\[
+<h2 id="最小二乘法"><a href="#最小二乘法" class="headerlink" title="最小二乘法"></a>最小二乘法</h2><p>前面也已经提到，投影的方式让我们得到了最优近似解，而$e$向量就是其中的误差。实际上这一思想与我们做线性回归时，使用最小二乘法拟合直线的理论基础不谋而合。</p>
+<p><img src="2023-09-25-14-56-45.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<p>对上述直线，我们想通过三个点来拟合一条直线$y=Cx+D$，我们将已知的三个点$(1,1),(2,2),(3,2)$带入方程：</p>
+<script type="math/tex; mode=display">
 \begin{cases}
 C+D=1\\ 2C+D=2\\ 3C+D=2
-\end{cases}
-\]</span></p>
-<p>写作矩阵形式为： <span class="math display">\[
-Ax=\begin{bmatrix}1&amp;1\\ 2&amp;1\\
-3&amp;1\end{bmatrix}\begin{bmatrix}
-C\\ D\end{bmatrix}=\begin{bmatrix}1\\ 2\\ 2\end{bmatrix}
-\]</span></p>
-<p>显然<span
-class="math inline">\(x\)</span>无解，三点根本不共线，于是利用投影找最优近似解。由于<span
-class="math inline">\(A\)</span>中各列线性无关，所以<span
-class="math inline">\(A^TA\hat x=b\)</span>有解，展开写作： <span
-class="math display">\[
-\begin{bmatrix}1&amp;2&amp;3\\
-1&amp;1&amp;1\end{bmatrix}\begin{bmatrix}1&amp;1\\ 2&amp;1\\
-3&amp;1\end{bmatrix}\begin{bmatrix}
-C\\ D\end{bmatrix}=\begin{bmatrix}1&amp;2&amp;3\\
-1&amp;1&amp;1\end{bmatrix}\begin{bmatrix}
-1\\ 2\\ 2\end{bmatrix}
-\]</span></p>
-<p>矩阵乘法运算得： <span class="math display">\[
-\begin{bmatrix}14&amp;6\\ 6&amp;3\end{bmatrix}\begin{bmatrix}
-C\\ D\end{bmatrix}=\begin{bmatrix}11\\ 5\end{bmatrix}
-\]</span></p>
-<p>亦即： <span class="math display">\[
+\end{cases}</script><p>写作矩阵形式为：</p>
+<script type="math/tex; mode=display">
+Ax=\begin{bmatrix}1&1\\ 2&1\\ 3&1\end{bmatrix}\begin{bmatrix}
+C\\ D\end{bmatrix}=\begin{bmatrix}1\\ 2\\ 2\end{bmatrix}</script><p>显然$x$无解，三点根本不共线，于是利用投影找最优近似解。由于$A$中各列线性无关，所以$A^TA\hat x=b$有解，展开写作：</p>
+<script type="math/tex; mode=display">
+\begin{bmatrix}1&2&3\\ 1&1&1\end{bmatrix}\begin{bmatrix}1&1\\ 2&1\\ 3&1\end{bmatrix}\begin{bmatrix}
+C\\ D\end{bmatrix}=\begin{bmatrix}1&2&3\\ 1&1&1\end{bmatrix}\begin{bmatrix}
+1\\ 2\\ 2\end{bmatrix}</script><p>矩阵乘法运算得：</p>
+<script type="math/tex; mode=display">
+\begin{bmatrix}14&6\\ 6&3\end{bmatrix}\begin{bmatrix}
+C\\ D\end{bmatrix}=\begin{bmatrix}11\\ 5\end{bmatrix}</script><p>亦即：</p>
+<script type="math/tex; mode=display">
 \begin{cases}
 14C+6D=11\\ 6C+3D=5
-\end{cases}
-\]</span></p>
-<p>求得：<span class="math inline">\(C=\frac{1}{2},
-D=\frac{2}{3}\)</span>。</p>
-<h3 id="微积分解法与投影矩阵的联系">微积分解法与投影矩阵的联系</h3>
-<p>如果用传统微积分来解最小二乘，就需要对误差方程：<span
-class="math inline">\(E=(C+D-1)^2+(2C+D-2)^2+(3C+D-2)^2\)</span>求最小值，方程有两个未知数，分别对<span
-class="math inline">\(C\)</span>和<span
-class="math inline">\(D\)</span>计算偏导的零值： <span
-class="math display">\[
+\end{cases}</script><p>求得：$C=\frac{1}{2}, D=\frac{2}{3}$。</p>
+<h3 id="微积分解法与投影矩阵的联系"><a href="#微积分解法与投影矩阵的联系" class="headerlink" title="微积分解法与投影矩阵的联系"></a>微积分解法与投影矩阵的联系</h3><p>如果用传统微积分来解最小二乘，就需要对误差方程：$E=(C+D-1)^2+(2C+D-2)^2+(3C+D-2)^2$求最小值，方程有两个未知数，分别对$C$和$D$计算偏导的零值：</p>
+<script type="math/tex; mode=display">
 \begin{cases}
-2C+2(D-1)+8C+4(D-2)+18C+6(D-2)=0\\
+2C+2(D-1)+8C+4(D-2)+18C+6(D-2)=0\\ 
 2D+2(C-1)+2D+2(2C-2)+2D+2(3C-2)=0
-\end{cases}
-\]</span></p>
-<p>化简得到： <span class="math display">\[
+\end{cases}</script><p>化简得到：</p>
+<script type="math/tex; mode=display">
 \begin{cases}
 14C+6D=11\\ 6C+3D=5
-\end{cases}
-\]</span></p>
-<p>可以看出这里的两个式子其实和投影矩阵法得到的两个方程一模一样。</p>
-<h1 id="附录">附录</h1>
-<h2 id="视频">视频</h2>
-<iframe src="//player.bilibili.com/player.html?aid=382989698&amp;bvid=BV16Z4y1U7oU&amp;cid=570093730&amp;p=15&amp;autoplay=0" scrolling="no" border="0" width="100%" height="500" frameborder="no" framespacing="0" allowfullscreen="true">
-</iframe>
-<h2 id="参考链接">参考链接</h2>
-<ul>
-<li><a
-target="_blank" rel="noopener" href="https://github.com/MLNLP-World/MIT-Linear-Algebra-Notes/blob/master/%5B15%5D%20%E5%AD%90%E7%A9%BA%E9%97%B4%E6%8A%95%E5%BD%B1/%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B015.pdf">子空间投影</a></li>
-<li><a target="_blank" rel="noopener" href="https://rqtn.github.io/2019/08/12/LA-Lec15/">Lec15 -
-子空间投影</a></li>
-<li><a
-target="_blank" rel="noopener" href="https://github.com/kf-liu/The-Art-of-Linear-Algebra-zh-CN">线性代数的艺术</a></li>
+\end{cases}</script><p>可以看出这里的两个式子其实和投影矩阵法得到的两个方程一模一样。</p>
+<h1 id="附录"><a href="#附录" class="headerlink" title="附录"></a>附录</h1><h2 id="视频"><a href="#视频" class="headerlink" title="视频"></a>视频</h2><iframe src="//player.bilibili.com/player.html?aid=382989698&bvid=BV16Z4y1U7oU&cid=570093730&p=15&autoplay=0" scrolling="no" border="0" width="100%" height="500" frameborder="no" framespacing="0" allowfullscreen="true"> </iframe>
+
+<h2 id="参考链接"><a href="#参考链接" class="headerlink" title="参考链接"></a>参考链接</h2><ul>
+<li><a target="_blank" rel="noopener" href="https://github.com/MLNLP-World/MIT-Linear-Algebra-Notes/blob/master/%5B15%5D%20%E5%AD%90%E7%A9%BA%E9%97%B4%E6%8A%95%E5%BD%B1/%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B015.pdf">子空间投影</a></li>
+<li><a target="_blank" rel="noopener" href="https://rqtn.github.io/2019/08/12/LA-Lec15/">Lec15 - 子空间投影</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/kf-liu/The-Art-of-Linear-Algebra-zh-CN">线性代数的艺术</a></li>
 </ul>
 
                 
@@ -901,6 +769,11 @@ target="_blank" rel="noopener" href="https://github.com/kf-liu/The-Art-of-Linear
 
 
 
+  
+<script src="/js/diy/yinghua.js"></script>
+<script src="/js/diy/love.js"></script>
+
+
 
 <!-- 主题的启动项，将它保持在最底部 -->
 <!-- the boot of the theme, keep it at the bottom -->
@@ -912,5 +785,5 @@ target="_blank" rel="noopener" href="https://github.com/kf-liu/The-Art-of-Linear
   <noscript>
     <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
   </noscript>
-</body>
+<script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"log":false,"pluginJsPath":"lib/","pluginModelPath":"assets/","pluginRootPath":"live2dw/","tagMode":false});</script></body>
 </html>

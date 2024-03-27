@@ -235,7 +235,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          3.6k 字
+          3.1k 字
         
       </span>
     
@@ -246,7 +246,7 @@
         
         
         
-          30 分钟
+          26 分钟
         
       </span>
     
@@ -290,159 +290,70 @@
                 
                 <p>这一节从行列式的性质出发，对行列式三个方面的应用进行描述：求逆矩阵、克莱姆法则和体积。</p>
 <span id="more"></span>
-<h1 id="行列式应用">行列式应用</h1>
-<h2 id="求逆矩阵">求逆矩阵</h2>
-<p>我们已经学过了用高斯-若尔当求逆矩阵的方法，尽管从实用角度出发高斯若尔当求逆法相当好用，但毕竟不够直观。而借助行列式，我们可以给出一个更直观的求逆矩阵的代数表达式：</p>
-<p><span class="math display">\[
-A^{-1}=\frac{1}{|A|}C^T
-\]</span></p>
-<p>这里的<span
-class="math inline">\(C\)</span>被称作代数余子式矩阵，矩阵的每个元素是由<span
-class="math inline">\(A\)</span>中对应位置元素的代数余子式组成，其转置矩阵一般也称其为伴随矩阵，记为<span
-class="math inline">\(C^T\)</span>。</p>
-<p>这一代数表达式的证明也很简单，两边同时左乘<span
-class="math inline">\(A\)</span>，则问题转化为证明：<span
-class="math inline">\(AC^T=|A|I\)</span>，展开观察： <span
-class="math display">\[
-AC^T=\begin{bmatrix}a_{11}&amp;...&amp;a_{1n} \\...&amp;...&amp;...\\
-a_{n1}&amp;...&amp;a_{nn}\end{bmatrix}\begin{bmatrix}
-C_{11}&amp;...&amp;C_{n1}\\ ...&amp;...&amp;...\\
-C_{1n}&amp;...&amp;C_{nn}\end{bmatrix}
-\]</span></p>
-<p>根据乘法运算，可以发现<span
-class="math inline">\(A\)</span>中每一个行向量与<span
-class="math inline">\(C^T\)</span>中对应列向量做内积后得到的正是<span
-class="math inline">\(\det(A)\)</span>（使用上一节的代数余子式计算行列式公式得到）。举个例子，第1行与第1列内积得到<span
-class="math inline">\(\det(A)\)</span>，第2行与第2列内积也得到<span
-class="math inline">\(\det(A)\)</span>，以此类推。因此，乘法运算得到的最终矩阵中主对角线上的元素都是<span
-class="math inline">\(\det(A)\)</span>：</p>
-<p><span class="math display">\[
+<h1 id="行列式应用"><a href="#行列式应用" class="headerlink" title="行列式应用"></a>行列式应用</h1><h2 id="求逆矩阵"><a href="#求逆矩阵" class="headerlink" title="求逆矩阵"></a>求逆矩阵</h2><p>我们已经学过了用高斯-若尔当求逆矩阵的方法，尽管从实用角度出发高斯若尔当求逆法相当好用，但毕竟不够直观。而借助行列式，我们可以给出一个更直观的求逆矩阵的代数表达式：</p>
+<script type="math/tex; mode=display">
+A^{-1}=\frac{1}{|A|}C^T</script><p>这里的$C$被称作代数余子式矩阵，矩阵的每个元素是由$A$中对应位置元素的代数余子式组成，其转置矩阵一般也称其为伴随矩阵，记为$C^T$。</p>
+<p>这一代数表达式的证明也很简单，两边同时左乘$A$，则问题转化为证明：$AC^T=|A|I$，展开观察：</p>
+<script type="math/tex; mode=display">
+AC^T=\begin{bmatrix}a_{11}&...&a_{1n} \\...&...&...\\ a_{n1}&...&a_{nn}\end{bmatrix}\begin{bmatrix}
+C_{11}&...&C_{n1}\\ ...&...&...\\ C_{1n}&...&C_{nn}\end{bmatrix}</script><p>根据乘法运算，可以发现$A$中每一个行向量与$C^T$中对应列向量做内积后得到的正是$\det(A)$（使用上一节的代数余子式计算行列式公式得到）。举个例子，第1行与第1列内积得到$\det(A)$，第2行与第2列内积也得到$\det(A)$，以此类推。因此，乘法运算得到的最终矩阵中主对角线上的元素都是$\det(A)$：</p>
+<script type="math/tex; mode=display">
 \begin{bmatrix}
-a_{11}&amp;...&amp;a_{1n} \\...&amp;...&amp;...\\
-a_{n1}&amp;...&amp;a_{nn}\end{bmatrix}\begin{bmatrix}
-C_{11}&amp;...&amp;C_{n1}\\ ...&amp;...&amp;...\\
-C_{1n}&amp;...&amp;C_{nn}\end{bmatrix}=\begin{bmatrix}
-|A|&amp;...&amp;...\\ ...&amp;|A|&amp;...\\
-...&amp;...&amp;|A|\end{bmatrix}
-\]</span></p>
-<p>再来观察其他位置，比如我们观察<span
-class="math inline">\(i=1,j=2\)</span>的元素，它是第1行与第2列的内积：<span
-class="math inline">\(a_{11}C_{21}+a_{12}C_{22}+...+a_{1n}C_{2n}\)</span>，类似主对角线的元素，思考一下：什么样的矩阵的行列式的代数余子式公式会这样展开呢？答案很简单：
-<span class="math display">\[
+a_{11}&...&a_{1n} \\...&...&...\\ a_{n1}&...&a_{nn}\end{bmatrix}\begin{bmatrix}
+C_{11}&...&C_{n1}\\ ...&...&...\\ C_{1n}&...&C_{nn}\end{bmatrix}=\begin{bmatrix}
+|A|&...&...\\ ...&|A|&...\\ ...&...&|A|\end{bmatrix}</script><p>再来观察其他位置，比如我们观察$i=1,j=2$的元素，它是第1行与第2列的内积：$a<em>{11}C</em>{21}+a<em>{12}C</em>{22}+…+a<em>{1n}C</em>{2n}$，类似主对角线的元素，思考一下：什么样的矩阵的行列式的代数余子式公式会这样展开呢？答案很简单：</p>
+<script type="math/tex; mode=display">
 \begin{bmatrix}
-a_{11}&amp;a_{12}&amp;...&amp;a_{1n}\\
-a_{11}&amp;a_{12}&amp;...&amp;a_{1n}\\
-a_{31}&amp;a_{32}&amp;...&amp;a_{3n}\\
-...&amp;...&amp;...\\
-a_{n1}&amp;a_{n2}&amp;...&amp;a_{nn}
-\end{bmatrix}
-\]</span></p>
-<p>对于上式展开形式，只需要将原本的矩阵<span
-class="math inline">\(A\)</span>中第二行全部换成第一行，再去求行列式，就刚好可写作<span
-class="math inline">\(a_{11}C_{21}+a_{12}C_{22}+...+a_{1n}C_{2n}\)</span>。另一方面，我们知道有相同两行的矩阵行列式值为0，因此，<span
-class="math inline">\(a_{11}C_{21}+a_{12}C_{22}+...+a_{1n}C_{2n}=0\)</span>。</p>
-<p>故最终的乘积矩阵中，主对角线元素皆为<span
-class="math inline">\(\det(A)\)</span>，其他元素皆为<span
-class="math inline">\(0\)</span>： <span class="math display">\[
-\begin{bmatrix}|A|&amp;0&amp;...&amp;0\\ 0&amp;|A|&amp;...&amp;0\\
-...&amp;...&amp;...&amp;...\\ 0&amp;0&amp;...&amp;|A|\end{bmatrix}
-\]</span></p>
-<p>综上，原式<span
-class="math inline">\(A^{-1}=\frac{1}{|A|}C^T\)</span>得证。根据逆矩阵公式，可以看到：当改变原矩阵中的元素时会给逆矩阵带来怎样的变化，具体表现为：<span
-class="math inline">\(det(A)\)</span>发生了改变、<span
-class="math inline">\(C^T\)</span>也发生了改变。</p>
-<h2 id="克莱姆法则">克莱姆法则</h2>
-<p>使用上述求逆矩阵公式，对于方程<span
-class="math inline">\(Ax=b\)</span>我们也可以不必使用消元法，而是换成逆矩阵公式来求解：
-<span class="math display">\[
-x=A^{-1}b=\frac{1}{|A|}C^Tb
-\]</span></p>
-<p>这里的<span
-class="math inline">\(C^Tb\)</span>展开就是每一个代数余子式<span
-class="math inline">\(C\)</span>乘<span
-class="math inline">\(b\)</span>的各个分量。余子式乘数字的形式是不是很眼熟？这不就是某个矩阵的行列式计算公式嘛。那么什么样的矩阵可以展开成这样的行列式计算式呢？这次从列的视角出发，我们将矩阵<span
-class="math inline">\(A\)</span>中<span
-class="math inline">\(C_i\)</span>对应列<span
-class="math inline">\(A_i\)</span>替换为<span
-class="math inline">\(b\)</span>，即可得到这样的计算式展开，我们将替换后的矩阵记为<span
-class="math inline">\(B_i\)</span>，于是有： <span
-class="math display">\[
-x_1=\frac{|B_1|}{|A|}, x_2=\frac{|B_2|}{|A|},
-x_3=\frac{|B_3|}{|A|}...,x_n=\frac{|B_n|}{|A|}
-\]</span></p>
-<p><span class="math inline">\(x\)</span>的每个分量都是对应的<span
-class="math inline">\(C_i^Tb\)</span>得到，因此，若想要求得每个分量的值，只需要构造矩阵<span
-class="math inline">\(B_i\)</span>并计算其行列式值即可。 <span
-class="math display">\[
+a_{11}&a_{12}&...&a_{1n}\\ 
+a_{11}&a_{12}&...&a_{1n}\\ 
+a_{31}&a_{32}&...&a_{3n}\\
+...&...&...\\ 
+a_{n1}&a_{n2}&...&a_{nn}
+\end{bmatrix}</script><p>对于上式展开形式，只需要将原本的矩阵$A$中第二行全部换成第一行，再去求行列式，就刚好可写作$a<em>{11}C</em>{21}+a<em>{12}C</em>{22}+…+a<em>{1n}C</em>{2n}$。另一方面，我们知道有相同两行的矩阵行列式值为0，因此，$a<em>{11}C</em>{21}+a<em>{12}C</em>{22}+…+a<em>{1n}C</em>{2n}=0$。</p>
+<p>故最终的乘积矩阵中，主对角线元素皆为$\det(A)$，其他元素皆为$0$：</p>
+<script type="math/tex; mode=display">
+\begin{bmatrix}|A|&0&...&0\\ 0&|A|&...&0\\ ...&...&...&...\\ 0&0&...&|A|\end{bmatrix}</script><p>综上，原式$A^{-1}=\frac{1}{|A|}C^T$得证。根据逆矩阵公式，可以看到：当改变原矩阵中的元素时会给逆矩阵带来怎样的变化，具体表现为：$det(A)$发生了改变、$C^T$也发生了改变。</p>
+<h2 id="克莱姆法则"><a href="#克莱姆法则" class="headerlink" title="克莱姆法则"></a>克莱姆法则</h2><p>使用上述求逆矩阵公式，对于方程$Ax=b$我们也可以不必使用消元法，而是换成逆矩阵公式来求解：</p>
+<script type="math/tex; mode=display">
+x=A^{-1}b=\frac{1}{|A|}C^Tb</script><p>这里的$C^Tb$展开就是每一个代数余子式$C$乘$b$的各个分量。余子式乘数字的形式是不是很眼熟？这不就是某个矩阵的行列式计算公式嘛。那么什么样的矩阵可以展开成这样的行列式计算式呢？这次从列的视角出发，我们将矩阵$A$中$C_i$对应列$A_i$替换为$b$，即可得到这样的计算式展开，我们将替换后的矩阵记为$B_i$，于是有：</p>
+<script type="math/tex; mode=display">
+x_1=\frac{|B_1|}{|A|}, x_2=\frac{|B_2|}{|A|}, x_3=\frac{|B_3|}{|A|}...,x_n=\frac{|B_n|}{|A|}</script><p>$x$的每个分量都是对应的$C_i^Tb$得到，因此，若想要求得每个分量的值，只需要构造矩阵$B_i$并计算其行列式值即可。</p>
+<script type="math/tex; mode=display">
 B_1=\begin{bmatrix}
-b_1&amp;a_{12}&amp;...&amp;a_{1n}\\
-b_2&amp;a_{22}&amp;...&amp;a_{2n}\\
-b_3&amp;a_{32}&amp;...&amp;a_{3n}\\
-...&amp;...&amp;...&amp;...\\
-b_n&amp;a_{n2}&amp;...&amp;a_{nn}
-\end{bmatrix}
-\]</span></p>
-<p>按第一列展开成代数余子式公式：即第一个分量<span
-class="math inline">\(x_1=\frac{C_1^Tb}{|A|}\)</span>，其中<span
-class="math inline">\(|B_1|=C_1^Tb\)</span>。即：<span
-class="math inline">\(|B_1|=b_1C_{11}+b_2C_{21}+...+b_nC_{n1}\)</span>。</p>
-<p>克莱姆法则很漂亮，但是并不实用。相对于消元法，如果使用克莱姆法则来求解<span
-class="math inline">\(Ax=b\)</span>，那么就需要求出共计<span
-class="math inline">\(n+1\)</span>个矩阵的行列式，这个计算量对人类来说太大了，但这种代数表达式的表示法可能对于计算机算法来说却更加友好，也更加具体。</p>
-<h2 id="体积">体积</h2>
-<p>对3阶矩阵<span
-class="math inline">\(A\)</span>，其行列式的绝对值<span
-class="math inline">\(|det(A)|\)</span>就是以矩阵<span
-class="math inline">\(A\)</span>行（列）向量为边所构成的平行六面体的体积。行列式的符号对应左手系和右手系。</p>
-<p><img src="2023-10-09-14-21-48.png" srcset="/img/loading.gif" lazyload /></p>
+b_1&a_{12}&...&a_{1n}\\ 
+b_2&a_{22}&...&a_{2n}\\ 
+b_3&a_{32}&...&a_{3n}\\
+...&...&...&...\\
+b_n&a_{n2}&...&a_{nn}
+\end{bmatrix}</script><p>按第一列展开成代数余子式公式：即第一个分量$x<em>1=\frac{C_1^Tb}{|A|}$，其中$|B_1|=C_1^Tb$。即：$|B_1|=b_1C</em>{11}+b<em>2C</em>{21}+…+b<em>nC</em>{n1}$。</p>
+<p>克莱姆法则很漂亮，但是并不实用。相对于消元法，如果使用克莱姆法则来求解$Ax=b$，那么就需要求出共计$n+1$个矩阵的行列式，这个计算量对人类来说太大了，但这种代数表达式的表示法可能对于计算机算法来说却更加友好，也更加具体。</p>
+<h2 id="体积"><a href="#体积" class="headerlink" title="体积"></a>体积</h2><p>对3阶矩阵$A$，其行列式的绝对值$|det(A)|$就是以矩阵$A$行（列）向量为边所构成的平行六面体的体积。行列式的符号对应左手系和右手系。</p>
+<p><img src="2023-10-09-14-21-48.png" srcset="/img/loading.gif" lazyload alt=""></p>
 <p>行列式的绝对值为什么等于体积呢？我们知道三大基础性质定义了行列式，因此如果我们能够证明体积也具有这三大性质，那么就可以知道体积一定等于行列式。</p>
-<h3 id="性质1">性质1</h3>
-<p>对单位阵<span class="math inline">\(I\)</span>来说，体积就是<span
-class="math inline">\(1\)</span>，这是显而易见的。</p>
-<h3 id="性质2">性质2</h3>
-<p>交换两行并不会改变空间六面体，绝对值也不变。</p>
-<h3 id="性质3a">性质3a</h3>
-<p>相当于对其中的某一边进行缩放，体积当然也跟着缩放系数进行缩放，这一点显然。</p>
-<h3 id="性质3b">性质3b</h3>
-<p>这个性质不太好证明，为了便捷我们这里在2阶矩阵上验证。</p>
+<h3 id="性质1"><a href="#性质1" class="headerlink" title="性质1"></a>性质1</h3><p>对单位阵$I$来说，体积就是$1$，这是显而易见的。</p>
+<h3 id="性质2"><a href="#性质2" class="headerlink" title="性质2"></a>性质2</h3><p>交换两行并不会改变空间六面体，绝对值也不变。</p>
+<h3 id="性质3a"><a href="#性质3a" class="headerlink" title="性质3a"></a>性质3a</h3><p>相当于对其中的某一边进行缩放，体积当然也跟着缩放系数进行缩放，这一点显然。</p>
+<h3 id="性质3b"><a href="#性质3b" class="headerlink" title="性质3b"></a>性质3b</h3><p>这个性质不太好证明，为了便捷我们这里在2阶矩阵上验证。</p>
 <p>对于二阶矩阵，行列式就是两条边组成的平行四边形的面积。</p>
-<p><img src="2023-10-09-15-14-10.png" srcset="/img/loading.gif" lazyload /></p>
-<p>从二维图像上可以看出，<span
-class="math inline">\((a+a&#39;,b+b&#39;)\)</span>与<span
-class="math inline">\((c,d)\)</span>围成的平行四边形的面积刚好就是<span
-class="math inline">\((a,b),(c,d)\)</span>围成的四边形与<span
-class="math inline">\((a&#39;,b&#39;),(c,d)\)</span>围成的四边形的总和。即：
-<span class="math display">\[
-\begin{vmatrix}a+a&#39;&amp;b+b&#39;\\
-c&amp;d\end{vmatrix}=\begin{vmatrix}
-a&amp;b\\ c&amp;d
+<p><img src="2023-10-09-15-14-10.png" srcset="/img/loading.gif" lazyload alt=""></p>
+<p>从二维图像上可以看出，$(a+a’,b+b’)$与$(c,d)$围成的平行四边形的面积刚好就是$(a,b),(c,d)$围成的四边形与$(a’,b’),(c,d)$围成的四边形的总和。即：</p>
+<script type="math/tex; mode=display">
+\begin{vmatrix}a+a'&b+b'\\ c&d\end{vmatrix}=\begin{vmatrix}
+a&b\\ c&d
 \end{vmatrix}+\begin{vmatrix}
-a&#39;&amp;b&#39;\\ c&amp;d
-\end{vmatrix}
-\]</span></p>
-<p>高维空间与此类似，本质上都是等价替换。</p>
-<h3 id="求三角形的面积">求三角形的面积</h3>
-<p>受此启发，对平面任意三点<span
-class="math inline">\((x_1,y_1),(x_2,y_2),(x_3,y_3)\)</span>构成的三角形围成的面积就是：<span
-class="math inline">\(\frac{1}{2}\begin{vmatrix}x_1&amp;y_1&amp;1\\
-x_2&amp;y_2&amp;1\\ x_3&amp;y_3&amp;1\end{vmatrix}\)</span>。</p>
+a'&b'\\ c&d
+\end{vmatrix}</script><p>高维空间与此类似，本质上都是等价替换。</p>
+<h3 id="求三角形的面积"><a href="#求三角形的面积" class="headerlink" title="求三角形的面积"></a>求三角形的面积</h3><p>受此启发，对平面任意三点$(x_1,y_1),(x_2,y_2),(x_3,y_3)$构成的三角形围成的面积就是：$\frac{1}{2}\begin{vmatrix}x_1&amp;y_1&amp;1\ x_2&amp;y_2&amp;1\ x_3&amp;y_3&amp;1\end{vmatrix}$。</p>
 <blockquote>
 <p>第三列全为1相当于把平面投影到三维空间，而三点共面。</p>
 </blockquote>
-<p>再根据行列式性质令行2和行3减去行1，使得第三列除了首个元素外全归0，此时按代数余子式展开，得到面积值为：<span
-class="math inline">\(\frac{1}{2}((x_2-x_1)(y_3-y_1)-(x_3-x_1)(y_2-y_1))\)</span>。</p>
-<h1 id="附录">附录</h1>
-<h2 id="视频">视频</h2>
-<iframe src="//player.bilibili.com/player.html?aid=382989698&amp;bvid=BV16Z4y1U7oU&amp;cid=570093614&amp;p=20&amp;autoplay=0" scrolling="no" border="0" width="100%" height="500" frameborder="no" framespacing="0" allowfullscreen="true">
-</iframe>
-<h2 id="参考链接">参考链接</h2>
-<ul>
-<li><a
-target="_blank" rel="noopener" href="https://github.com/MLNLP-World/MIT-Linear-Algebra-Notes/blob/master/%5B20%5D%20%E5%85%8B%E8%8E%B1%E5%A7%86%E6%B3%95%E5%88%99%E3%80%81%E9%80%86%E7%9F%A9%E9%98%B5%E3%80%81%E4%BD%93%E7%A7%AF/%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B020.pdf">克莱姆法则、逆矩阵、体积</a></li>
-<li><a
-target="_blank" rel="noopener" href="https://rqtn.github.io/2019/08/31/LA-Lec20/">克拉默法则、逆矩阵、体积</a></li>
-<li><a
-target="_blank" rel="noopener" href="https://github.com/kf-liu/The-Art-of-Linear-Algebra-zh-CN">线性代数的艺术</a></li>
+<p>再根据行列式性质令行2和行3减去行1，使得第三列除了首个元素外全归0，此时按代数余子式展开，得到面积值为：$\frac{1}{2}((x_2-x_1)(y_3-y_1)-(x_3-x_1)(y_2-y_1))$。</p>
+<h1 id="附录"><a href="#附录" class="headerlink" title="附录"></a>附录</h1><h2 id="视频"><a href="#视频" class="headerlink" title="视频"></a>视频</h2><iframe src="//player.bilibili.com/player.html?aid=382989698&bvid=BV16Z4y1U7oU&cid=570093614&p=20&autoplay=0" scrolling="no" border="0" width="100%" height="500" frameborder="no" framespacing="0" allowfullscreen="true"> </iframe>
+
+<h2 id="参考链接"><a href="#参考链接" class="headerlink" title="参考链接"></a>参考链接</h2><ul>
+<li><a target="_blank" rel="noopener" href="https://github.com/MLNLP-World/MIT-Linear-Algebra-Notes/blob/master/%5B20%5D%20%E5%85%8B%E8%8E%B1%E5%A7%86%E6%B3%95%E5%88%99%E3%80%81%E9%80%86%E7%9F%A9%E9%98%B5%E3%80%81%E4%BD%93%E7%A7%AF/%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B020.pdf">克莱姆法则、逆矩阵、体积</a></li>
+<li><a target="_blank" rel="noopener" href="https://rqtn.github.io/2019/08/31/LA-Lec20/">克拉默法则、逆矩阵、体积</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/kf-liu/The-Art-of-Linear-Algebra-zh-CN">线性代数的艺术</a></li>
 </ul>
 
                 
@@ -850,6 +761,11 @@ target="_blank" rel="noopener" href="https://github.com/kf-liu/The-Art-of-Linear
 
 
 
+  
+<script src="/js/diy/yinghua.js"></script>
+<script src="/js/diy/love.js"></script>
+
+
 
 <!-- 主题的启动项，将它保持在最底部 -->
 <!-- the boot of the theme, keep it at the bottom -->
@@ -861,5 +777,5 @@ target="_blank" rel="noopener" href="https://github.com/kf-liu/The-Art-of-Linear
   <noscript>
     <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
   </noscript>
-</body>
+<script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"log":false,"pluginJsPath":"lib/","pluginModelPath":"assets/","pluginRootPath":"live2dw/","tagMode":false});</script></body>
 </html>
