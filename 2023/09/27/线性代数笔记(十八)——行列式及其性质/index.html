@@ -232,7 +232,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          2.4k 字
+          2.9k 字
         
       </span>
     
@@ -243,7 +243,7 @@
         
         
         
-          21 分钟
+          24 分钟
         
       </span>
     
@@ -287,74 +287,154 @@
                 
                 <p>从本讲开始进入线性代数的第二部分：行列式与特征值。许多国内教材都是把行列式放在第一章，这对于理解线性代数这门语言来说是非常离谱的操作。行列式因方阵而生，它的值与特性与方阵息息相关，在求解特征值过程中行列式发挥了极大的作用。我们要着重于理解其背后的机理、探索本质，而不是死记硬背几个公式或是掌握一些trick手法解几道算术题。</p>
 <span id="more"></span>
-<h1 id="行列式及其性质"><a href="#行列式及其性质" class="headerlink" title="行列式及其性质"></a>行列式及其性质</h1><p>每个方阵都有行列式，行列式是跟该方阵有关的一个数字，行列式的值隐含了该方阵的许多特性，例如，行列式为$0$的方阵一定不可逆，可逆的方阵行列式值一定不为$0$。</p>
-<p>行列式数学上写作$\begin{vmatrix}A\end{vmatrix}$，一般记为$\det A$。</p>
-<h2 id="行列式的三大基础特性"><a href="#行列式的三大基础特性" class="headerlink" title="行列式的三大基础特性"></a>行列式的三大基础特性</h2><ul>
-<li>性质1：单位阵 $\det I=1$。</li>
+<h1 id="行列式及其性质">行列式及其性质</h1>
+<p>每个方阵都有行列式，行列式是跟该方阵有关的一个数字，行列式的值隐含了该方阵的许多特性，例如，行列式为<span
+class="math inline">\(0\)</span>的方阵一定不可逆，可逆的方阵行列式值一定不为<span
+class="math inline">\(0\)</span>。</p>
+<p>行列式数学上写作<span
+class="math inline">\(\begin{vmatrix}A\end{vmatrix}\)</span>，一般记为<span
+class="math inline">\(\det A\)</span>。</p>
+<h2 id="行列式的三大基础特性">行列式的三大基础特性</h2>
+<ul>
+<li>性质1：单位阵 <span class="math inline">\(\det I=1\)</span>。</li>
 <li>性质2：交换任意两行后，行列式值的符号取反。</li>
-<li>性质3：<ul>
-<li>a: 行列式可以按行提取矩阵的系数，即:$\begin{vmatrix}ta&amp;tb \ c&amp;d \ \end{vmatrix}=t\begin{vmatrix}a&amp;b \ c&amp;d\end{vmatrix}$。</li>
-<li>b: 行列式的行具有线性，即：$\begin{vmatrix}  a+a’&amp;b+b’ \  c&amp;d \ \end{vmatrix}=\begin{vmatrix}  a&amp;b \  c&amp;d\end{vmatrix}+\begin{vmatrix}  a’&amp;b’ \  c&amp;d\end{vmatrix}$</li>
-</ul>
-</li>
+<li>性质3：
+<ul>
+<li>a: 行列式可以按行提取矩阵的系数，即:<span
+class="math inline">\(\begin{vmatrix}ta&amp;tb \\ c&amp;d \\
+\end{vmatrix}=t\begin{vmatrix}a&amp;b \\
+c&amp;d\end{vmatrix}\)</span>。</li>
+<li>b: 行列式的行具有线性，即：<span
+class="math inline">\(\begin{vmatrix} a+a&#39;&amp;b+b&#39; \\ c&amp;d
+\\ \end{vmatrix}=\begin{vmatrix} a&amp;b \\
+c&amp;d\end{vmatrix}+\begin{vmatrix} a&#39;&amp;b&#39; \\
+c&amp;d\end{vmatrix}\)</span></li>
+</ul></li>
 </ul>
 <blockquote>
 <p>注意3b里的线性是指行的线性，而非行列式具有线性。</p>
 </blockquote>
-<h2 id="衍生推导特性"><a href="#衍生推导特性" class="headerlink" title="衍生推导特性"></a>衍生推导特性</h2><p>其他的特性都可以根据三大基础特性来进行推导，它们也十分重要，在我们计算行列式和推导其他特性的过程中常常用到。</p>
+<h2 id="衍生推导特性">衍生推导特性</h2>
+<p>其他的特性都可以根据三大基础特性来进行推导，它们也十分重要，在我们计算行列式和推导其他特性的过程中常常用到。</p>
 <ul>
-<li>性质4：如果存在相等的两行，则行列式为$0$。<br>可以用性质2来证明，交换相等的两行，行列式的值会取反，但此时方阵并没有任何改变，因此只有行列式为$0$值才能满足性质2。</li>
-<li>性质5：从$k$行中减去$i$行的$l$倍，行列式不发生改变。<strong>换言之，行列式不因矩阵消元而改变。</strong> 这一性质对列变换也同样生效（相当于先转置，行变换后再转置回来，就是列变换）。<br>根据性质3，可知：<script type="math/tex; mode=display">
+<li>性质4：如果存在相等的两行，则行列式为<span
+class="math inline">\(0\)</span>。
+可以用性质2来证明，交换相等的两行，行列式的值会取反，但此时方阵并没有任何改变，因此只有行列式为<span
+class="math inline">\(0\)</span>值才能满足性质2。</li>
+<li>性质5：从<span class="math inline">\(k\)</span>行中减去<span
+class="math inline">\(i\)</span>行的<span
+class="math inline">\(l\)</span>倍，行列式不发生改变。<strong>换言之，行列式不因矩阵消元而改变。</strong>
+这一性质对列变换也同样生效（相当于先转置，行变换后再转置回来，就是列变换）。
+根据性质3，可知： <span class="math display">\[
 \begin{vmatrix}
-a&b \\
-c-la&d-lb
+a&amp;b \\
+c-la&amp;d-lb
 \end{vmatrix}=\begin{vmatrix}
-a&b \\
-c&d
+a&amp;b \\
+c&amp;d
 \end{vmatrix}-l\begin{vmatrix}
-a&b \\
-a&b
-\end{vmatrix}</script>再根据刚推导的性质4，等号右边第二项行列式为$0$，性质5得证。</li>
-<li>性质6：如果方阵的某一行全为$0$，则行列式为$0$。<br>由性质3或性质5推理显然。</li>
-<li>性质7：上三角$U$方阵的行列式值等于对角线上元素的乘积。$\det U=d_1d_2\cdot d_n$：<script type="math/tex; mode=display">
+a&amp;b \\
+a&amp;b
+\end{vmatrix}
+\]</span> 再根据刚推导的性质4，等号右边第二项行列式为<span
+class="math inline">\(0\)</span>，性质5得证。</li>
+<li>性质6：如果方阵的某一行全为<span
+class="math inline">\(0\)</span>，则行列式为<span
+class="math inline">\(0\)</span>。 由性质3或性质5推理显然。</li>
+<li>性质7：上三角<span
+class="math inline">\(U\)</span>方阵的行列式值等于对角线上元素的乘积。<span
+class="math inline">\(\det U=d_1d_2\cdot d_n\)</span>： <span
+class="math display">\[
 U=\begin{vmatrix}
-d_1&*&...&* \\
-0&d_2&...&* \\
-...&...&...&... \\
-0&0&...&d_n
-\end{vmatrix}</script>由性质5，从最后一行开始，将对角线元素上方的非零元素依次变为$0$，行列式值不变。此时可以得到只有对角线元素的对角阵$D$。再根据性质3a，提取所有的对角线元素$d_i$华为单位阵，结合性质1得证。</li>
-<li>性质8：当且仅当$A$是奇异矩阵时（不可逆），$\det A=0$。<br>由性质7，如果$A$是可逆，那么消元得到的上三角$U$对角线上的各行都有主元，行列式必不为$0$。反之，消元后会出现全零行，有性质6可知行列式为$0$。</li>
-<li>性质9：$\det AB=\det A \cdot \det B$，行列式具备乘法性质。<br>由性质5，可以把$A$和$B$通过行变换最终转为对角阵$A’,B’$，此时$\det A’=\det A, \det B’=\det B$。而两个对角矩阵相乘的结果显而易见：<script type="math/tex; mode=display">
+d_1&amp;*&amp;...&amp;* \\
+0&amp;d_2&amp;...&amp;* \\
+...&amp;...&amp;...&amp;... \\
+0&amp;0&amp;...&amp;d_n
+\end{vmatrix}
+\]</span>
+由性质5，从最后一行开始，将对角线元素上方的非零元素依次变为<span
+class="math inline">\(0\)</span>，行列式值不变。此时可以得到只有对角线元素的对角阵<span
+class="math inline">\(D\)</span>。再根据性质3a，提取所有的对角线元素<span
+class="math inline">\(d_i\)</span>华为单位阵，结合性质1得证。</li>
+<li>性质8：当且仅当<span
+class="math inline">\(A\)</span>是奇异矩阵时（不可逆），<span
+class="math inline">\(\det A=0\)</span>。 由性质7，如果<span
+class="math inline">\(A\)</span>是可逆，那么消元得到的上三角<span
+class="math inline">\(U\)</span>对角线上的各行都有主元，行列式必不为<span
+class="math inline">\(0\)</span>。反之，消元后会出现全零行，有性质6可知行列式为<span
+class="math inline">\(0\)</span>。</li>
+<li>性质9：<span class="math inline">\(\det AB=\det A \cdot \det
+B\)</span>，行列式具备乘法性质。 由性质5，可以把<span
+class="math inline">\(A\)</span>和<span
+class="math inline">\(B\)</span>通过行变换最终转为对角阵<span
+class="math inline">\(A&#39;,B&#39;\)</span>，此时<span
+class="math inline">\(\det A&#39;=\det A, \det B&#39;=\det
+B\)</span>。而两个对角矩阵相乘的结果显而易见： <span
+class="math display">\[
 \begin{bmatrix}
-a_1&0&...&0 \\
-0&a_2&...&0 \\
-...&...&...&...\\
-0&0&...&a_n
+a_1&amp;0&amp;...&amp;0 \\
+0&amp;a_2&amp;...&amp;0 \\
+...&amp;...&amp;...&amp;...\\
+0&amp;0&amp;...&amp;a_n
 \end{bmatrix}\begin{bmatrix}
-b_1&0&...&0 \\
-0&b_2&...&0 \\
-...&...&...&...\\
-0&0&...&b_n
+b_1&amp;0&amp;...&amp;0 \\
+0&amp;b_2&amp;...&amp;0 \\
+...&amp;...&amp;...&amp;...\\
+0&amp;0&amp;...&amp;b_n
 \end{bmatrix}=\begin{bmatrix}
-a_1b_1&0&...&0 \\
-0&a_2b_2&...&0 \\
-...&...&...&...\\
-0&0&...&a_nb_n
-\end{bmatrix}</script>由性质7可知$\det A’B’=(a_1\cdot a_2\cdot …\cdot a_n)(b_1\cdot b_2\cdot …\cdot b_n)$，故$\det A’B’=\det A’ \det B’$。另一方面，$AB$转为$A’B’$的过程实际上就是分别左乘一个矩阵对$A$做行变换，再右乘一个矩阵对$B$做列变换，得到$A’B’$，由性质5可知$\det AB=\det A’B’$，故$\det AB = \det A \det B$。</li>
+a_1b_1&amp;0&amp;...&amp;0 \\
+0&amp;a_2b_2&amp;...&amp;0 \\
+...&amp;...&amp;...&amp;...\\
+0&amp;0&amp;...&amp;a_nb_n
+\end{bmatrix}
+\]</span> 由性质7可知<span class="math inline">\(\det
+A&#39;B&#39;=(a_1\cdot a_2\cdot ...\cdot a_n)(b_1\cdot b_2\cdot ...\cdot
+b_n)\)</span>，故<span class="math inline">\(\det A&#39;B&#39;=\det
+A&#39; \det B&#39;\)</span>。另一方面，<span
+class="math inline">\(AB\)</span>转为<span
+class="math inline">\(A&#39;B&#39;\)</span>的过程实际上就是分别左乘一个矩阵对<span
+class="math inline">\(A\)</span>做行变换，再右乘一个矩阵对<span
+class="math inline">\(B\)</span>做列变换，得到<span
+class="math inline">\(A&#39;B&#39;\)</span>，由性质5可知<span
+class="math inline">\(\det AB=\det A&#39;B&#39;\)</span>，故<span
+class="math inline">\(\det AB = \det A \det B\)</span>。</li>
 </ul>
 <blockquote>
-<p>根据性质9，可以轻松求得$A$逆矩阵的行列式，因为$\det I=\det A^{-1} \cdot \det A=1$，所以行列式互为倒数（如果$A$不可逆，可以看出式子也不成立）。此外还可以看出$\det A^2=(\det A)^2$。</p>
+<p>根据性质9，可以轻松求得<span
+class="math inline">\(A\)</span>逆矩阵的行列式，因为<span
+class="math inline">\(\det I=\det A^{-1} \cdot \det
+A=1\)</span>，所以行列式互为倒数（如果<span
+class="math inline">\(A\)</span>不可逆，可以看出式子也不成立）。此外还可以看出<span
+class="math inline">\(\det A^2=(\det A)^2\)</span>。</p>
 </blockquote>
 <ul>
-<li>性质10：$\det A^T=\det A$。<br>$A=LU$，可知$A^T=U^TL^T$，根据性质9：$\det A^T=\det U^T \det L^T, \det A=\det U \det L$，且已知三角阵转置后还是三角阵，故$\det U=\det U^T, \det L^T=\det L$，因此$\det A^T=\det A$。</li>
+<li>性质10：<span class="math inline">\(\det A^T=\det A\)</span>。 <span
+class="math inline">\(A=LU\)</span>，可知<span
+class="math inline">\(A^T=U^TL^T\)</span>，根据性质9：<span
+class="math inline">\(\det A^T=\det U^T \det L^T, \det A=\det U \det
+L\)</span>，且已知三角阵转置后还是三角阵，故<span
+class="math inline">\(\det U=\det U^T, \det L^T=\det
+L\)</span>，因此<span class="math inline">\(\det A^T=\det
+A\)</span>。</li>
 </ul>
-<h2 id="二阶方阵的行列式"><a href="#二阶方阵的行列式" class="headerlink" title="二阶方阵的行列式"></a>二阶方阵的行列式</h2><p>根据上述的性质，我们可以很容易推出二阶方阵：$\begin{vmatrix}a&amp;b\ c&amp;d \end{vmatrix}$的行列式为$ad-bc$。</p>
+<h2 id="二阶方阵的行列式">二阶方阵的行列式</h2>
+<p>根据上述的性质，我们可以很容易推出二阶方阵：<span
+class="math inline">\(\begin{vmatrix}a&amp;b\\ c&amp;d
+\end{vmatrix}\)</span>的行列式为<span
+class="math inline">\(ad-bc\)</span>。</p>
 <p>熟练掌握这些行列式的特性，不仅可以让我们快速求解行列式，还可以看出矩阵的变换与行列式变化的联动关系。</p>
-<h1 id="附录"><a href="#附录" class="headerlink" title="附录"></a>附录</h1><h2 id="视频"><a href="#视频" class="headerlink" title="视频"></a>视频</h2><p><iframe src="//player.bilibili.com/player.html?aid=382989698&bvid=BV16Z4y1U7oU&cid=570090316&p=18&autoplay=0" scrolling="no" border="0" width="100%" height="500" frameborder="no" framespacing="0" allowfullscreen="true"> </iframe></p>
-<h2 id="参考链接"><a href="#参考链接" class="headerlink" title="参考链接"></a>参考链接</h2><ul>
-<li><a target="_blank" rel="noopener" href="https://github.com/MLNLP-World/MIT-Linear-Algebra-Notes/blob/master/%5B18%2C19%5D%20%E8%A1%8C%E5%88%97%E5%BC%8F%E4%BB%8B%E7%BB%8D/%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B018%2C19.pdf">行列式介绍</a></li>
-<li><a target="_blank" rel="noopener" href="https://rqtn.github.io/2019/08/12/LA-Lec18/">行列式及其性质</a></li>
-<li><a target="_blank" rel="noopener" href="https://github.com/kf-liu/The-Art-of-Linear-Algebra-zh-CN">线性代数的艺术</a></li>
+<h1 id="附录">附录</h1>
+<h2 id="视频">视频</h2>
+<iframe src="//player.bilibili.com/player.html?aid=382989698&amp;bvid=BV16Z4y1U7oU&amp;cid=570090316&amp;p=18&amp;autoplay=0" scrolling="no" border="0" width="100%" height="500" frameborder="no" framespacing="0" allowfullscreen="true">
+</iframe>
+<h2 id="参考链接">参考链接</h2>
+<ul>
+<li><a
+target="_blank" rel="noopener" href="https://github.com/MLNLP-World/MIT-Linear-Algebra-Notes/blob/master/%5B18%2C19%5D%20%E8%A1%8C%E5%88%97%E5%BC%8F%E4%BB%8B%E7%BB%8D/%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B018%2C19.pdf">行列式介绍</a></li>
+<li><a
+target="_blank" rel="noopener" href="https://rqtn.github.io/2019/08/12/LA-Lec18/">行列式及其性质</a></li>
+<li><a
+target="_blank" rel="noopener" href="https://github.com/kf-liu/The-Art-of-Linear-Algebra-zh-CN">线性代数的艺术</a></li>
 </ul>
 
                 

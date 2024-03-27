@@ -16,12 +16,12 @@
   <meta name="author" content="r00tk1t">
   <meta name="keywords" content="">
   
-    <meta name="description" content="一阶线性常微分方程可以通过矩阵的特征分解来求解，将微分方程抽象成矩阵，类似于上一讲差分方程的$u_k&#x3D;A^ku_0$，分解出对应系数而得到围绕$e^{Ax}$的通解。">
+    <meta name="description" content="一阶线性常微分方程可以通过矩阵的特征分解来求解，将微分方程抽象成矩阵，类似于上一讲差分方程的\(u_k&#x3D;A^ku_0\)，分解出对应系数而得到围绕\(e^{Ax}\)的通解。">
 <meta property="og:type" content="article">
 <meta property="og:title" content="线性代数笔记(二十三)——微分方程">
 <meta property="og:url" content="https://r00tk1ts.github.io/2023/10/11/%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B0%E7%AC%94%E8%AE%B0(%E4%BA%8C%E5%8D%81%E4%B8%89)%E2%80%94%E2%80%94%E5%BE%AE%E5%88%86%E6%96%B9%E7%A8%8B/index.html">
 <meta property="og:site_name" content="玉涵的技能书">
-<meta property="og:description" content="一阶线性常微分方程可以通过矩阵的特征分解来求解，将微分方程抽象成矩阵，类似于上一讲差分方程的$u_k&#x3D;A^ku_0$，分解出对应系数而得到围绕$e^{Ax}$的通解。">
+<meta property="og:description" content="一阶线性常微分方程可以通过矩阵的特征分解来求解，将微分方程抽象成矩阵，类似于上一讲差分方程的\(u_k&#x3D;A^ku_0\)，分解出对应系数而得到围绕\(e^{Ax}\)的通解。">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2023-10-11T11:07:14.000Z">
 <meta property="article:modified_time" content="2023-10-11T12:24:49.168Z">
@@ -232,7 +232,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          3.6k 字
+          3.9k 字
         
       </span>
     
@@ -243,7 +243,7 @@
         
         
         
-          31 分钟
+          33 分钟
         
       </span>
     
@@ -285,65 +285,171 @@
             
               <div class="markdown-body">
                 
-                <p>一阶线性常微分方程可以通过矩阵的特征分解来求解，将微分方程抽象成矩阵，类似于上一讲差分方程的$u_k=A^ku_0$，分解出对应系数而得到围绕$e^{Ax}$的通解。</p>
+                <p>一阶线性常微分方程可以通过矩阵的特征分解来求解，将微分方程抽象成矩阵，类似于上一讲差分方程的<span
+class="math inline">\(u_k=A^ku_0\)</span>，分解出对应系数而得到围绕<span
+class="math inline">\(e^{Ax}\)</span>的通解。</p>
 <span id="more"></span>
-<h1 id="微分方程"><a href="#微分方程" class="headerlink" title="微分方程"></a>微分方程</h1><p>给定微分方程：</p>
-<script type="math/tex; mode=display">
+<h1 id="微分方程">微分方程</h1>
+<p>给定微分方程： <span class="math display">\[
 \begin{cases}
 \frac{\mathrm{d} u_1}{\mathrm{d} t}=-u_1+2u_2 \\
 \frac{\mathrm{d} u_2}{\mathrm{d} t}=u_1-2u_2  
-\end{cases}</script><p>已知$u(0)=\begin{bmatrix}1 \ 0\end{bmatrix}$，求$u(t)$。</p>
-<h2 id="微分方程的矩阵解法"><a href="#微分方程的矩阵解法" class="headerlink" title="微分方程的矩阵解法"></a>微分方程的矩阵解法</h2><p>方程写作$\frac{\mathrm{d} u}{\mathrm{d} t}=Au$,其中$A=\begin{bmatrix}-1&amp;2 \ 1&amp;-2\end{bmatrix}$。很明显$A$是奇异矩阵，它的两个特征值分别是$\lambda_1=0$和$\lambda_2=-3$。</p>
-<p>带入特征值求特征向量，易得$x_1=\begin{bmatrix}2 \ 1\end{bmatrix},x_2=\begin{bmatrix}1 \ -1\end{bmatrix}$。</p>
-<p>因此，方程组的通解为：$u(t)=c_1e^{\lambda_1t}x_1+c_2e^{\lambda_2t}x_2$。</p>
+\end{cases}
+\]</span> 已知<span class="math inline">\(u(0)=\begin{bmatrix}1 \\
+0\end{bmatrix}\)</span>，求<span
+class="math inline">\(u(t)\)</span>。</p>
+<h2 id="微分方程的矩阵解法">微分方程的矩阵解法</h2>
+<p>方程写作<span class="math inline">\(\frac{\mathrm{d} u}{\mathrm{d}
+t}=Au\)</span>,其中<span class="math inline">\(A=\begin{bmatrix}-1&amp;2
+\\ 1&amp;-2\end{bmatrix}\)</span>。很明显<span
+class="math inline">\(A\)</span>是奇异矩阵，它的两个特征值分别是<span
+class="math inline">\(\lambda_1=0\)</span>和<span
+class="math inline">\(\lambda_2=-3\)</span>。</p>
+<p>带入特征值求特征向量，易得<span
+class="math inline">\(x_1=\begin{bmatrix}2 \\
+1\end{bmatrix},x_2=\begin{bmatrix}1 \\ -1\end{bmatrix}\)</span>。</p>
+<p>因此，方程组的通解为：<span
+class="math inline">\(u(t)=c_1e^{\lambda_1t}x_1+c_2e^{\lambda_2t}x_2\)</span>。</p>
 <blockquote>
-<p>这里是根据微分方程通解的形式，带入特征值和特征向量大胆猜测了二者之间的关系。我们可以带入原式来验证一下：$取u=e^{\lambda_1t}x_1$带入$\frac{\mathrm{d} u}{\mathrm{d} t}=Au$，得到$\lambda_1e^{\lambda_1t}x_1=Ae^{\lambda_1t}x_1$，由于$e^{\lambda_1t}$是个常数，因此化简后就是$\lambda_1x_1=Ax_1$的形式。同理可以得到$\lambda_2x_2=Ax_2$，带入得到的就是$A$的特征方程，因此通解正是$u(t)=c_1e^{\lambda_1t}x_1+c_2e^{\lambda_2t}x_2$。</p>
+<p>这里是根据微分方程通解的形式，带入特征值和特征向量大胆猜测了二者之间的关系。我们可以带入原式来验证一下：<span
+class="math inline">\(取u=e^{\lambda_1t}x_1\)</span>带入<span
+class="math inline">\(\frac{\mathrm{d} u}{\mathrm{d}
+t}=Au\)</span>，得到<span
+class="math inline">\(\lambda_1e^{\lambda_1t}x_1=Ae^{\lambda_1t}x_1\)</span>，由于<span
+class="math inline">\(e^{\lambda_1t}\)</span>是个常数，因此化简后就是<span
+class="math inline">\(\lambda_1x_1=Ax_1\)</span>的形式。同理可以得到<span
+class="math inline">\(\lambda_2x_2=Ax_2\)</span>，带入得到的就是<span
+class="math inline">\(A\)</span>的特征方程，因此通解正是<span
+class="math inline">\(u(t)=c_1e^{\lambda_1t}x_1+c_2e^{\lambda_2t}x_2\)</span>。</p>
 </blockquote>
-<p>根据初始态$u(0)$的值，我们带入可以求得系数$c$，分别得到:$c_1=\frac{1}{3},c_2=\frac{1}{3}$。</p>
-<p>综上，该微分方程的通解为：$u(t)=\frac{1}{3}\begin{bmatrix}2 \1\end{bmatrix}+\frac{1}{3}e^{-3t}\begin{bmatrix}1 \-1\end{bmatrix}$。</p>
+<p>根据初始态<span
+class="math inline">\(u(0)\)</span>的值，我们带入可以求得系数<span
+class="math inline">\(c\)</span>，分别得到:<span
+class="math inline">\(c_1=\frac{1}{3},c_2=\frac{1}{3}\)</span>。</p>
+<p>综上，该微分方程的通解为：<span
+class="math inline">\(u(t)=\frac{1}{3}\begin{bmatrix}2
+\\1\end{bmatrix}+\frac{1}{3}e^{-3t}\begin{bmatrix}1
+\\-1\end{bmatrix}\)</span>。</p>
 <blockquote>
-<p>观察该通解，可以发现随着时间$t$的流逝，最终的$u(t)$会无线趋近于$\frac{1}{3}\begin{bmatrix}2 \1\end{bmatrix}$。这一现象我们称之为趋于稳态。实际上，在做特征值分解时我们就可以观察到，由于$A$是奇异矩阵，它的特征值其一是$0$，此时$e^{\lambda_1t}$始终为1，而另一个特征值是小于$0$的，此时$e^{\lambda_2t}$随着$t$增大而无线趋近于$0$。</p>
-<p>$u(0)$一开始，$u_1=1, u_2=0$，该微分方程的物理意义在于，随着时间的流逝，$u_1$逐渐减少直到趋近于$\frac{2}{3}$，$u_2$逐渐增加直到趋近于$\frac{1}{3}$，$u_1$的值在朝着$u_2$流去，此消彼涨。</p>
+<p>观察该通解，可以发现随着时间<span
+class="math inline">\(t\)</span>的流逝，最终的<span
+class="math inline">\(u(t)\)</span>会无线趋近于<span
+class="math inline">\(\frac{1}{3}\begin{bmatrix}2
+\\1\end{bmatrix}\)</span>。这一现象我们称之为趋于稳态。实际上，在做特征值分解时我们就可以观察到，由于<span
+class="math inline">\(A\)</span>是奇异矩阵，它的特征值其一是<span
+class="math inline">\(0\)</span>，此时<span
+class="math inline">\(e^{\lambda_1t}\)</span>始终为1，而另一个特征值是小于<span
+class="math inline">\(0\)</span>的，此时<span
+class="math inline">\(e^{\lambda_2t}\)</span>随着<span
+class="math inline">\(t\)</span>增大而无线趋近于<span
+class="math inline">\(0\)</span>。</p>
 </blockquote>
-<h3 id="特征值与状态的关系"><a href="#特征值与状态的关系" class="headerlink" title="特征值与状态的关系"></a>特征值与状态的关系</h3><p>根据微分方程通解的形式，我们总结出以下结论：</p>
+<blockquote>
+<p><span class="math inline">\(u(0)\)</span>一开始，<span
+class="math inline">\(u_1=1,
+u_2=0\)</span>，该微分方程的物理意义在于，随着时间的流逝，<span
+class="math inline">\(u_1\)</span>逐渐减少直到趋近于<span
+class="math inline">\(\frac{2}{3}\)</span>，<span
+class="math inline">\(u_2\)</span>逐渐增加直到趋近于<span
+class="math inline">\(\frac{1}{3}\)</span>，<span
+class="math inline">\(u_1\)</span>的值在朝着<span
+class="math inline">\(u_2\)</span>流去，此消彼涨。</p>
+</blockquote>
+<h3 id="特征值与状态的关系">特征值与状态的关系</h3>
+<p>根据微分方程通解的形式，我们总结出以下结论：</p>
 <ul>
-<li>当特征值的实部全都是负数时，$u(t)$将趋于$0$。这里值得注意的是，对于复数特征值$a+bi$的形式，只有实数部分会影响$u(t)$的走势，虚数部分并不会影响。<ul>
-<li>比如$\lambda=-3+6i$，计算$|e^{(-3+6i)t}|$，其中$e^{6it}$部分是$|\cos6t+i\sin6t|=1$，这个虚部不管是什么值，他始终在复平面的单位圆上转圈。</li>
+<li>当特征值的实部全都是负数时，<span
+class="math inline">\(u(t)\)</span>将趋于<span
+class="math inline">\(0\)</span>。这里值得注意的是，对于复数特征值<span
+class="math inline">\(a+bi\)</span>的形式，只有实数部分会影响<span
+class="math inline">\(u(t)\)</span>的走势，虚数部分并不会影响。
+<ul>
+<li>比如<span class="math inline">\(\lambda=-3+6i\)</span>，计算<span
+class="math inline">\(|e^{(-3+6i)t}|\)</span>，其中<span
+class="math inline">\(e^{6it}\)</span>部分是<span
+class="math inline">\(|\cos6t+i\sin6t|=1\)</span>，这个虚部不管是什么值，他始终在复平面的单位圆上转圈。</li>
+</ul></li>
+<li>如果有一个为<span
+class="math inline">\(0\)</span>的特征值，且其他特征值的实部皆小于<span
+class="math inline">\(0\)</span>，则最终<span
+class="math inline">\(u(t)\)</span>会收敛到一个特定值。</li>
+<li>如果存在某个实部大于<span
+class="math inline">\(0\)</span>的特征值，那么最终<span
+class="math inline">\(u(t)\)</span>是发散的。</li>
 </ul>
-</li>
-<li>如果有一个为$0$的特征值，且其他特征值的实部皆小于$0$，则最终$u(t)$会收敛到一个特定值。</li>
-<li>如果存在某个实部大于$0$的特征值，那么最终$u(t)$是发散的。</li>
-</ul>
-<h2 id="解耦与-e-At"><a href="#解耦与-e-At" class="headerlink" title="解耦与$e^{At}$"></a>解耦与$e^{At}$</h2><p>对于上述特征方程，原方程组的两个函数$u_1$和$u_2$相互耦合，矩阵对角化分解的解法实际上就是对二者进行解耦，得到特征值和特征向量。我们将$u$表示为特征向量的线性组合，写作：$u=Sv$，代入原方程得到：$S\frac{\mathrm{d} v}{\mathrm{d} t}=S^{-1}ASv=\Lambda v$，而$\Lambda$是对角化矩阵，此时方程可以展开成：</p>
-<script type="math/tex; mode=display">
+<h2 id="解耦与eat">解耦与<span
+class="math inline">\(e^{At}\)</span></h2>
+<p>对于上述特征方程，原方程组的两个函数<span
+class="math inline">\(u_1\)</span>和<span
+class="math inline">\(u_2\)</span>相互耦合，矩阵对角化分解的解法实际上就是对二者进行解耦，得到特征值和特征向量。我们将<span
+class="math inline">\(u\)</span>表示为特征向量的线性组合，写作：<span
+class="math inline">\(u=Sv\)</span>，代入原方程得到：<span
+class="math inline">\(S\frac{\mathrm{d} v}{\mathrm{d}
+t}=S^{-1}ASv=\Lambda v\)</span>，而<span
+class="math inline">\(\Lambda\)</span>是对角化矩阵，此时方程可以展开成：
+<span class="math display">\[
 \begin{cases}
 \frac{\mathrm{d} v_1}{\mathrm{d} t}=\lambda_1v_1 \\
 \frac{\mathrm{d} v_2}{\mathrm{d} t}=\lambda_2v_2 \\
 ... \\
 \frac{\mathrm{d} v_n}{\mathrm{d} t}=\lambda_nv_n \\
-\end{cases}</script><p>此时，新方程组的各个$v_i$之间就不再耦合，其一般解形式为：$v(t)=e^{\Lambda t}v(0)$。</p>
-<p>因此，$u(t)=e^{At}u(0)=Se^{\Lambda t}S^{-1}u(0)$</p>
-<h3 id="指数矩阵-e-At"><a href="#指数矩阵-e-At" class="headerlink" title="指数矩阵$e^{At}$"></a>指数矩阵$e^{At}$</h3><p>这里$e^{At}$为什么等于$Se^{\Lambda t}S^{-1}$呢？我们可以按泰勒级数进行展开：</p>
-<script type="math/tex; mode=display">
-e^{A t}=I+A t+\frac{(A t)^2}{2}+\frac{(A t)^3}{6}+\cdots+\frac{(A t)^n}{n !}+\cdots</script><p>而另一方面根据$A=S\Lambda S^{-1}$：</p>
-<script type="math/tex; mode=display">
-e^{A t}=S S^{-1}+S \Lambda S^{-1} t+\frac{S \Lambda^2 S^{-1}}{2} t^2+\frac{S \Lambda^3 S^{-1}}{6} t^3+\cdots+\frac{S \Lambda^n S^{-1}}{n !} t^n+\cdots</script><p>提出$S$和$S^{-1}$得到：</p>
-<script type="math/tex; mode=display">
-S\left(I+\Lambda t+\frac{\Lambda^2 t^2}{2}+\frac{\Lambda^3 t^3}{3}+\cdots+\frac{\Lambda^n t^n}{n}+\cdots\right) S^{-1} e^{A t}</script><p>故$e^{At}=Se^{\Lambda t}S^{-1}$。</p>
-<p>最后，来看看$e^{\Lambda t}$展开的形状：</p>
-<script type="math/tex; mode=display">
+\end{cases}
+\]</span></p>
+<p>此时，新方程组的各个<span
+class="math inline">\(v_i\)</span>之间就不再耦合，其一般解形式为：<span
+class="math inline">\(v(t)=e^{\Lambda t}v(0)\)</span>。</p>
+<p>因此，<span class="math inline">\(u(t)=e^{At}u(0)=Se^{\Lambda
+t}S^{-1}u(0)\)</span></p>
+<h3 id="指数矩阵eat">指数矩阵<span
+class="math inline">\(e^{At}\)</span></h3>
+<p>这里<span class="math inline">\(e^{At}\)</span>为什么等于<span
+class="math inline">\(Se^{\Lambda
+t}S^{-1}\)</span>呢？我们可以按泰勒级数进行展开： <span
+class="math display">\[
+e^{A t}=I+A t+\frac{(A t)^2}{2}+\frac{(A t)^3}{6}+\cdots+\frac{(A
+t)^n}{n !}+\cdots
+\]</span></p>
+<p>而另一方面根据<span class="math inline">\(A=S\Lambda
+S^{-1}\)</span>： <span class="math display">\[
+e^{A t}=S S^{-1}+S \Lambda S^{-1} t+\frac{S \Lambda^2 S^{-1}}{2}
+t^2+\frac{S \Lambda^3 S^{-1}}{6} t^3+\cdots+\frac{S \Lambda^n S^{-1}}{n
+!} t^n+\cdots
+\]</span></p>
+<p>提出<span class="math inline">\(S\)</span>和<span
+class="math inline">\(S^{-1}\)</span>得到： <span
+class="math display">\[
+S\left(I+\Lambda t+\frac{\Lambda^2 t^2}{2}+\frac{\Lambda^3
+t^3}{3}+\cdots+\frac{\Lambda^n t^n}{n}+\cdots\right) S^{-1} e^{A t}
+\]</span></p>
+<p>故<span class="math inline">\(e^{At}=Se^{\Lambda
+t}S^{-1}\)</span>。</p>
+<p>最后，来看看<span class="math inline">\(e^{\Lambda
+t}\)</span>展开的形状： <span class="math display">\[
 e^{\Lambda t}=\left[\begin{array}{cccc}
-e^{\lambda_1 t} & 0 & \cdots & 0 \\
-0 & e^{\lambda_2 t} & \cdots & 0 \\
-\vdots & \vdots & \ddots & \vdots \\
-0 & 0 & \cdots & e^{\lambda_n t}
-\end{array}\right]</script><blockquote>
-<p>实际上看到这里，就会发现最终判断收敛与发散的就是这个矩阵里的特征值，只不过对于微分方程来说，对角线上的元素不是$\lambda_i^t$，而是$e^{\lambda_it}$。</p>
+e^{\lambda_1 t} &amp; 0 &amp; \cdots &amp; 0 \\
+0 &amp; e^{\lambda_2 t} &amp; \cdots &amp; 0 \\
+\vdots &amp; \vdots &amp; \ddots &amp; \vdots \\
+0 &amp; 0 &amp; \cdots &amp; e^{\lambda_n t}
+\end{array}\right]
+\]</span></p>
+<blockquote>
+<p>实际上看到这里，就会发现最终判断收敛与发散的就是这个矩阵里的特征值，只不过对于微分方程来说，对角线上的元素不是<span
+class="math inline">\(\lambda_i^t\)</span>，而是<span
+class="math inline">\(e^{\lambda_it}\)</span>。</p>
 </blockquote>
-<h2 id="二阶微分方程"><a href="#二阶微分方程" class="headerlink" title="二阶微分方程"></a>二阶微分方程</h2><p>对于二阶微分方程来说，可以利用上一节应付斐波那契数列的构造法，将：$y’’+by’+ky=0$处理成：</p>
-<script type="math/tex; mode=display">
-u'=\begin{bmatrix}y'' \\ y'\end{bmatrix}=\begin{bmatrix}-b & -k \\ 1 & 0\end{bmatrix}\begin{bmatrix}y' \\ y\end{bmatrix}，(u=\begin{bmatrix}y' \\ y\end{bmatrix})</script><p>按照此法可以也可以推广到高阶，比如对5阶就转成一个$5\times 5$的矩阵对角化分解特征值、特征向量的问题。</p>
-<script type="math/tex; mode=display">
+<h2 id="二阶微分方程">二阶微分方程</h2>
+<p>对于二阶微分方程来说，可以利用上一节应付斐波那契数列的构造法，将：<span
+class="math inline">\(y&#39;&#39;+by&#39;+ky=0\)</span>处理成： <span
+class="math display">\[
+u&#39;=\begin{bmatrix}y&#39;&#39; \\
+y&#39;\end{bmatrix}=\begin{bmatrix}-b &amp; -k \\ 1 &amp;
+0\end{bmatrix}\begin{bmatrix}y&#39; \\
+y\end{bmatrix}，(u=\begin{bmatrix}y&#39; \\ y\end{bmatrix})
+\]</span></p>
+<p>按照此法可以也可以推广到高阶，比如对5阶就转成一个<span
+class="math inline">\(5\times
+5\)</span>的矩阵对角化分解特征值、特征向量的问题。 <span
+class="math display">\[
 \left[\begin{array}{l}
 y^{\prime \prime \prime \prime \prime \prime} \\
 y^{\prime \prime \prime \prime} \\
@@ -351,22 +457,29 @@ y^{\prime \prime \prime} \\
 y^{\prime \prime} \\
 y^{\prime}
 \end{array}\right]=\left[\begin{array}{ccccc}
--b & -c & -d & -e & -f \\
-1 & 0 & 0 & 0 & 0 \\
-0 & 1 & 0 & 0 & 0 \\
-0 & 0 & 1 & 0 & 0 \\
-0 & 0 & 0 & 1 & 0
+-b &amp; -c &amp; -d &amp; -e &amp; -f \\
+1 &amp; 0 &amp; 0 &amp; 0 &amp; 0 \\
+0 &amp; 1 &amp; 0 &amp; 0 &amp; 0 \\
+0 &amp; 0 &amp; 1 &amp; 0 &amp; 0 \\
+0 &amp; 0 &amp; 0 &amp; 1 &amp; 0
 \end{array}\right]\left[\begin{array}{l}
 y^{\prime \prime \prime \prime} \\
 y^{\prime \prime \prime} \\
 y^{\prime \prime} \\
 y^{\prime} \\
 y
-\end{array}\right]</script><h1 id="附录"><a href="#附录" class="headerlink" title="附录"></a>附录</h1><h2 id="视频"><a href="#视频" class="headerlink" title="视频"></a>视频</h2><iframe src="//player.bilibili.com/player.html?aid=382989698&bvid=BV16Z4y1U7oU&cid=570099813&p=23&autoplay=0" scrolling="no" width="100%" height="500" border="0" frameborder="no" framespacing="0" allowfullscreen="true"> </iframe>
-
-<h2 id="参考链接"><a href="#参考链接" class="headerlink" title="参考链接"></a>参考链接</h2><ul>
-<li><a target="_blank" rel="noopener" href="https://github.com/MLNLP-World/MIT-Linear-Algebra-Notes/blob/master/%5B23%5D%20%E5%BE%AE%E5%88%86%E6%96%B9%E7%A8%8B%E5%92%8Cexp(At">微分方程和exp(At)</a>/%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B023.pdf)</li>
-<li><a target="_blank" rel="noopener" href="https://github.com/kf-liu/The-Art-of-Linear-Algebra-zh-CN">线性代数的艺术</a></li>
+\end{array}\right]
+\]</span></p>
+<h1 id="附录">附录</h1>
+<h2 id="视频">视频</h2>
+<iframe src="//player.bilibili.com/player.html?aid=382989698&amp;bvid=BV16Z4y1U7oU&amp;cid=570099813&amp;p=23&amp;autoplay=0" scrolling="no" width="100%" height="500" border="0" frameborder="no" framespacing="0" allowfullscreen="true">
+</iframe>
+<h2 id="参考链接">参考链接</h2>
+<ul>
+<li><a
+target="_blank" rel="noopener" href="https://github.com/MLNLP-World/MIT-Linear-Algebra-Notes/blob/master/%5B23%5D%20%E5%BE%AE%E5%88%86%E6%96%B9%E7%A8%8B%E5%92%8Cexp(At)/%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B023.pdf">微分方程和exp(At)</a></li>
+<li><a
+target="_blank" rel="noopener" href="https://github.com/kf-liu/The-Art-of-Linear-Algebra-zh-CN">线性代数的艺术</a></li>
 </ul>
 
                 

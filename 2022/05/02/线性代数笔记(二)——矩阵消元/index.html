@@ -232,7 +232,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          3k 字
+          3.3k 字
         
       </span>
     
@@ -243,7 +243,7 @@
         
         
         
-          26 分钟
+          28 分钟
         
       </span>
     
@@ -287,51 +287,139 @@
                 
                 <p>高斯消元法是如今小学生都耳熟能详的解决齐次线性方程组的方法，课程第二讲主要讲授了高斯消元法应用在矩阵上的视觉效果与解读。</p>
 <span id="more"></span>
-<h1 id="矩阵消元"><a href="#矩阵消元" class="headerlink" title="矩阵消元"></a>矩阵消元</h1><h2 id="非矩阵视角的消元"><a href="#非矩阵视角的消元" class="headerlink" title="非矩阵视角的消元"></a>非矩阵视角的消元</h2><p>有三元方程组：<br>$\begin{cases}<br> x&amp;+2y&amp;+z&amp;=2<br> \ 3x&amp;+8y&amp;+z&amp;=12<br> \ &amp;4y&amp;+z&amp;=2<br> \end{cases}$</p>
-<p> 如果我们想通过消元法来解决，那么一般是考虑选中其中的一行，乘以某个系数对另外两行进行加法（系数为负就是减法）操作，以消除掉$x$未知数，如此，后两个方程组就变成了二元一次方程组求解问题，而方法也是以此类推，用其中的一个消掉另一个的$y$，最终剩下的那一行就只有$z$了。在解出$z$以后，再将$z$回代到方程组，进而再解另外两个未知数$x,y$。这种方法我们在小学的时候就已经掌握了。</p>
-<h2 id="矩阵视角的消元"><a href="#矩阵视角的消元" class="headerlink" title="矩阵视角的消元"></a>矩阵视角的消元</h2><p> 方程组对应的矩阵形式$Ax=b$为：<br> $\begin{bmatrix}<br> 1&amp;2&amp;1<br> \ 3&amp;8&amp;1<br> \ 0&amp;4&amp;1<br> \end{bmatrix}\begin{bmatrix}<br> x<br> \ y<br> \ z<br> \end{bmatrix}=\begin{bmatrix}<br> 2<br> \ 12<br> \ 2\end{bmatrix}$。</p>
-<p>实际上如果将消元的手法应用到矩阵上，本质上也并没有什么不同，从矩阵的视角来看，消元的第一步是选定第一行的第一个元素作为主元（对应$x$系数），分别乘以不同的系数对第二、三行进行加法操作，进而消除掉第二、三行的首个元素。由于第三行原本首个元素就是0，故这里只需要对第二行操作：<br>$\begin{bmatrix}<br> \underline{1}&amp;2&amp;1<br> \ 3&amp;8&amp;1<br> \ 0&amp;4&amp;1\end{bmatrix}\xrightarrow{row_2-3row_1}\begin{bmatrix}<br> \underline{1}&amp;2&amp;1<br> \ 0&amp;2&amp;-2<br> \ 0&amp;4&amp;1\end{bmatrix}$ </p>
-<p> 这里暂时先不管对$b$的影响（实际上也要跟着变化），矩阵$A$经过消元变成了这个样子。</p>
-<p> 接下来，我们如法炮制，选择第二行的第二个元素(对应$y$系数)作为主元，对第三行进行消元动作：<br> $\begin{bmatrix}<br>  \underline{1}&amp;2&amp;1<br>  \ 0&amp;\underline{2}&amp;-2<br>  \ 0&amp;4&amp;1\end{bmatrix}\xrightarrow{row_3-2row_2}\begin{bmatrix}\underline{1}&amp;2&amp;1<br>  \ 0&amp;\underline{2}&amp;-2<br>  \ 0&amp;0&amp;\underline{5}\end{bmatrix}$</p>
-<p>到此，消元动作结束，最后一行仅剩$z$的系数，即第三个元素5。</p>
+<h1 id="矩阵消元">矩阵消元</h1>
+<h2 id="非矩阵视角的消元">非矩阵视角的消元</h2>
+<p>有三元方程组： <span
+class="math inline">\(\begin{cases}  x&amp;+2y&amp;+z&amp;=2  \\
+3x&amp;+8y&amp;+z&amp;=12  \\
+&amp;4y&amp;+z&amp;=2  \end{cases}\)</span></p>
+<p>如果我们想通过消元法来解决，那么一般是考虑选中其中的一行，乘以某个系数对另外两行进行加法（系数为负就是减法）操作，以消除掉<span
+class="math inline">\(x\)</span>未知数，如此，后两个方程组就变成了二元一次方程组求解问题，而方法也是以此类推，用其中的一个消掉另一个的<span
+class="math inline">\(y\)</span>，最终剩下的那一行就只有<span
+class="math inline">\(z\)</span>了。在解出<span
+class="math inline">\(z\)</span>以后，再将<span
+class="math inline">\(z\)</span>回代到方程组，进而再解另外两个未知数<span
+class="math inline">\(x,y\)</span>。这种方法我们在小学的时候就已经掌握了。</p>
+<h2 id="矩阵视角的消元">矩阵视角的消元</h2>
+<p>方程组对应的矩阵形式<span class="math inline">\(Ax=b\)</span>为：
+<span class="math inline">\(\begin{bmatrix}  1&amp;2&amp;1  \\
+3&amp;8&amp;1  \\ 0&amp;4&amp;1  \end{bmatrix}\begin{bmatrix}  x  \\
+y  \\ z  \end{bmatrix}=\begin{bmatrix}  2  \\ 12  \\
+2\end{bmatrix}\)</span>。</p>
+<p>实际上如果将消元的手法应用到矩阵上，本质上也并没有什么不同，从矩阵的视角来看，消元的第一步是选定第一行的第一个元素作为主元（对应<span
+class="math inline">\(x\)</span>系数），分别乘以不同的系数对第二、三行进行加法操作，进而消除掉第二、三行的首个元素。由于第三行原本首个元素就是0，故这里只需要对第二行操作：
+<span
+class="math inline">\(\begin{bmatrix}  \underline{1}&amp;2&amp;1  \\
+3&amp;8&amp;1  \\
+0&amp;4&amp;1\end{bmatrix}\xrightarrow{row_2-3row_1}\begin{bmatrix}  \underline{1}&amp;2&amp;1  \\
+0&amp;2&amp;-2  \\ 0&amp;4&amp;1\end{bmatrix}\)</span></p>
+<p>这里暂时先不管对<span
+class="math inline">\(b\)</span>的影响（实际上也要跟着变化），矩阵<span
+class="math inline">\(A\)</span>经过消元变成了这个样子。</p>
+<p>接下来，我们如法炮制，选择第二行的第二个元素(对应<span
+class="math inline">\(y\)</span>系数)作为主元，对第三行进行消元动作：
+<span
+class="math inline">\(\begin{bmatrix}  \underline{1}&amp;2&amp;1  \\
+0&amp;\underline{2}&amp;-2  \\
+0&amp;4&amp;1\end{bmatrix}\xrightarrow{row_3-2row_2}\begin{bmatrix}\underline{1}&amp;2&amp;1  \\
+0&amp;\underline{2}&amp;-2  \\
+0&amp;0&amp;\underline{5}\end{bmatrix}\)</span></p>
+<p>到此，消元动作结束，最后一行仅剩<span
+class="math inline">\(z\)</span>的系数，即第三个元素5。</p>
 <p>上例的矩阵是精心设计的，实际上消元过程中可能会遇到一些失效的情形：首先主元不能为0，为0的主元无论乘上什么样的系数都无法消除其他行的对应列。其次，如果消元过程中遇到主元位置为0，则需要交换行，使主元不为0。</p>
-<p>消元结束后，我们就可以进行回代，由于方程组在矩阵消元时发生了变化，我们需要对$b$也进行相同的操作以同步这些变化，如此我们写成下面的增广矩阵形式：</p>
-<script type="math/tex; mode=display">
-\left[\begin{array}{c|c}A&b\end{array}\right]=
- \left[\begin{array}{ccc|c}
-  1&2&1&2
-  \\ 3&8&1&12
-  \\ 0&4&1&2
+<p>消元结束后，我们就可以进行回代，由于方程组在矩阵消元时发生了变化，我们需要对<span
+class="math inline">\(b\)</span>也进行相同的操作以同步这些变化，如此我们写成下面的增广矩阵形式：
+<span class="math display">\[
+\left[\begin{array}{c|c}A&amp;b\end{array}\right]=
+\left[\begin{array}{ccc|c}
+  1&amp;2&amp;1&amp;2
+  \\ 3&amp;8&amp;1&amp;12
+  \\ 0&amp;4&amp;1&amp;2
   \end{array}
 \right]\to\left[\begin{array}{ccc|c}
- 1&2&1&2
- \\ 0&2&-2&6
- \\ 0&4&1&2
- \end{array}
+1&amp;2&amp;1&amp;2
+\\ 0&amp;2&amp;-2&amp;6
+\\ 0&amp;4&amp;1&amp;2
+\end{array}
 \right]\to\left[\begin{array}{ccc|c}
- 1&2&1&2
- \\ 0&2&-2&6
- \\ 0&0&5&-10
- \end{array}\right]</script><p>此时方程组变为：$\begin{cases}x&amp;+2y&amp;+z&amp;=2\ &amp;2y&amp;-2z&amp;=6\ &amp;&amp;5z&amp;=-10\end{cases}$，最后一行可以得出$z=-2$，回代到$2y-2z=6$得到$y=1$，再进一步得到$x=2$。</p>
+1&amp;2&amp;1&amp;2
+\\ 0&amp;2&amp;-2&amp;6
+\\ 0&amp;0&amp;5&amp;-10
+\end{array}\right]
+\]</span></p>
+<p>此时方程组变为：<span
+class="math inline">\(\begin{cases}x&amp;+2y&amp;+z&amp;=2\\
+&amp;2y&amp;-2z&amp;=6\\
+&amp;&amp;5z&amp;=-10\end{cases}\)</span>，最后一行可以得出<span
+class="math inline">\(z=-2\)</span>，回代到<span
+class="math inline">\(2y-2z=6\)</span>得到<span
+class="math inline">\(y=1\)</span>，再进一步得到<span
+class="math inline">\(x=2\)</span>。</p>
 <blockquote>
 <p>可以用这里的方程组和我们小学时学到的消元法得到的方程组作对比，本质上完全一样。</p>
 </blockquote>
-<h2 id="矩阵消元的本质"><a href="#矩阵消元的本质" class="headerlink" title="矩阵消元的本质"></a>矩阵消元的本质</h2><p>通过第一节课我们知道，对于矩阵乘法$AB$可以看成是对矩阵$B$中行按$A$中系数的线性组合，如果$B$想要维持不变，那么$A$就得是个单位矩阵$I$:<br>$\begin{bmatrix}<br> 1&amp;0&amp;0<br> \ 0&amp;1&amp;0<br> \ 0&amp;0&amp;1\end{bmatrix}$<br> 这个单位矩阵就相当于我们实数运算中的1，只不过在矩阵的世界，它长这个样子。</p>
+<h2 id="矩阵消元的本质">矩阵消元的本质</h2>
+<p>通过第一节课我们知道，对于矩阵乘法<span
+class="math inline">\(AB\)</span>可以看成是对矩阵<span
+class="math inline">\(B\)</span>中行按<span
+class="math inline">\(A\)</span>中系数的线性组合，如果<span
+class="math inline">\(B\)</span>想要维持不变，那么<span
+class="math inline">\(A\)</span>就得是个单位矩阵<span
+class="math inline">\(I\)</span>: <span
+class="math inline">\(\begin{bmatrix}  1&amp;0&amp;0  \\
+0&amp;1&amp;0  \\ 0&amp;0&amp;1\end{bmatrix}\)</span>
+这个单位矩阵就相当于我们实数运算中的1，只不过在矩阵的世界，它长这个样子。</p>
 <blockquote>
 <p>单位阵的三行彼此换一换，就能得到一个置换矩阵群，这个东西很有意思，以后会讲到。</p>
 </blockquote>
-<p>于是我们还原一下消元的第一步操作：$row_2-3row_1$<br>$\begin{bmatrix}<br> 1&amp;0&amp;0<br> \ -3&amp;1&amp;0<br> \ 0&amp;0&amp;1\end{bmatrix}\begin{bmatrix}<br> 1&amp;2&amp;1<br> \ 3&amp;8&amp;1<br> \ 0&amp;4&amp;1\end{bmatrix}=\begin{bmatrix}<br> 1&amp;2&amp;1<br> \ 0&amp;2&amp;-2<br> \ 0&amp;4&amp;1\end{bmatrix}$</p>
-<p>这个消元矩阵我们记作$E_{21}$，即将第二行第一个元素变为0。</p>
-<p>同理，我们找到$E_{32}$，将第三行第二个元素变为0：<br>$\begin{bmatrix}<br> 1&amp;0&amp;0<br> \ 0&amp;1&amp;0<br> \ 0&amp;-2&amp;1<br> \end{bmatrix}\begin{bmatrix}<br> 1&amp;2&amp;1<br> \ 0&amp;2&amp;-2<br> \ 0&amp;4&amp;1\end{bmatrix}=\begin{bmatrix}<br> 1&amp;2&amp;1<br> \ 0&amp;2&amp;-2<br> \ 0&amp;0&amp;5\end{bmatrix}$</p>
-<p> $E<em>{21}$和$E</em>{32}$就是消元过程中用到的两个初等矩阵。</p>
-<p> 最后，我们将两步综合起来，即$E<em>{32}(E</em>{21}A)=U$。矩阵的乘法是满足结合律的，所以这里的括号可以移动一下，即$(E<em>{32}E</em>{21})A=U$，这里的$U$表示upper，即上三角矩阵（对角线下面的元素全都是0）。</p>
-<h2 id="逆"><a href="#逆" class="headerlink" title="逆"></a>逆</h2><p> 如此，我们可以通过对$A$做行变换得到$U$，那么显然，如果要从$U$变回$A$我们只需要再反向操作一波即可，比如$E_{21}$是从第二行减去三倍的第一行，那么它的反向操作就应该是第二行加上3倍的第一行，所以其逆矩阵就应该是$\begin{bmatrix}1&amp;0&amp;0\ 3&amp;1&amp;0\ 0&amp;0&amp;1\end{bmatrix}$。</p>
-<p> 我们把矩阵$E$的逆记作$E^{-1}$，显然有$E^{-1}E=I$，从行变换意义上来看，单位阵$I$乘以$A$相当于什么都没有改变，也就是二者抵消后的结果。</p>
-<h1 id="附录"><a href="#附录" class="headerlink" title="附录"></a>附录</h1><h2 id="视频"><a href="#视频" class="headerlink" title="视频"></a>视频</h2><iframe src="//player.bilibili.com/player.html?aid=382989698&bvid=BV16Z4y1U7oU&cid=569889975&p=2&autoplay=0" width="100%" height="500" scrolling="no" border="0" frameborder="no" framespacing="0" allowfullscreen="true"> </iframe>
-
-<h2 id="参考链接"><a href="#参考链接" class="headerlink" title="参考链接"></a>参考链接</h2><ul>
-<li><a target="_blank" rel="noopener" href="https://github.com/MLNLP-World/MIT-Linear-Algebra-Notes/blob/master/%5B02%5D%E7%9F%A9%E9%98%B5%E6%B6%88%E5%85%83/%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B0%5B%E4%BA%8C%5D.pdf">矩阵消元</a></li>
-<li><a target="_blank" rel="noopener" href="https://github.com/kf-liu/The-Art-of-Linear-Algebra-zh-CN">线性代数的艺术</a></li>
+<p>于是我们还原一下消元的第一步操作：<span
+class="math inline">\(row_2-3row_1\)</span> <span
+class="math inline">\(\begin{bmatrix}  1&amp;0&amp;0  \\
+-3&amp;1&amp;0  \\
+0&amp;0&amp;1\end{bmatrix}\begin{bmatrix}  1&amp;2&amp;1  \\
+3&amp;8&amp;1  \\
+0&amp;4&amp;1\end{bmatrix}=\begin{bmatrix}  1&amp;2&amp;1  \\
+0&amp;2&amp;-2  \\ 0&amp;4&amp;1\end{bmatrix}\)</span></p>
+<p>这个消元矩阵我们记作<span
+class="math inline">\(E_{21}\)</span>，即将第二行第一个元素变为0。</p>
+<p>同理，我们找到<span
+class="math inline">\(E_{32}\)</span>，将第三行第二个元素变为0： <span
+class="math inline">\(\begin{bmatrix}  1&amp;0&amp;0  \\
+0&amp;1&amp;0  \\
+0&amp;-2&amp;1  \end{bmatrix}\begin{bmatrix}  1&amp;2&amp;1  \\
+0&amp;2&amp;-2  \\
+0&amp;4&amp;1\end{bmatrix}=\begin{bmatrix}  1&amp;2&amp;1  \\
+0&amp;2&amp;-2  \\ 0&amp;0&amp;5\end{bmatrix}\)</span></p>
+<p><span class="math inline">\(E_{21}\)</span>和<span
+class="math inline">\(E_{32}\)</span>就是消元过程中用到的两个初等矩阵。</p>
+<p>最后，我们将两步综合起来，即<span
+class="math inline">\(E_{32}(E_{21}A)=U\)</span>。矩阵的乘法是满足结合律的，所以这里的括号可以移动一下，即<span
+class="math inline">\((E_{32}E_{21})A=U\)</span>，这里的<span
+class="math inline">\(U\)</span>表示upper，即上三角矩阵（对角线下面的元素全都是0）。</p>
+<h2 id="逆">逆</h2>
+<p>如此，我们可以通过对<span
+class="math inline">\(A\)</span>做行变换得到<span
+class="math inline">\(U\)</span>，那么显然，如果要从<span
+class="math inline">\(U\)</span>变回<span
+class="math inline">\(A\)</span>我们只需要再反向操作一波即可，比如<span
+class="math inline">\(E_{21}\)</span>是从第二行减去三倍的第一行，那么它的反向操作就应该是第二行加上3倍的第一行，所以其逆矩阵就应该是<span
+class="math inline">\(\begin{bmatrix}1&amp;0&amp;0\\ 3&amp;1&amp;0\\
+0&amp;0&amp;1\end{bmatrix}\)</span>。</p>
+<p>我们把矩阵<span class="math inline">\(E\)</span>的逆记作<span
+class="math inline">\(E^{-1}\)</span>，显然有<span
+class="math inline">\(E^{-1}E=I\)</span>，从行变换意义上来看，单位阵<span
+class="math inline">\(I\)</span>乘以<span
+class="math inline">\(A\)</span>相当于什么都没有改变，也就是二者抵消后的结果。</p>
+<h1 id="附录">附录</h1>
+<h2 id="视频">视频</h2>
+<iframe src="//player.bilibili.com/player.html?aid=382989698&amp;bvid=BV16Z4y1U7oU&amp;cid=569889975&amp;p=2&amp;autoplay=0" width="100%" height="500" scrolling="no" border="0" frameborder="no" framespacing="0" allowfullscreen="true">
+</iframe>
+<h2 id="参考链接">参考链接</h2>
+<ul>
+<li><a
+target="_blank" rel="noopener" href="https://github.com/MLNLP-World/MIT-Linear-Algebra-Notes/blob/master/%5B02%5D%E7%9F%A9%E9%98%B5%E6%B6%88%E5%85%83/%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B0%5B%E4%BA%8C%5D.pdf">矩阵消元</a></li>
+<li><a
+target="_blank" rel="noopener" href="https://github.com/kf-liu/The-Art-of-Linear-Algebra-zh-CN">线性代数的艺术</a></li>
 </ul>
 
                 

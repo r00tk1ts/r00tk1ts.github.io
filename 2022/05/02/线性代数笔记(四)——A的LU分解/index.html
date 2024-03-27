@@ -16,12 +16,12 @@
   <meta name="author" content="r00tk1t">
   <meta name="keywords" content="">
   
-    <meta name="description" content="本讲主要是围绕$A$的$LU$分解，深入展开矩阵乘法、逆与转置的关系。最后自然而然的引出了置换矩阵。">
+    <meta name="description" content="本讲主要是围绕\(A\)的\(LU\)分解，深入展开矩阵乘法、逆与转置的关系。最后自然而然的引出了置换矩阵。">
 <meta property="og:type" content="article">
 <meta property="og:title" content="线性代数笔记(四)——A的LU分解">
 <meta property="og:url" content="https://r00tk1ts.github.io/2022/05/02/%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B0%E7%AC%94%E8%AE%B0(%E5%9B%9B)%E2%80%94%E2%80%94A%E7%9A%84LU%E5%88%86%E8%A7%A3/index.html">
 <meta property="og:site_name" content="玉涵的技能书">
-<meta property="og:description" content="本讲主要是围绕$A$的$LU$分解，深入展开矩阵乘法、逆与转置的关系。最后自然而然的引出了置换矩阵。">
+<meta property="og:description" content="本讲主要是围绕\(A\)的\(LU\)分解，深入展开矩阵乘法、逆与转置的关系。最后自然而然的引出了置换矩阵。">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2022-05-02T13:23:15.000Z">
 <meta property="article:modified_time" content="2023-09-13T07:58:31.412Z">
@@ -232,7 +232,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          1.2k 字
+          1.5k 字
         
       </span>
     
@@ -243,7 +243,7 @@
         
         
         
-          11 分钟
+          13 分钟
         
       </span>
     
@@ -285,62 +285,101 @@
             
               <div class="markdown-body">
                 
-                <p>本讲主要是围绕$A$的$LU$分解，深入展开矩阵乘法、逆与转置的关系。最后自然而然的引出了置换矩阵。</p>
+                <p>本讲主要是围绕<span class="math inline">\(A\)</span>的<span
+class="math inline">\(LU\)</span>分解，深入展开矩阵乘法、逆与转置的关系。最后自然而然的引出了置换矩阵。</p>
 <span id="more"></span>
-<h1 id="A-的-LU-分解"><a href="#A-的-LU-分解" class="headerlink" title="$A$的$LU$分解"></a>$A$的$LU$分解</h1><h2 id="AB-的逆"><a href="#AB-的逆" class="headerlink" title="$AB$的逆"></a>$AB$的逆</h2><p>$AB$如果有逆，那么其逆显然是$B^{-1}A^{-1}$，因为有：</p>
-<script type="math/tex; mode=display">
+<h1 id="a的lu分解"><span class="math inline">\(A\)</span>的<span
+class="math inline">\(LU\)</span>分解</h1>
+<h2 id="ab的逆"><span class="math inline">\(AB\)</span>的逆</h2>
+<p><span class="math inline">\(AB\)</span>如果有逆，那么其逆显然是<span
+class="math inline">\(B^{-1}A^{-1}\)</span>，因为有： <span
+class="math display">\[
 \begin{align}
 (AB)(B^{-1} A^{-1})=I
 \\ (B^{-1} A^{-1})(AB)=I
-\end{align}</script><p>根据结合律法则，我们把括号挪一下，俩俩结合成$I$，上式一目了然。</p>
-<h2 id="AB-的转置"><a href="#AB-的转置" class="headerlink" title="$AB$的转置"></a>$AB$的转置</h2><p>显然是$B^TA^T$（对结果$C$中的每个元素求和分别计算即可证等），由此可见转置如果想要拆除括号，则内层矩阵的转置顺序要倒置。</p>
-<h2 id="A-T-的逆"><a href="#A-T-的逆" class="headerlink" title="$A^T$的逆"></a>$A^T$的逆</h2><p>显然：</p>
-<script type="math/tex; mode=display">
+\end{align}
+\]</span></p>
+<p>根据结合律法则，我们把括号挪一下，俩俩结合成<span
+class="math inline">\(I\)</span>，上式一目了然。</p>
+<h2 id="ab的转置"><span class="math inline">\(AB\)</span>的转置</h2>
+<p>显然是<span class="math inline">\(B^TA^T\)</span>（对结果<span
+class="math inline">\(C\)</span>中的每个元素求和分别计算即可证等），由此可见转置如果想要拆除括号，则内层矩阵的转置顺序要倒置。</p>
+<h2 id="at的逆"><span class="math inline">\(A^T\)</span>的逆</h2>
+<p>显然： <span class="math display">\[
 \begin{align}
 (AA^{-1})^T = I^T = I
 \\ (A^{-1})^TA^T = I
-\end{align}</script><p>因此$A^T$的逆矩阵就是$(A^{-1})^T$，即$(A^T)^{-1}=(A^{-1})^T$，因此得出：对单个矩阵，转置和取逆操作顺序可以互换。</p>
-<h2 id="A-LU-和-EA-U-的关系"><a href="#A-LU-和-EA-U-的关系" class="headerlink" title="$A=LU$和$EA=U$的关系"></a>$A=LU$和$EA=U$的关系</h2><p>通过不断的左乘$E_{xy}$做高斯消元，可以让矩阵$A$变换为$U$，而只需要在等号两边同时左乘$E^{-1}$，就得到$A=E^{-1}U$，显然，$L$和$E$互为逆矩阵。高斯消元本质上做的是行变换，最终得到的$U$是一个上三角阵，而$L$则是一个下三角阵。</p>
-<p>$n$阶方阵$A$变换为$LU$需要的计算量有多少呢？对100阶方阵，从第2行开始到第100行针对列1元素都需要进行行变换，每行有100个元素，计算次数为$99\times100$，然后对于列2，则需要从第3行开始到第100行，计算次数为$98\times99$，递归下去，总的时间复杂度可用平方和来预估：$O(n^2+(n-1)^2+\dots+2^2+1^2)$，即$O(\frac{n^3}{3})$。</p>
-<h2 id="置换矩阵"><a href="#置换矩阵" class="headerlink" title="置换矩阵"></a>置换矩阵</h2><p>3阶置换矩阵有6个：</p>
-<script type="math/tex; mode=display">
+\end{align}
+\]</span></p>
+<p>因此<span class="math inline">\(A^T\)</span>的逆矩阵就是<span
+class="math inline">\((A^{-1})^T\)</span>，即<span
+class="math inline">\((A^T)^{-1}=(A^{-1})^T\)</span>，因此得出：对单个矩阵，转置和取逆操作顺序可以互换。</p>
+<h2 id="alu和eau的关系"><span class="math inline">\(A=LU\)</span>和<span
+class="math inline">\(EA=U\)</span>的关系</h2>
+<p>通过不断的左乘<span
+class="math inline">\(E_{xy}\)</span>做高斯消元，可以让矩阵<span
+class="math inline">\(A\)</span>变换为<span
+class="math inline">\(U\)</span>，而只需要在等号两边同时左乘<span
+class="math inline">\(E^{-1}\)</span>，就得到<span
+class="math inline">\(A=E^{-1}U\)</span>，显然，<span
+class="math inline">\(L\)</span>和<span
+class="math inline">\(E\)</span>互为逆矩阵。高斯消元本质上做的是行变换，最终得到的<span
+class="math inline">\(U\)</span>是一个上三角阵，而<span
+class="math inline">\(L\)</span>则是一个下三角阵。</p>
+<p><span class="math inline">\(n\)</span>阶方阵<span
+class="math inline">\(A\)</span>变换为<span
+class="math inline">\(LU\)</span>需要的计算量有多少呢？对100阶方阵，从第2行开始到第100行针对列1元素都需要进行行变换，每行有100个元素，计算次数为<span
+class="math inline">\(99\times100\)</span>，然后对于列2，则需要从第3行开始到第100行，计算次数为<span
+class="math inline">\(98\times99\)</span>，递归下去，总的时间复杂度可用平方和来预估：<span
+class="math inline">\(O(n^2+(n-1)^2+\dots+2^2+1^2)\)</span>，即<span
+class="math inline">\(O(\frac{n^3}{3})\)</span>。</p>
+<h2 id="置换矩阵">置换矩阵</h2>
+<p>3阶置换矩阵有6个： <span class="math display">\[
 \begin{bmatrix}
-1 & 0 & 0 
-\\ 0 & 1 & 0 
-\\ 0 & 0 & 1 
+1 &amp; 0 &amp; 0
+\\ 0 &amp; 1 &amp; 0
+\\ 0 &amp; 0 &amp; 1
 \end{bmatrix}
 \begin{bmatrix}
-0 & 1 & 0 
-\\ 1 & 0 & 0
-\\ 0 & 0 & 1 
+0 &amp; 1 &amp; 0
+\\ 1 &amp; 0 &amp; 0
+\\ 0 &amp; 0 &amp; 1
 \end{bmatrix}
 \begin{bmatrix}
-0 & 0 & 1
-\\ 0 & 1 & 0
-\\ 1 & 0 & 0
+0 &amp; 0 &amp; 1
+\\ 0 &amp; 1 &amp; 0
+\\ 1 &amp; 0 &amp; 0
 \end{bmatrix}
 \begin{bmatrix}
-1 & 0 & 0
-\\ 0 & 0 & 1
-\\ 0 & 1 & 0
+1 &amp; 0 &amp; 0
+\\ 0 &amp; 0 &amp; 1
+\\ 0 &amp; 1 &amp; 0
 \end{bmatrix}
 \begin{bmatrix}
-0 & 1 & 0
-\\ 0 & 0 & 1
-\\ 1 & 0 & 0
+0 &amp; 1 &amp; 0
+\\ 0 &amp; 0 &amp; 1
+\\ 1 &amp; 0 &amp; 0
 \end{bmatrix}
 \begin{bmatrix}
-0 & 0 & 1
-\\ 1 & 0 & 0
-\\ 0 & 1 & 0
-\end{bmatrix}</script><p>这6个置换矩阵组成了一个很有意思的矩阵群（任取两个矩阵相乘，结果仍在该矩阵群中），它们有非常有意思的性质：置换矩阵的逆等于其转置，这一点非常好理解，相当于被交换的行又再次被交换回来。</p>
-<p>根据每行中1的位置，可以知道$n$阶方阵的置换矩阵个数就是全排列数：共$\binom{n}{1}=n!$个。</p>
-<h1 id="附录"><a href="#附录" class="headerlink" title="附录"></a>附录</h1><h2 id="视频"><a href="#视频" class="headerlink" title="视频"></a>视频</h2><iframe src="//player.bilibili.com/player.html?aid=382989698&bvid=BV16Z4y1U7oU&cid=569890100&p=4&autoplay=0"
-width="100%" height="500" scrolling="no" border="0" frameborder="no" framespacing="0" allowfullscreen="true"> </iframe>
-
-<h2 id="参考链接"><a href="#参考链接" class="headerlink" title="参考链接"></a>参考链接</h2><ul>
-<li><a target="_blank" rel="noopener" href="https://github.com/MLNLP-World/MIT-Linear-Algebra-Notes/blob/master/%5B04%5DA%20%E7%9A%84%20LU%20%E5%88%86%E8%A7%A3/%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B0%5B%E5%9B%9B%5D.pdf">A的LU分解</a></li>
-<li><a target="_blank" rel="noopener" href="https://github.com/kf-liu/The-Art-of-Linear-Algebra-zh-CN">线性代数的艺术</a></li>
+0 &amp; 0 &amp; 1
+\\ 1 &amp; 0 &amp; 0
+\\ 0 &amp; 1 &amp; 0
+\end{bmatrix}
+\]</span></p>
+<p>这6个置换矩阵组成了一个很有意思的矩阵群（任取两个矩阵相乘，结果仍在该矩阵群中），它们有非常有意思的性质：置换矩阵的逆等于其转置，这一点非常好理解，相当于被交换的行又再次被交换回来。</p>
+<p>根据每行中1的位置，可以知道<span
+class="math inline">\(n\)</span>阶方阵的置换矩阵个数就是全排列数：共<span
+class="math inline">\(\binom{n}{1}=n!\)</span>个。</p>
+<h1 id="附录">附录</h1>
+<h2 id="视频">视频</h2>
+<iframe src="//player.bilibili.com/player.html?aid=382989698&amp;bvid=BV16Z4y1U7oU&amp;cid=569890100&amp;p=4&amp;autoplay=0" width="100%" height="500" scrolling="no" border="0" frameborder="no" framespacing="0" allowfullscreen="true">
+</iframe>
+<h2 id="参考链接">参考链接</h2>
+<ul>
+<li><a
+target="_blank" rel="noopener" href="https://github.com/MLNLP-World/MIT-Linear-Algebra-Notes/blob/master/%5B04%5DA%20%E7%9A%84%20LU%20%E5%88%86%E8%A7%A3/%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B0%5B%E5%9B%9B%5D.pdf">A的LU分解</a></li>
+<li><a
+target="_blank" rel="noopener" href="https://github.com/kf-liu/The-Art-of-Linear-Algebra-zh-CN">线性代数的艺术</a></li>
 </ul>
 
                 
