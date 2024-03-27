@@ -16,12 +16,12 @@
   <meta name="author" content="r00tk1t">
   <meta name="keywords" content="">
   
-    <meta name="description" content="这一讲系统的讲解了线性方程组$Ax&#x3D;b$的求解，对可解性和解的结构进行了展开说明，得到了具体的通用解法：$X_p+X_n$，并按照秩与$m,n$的关系对解做了归类。 求解$Ax&#x3D;b$：可解性和解的结构我们知道$Ax&#x3D;b$未必有解，当$A$的列空间无法线性组合出$b$时，方程组是无解的。而在有解时可能存在唯一解，也可能存在无穷多个解，那么这其中又有什么规律呢？我们尝试按照上一讲对$Ax&#x3D;0$的研究方">
+    <meta name="description" content="这一讲系统的讲解了线性方程组\(Ax&#x3D;b\)的求解，对可解性和解的结构进行了展开说明，得到了具体的通用解法：\(X_p+X_n\)，并按照秩与\(m,n\)的关系对解做了归类。 求解\(Ax&#x3D;b\)：可解性和解的结构 我们知道\(Ax&#x3D;b\)未必有解，当\(A\)的列空间无法线性组合出\(b\)时，方程组是无解的。而在有解时可能存在唯一解，也可能存在无穷多个解，那么这其中又有什么规律呢？我们尝试按">
 <meta property="og:type" content="article">
 <meta property="og:title" content="线性代数笔记(八)——求解Ax&#x3D;b：可解性和解的结构">
 <meta property="og:url" content="https://r00tk1ts.github.io/2022/05/04/%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B0%E7%AC%94%E8%AE%B0(%E5%85%AB)%E2%80%94%E2%80%94%E6%B1%82%E8%A7%A3Ax-b%EF%BC%9A%E5%8F%AF%E8%A7%A3%E6%80%A7%E5%92%8C%E8%A7%A3%E7%9A%84%E7%BB%93%E6%9E%84/index.html">
 <meta property="og:site_name" content="玉涵的技能书">
-<meta property="og:description" content="这一讲系统的讲解了线性方程组$Ax&#x3D;b$的求解，对可解性和解的结构进行了展开说明，得到了具体的通用解法：$X_p+X_n$，并按照秩与$m,n$的关系对解做了归类。 求解$Ax&#x3D;b$：可解性和解的结构我们知道$Ax&#x3D;b$未必有解，当$A$的列空间无法线性组合出$b$时，方程组是无解的。而在有解时可能存在唯一解，也可能存在无穷多个解，那么这其中又有什么规律呢？我们尝试按照上一讲对$Ax&#x3D;0$的研究方">
+<meta property="og:description" content="这一讲系统的讲解了线性方程组\(Ax&#x3D;b\)的求解，对可解性和解的结构进行了展开说明，得到了具体的通用解法：\(X_p+X_n\)，并按照秩与\(m,n\)的关系对解做了归类。 求解\(Ax&#x3D;b\)：可解性和解的结构 我们知道\(Ax&#x3D;b\)未必有解，当\(A\)的列空间无法线性组合出\(b\)时，方程组是无解的。而在有解时可能存在唯一解，也可能存在无穷多个解，那么这其中又有什么规律呢？我们尝试按">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2022-05-04T11:10:12.000Z">
 <meta property="article:modified_time" content="2023-09-14T03:51:34.234Z">
@@ -82,7 +82,7 @@
 
 
   
-<meta name="generator" content="Hexo 6.1.0"></head>
+<!-- hexo injector head_end start --><link rel="stylesheet" href="https://cdn.staticfile.org/lxgw-wenkai-screen-webfont/1.7.0/style.min.css" /><!-- hexo injector head_end end --><meta name="generator" content="Hexo 6.1.0"></head>
 
 
 <body>
@@ -232,7 +232,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          2.2k 字
+          2.5k 字
         
       </span>
     
@@ -243,7 +243,7 @@
         
         
         
-          19 分钟
+          21 分钟
         
       </span>
     
@@ -285,59 +285,138 @@
             
               <div class="markdown-body">
                 
-                <p>这一讲系统的讲解了线性方程组$Ax=b$的求解，对可解性和解的结构进行了展开说明，得到了具体的通用解法：$X_p+X_n$，并按照秩与$m,n$的关系对解做了归类。</p>
-<h1 id="求解-Ax-b-：可解性和解的结构"><a href="#求解-Ax-b-：可解性和解的结构" class="headerlink" title="求解$Ax=b$：可解性和解的结构"></a>求解$Ax=b$：可解性和解的结构</h1><p>我们知道$Ax=b$未必有解，当$A$的列空间无法线性组合出$b$时，方程组是无解的。而在有解时可能存在唯一解，也可能存在无穷多个解，那么这其中又有什么规律呢？我们尝试按照上一讲对$Ax=0$的研究方法来进行消元操作。</p>
-<h2 id="可解性"><a href="#可解性" class="headerlink" title="可解性"></a>可解性</h2><p>依然采用上一讲的矩阵：$A=\begin{bmatrix}<br>1 &amp; 2 &amp; 2 &amp; 2<br>\ 2 &amp; 4 &amp; 6 &amp; 8<br>\ 3 &amp; 6 &amp; 8 &amp; 10<br>\end{bmatrix}$，求$Ax=b$的特解。</p>
-<p>这一次$b$不再是$0$向量，我们消元时写出增广矩阵：</p>
-<script type="math/tex; mode=display">
+                <p>这一讲系统的讲解了线性方程组<span
+class="math inline">\(Ax=b\)</span>的求解，对可解性和解的结构进行了展开说明，得到了具体的通用解法：<span
+class="math inline">\(X_p+X_n\)</span>，并按照秩与<span
+class="math inline">\(m,n\)</span>的关系对解做了归类。</p>
+<h1 id="求解axb可解性和解的结构">求解<span
+class="math inline">\(Ax=b\)</span>：可解性和解的结构</h1>
+<p>我们知道<span class="math inline">\(Ax=b\)</span>未必有解，当<span
+class="math inline">\(A\)</span>的列空间无法线性组合出<span
+class="math inline">\(b\)</span>时，方程组是无解的。而在有解时可能存在唯一解，也可能存在无穷多个解，那么这其中又有什么规律呢？我们尝试按照上一讲对<span
+class="math inline">\(Ax=0\)</span>的研究方法来进行消元操作。</p>
+<h2 id="可解性">可解性</h2>
+<p>依然采用上一讲的矩阵：<span class="math inline">\(A=\begin{bmatrix} 1
+&amp; 2 &amp; 2 &amp; 2 \\ 2 &amp; 4 &amp; 6 &amp; 8 \\ 3 &amp; 6 &amp;
+8 &amp; 10 \end{bmatrix}\)</span>，求<span
+class="math inline">\(Ax=b\)</span>的特解。</p>
+<p>这一次<span class="math inline">\(b\)</span>不再是<span
+class="math inline">\(0\)</span>向量，我们消元时写出增广矩阵： <span
+class="math display">\[
 \left[
 \begin{array}{c c c c|c}
-1 & 2 & 2 & 2 & b_1 
-\\ 2 & 4 & 6 & 8 & b_2 
-\\ 3 & 6 & 8 & 10 & b_3 
+1 &amp; 2 &amp; 2 &amp; 2 &amp; b_1
+\\ 2 &amp; 4 &amp; 6 &amp; 8 &amp; b_2
+\\ 3 &amp; 6 &amp; 8 &amp; 10 &amp; b_3
 \end{array}
 \right]
 \underrightarrow{消元}
 \left[
 \begin{array}{c c c c|c}
-1 & 2 & 2 & 2 & b_1 
-\\ 0 & 0 & 2 & 4 & b_2-2b_1 
-\\ 0 & 0 & 0 & 0 & b_3-b_2-b_1 
+1 &amp; 2 &amp; 2 &amp; 2 &amp; b_1
+\\ 0 &amp; 0 &amp; 2 &amp; 4 &amp; b_2-2b_1
+\\ 0 &amp; 0 &amp; 0 &amp; 0 &amp; b_3-b_2-b_1
 \end{array}
-\right]</script><p>从最后一行可见，要使$Ax=b$有解，则必须满足$b_3-b_2-b_1=0$，而这就是可解性。</p>
-<p>我们此前按照列空间视角，对此可以给出这样的解释：$b$必须要属于$A$的列空间才有解，也就是$A$中各列的线性组合。</p>
-<p>现在让我们换个角度来理解可解性：<strong>如果$A$中各行线性组合产生了零行，那么向量$b$的分量在同样的线性组合后也必须为零。</strong></p>
-<h2 id="解的结构"><a href="#解的结构" class="headerlink" title="解的结构"></a>解的结构</h2><p>设$b=\begin{bmatrix}<br>1\ 5\ 6<br>\end{bmatrix}$满足可解性，那么$Ax=b$的解是什么呢？<br>直观上来看，消元以后我们得到了两个方程，但是未知数有4个，因此，理论上我们可以找到无穷多个解（因为存在自由变量）。</p>
-<script type="math/tex; mode=display">
+\right]
+\]</span></p>
+<p>从最后一行可见，要使<span
+class="math inline">\(Ax=b\)</span>有解，则必须满足<span
+class="math inline">\(b_3-b_2-b_1=0\)</span>，而这就是可解性。</p>
+<p>我们此前按照列空间视角，对此可以给出这样的解释：<span
+class="math inline">\(b\)</span>必须要属于<span
+class="math inline">\(A\)</span>的列空间才有解，也就是<span
+class="math inline">\(A\)</span>中各列的线性组合。</p>
+<p>现在让我们换个角度来理解可解性：<strong>如果<span
+class="math inline">\(A\)</span>中各行线性组合产生了零行，那么向量<span
+class="math inline">\(b\)</span>的分量在同样的线性组合后也必须为零。</strong></p>
+<h2 id="解的结构">解的结构</h2>
+<p>设<span class="math inline">\(b=\begin{bmatrix} 1\\ 5\\ 6
+\end{bmatrix}\)</span>满足可解性，那么<span
+class="math inline">\(Ax=b\)</span>的解是什么呢？
+直观上来看，消元以后我们得到了两个方程，但是未知数有4个，因此，理论上我们可以找到无穷多个解（因为存在自由变量）。
+<span class="math display">\[
 \begin{cases}
-x_1+2x_2+2x_3+2x_4 = 1 
+x_1+2x_2+2x_3+2x_4 = 1
 \\ 2x_3+4x_4 = 3
-\end{cases}</script><p>想要求得通解，首先我们要找出特解：先让所有的自由变量取$0$，以解出此时主变量的值。这里自由变量是$x_2$和$x_4$，回代求得$x_1=-2,x_3=\frac{3}{2}$，故特解$x_p=\begin{bmatrix}-2\ 0\ \frac{3}{2}\ 0\end{bmatrix}$。</p>
+\end{cases}
+\]</span></p>
+<p>想要求得通解，首先我们要找出特解：先让所有的自由变量取<span
+class="math inline">\(0\)</span>，以解出此时主变量的值。这里自由变量是<span
+class="math inline">\(x_2\)</span>和<span
+class="math inline">\(x_4\)</span>，回代求得<span
+class="math inline">\(x_1=-2,x_3=\frac{3}{2}\)</span>，故特解<span
+class="math inline">\(x_p=\begin{bmatrix}-2\\ 0\\ \frac{3}{2}\\
+0\end{bmatrix}\)</span>。</p>
 <blockquote>
-<p>自由变量取$0$只是为了方便计算，实际上你想取啥都行，因为它们会被主变量抵消、毫无贡献。</p>
+<p>自由变量取<span
+class="math inline">\(0\)</span>只是为了方便计算，实际上你想取啥都行，因为它们会被主变量抵消、毫无贡献。</p>
 </blockquote>
-<p>显然，将特解$x_p$加上上一讲所学的零空间中的任意向量(写为$x_n$)就可以得到通解：$x=x_p+x_n$。这是因为零空间的向量带入方程后结果永远是$0$，它不会影响等式（$A(x_p+x_n)=Ax_p+Ax_n=b+0=b$）。</p>
-<p>而上一讲中我们得到了零空间解集为：$x_n=c\begin{bmatrix}<br>-2\ 1\ 0\ 0<br>\end{bmatrix}+d\begin{bmatrix}<br>2\ 0\ -2\ 1<br>\end{bmatrix}$</p>
-<p>因此，$Ax=b$的通解为$\begin{bmatrix}-2\ 0\ \frac{3}{2}\ 0\end{bmatrix}+c\begin{bmatrix}<br>-2\ 1\ 0\ 0\end{bmatrix}+d\begin{bmatrix}2\ 0\ -2\ 1\end{bmatrix}$</p>
-<h2 id="解与秩的关系"><a href="#解与秩的关系" class="headerlink" title="解与秩的关系"></a>解与秩的关系</h2><p>考虑秩为$r$的$m*n$矩阵$A$，显然$r\leq m, r\leq n$。</p>
+<p>显然，将特解<span
+class="math inline">\(x_p\)</span>加上上一讲所学的零空间中的任意向量(写为<span
+class="math inline">\(x_n\)</span>)就可以得到通解：<span
+class="math inline">\(x=x_p+x_n\)</span>。这是因为零空间的向量带入方程后结果永远是<span
+class="math inline">\(0\)</span>，它不会影响等式（<span
+class="math inline">\(A(x_p+x_n)=Ax_p+Ax_n=b+0=b\)</span>）。</p>
+<p>而上一讲中我们得到了零空间解集为：<span
+class="math inline">\(x_n=c\begin{bmatrix} -2\\ 1\\ 0\\ 0
+\end{bmatrix}+d\begin{bmatrix} 2\\ 0\\ -2\\ 1 \end{bmatrix}\)</span></p>
+<p>因此，<span class="math inline">\(Ax=b\)</span>的通解为<span
+class="math inline">\(\begin{bmatrix}-2\\ 0\\ \frac{3}{2}\\
+0\end{bmatrix}+c\begin{bmatrix} -2\\ 1\\ 0\\
+0\end{bmatrix}+d\begin{bmatrix}2\\ 0\\ -2\\ 1\end{bmatrix}\)</span></p>
+<h2 id="解与秩的关系">解与秩的关系</h2>
+<p>考虑秩为<span class="math inline">\(r\)</span>的<span
+class="math inline">\(m*n\)</span>矩阵<span
+class="math inline">\(A\)</span>，显然<span class="math inline">\(r\leq
+m, r\leq n\)</span>。</p>
 <ul>
-<li>当列满秩时($r=n$)，消元后$R$为$\begin{bmatrix}I \ 0\end{bmatrix}$，意味着每一列都有主元，那么也就没有自由变量，此时零空间里只有零向量，因此若$b$满足可解性，则解必唯一。</li>
-<li>当行满秩时($r=m$)，消元后$R$为$\begin{bmatrix}I &amp; F\end{bmatrix}$，意味着没有零行，此时对$b$就没有任何约束，那么$Ax=b$是必然有解，自由变量有$n-m$个，此时解有无穷多个。</li>
-<li>当$m=n=r$时，行列皆满秩，消元后$R$为单位阵，不存在自由列，也没有零行对$b$进行约束，因此必有解且解唯一。</li>
-<li>当不满秩，即$r&lt;n$且$r&lt;m$时，消元后$R$为$\begin{bmatrix}I &amp; F \ 0 &amp; 0\end{bmatrix}$的形式，此时有两种情况：<ul>
-<li>无解。零行约束了$b$，但$b$不满足约束条件。</li>
-<li>无穷多个解。$b$满足零行约束，解集为：特解+零空间任意向量</li>
+<li>当列满秩时(<span class="math inline">\(r=n\)</span>)，消元后<span
+class="math inline">\(R\)</span>为<span
+class="math inline">\(\begin{bmatrix}I \\
+0\end{bmatrix}\)</span>，意味着每一列都有主元，那么也就没有自由变量，此时零空间里只有零向量，因此若<span
+class="math inline">\(b\)</span>满足可解性，则解必唯一。</li>
+<li>当行满秩时(<span class="math inline">\(r=m\)</span>)，消元后<span
+class="math inline">\(R\)</span>为<span
+class="math inline">\(\begin{bmatrix}I &amp;
+F\end{bmatrix}\)</span>，意味着没有零行，此时对<span
+class="math inline">\(b\)</span>就没有任何约束，那么<span
+class="math inline">\(Ax=b\)</span>是必然有解，自由变量有<span
+class="math inline">\(n-m\)</span>个，此时解有无穷多个。</li>
+<li>当<span
+class="math inline">\(m=n=r\)</span>时，行列皆满秩，消元后<span
+class="math inline">\(R\)</span>为单位阵，不存在自由列，也没有零行对<span
+class="math inline">\(b\)</span>进行约束，因此必有解且解唯一。</li>
+<li>当不满秩，即<span class="math inline">\(r&lt;n\)</span>且<span
+class="math inline">\(r&lt;m\)</span>时，消元后<span
+class="math inline">\(R\)</span>为<span
+class="math inline">\(\begin{bmatrix}I &amp; F \\ 0 &amp;
+0\end{bmatrix}\)</span>的形式，此时有两种情况：
+<ul>
+<li>无解。零行约束了<span class="math inline">\(b\)</span>，但<span
+class="math inline">\(b\)</span>不满足约束条件。</li>
+<li>无穷多个解。<span
+class="math inline">\(b\)</span>满足零行约束，解集为：特解+零空间任意向量</li>
+</ul></li>
 </ul>
-</li>
-</ul>
-<p>总结如下：</p>
-<script type="math/tex; mode=display">
+<p>总结如下： <span class="math display">\[
 \begin{array}{c|c|c|c}
-r=m=n&r=n\lt m&r=m\lt n&r\lt m,r\lt n
-\\ R=I&R=\begin{bmatrix}I\\ 0\end{bmatrix}&R=\begin{bmatrix}I&F\end{bmatrix}&R=\begin{bmatrix}I&F\\0&0\end{bmatrix}\\ 1\ solution&0\ or\ 1\ solution&\infty\ solution&0\ or\ \infty\ solution\end{array}</script><h1 id="附录"><a href="#附录" class="headerlink" title="附录"></a>附录</h1><h2 id="视频"><a href="#视频" class="headerlink" title="视频"></a>视频</h2><p><iframe src="//player.bilibili.com/player.html?aid=382989698&bvid=BV16Z4y1U7oU&cid=569898565&p=8&autoplay=0" scrolling="no" border="0" width="100%" height="500" frameborder="no" framespacing="0" allowfullscreen="true"> </iframe></p>
-<h2 id="参考链接"><a href="#参考链接" class="headerlink" title="参考链接"></a>参考链接</h2><ul>
-<li><a target="_blank" rel="noopener" href="https://github.com/MLNLP-World/MIT-Linear-Algebra-Notes/blob/master/%5B08%5D%20Ax%3Db%20%E7%9A%84%E5%8F%AF%E8%A7%A3%E6%80%A7%E5%92%8C%E8%A7%A3%E7%9A%84%E7%BB%93%E6%9E%84/%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B08.pdf">Ax=b 的可解性和解的结构</a></li>
-<li><a target="_blank" rel="noopener" href="https://github.com/kf-liu/The-Art-of-Linear-Algebra-zh-CN">线性代数的艺术</a></li>
+r=m=n&amp;r=n\lt m&amp;r=m\lt n&amp;r\lt m,r\lt n
+\\ R=I&amp;R=\begin{bmatrix}I\\
+0\end{bmatrix}&amp;R=\begin{bmatrix}I&amp;F\end{bmatrix}&amp;R=\begin{bmatrix}I&amp;F\\0&amp;0\end{bmatrix}\\
+1\ solution&amp;0\ or\ 1\ solution&amp;\infty\ solution&amp;0\ or\
+\infty\ solution\end{array}
+\]</span></p>
+<h1 id="附录">附录</h1>
+<h2 id="视频">视频</h2>
+<iframe src="//player.bilibili.com/player.html?aid=382989698&amp;bvid=BV16Z4y1U7oU&amp;cid=569898565&amp;p=8&amp;autoplay=0" scrolling="no" border="0" width="100%" height="500" frameborder="no" framespacing="0" allowfullscreen="true">
+</iframe>
+<h2 id="参考链接">参考链接</h2>
+<ul>
+<li><a
+target="_blank" rel="noopener" href="https://github.com/MLNLP-World/MIT-Linear-Algebra-Notes/blob/master/%5B08%5D%20Ax%3Db%20%E7%9A%84%E5%8F%AF%E8%A7%A3%E6%80%A7%E5%92%8C%E8%A7%A3%E7%9A%84%E7%BB%93%E6%9E%84/%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B08.pdf">Ax=b
+的可解性和解的结构</a></li>
+<li><a
+target="_blank" rel="noopener" href="https://github.com/kf-liu/The-Art-of-Linear-Algebra-zh-CN">线性代数的艺术</a></li>
 </ul>
 
                 
