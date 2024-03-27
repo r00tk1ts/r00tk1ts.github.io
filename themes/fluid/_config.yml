@@ -232,6 +232,8 @@ font:
 # 指定自定义 .js 文件路径，支持列表；路径是相对 source 目录，如 /js/custom.js 对应存放目录 source/js/custom.js
 # Specify the path of your custom js file, support list. The path is relative to the source directory, such as `/js/custom.js` corresponding to the directory `source/js/custom.js`
 custom_js:
+  - /js/diy/yinghua.js
+  - /js/diy/love.js
 
 # 指定自定义 .css 文件路径，用法和 custom_js 相同
 # The usage is the same as custom_js
@@ -1100,3 +1102,31 @@ static_prefix:
   discuss: https://lib.baomitu.com/discuss/1.2.1/
 
   hint: https://lib.baomitu.com/hint.css/2.7.0/
+
+live2d: 
+  enable: true 
+  scriptFrom: local 
+  pluginRootPath: live2dw/ 
+  pluginJsPath: lib/ 
+  pluginModelPath: assets/ 
+  tagMode: false 
+  debug: false 
+  model: 
+    use: live2d-widget-model-tsumiki #该配置即为要使用的Live2D模型的名字 
+    scale: 1 
+    hHeadPos: 0.5 
+    vHeadPos: 0.618 
+  display: 
+    superSample: 2
+    width: 200 
+    height: 350 
+    position: right 
+    hOffset: 0 
+    vOffset: -20 
+  mobile: 
+    show: false 
+    scale: 0.5 
+  react: 
+    opacityDefault: 1 
+    opacityOnHover: 0.5
+
