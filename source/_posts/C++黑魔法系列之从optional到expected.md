@@ -186,7 +186,8 @@ if it does not contain a value.
 The optional object contains a value in the following conditions:
 - The object is initialized with/assigned from a value of type T 
   or another optional that contains a value.
-- The object does not contain a value in the following conditions:
+
+The object does not contain a value in the following conditions:
 - The object is default-initialized.
 - The object is initialized with/assigned from a value of type std::nullopt_t 
   or an optional object that does not contain a value.
@@ -200,7 +201,7 @@ template< class T >
 class optional;
 ```
 
-通过定义可以知晓，`optional<T>`的实例在某一时刻，要么包含一个类型为`T`的值，要么没有值。显然，对于我们的需求来说，它更加契合，毕竟，当exist为false的时候，其实返回的另一个value是没有实际意义的。关于这一点，相信有使用过go的开发者都深以为然，在go中，我们经常写：
+通过定义可以知晓，`optional<T>`的实例在某一时刻，要么包含一个类型为`T`的值，要么没有值。显然，对于我们的需求来说，它更加契合，毕竟，当`exist`为`false`的时候，其实返回的另一个`value`是没有实际意义的。关于这一点，相信有使用过go的开发者都深以为然，在go中，我们经常写：
 
 ```go
 if data, err := fun(); err != nil {
@@ -251,7 +252,15 @@ int main() {
 
 `std::optional<T>`的语义其实就是调用者告诉函数：“这个可以有”，而当函数返回的是一个`std::nullopt`时，就是反馈给调用者：“这个真没有”。
 
-待续。。。
+### std::optional的实现
+正如官方手册所述，`std::optional`在实现上是一个类模板，本质上来讲它是一个`exist or not`的wrapper。
+
+> If an optional<T> contains a value, the value is guaranteed to be allocated as part 
+of the optional object footprint, i.e. no dynamic memory allocation ever takes place. 
+Thus, an optional object models an object, not a pointer, even though operator*() 
+and operator->() are defined.
+
+
 
 ## 参考链接
 
