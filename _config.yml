@@ -111,3 +111,30 @@ deploy:
   - type: git
     repo: git@gitee.com:r00tk1ts/r00tk1ts.gitee.io.git
     branch: master 
+
+live2d: 
+  enable: false 
+  scriptFrom: local 
+  pluginRootPath: live2dw/ 
+  pluginJsPath: lib/ 
+  pluginModelPath: assets/ 
+  tagMode: false 
+  debug: false 
+  model: 
+    use: live2d-widget-model-tsumiki #该配置即为要使用的Live2D模型的名字 
+    scale: 1 
+    hHeadPos: 0.5 
+    vHeadPos: 0.618 
+  display: 
+    superSample: 2
+    width: 200 
+    height: 350 
+    position: right 
+    hOffset: 0 
+    vOffset: -20 
+  mobile: 
+    show: false 
+    scale: 0.5 
+  react: 
+    opacityDefault: 1 
+    opacityOnHover: 0.5
