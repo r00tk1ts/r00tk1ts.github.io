@@ -1,0 +1,697 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/favicon.png">
+  <link rel="icon" href="/img/favicon.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="r00tk1t">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="非连续内存区管理内容较少，也比较简单，无非就是连续的线性地址到非连续物理内存区的映射。与内核永久内存映射和内核临时内存映射并称三大物理地址与线性地址之间的映射机制。了解非连续内存区管理前，最好优先阅读页框管理和内存区管理。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Linux内核学习——内存管理之非连续内存区管理">
+<meta property="og:url" content="https://r00tk1ts.github.io/2017/10/25/Linux%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86-%E9%9D%9E%E8%BF%9E%E7%BB%AD%E5%86%85%E5%AD%98%E5%8C%BA%E7%AE%A1%E7%90%86/index.html">
+<meta property="og:site_name" content="玉涵的技能书">
+<meta property="og:description" content="非连续内存区管理内容较少，也比较简单，无非就是连续的线性地址到非连续物理内存区的映射。与内核永久内存映射和内核临时内存映射并称三大物理地址与线性地址之间的映射机制。了解非连续内存区管理前，最好优先阅读页框管理和内存区管理。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://r00tk1ts.github.io/2017/10/25/Linux%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86-%E9%9D%9E%E8%BF%9E%E7%BB%AD%E5%86%85%E5%AD%98%E5%8C%BA%E7%AE%A1%E7%90%86/20171025_1.jpg">
+<meta property="article:published_time" content="2017-10-25T12:21:11.000Z">
+<meta property="article:modified_time" content="2024-04-22T03:34:00.158Z">
+<meta property="article:author" content="r00tk1t">
+<meta property="article:tag" content="linux-kernel">
+<meta property="article:tag" content="ulk">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://r00tk1ts.github.io/2017/10/25/Linux%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86-%E9%9D%9E%E8%BF%9E%E7%BB%AD%E5%86%85%E5%AD%98%E5%8C%BA%E7%AE%A1%E7%90%86/20171025_1.jpg">
+  
+  
+  
+  <title>Linux内核学习——内存管理之非连续内存区管理 - 玉涵的技能书</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"r00tk1ts.github.io","root":"/","version":"1.9.5","typing":{"enable":true,"typeSpeed":80,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<!-- hexo injector head_end start --><link rel="stylesheet" href="https://cdn.staticfile.org/lxgw-wenkai-screen-webfont/1.7.0/style.min.css" /><!-- hexo injector head_end end --><meta name="generator" content="Hexo 6.1.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>玉涵的技能书</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/doc/">
+                <i class="iconfont icon-books"></i>
+                <span>藏经阁</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="Linux内核学习——内存管理之非连续内存区管理"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2017-10-25 20:21" pubdate>
+          2017年10月25日 晚上
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          11k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          90 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">Linux内核学习——内存管理之非连续内存区管理</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <p>非连续内存区管理内容较少，也比较简单，无非就是连续的线性地址到非连续物理内存区的映射。与内核永久内存映射和内核临时内存映射并称三大物理地址与线性地址之间的映射机制。了解非连续内存区管理前，最好优先阅读页框管理和内存区管理。</p>
+<span id="more"></span>
+<h1
+id="linux内存管理-非连续内存区管理">Linux内存管理-非连续内存区管理</h1>
+<p>研究内存区管理时已经知道，内存区映射到一组连续的页框是非常好的做法，这可以充分利用高速缓存来提高效率。Linux还设计了一种机制来实现连续的线性地址映射到非连续的页框。这种方式避免了外碎片，但与此同时打乱了内核页表。Linux的非连续内存区必须是4K的倍数，IO驱动缓冲区，模块分配等都会用到非连续内存区。</p>
+<h2 id="线性地址">线性地址</h2>
+<p>从PAGE_OFFSET也就是0xc0000000，第4GB的线性地址查找空闲区，这1GB的线性地址空间如图：
+<img src="20171025_1.jpg" srcset="/img/loading.gif" lazyload /></p>
+<ol type="1">
+<li>内存区开始部分包含的是对前896M的RAM进行映射的线性地址，这一部分直接映射的物理内存末尾所对应的线性地址在high_memory变量中。</li>
+<li>内存区结尾部分包含的是固定映射的线性地址。</li>
+<li>PKMAP_BASE起始，查找用于高端内存页框的永久内核映射的线性地址。</li>
+<li>其余的线性地址可以用于非连续内存区。物理内存映射末尾到第一个内存区之间有个8M的安全区，为了捕获内存越界访问。每个内存区之间也有4K的安全区来隔离非连续的内存区。</li>
+</ol>
+<p>对应的宏： <figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * 第一个非连续映射的内存区与连续映射的线性区末尾之间的安全区大小。</span><br><span class="hljs-comment"> */</span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> VMALLOC_OFFSET	(8*1024*1024)</span><br><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * 为非连续内存区保留的线性地址的起始地址。</span><br><span class="hljs-comment"> */</span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> VMALLOC_START	(((unsigned long) high_memory + vmalloc_earlyreserve + \</span><br><span class="hljs-meta">			2*VMALLOC_OFFSET-1) &amp; ~(VMALLOC_OFFSET-1))</span><br><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * 为非连续内存区保留的线性地址的结束地址。</span><br><span class="hljs-comment"> */</span><br><span class="hljs-meta">#<span class="hljs-keyword">ifdef</span> CONFIG_HIGHMEM</span><br><span class="hljs-meta"># <span class="hljs-keyword">define</span> VMALLOC_END	(PKMAP_BASE-2*PAGE_SIZE)</span><br><span class="hljs-meta">#<span class="hljs-keyword">else</span></span><br><span class="hljs-meta"># <span class="hljs-keyword">define</span> VMALLOC_END	(FIXADDR_START-2*PAGE_SIZE)</span><br><span class="hljs-meta">#<span class="hljs-keyword">endif</span></span><br></code></pre></td></tr></table></figure></p>
+<h2 id="vm_struct">vm_struct</h2>
+<p>每个非连续内存区都对应一个vm_struct的描述符： <figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><br><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * 非连续内存区的描述符</span><br><span class="hljs-comment"> */</span><br><span class="hljs-keyword">struct</span> <span class="hljs-title class_">vm_struct</span> &#123;<br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 内存区内第一个内存单元的线性地址。</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-type">void</span>			*addr;<br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 内存区大小加4096(内存区之间的安全区的大小)</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-type">unsigned</span> <span class="hljs-type">long</span>		size;<br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 非连续内存区映射的内存的类型。</span><br><span class="hljs-comment">	 * VM_ALLOC表示使用vmalloc得到的页.</span><br><span class="hljs-comment">	 * VM_MAP表示使用vmap映射的已经被分配的页。</span><br><span class="hljs-comment">	 * VM_IOREMAP表示使用ioremap映射的硬件设备的板上内存。</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-type">unsigned</span> <span class="hljs-type">long</span>		flags;<br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 指向nr_pages数组的指针，该数组由指向页描述符的指针组成。</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-keyword">struct</span> <span class="hljs-title class_">page</span>		**pages;<br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 内存区填充的页的个数。</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-type">unsigned</span> <span class="hljs-type">int</span>		nr_pages;<br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 一般为0,除非内存已经被创建来映射一个硬件设备IO共享内存。</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-type">unsigned</span> <span class="hljs-type">long</span>		phys_addr;<br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 指向下一个vm_struct结构的指针。</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-keyword">struct</span> <span class="hljs-title class_">vm_struct</span>	*next;<br>&#125;;<br></code></pre></td></tr></table></figure>
+描述符通过next形成链，链表第一个元素地址存放在vmlist中。
+flags标志非连续区映射的内存类型，VM_ALLOC表示使用vmalloc()得到页，VM_MAP表示使用vmap()得到页，VM_IOREMAP表示ioremap()得到页。</p>
+<h2 id="查找空闲区域">查找空闲区域</h2>
+<p>通过<code>get_vm_area()</code>，用kmalloc分配内存区，在vmlist上找线性地址的空闲区域。
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * 在线性地址VMALLOC_START和VMALLOC_END之间查找一个空闲区域</span><br><span class="hljs-comment"> * size-将被创建的内存区的字节大小</span><br><span class="hljs-comment"> * flag-指定空闲区类型</span><br><span class="hljs-comment"> */</span><br><span class="hljs-keyword">struct</span> <span class="hljs-title class_">vm_struct</span> *<span class="hljs-built_in">get_vm_area</span>(<span class="hljs-type">unsigned</span> <span class="hljs-type">long</span> size, <span class="hljs-type">unsigned</span> <span class="hljs-type">long</span> flags)<br>&#123;<br>	<span class="hljs-keyword">return</span> __get_vm_area(size, flags, VMALLOC_START, VMALLOC_END);<br>&#125;<br><br><span class="hljs-keyword">struct</span> <span class="hljs-title class_">vm_struct</span> *__get_vm_area(<span class="hljs-type">unsigned</span> <span class="hljs-type">long</span> size, <span class="hljs-type">unsigned</span> <span class="hljs-type">long</span> flags,<br>				<span class="hljs-type">unsigned</span> <span class="hljs-type">long</span> start, <span class="hljs-type">unsigned</span> <span class="hljs-type">long</span> end)<br>&#123;<br>	<span class="hljs-keyword">struct</span> <span class="hljs-title class_">vm_struct</span> **p, *tmp, *area;<br>	<span class="hljs-type">unsigned</span> <span class="hljs-type">long</span> align = <span class="hljs-number">1</span>;<br>	<span class="hljs-type">unsigned</span> <span class="hljs-type">long</span> addr;<br><br>	<span class="hljs-keyword">if</span> (flags &amp; VM_IOREMAP) &#123;<br>		<span class="hljs-type">int</span> bit = <span class="hljs-built_in">fls</span>(size);<br><br>		<span class="hljs-keyword">if</span> (bit &gt; IOREMAP_MAX_ORDER)<br>			bit = IOREMAP_MAX_ORDER;<br>		<span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (bit &lt; PAGE_SHIFT)<br>			bit = PAGE_SHIFT;<br><br>		align = <span class="hljs-number">1ul</span> &lt;&lt; bit;<br>	&#125;<br>	addr = <span class="hljs-built_in">ALIGN</span>(start, align);<br><br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 调用kmalloc为vm_struct类型的新描述符获得一个内存区。</span><br><span class="hljs-comment">	 */</span><br>	area = <span class="hljs-built_in">kmalloc</span>(<span class="hljs-built_in">sizeof</span>(*area), GFP_KERNEL);<br>	<span class="hljs-keyword">if</span> (<span class="hljs-built_in">unlikely</span>(!area))<br>		<span class="hljs-keyword">return</span> <span class="hljs-literal">NULL</span>;<br><br>	<span class="hljs-comment">/*</span><br><span class="hljs-comment">	 * We always allocate a guard page.</span><br><span class="hljs-comment">	 */</span><br>	size += PAGE_SIZE;<br>	<span class="hljs-keyword">if</span> (<span class="hljs-built_in">unlikely</span>(!size)) &#123;<br>		<span class="hljs-built_in">kfree</span> (area);<br>		<span class="hljs-keyword">return</span> <span class="hljs-literal">NULL</span>;<br>	&#125;<br><br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 为写获得vmlist_lock锁。</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-built_in">write_lock</span>(&amp;vmlist_lock);<br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 扫描vmlist链表，来查找线性地址的一个空闲区域。至少覆盖size+4096个地址(4096是安全区)</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-keyword">for</span> (p = &amp;vmlist; (tmp = *p) != <span class="hljs-literal">NULL</span> ;p = &amp;tmp-&gt;next) &#123;<br>        <span class="hljs-comment">/*</span><br><span class="hljs-comment">         * 起始地址addr落在了其他已经分配的vm_struct的VA地址空间中间</span><br><span class="hljs-comment">         */</span><br>		<span class="hljs-keyword">if</span> ((<span class="hljs-type">unsigned</span> <span class="hljs-type">long</span>)tmp-&gt;addr &lt; addr) &#123;<br>            <span class="hljs-comment">/*</span><br><span class="hljs-comment">             * addr 已经超过了前一个vm_struct所覆盖的真个VA地址空间，那么addr就更新到上一个vm_struct的VA地址空间最后面</span><br><span class="hljs-comment">             */</span><br>			<span class="hljs-keyword">if</span>((<span class="hljs-type">unsigned</span> <span class="hljs-type">long</span>)tmp-&gt;addr + tmp-&gt;size &gt;= addr)<br>				addr = <span class="hljs-built_in">ALIGN</span>(tmp-&gt;size + <br>					     (<span class="hljs-type">unsigned</span> <span class="hljs-type">long</span>)tmp-&gt;addr, align);<br>			<span class="hljs-keyword">continue</span>;<br>		&#125;<br><br>        <span class="hljs-comment">/*</span><br><span class="hljs-comment">         * 到达这里的条件是:</span><br><span class="hljs-comment">         *  tmp-&gt;addr &gt;= addr </span><br><span class="hljs-comment">         * 也就是 addr 没有落在其他已经分配的vm_struct的VA地址空间中间，即下一个vm_struct地址空间之前</span><br><span class="hljs-comment">         */</span><br>		<span class="hljs-keyword">if</span> ((size + addr) &lt; addr)<br>			<span class="hljs-keyword">goto</span> out;<br><br>        <span class="hljs-comment">/*</span><br><span class="hljs-comment">         * addr+size 也没有落在其他已经分配的vm_struct的VA地址空间中间，即下一个vm_struct地址空间之前</span><br><span class="hljs-comment">         */</span><br>		<span class="hljs-keyword">if</span> (size + addr &lt;= (<span class="hljs-type">unsigned</span> <span class="hljs-type">long</span>)tmp-&gt;addr)<br>			<span class="hljs-keyword">goto</span> found;<br><br>        <span class="hljs-comment">/*</span><br><span class="hljs-comment">         * 到达这里是 addr+size 落在了下一个已经分配的vm_struct的VA地址空间中间</span><br><span class="hljs-comment">         * addr就更新到下一个vm_struct的VA地址空间最后面</span><br><span class="hljs-comment">         */</span><br>		addr = <span class="hljs-built_in">ALIGN</span>(tmp-&gt;size + (<span class="hljs-type">unsigned</span> <span class="hljs-type">long</span>)tmp-&gt;addr, align);<br>		<span class="hljs-keyword">if</span> (addr &gt; end - size)<br>			<span class="hljs-keyword">goto</span> out;<br>	&#125;<br><br>found:<br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 如果存在这样一个空闲区间，就初始化描述符的字段</span><br><span class="hljs-comment">	 */</span><br>	area-&gt;next = *p;<br>	*p = area;<br><br>	area-&gt;flags = flags;<br>	area-&gt;addr = (<span class="hljs-type">void</span> *)addr;<br>	area-&gt;size = size;<br>	area-&gt;pages = <span class="hljs-literal">NULL</span>;<br>	area-&gt;nr_pages = <span class="hljs-number">0</span>;<br>	area-&gt;phys_addr = <span class="hljs-number">0</span>;<br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 释放锁并返回内存区的起始地址。</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-built_in">write_unlock</span>(&amp;vmlist_lock);<br><br>	<span class="hljs-keyword">return</span> area;<br><br>out:<br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 没有找到空闲区，就释放锁并释放先前得到的描述符，然后返回NULL。</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-built_in">write_unlock</span>(&amp;vmlist_lock);<br>	<span class="hljs-built_in">kfree</span>(area);<br>	<span class="hljs-keyword">if</span> (<span class="hljs-built_in">printk_ratelimit</span>())<br>		<span class="hljs-built_in">printk</span>(KERN_WARNING <span class="hljs-string">&quot;allocation failed: out of vmalloc space - use vmalloc=&lt;size&gt; to increase size.\n&quot;</span>);<br>	<span class="hljs-keyword">return</span> <span class="hljs-literal">NULL</span>;<br>&#125;<br></code></pre></td></tr></table></figure></p>
+<h2 id="分配非连续内存区">分配非连续内存区</h2>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * 给内核分配一个非连续内存区。</span><br><span class="hljs-comment"> * size-所请求分配的内存区的大小。</span><br><span class="hljs-comment"> */</span><br><span class="hljs-function"><span class="hljs-type">void</span> *<span class="hljs-title">vmalloc</span><span class="hljs-params">(<span class="hljs-type">unsigned</span> <span class="hljs-type">long</span> size)</span></span><br><span class="hljs-function"></span>&#123;<br>       <span class="hljs-keyword">return</span> __vmalloc(size, GFP_KERNEL | __GFP_HIGHMEM, PAGE_KERNEL);<br>&#125;<br><br><span class="hljs-type">void</span> *__vmalloc(<span class="hljs-type">unsigned</span> <span class="hljs-type">long</span> size, <span class="hljs-type">int</span> gfp_mask, <span class="hljs-type">pgprot_t</span> prot)<br>&#123;<br>	<span class="hljs-keyword">struct</span> <span class="hljs-title class_">vm_struct</span> *area;<br>	<span class="hljs-keyword">struct</span> <span class="hljs-title class_">page</span> **pages;<br>	<span class="hljs-type">unsigned</span> <span class="hljs-type">int</span> nr_pages, array_size, i;<br><br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 首先将参数size设为4096的整数倍。</span><br><span class="hljs-comment">	 */</span><br>	size = <span class="hljs-built_in">PAGE_ALIGN</span>(size);<br>	<span class="hljs-keyword">if</span> (!size || (size &gt;&gt; PAGE_SHIFT) &gt; num_physpages)<br>		<span class="hljs-keyword">return</span> <span class="hljs-literal">NULL</span>;<br><br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 通过调用get_vm_area来创建一个新的描述符。并返回分配给这个内存区的线性地址。</span><br><span class="hljs-comment">	 * 描述符的flags字段被初始化为VM_ALLOC，这意味着通过使用vmalloc函数，非连续页框将被映射到一个线性地址空间。</span><br><span class="hljs-comment">	 */</span><br>	area = <span class="hljs-built_in">get_vm_area</span>(size, VM_ALLOC);<br>	<span class="hljs-keyword">if</span> (!area)<br>		<span class="hljs-keyword">return</span> <span class="hljs-literal">NULL</span>;<br><br>	nr_pages = size &gt;&gt; PAGE_SHIFT;<br>	array_size = (nr_pages * <span class="hljs-built_in">sizeof</span>(<span class="hljs-keyword">struct</span> page *));<br><br>	area-&gt;nr_pages = nr_pages;<br>	<span class="hljs-comment">/* Please note that the recursion is strictly bounded. */</span><br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 为页描述符指针数组分配页框。</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-keyword">if</span> (array_size &gt; PAGE_SIZE)<br>		pages = __vmalloc(array_size, gfp_mask, PAGE_KERNEL);<br>	<span class="hljs-keyword">else</span><br>		pages = <span class="hljs-built_in">kmalloc</span>(array_size, (gfp_mask &amp; ~__GFP_HIGHMEM));<br>	area-&gt;pages = pages;<br>	<span class="hljs-keyword">if</span> (!area-&gt;pages) &#123;<br>		<span class="hljs-built_in">remove_vm_area</span>(area-&gt;addr);<br>		<span class="hljs-built_in">kfree</span>(area);<br>		<span class="hljs-keyword">return</span> <span class="hljs-literal">NULL</span>;<br>	&#125;<br>	<span class="hljs-built_in">memset</span>(area-&gt;pages, <span class="hljs-number">0</span>, array_size);<br><br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 重复调用alloc_page，为内存区分配nr_pages个页框。并把对应的页描述符放到area-&gt;pages中。</span><br><span class="hljs-comment">	 * 必须使用area-&gt;pages数组是因为:页框可能属于ZONE_HIGHMEM内存管理区，此时它们不一定映射到一个线性地址上。</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-keyword">for</span> (i = <span class="hljs-number">0</span>; i &lt; area-&gt;nr_pages; i++) &#123;<br>		area-&gt;pages[i] = <span class="hljs-built_in">alloc_page</span>(gfp_mask);<br>		<span class="hljs-keyword">if</span> (<span class="hljs-built_in">unlikely</span>(!area-&gt;pages[i])) &#123;<br>			<span class="hljs-comment">/* Successfully allocated i pages, free them in __vunmap() */</span><br>			area-&gt;nr_pages = i;<br>			<span class="hljs-keyword">goto</span> fail;<br>		&#125;<br>	&#125;<br><br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 现在已经得到了一个连续的线性地址空间，并且分配了一组非连续的页框来映射这些地址。</span><br><span class="hljs-comment">	 * 需要修改内核页表项，将二者对应起来。这是map_vm_area的工作。</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-keyword">if</span> (<span class="hljs-built_in">map_vm_area</span>(area, prot, &amp;pages))<br>		<span class="hljs-keyword">goto</span> fail;<br>	<span class="hljs-keyword">return</span> area-&gt;addr;<br><br>fail:<br>	<span class="hljs-built_in">vfree</span>(area-&gt;addr);<br>	<span class="hljs-keyword">return</span> <span class="hljs-literal">NULL</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>最后的对应关系修正需要展开<code>map_vm_area</code>: <figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><br><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * 将线性地址和页框对应起来</span><br><span class="hljs-comment"> * area-指向内存区的vm_struct描述符的指针</span><br><span class="hljs-comment"> * prot-已分配页框的保护位，它总是被置为0x63，对应着present,accessed,read/write及dirty.</span><br><span class="hljs-comment"> * pages-指向一个指针数组的变量的地址。该指针数组的指针指向页描述符。</span><br><span class="hljs-comment"> */</span><br><span class="hljs-function"><span class="hljs-type">int</span> <span class="hljs-title">map_vm_area</span><span class="hljs-params">(<span class="hljs-keyword">struct</span> vm_struct *area, <span class="hljs-type">pgprot_t</span> prot, <span class="hljs-keyword">struct</span> page ***pages)</span></span><br><span class="hljs-function"></span>&#123;<br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 首先将内存区的开始和末尾的线性地址分配给局部变量address和end</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-type">unsigned</span> <span class="hljs-type">long</span> address = (<span class="hljs-type">unsigned</span> <span class="hljs-type">long</span>) area-&gt;addr;<br>	<span class="hljs-type">unsigned</span> <span class="hljs-type">long</span> end = address + (area-&gt;size-PAGE_SIZE);<br>	<span class="hljs-type">unsigned</span> <span class="hljs-type">long</span> next;<br>	<span class="hljs-type">pgd_t</span> *pgd;<br>	<span class="hljs-type">int</span> err = <span class="hljs-number">0</span>;<br>	<span class="hljs-type">int</span> i;<br><br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 使用pgd_offset_k来获得主内核页全局目录中的目录项。该目录项对应于内存区起始线性地址。</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-comment">/*</span><br><span class="hljs-comment">	 * 更新根目录在swapper_pg_dir主内核页全局目录中的常规页表集合，</span><br><span class="hljs-comment">	 * 这个页全局目录由主内存描述符的pgd字段所指向，而主内存描述符存放于init_mm遍历</span><br><span class="hljs-comment">     */</span><br>	pgd = <span class="hljs-built_in">pgd_offset_k</span>(address);<br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 获得内核页表自旋锁。</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-built_in">spin_lock</span>(&amp;init_mm.page_table_lock);<br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 此循环为每个页框建立页表项。</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-keyword">for</span> (i = <span class="hljs-built_in">pgd_index</span>(address); i &lt;= <span class="hljs-built_in">pgd_index</span>(end<span class="hljs-number">-1</span>); i++) &#123;<br>		<span class="hljs-comment">/**</span><br><span class="hljs-comment">		 * 调用pud_alloc来为新内存区创建一个页上级目录。并把它的物理地址写入内核页全局目录的合适表项。</span><br><span class="hljs-comment">		 * 建立了PGD和PUD的联系(addr对应部分)</span><br><span class="hljs-comment">		 */</span><br>		<span class="hljs-type">pud_t</span> *pud = <span class="hljs-built_in">pud_alloc</span>(&amp;init_mm, pgd, address);<br>		<span class="hljs-keyword">if</span> (!pud) &#123;<br>			err = -ENOMEM;<br>			<span class="hljs-keyword">break</span>;<br>		&#125;<br><br>        <span class="hljs-comment">/*</span><br><span class="hljs-comment">         * next是本PUD项映射范围的结束地址</span><br><span class="hljs-comment">         */</span><br>		next = (address + PGDIR_SIZE) &amp; PGDIR_MASK;<br>		<span class="hljs-keyword">if</span> (next &lt; address || next &gt; end)<br>			next = end;<br>		<span class="hljs-comment">/**</span><br><span class="hljs-comment">		 * map_area_pud函数为页上级目录所指向的所有页表建立对应关系。</span><br><span class="hljs-comment">		 * 建立PUD以下映射关系</span><br><span class="hljs-comment">		 */</span><br>		<span class="hljs-keyword">if</span> (<span class="hljs-built_in">map_area_pud</span>(pud, address, next, prot, pages)) &#123;<br>			err = -ENOMEM;<br>			<span class="hljs-keyword">break</span>;<br>		&#125;<br><br>		address = next;<br>		pgd++;<br>	&#125;<br><br>	<span class="hljs-built_in">spin_unlock</span>(&amp;init_mm.page_table_lock);<br>	<span class="hljs-built_in">flush_cache_vmap</span>((<span class="hljs-type">unsigned</span> <span class="hljs-type">long</span>) area-&gt;addr, end);<br>	<span class="hljs-keyword">return</span> err;<br>&#125;<br></code></pre></td></tr></table></figure>
+还有一个vmap()，它会映射非连续内存区中已经分配的页框： <figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * 它将映射非连续内存区中已经分配的页框。本质上，该函数接收一组指向页描述符的指针作为参数，</span><br><span class="hljs-comment"> * 调用get_vm_area得到一个新的vm_struct描述符。然后调用map_vm_area来映射页框。因此该函数与vmalloc类似，但是不分配页框。</span><br><span class="hljs-comment"> * 即页框pages已经在函数调用者中分配好了，只是还没有映射VA而已，这里完成映射</span><br><span class="hljs-comment"> */</span><br><span class="hljs-function"><span class="hljs-type">void</span> *<span class="hljs-title">vmap</span><span class="hljs-params">(<span class="hljs-keyword">struct</span> page **pages, <span class="hljs-type">unsigned</span> <span class="hljs-type">int</span> count,</span></span><br><span class="hljs-params"><span class="hljs-function">		<span class="hljs-type">unsigned</span> <span class="hljs-type">long</span> flags, <span class="hljs-type">pgprot_t</span> prot)</span></span><br><span class="hljs-function"></span>&#123;<br>	<span class="hljs-keyword">struct</span> <span class="hljs-title class_">vm_struct</span> *area;<br><br>	<span class="hljs-keyword">if</span> (count &gt; num_physpages)<br>		<span class="hljs-keyword">return</span> <span class="hljs-literal">NULL</span>;<br><br>	area = <span class="hljs-built_in">get_vm_area</span>((count &lt;&lt; PAGE_SHIFT), flags);<br>	<span class="hljs-keyword">if</span> (!area)<br>		<span class="hljs-keyword">return</span> <span class="hljs-literal">NULL</span>;<br>	<span class="hljs-keyword">if</span> (<span class="hljs-built_in">map_vm_area</span>(area, prot, &amp;pages)) &#123;<br>		<span class="hljs-built_in">vunmap</span>(area-&gt;addr);<br>		<span class="hljs-keyword">return</span> <span class="hljs-literal">NULL</span>;<br>	&#125;<br><br>	<span class="hljs-keyword">return</span> area-&gt;addr;<br>&#125;<br><span class="hljs-comment">//显然map_vm_area是核心</span><br><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * 将线性地址和页框对应起来</span><br><span class="hljs-comment"> * area-指向内存区的vm_struct描述符的指针</span><br><span class="hljs-comment"> * prot-已分配页框的保护位，它总是被置为0x63，对应着present,accessed,read/write及dirty.</span><br><span class="hljs-comment"> * pages-指向一个指针数组的变量的地址。该指针数组的指针指向页描述符。</span><br><span class="hljs-comment"> */</span><br><span class="hljs-function"><span class="hljs-type">int</span> <span class="hljs-title">map_vm_area</span><span class="hljs-params">(<span class="hljs-keyword">struct</span> vm_struct *area, <span class="hljs-type">pgprot_t</span> prot, <span class="hljs-keyword">struct</span> page ***pages)</span></span><br><span class="hljs-function"></span>&#123;<br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 首先将内存区的开始和末尾的线性地址分配给局部变量address和end</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-type">unsigned</span> <span class="hljs-type">long</span> address = (<span class="hljs-type">unsigned</span> <span class="hljs-type">long</span>) area-&gt;addr;<br>	<span class="hljs-type">unsigned</span> <span class="hljs-type">long</span> end = address + (area-&gt;size-PAGE_SIZE);<br>	<span class="hljs-type">unsigned</span> <span class="hljs-type">long</span> next;<br>	<span class="hljs-type">pgd_t</span> *pgd;<br>	<span class="hljs-type">int</span> err = <span class="hljs-number">0</span>;<br>	<span class="hljs-type">int</span> i;<br><br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 使用pgd_offset_k来获得主内核页全局目录中的目录项。该目录项对应于内存区起始线性地址。</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-comment">/*</span><br><span class="hljs-comment">	 * 更新根目录在swapper_pg_dir主内核页全局目录中的常规页表集合，</span><br><span class="hljs-comment">	 * 这个页全局目录由主内存描述符的pgd字段所指向，而主内存描述符存放于init_mm遍历</span><br><span class="hljs-comment">     */</span><br>	pgd = <span class="hljs-built_in">pgd_offset_k</span>(address);<br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 获得内核页表自旋锁。</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-built_in">spin_lock</span>(&amp;init_mm.page_table_lock);<br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 此循环为每个页框建立页表项。</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-keyword">for</span> (i = <span class="hljs-built_in">pgd_index</span>(address); i &lt;= <span class="hljs-built_in">pgd_index</span>(end<span class="hljs-number">-1</span>); i++) &#123;<br>		<span class="hljs-comment">/**</span><br><span class="hljs-comment">		 * 调用pud_alloc来为新内存区创建一个页上级目录。并把它的物理地址写入内核页全局目录的合适表项。</span><br><span class="hljs-comment">		 * 建立了PGD和PUD的联系(addr对应部分)</span><br><span class="hljs-comment">		 */</span><br>		<span class="hljs-type">pud_t</span> *pud = <span class="hljs-built_in">pud_alloc</span>(&amp;init_mm, pgd, address);<br>		<span class="hljs-keyword">if</span> (!pud) &#123;<br>			err = -ENOMEM;<br>			<span class="hljs-keyword">break</span>;<br>		&#125;<br><br>        <span class="hljs-comment">/*</span><br><span class="hljs-comment">         * next是本PUD项映射范围的结束地址</span><br><span class="hljs-comment">         */</span><br>		next = (address + PGDIR_SIZE) &amp; PGDIR_MASK;<br>		<span class="hljs-keyword">if</span> (next &lt; address || next &gt; end)<br>			next = end;<br>		<span class="hljs-comment">/**</span><br><span class="hljs-comment">		 * map_area_pud函数为页上级目录所指向的所有页表建立对应关系。</span><br><span class="hljs-comment">		 * 建立PUD以下映射关系</span><br><span class="hljs-comment">		 */</span><br>		<span class="hljs-keyword">if</span> (<span class="hljs-built_in">map_area_pud</span>(pud, address, next, prot, pages)) &#123;<br>			err = -ENOMEM;<br>			<span class="hljs-keyword">break</span>;<br>		&#125;<br><br>		address = next;<br>		pgd++;<br>	&#125;<br><br>	<span class="hljs-built_in">spin_unlock</span>(&amp;init_mm.page_table_lock);<br>	<span class="hljs-built_in">flush_cache_vmap</span>((<span class="hljs-type">unsigned</span> <span class="hljs-type">long</span>) area-&gt;addr, end);<br>	<span class="hljs-keyword">return</span> err;<br>&#125;<br></code></pre></td></tr></table></figure></p>
+<h2 id="释放非连续内存区">释放非连续内存区</h2>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-function"><span class="hljs-type">void</span> <span class="hljs-title">vfree</span><span class="hljs-params">(<span class="hljs-type">void</span> *addr)</span></span><br><span class="hljs-function"></span>&#123;<br>	<span class="hljs-built_in">kfree</span>(addr);<br>&#125;<br><br><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * 释放由kmalloc接口分配的内存</span><br><span class="hljs-comment"> */</span><br><span class="hljs-function"><span class="hljs-type">void</span> <span class="hljs-title">kfree</span> <span class="hljs-params">(<span class="hljs-type">const</span> <span class="hljs-type">void</span> *objp)</span></span><br><span class="hljs-function"></span>&#123;<br>	<span class="hljs-type">kmem_cache_t</span> *c;<br>	<span class="hljs-type">unsigned</span> <span class="hljs-type">long</span> flags;<br><br>	<span class="hljs-keyword">if</span> (!objp)<br>		<span class="hljs-keyword">return</span>;<br>	<span class="hljs-built_in">local_irq_save</span>(flags);<br>	<span class="hljs-built_in">kfree_debugcheck</span>(objp);<br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 通过((kmem_cache_t *)(pg)-&gt;lru.next)，可确定合适的高速缓存描述符。</span><br><span class="hljs-comment">	 */</span><br>	c = <span class="hljs-built_in">GET_PAGE_CACHE</span>(<span class="hljs-built_in">virt_to_page</span>(objp));<br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * __cache_free释放高速缓存中的对象。</span><br><span class="hljs-comment">	 */</span><br>	__cache_free(c, (<span class="hljs-type">void</span>*)objp);<br>	<span class="hljs-built_in">local_irq_restore</span>(flags);<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>vmap对应的是vunmap: <figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * 释放vmap创建的内存区。</span><br><span class="hljs-comment"> */</span><br><span class="hljs-function"><span class="hljs-type">void</span> <span class="hljs-title">vunmap</span><span class="hljs-params">(<span class="hljs-type">void</span> *addr)</span></span><br><span class="hljs-function"></span>&#123;<br>	<span class="hljs-built_in">BUG_ON</span>(<span class="hljs-built_in">in_interrupt</span>());<br>	__vunmap(addr, <span class="hljs-number">0</span>);<br>&#125;<br><br><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * 被vfree或者vunmap调用，来释放非连续分配的内存区。</span><br><span class="hljs-comment"> * addr-要释放的内存区的起始地址。</span><br><span class="hljs-comment"> * deallocate_pages-如果被映射的页框需要释放到分区页框分配器，就置位(当vfree调用本函数时)。否则不置位(被vunmap调用时)</span><br><span class="hljs-comment"> */</span><br><span class="hljs-type">void</span> __vunmap(<span class="hljs-type">void</span> *addr, <span class="hljs-type">int</span> deallocate_pages)<br>&#123;<br>	<span class="hljs-keyword">struct</span> <span class="hljs-title class_">vm_struct</span> *area;<br><br>	<span class="hljs-keyword">if</span> (!addr)<br>		<span class="hljs-keyword">return</span>;<br><br>	<span class="hljs-keyword">if</span> ((PAGE_SIZE<span class="hljs-number">-1</span>) &amp; (<span class="hljs-type">unsigned</span> <span class="hljs-type">long</span>)addr) &#123;<br>		<span class="hljs-built_in">printk</span>(KERN_ERR <span class="hljs-string">&quot;Trying to vfree() bad address (%p)\n&quot;</span>, addr);<br>		<span class="hljs-built_in">WARN_ON</span>(<span class="hljs-number">1</span>);<br>		<span class="hljs-keyword">return</span>;<br>	&#125;<br><br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 调用remove_vm_area得到vm_struct描述符的地址。</span><br><span class="hljs-comment">	 * 并清除非连续内存区中的线性地址对应的内核的页表项。</span><br><span class="hljs-comment">	 */</span><br>	area = <span class="hljs-built_in">remove_vm_area</span>(addr);<br>	<span class="hljs-keyword">if</span> (<span class="hljs-built_in">unlikely</span>(!area)) &#123;<br>		<span class="hljs-built_in">printk</span>(KERN_ERR <span class="hljs-string">&quot;Trying to vfree() nonexistent vm area (%p)\n&quot;</span>,<br>				addr);<br>		<span class="hljs-built_in">WARN_ON</span>(<span class="hljs-number">1</span>);<br>		<span class="hljs-keyword">return</span>;<br>	&#125;<br><br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 如果deallocate_pages被置位，扫描指向页描述符的area-&gt;nr_pages</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-keyword">if</span> (deallocate_pages) &#123;<br>		<span class="hljs-type">int</span> i;<br><br>		<span class="hljs-keyword">for</span> (i = <span class="hljs-number">0</span>; i &lt; area-&gt;nr_pages; i++) &#123;<br>			<span class="hljs-comment">/**</span><br><span class="hljs-comment">			 * 对每一个数组元素，调用__free_page函数释放页框到分区页框分配器。</span><br><span class="hljs-comment">			 */</span><br>			<span class="hljs-keyword">if</span> (<span class="hljs-built_in">unlikely</span>(!area-&gt;pages[i]))<br>				<span class="hljs-built_in">BUG</span>();<br>			__free_page(area-&gt;pages[i]);<br>		&#125;<br><br>		<span class="hljs-comment">/**</span><br><span class="hljs-comment">		 * 释放area-&gt;pages数组本身。</span><br><span class="hljs-comment">		 */</span><br>		<span class="hljs-keyword">if</span> (area-&gt;nr_pages &gt; PAGE_SIZE/<span class="hljs-built_in">sizeof</span>(<span class="hljs-keyword">struct</span> page *))<br>			<span class="hljs-built_in">vfree</span>(area-&gt;pages);<br>		<span class="hljs-keyword">else</span><br>			<span class="hljs-built_in">kfree</span>(area-&gt;pages);<br>	&#125;<br><br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 释放vm_struct描述符。</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-built_in">kfree</span>(area);<br>	<span class="hljs-keyword">return</span>;<br>&#125;<br></code></pre></td></tr></table></figure></p>
+<p>释放永远要比分配简单。</p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/Linux/" class="category-chain-item">Linux</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/linux-kernel/" class="print-no-link">#linux-kernel</a>
+      
+        <a href="/tags/ulk/" class="print-no-link">#ulk</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>Linux内核学习——内存管理之非连续内存区管理</div>
+      <div>https://r00tk1ts.github.io/2017/10/25/Linux内存管理-非连续内存区管理/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>r00tk1t</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2017年10月25日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2017/12/21/Linux%E4%B8%AD%E6%96%AD%E5%86%85%E5%B9%95/" title="Linux中断内幕">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">Linux中断内幕</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2017/10/24/Linux%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86-%E5%86%85%E5%AD%98%E5%8C%BA%E7%AE%A1%E7%90%86/" title="Linux内核学习——内存管理之内存区管理">
+                        <span class="hidden-mobile">Linux内核学习——内存管理之内存区管理</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+  
+<script src="/js/diy/yinghua.js"></script>
+<script src="/js/diy/love.js"></script>
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

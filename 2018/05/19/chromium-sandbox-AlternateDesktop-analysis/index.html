@@ -1,0 +1,707 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/favicon.png">
+  <link rel="icon" href="/img/favicon.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="r00tk1t">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="本篇是sandbox源码剖析的第六篇，主要分析了windows平台下，Chromium对alternate desktop的创建与使用。阅读本篇前，最好阅读前四篇（本篇相对独立）。 想要流程的阅读本系列你需要以下几个条件： 1. 较高水平的C++编码能力（至少通读C++ Primer 5th，刷过课后题，有一定编码量）。 2. 熟悉Windows API编程，尤其是安全相关的内容。 3. 对二进制">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Chromium-sandbox-AlternateDesktop-analysis">
+<meta property="og:url" content="https://r00tk1ts.github.io/2018/05/19/chromium-sandbox-AlternateDesktop-analysis/index.html">
+<meta property="og:site_name" content="玉涵的技能书">
+<meta property="og:description" content="本篇是sandbox源码剖析的第六篇，主要分析了windows平台下，Chromium对alternate desktop的创建与使用。阅读本篇前，最好阅读前四篇（本篇相对独立）。 想要流程的阅读本系列你需要以下几个条件： 1. 较高水平的C++编码能力（至少通读C++ Primer 5th，刷过课后题，有一定编码量）。 2. 熟悉Windows API编程，尤其是安全相关的内容。 3. 对二进制">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2018-05-19T00:16:11.000Z">
+<meta property="article:modified_time" content="2024-04-22T03:34:00.164Z">
+<meta property="article:author" content="r00tk1t">
+<meta property="article:tag" content="chromium">
+<meta property="article:tag" content="chromium-sandbox">
+<meta name="twitter:card" content="summary_large_image">
+  
+  
+  
+  <title>Chromium-sandbox-AlternateDesktop-analysis - 玉涵的技能书</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"r00tk1ts.github.io","root":"/","version":"1.9.5","typing":{"enable":true,"typeSpeed":80,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<!-- hexo injector head_end start --><link rel="stylesheet" href="https://cdn.staticfile.org/lxgw-wenkai-screen-webfont/1.7.0/style.min.css" /><!-- hexo injector head_end end --><meta name="generator" content="Hexo 6.1.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>玉涵的技能书</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/doc/">
+                <i class="iconfont icon-books"></i>
+                <span>藏经阁</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="Chromium-sandbox-AlternateDesktop-analysis"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2018-05-19 08:16" pubdate>
+          2018年5月19日 早上
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          9.1k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          76 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">Chromium-sandbox-AlternateDesktop-analysis</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <p>本篇是sandbox源码剖析的第六篇，主要分析了windows平台下，Chromium对alternate
+desktop的创建与使用。阅读本篇前，最好阅读前四篇（本篇相对独立）。</p>
+<p>想要流程的阅读本系列你需要以下几个条件： 1.
+较高水平的C++编码能力（至少通读C++ Primer
+5th，刷过课后题，有一定编码量）。 2. 熟悉Windows
+API编程，尤其是安全相关的内容。 3.
+对二进制安全有一定了解，熟悉各类型安全漏洞成因、漏洞缓解措施及bypass手法。</p>
+<span id="more"></span>
+<h1
+id="chromium-sandbox-alternatedesktop-analysis">chromium-sandbox-AlternateDesktop-analysis</h1>
+<p>policy三大组件最后一个——Alternate
+Desktop，也是最为简单的一个。关于target进程为什么要设置alternate
+desktop，在前面其他篇章中已经不止一次的说过了。</p>
+<p>依然是围绕policy和target对alternate
+desktop的行为，对代码进行展开。</p>
+<h2 id="spawntarget-related"><code>SpawnTarget</code> related</h2>
+<p>除了job和token，alternate desktop也是在这里捏出来的：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs cpp">base::string16 desktop = policy_base-&gt;<span class="hljs-built_in">GetAlternateDesktop</span>();<br> <span class="hljs-keyword">if</span> (!desktop.<span class="hljs-built_in">empty</span>()) &#123;<br>   startup_info.<span class="hljs-built_in">startup_info</span>()-&gt;lpDesktop =<br>       <span class="hljs-built_in">const_cast</span>&lt;<span class="hljs-type">wchar_t</span>*&gt;(desktop.<span class="hljs-built_in">c_str</span>());<br> &#125;<br></code></pre></td></tr></table></figure>
+<p>通过policy的<code>GetAlternateDesktop</code>接口拿到宽字符形式的desktop，将其指派到startup_info的对应成员。</p>
+<p>与job和token的Make方法不同，这里的名称是Get：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-function">base::string16 <span class="hljs-title">PolicyBase::GetAlternateDesktop</span><span class="hljs-params">()</span> <span class="hljs-type">const</span> </span>&#123;<br>  <span class="hljs-comment">// No alternate desktop or winstation. Return an empty string.</span><br>  <span class="hljs-comment">// 如果policy在SpawnTarget前就已经指明了既不使用alternate desktop也不</span><br>  <span class="hljs-comment">// 使用alternate winstation，就返回空串</span><br>  <span class="hljs-keyword">if</span> (!use_alternate_desktop_ &amp;&amp; !use_alternate_winstation_) &#123;<br>    <span class="hljs-keyword">return</span> base::<span class="hljs-built_in">string16</span>();<br>  &#125;<br><br>  <span class="hljs-comment">// 如果要使用的是alternate winstation</span><br>  <span class="hljs-keyword">if</span> (use_alternate_winstation_) &#123;<br>    <span class="hljs-comment">// The desktop and winstation should have been created by now.</span><br>    <span class="hljs-comment">// If we hit this scenario, it means that the user ignored the failure</span><br>    <span class="hljs-comment">// during SetAlternateDesktop, so we ignore it here too.</span><br>    <span class="hljs-comment">// 理论上走到这里之前，desktop和winstation都已经创建完毕了</span><br>    <span class="hljs-comment">// 所以如果走到这里的话，就意味着用户已经忽略了失败</span><br>    <span class="hljs-keyword">if</span> (!alternate_desktop_handle_ || !alternate_winstation_handle_) &#123;<br>      <span class="hljs-keyword">return</span> base::<span class="hljs-built_in">string16</span>();<br>    &#125;<br>    <span class="hljs-comment">// 利用winstation和desktop的handle来调用关键Call</span><br>    <span class="hljs-keyword">return</span> <span class="hljs-built_in">GetFullDesktopName</span>(alternate_winstation_handle_,<br>                              alternate_desktop_handle_);<br>  &#125; <span class="hljs-keyword">else</span> &#123;<br>    <span class="hljs-comment">// 这就意味着不适用winstation，只用desktop，但还需要对</span><br>    <span class="hljs-comment">// alternate_desktop_local_winstation_handle_检查一下</span><br>    <span class="hljs-comment">// 如果其无效则表示设置上出现了差错</span><br>    <span class="hljs-keyword">if</span> (!alternate_desktop_local_winstation_handle_) &#123;<br>      <span class="hljs-keyword">return</span> base::<span class="hljs-built_in">string16</span>();<br>    &#125;<br>    <span class="hljs-comment">// 关键Call，此时winstation句柄是null</span><br>    <span class="hljs-keyword">return</span> <span class="hljs-built_in">GetFullDesktopName</span>(<span class="hljs-literal">nullptr</span>,<br>                              alternate_desktop_local_winstation_handle_);<br>  &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>展开关键Call看一看：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-function">base::string16 <span class="hljs-title">GetFullDesktopName</span><span class="hljs-params">(HWINSTA winsta, HDESK desktop)</span> </span>&#123;<br>  <span class="hljs-keyword">if</span> (!desktop) &#123;	<span class="hljs-comment">// desktop是不可能没有的，这辈子不可能没有的</span><br>    <span class="hljs-built_in">NOTREACHED</span>();<br>    <span class="hljs-keyword">return</span> base::<span class="hljs-built_in">string16</span>();<br>  &#125;<br><br>  base::string16 name;<br>  <span class="hljs-comment">// 如果使用winsta，则返回winsta做参数调用返回的name</span><br>  <span class="hljs-keyword">if</span> (winsta) &#123;<br>    name = <span class="hljs-built_in">GetWindowObjectName</span>(winsta);<br>    name += <span class="hljs-string">L&#x27;\\&#x27;</span>;	<span class="hljs-comment">//后面跟了个反斜杠</span><br>  &#125;<br><br>  name += <span class="hljs-built_in">GetWindowObjectName</span>(desktop);<span class="hljs-comment">//使用desktop做参数</span><br>  <span class="hljs-keyword">return</span> name;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>继续call in：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-function">base::string16 <span class="hljs-title">GetWindowObjectName</span><span class="hljs-params">(HANDLE handle)</span> </span>&#123;<br>  <span class="hljs-comment">// Get the size of the name.</span><br>  <span class="hljs-comment">// 又是经典的二次调用，首次调用获取对象名称的尺寸</span><br>  DWORD size = <span class="hljs-number">0</span>;<br>  ::<span class="hljs-built_in">GetUserObjectInformation</span>(handle, UOI_NAME, <span class="hljs-literal">nullptr</span>, <span class="hljs-number">0</span>, &amp;size);<br><br>  <span class="hljs-keyword">if</span> (!size) &#123;<br>    <span class="hljs-built_in">NOTREACHED</span>();<br>    <span class="hljs-keyword">return</span> base::<span class="hljs-built_in">string16</span>();<br>  &#125;<br><br>  <span class="hljs-comment">// Create the buffer that will hold the name.</span><br>  <span class="hljs-function">std::unique_ptr&lt;<span class="hljs-type">wchar_t</span>[]&gt; <span class="hljs-title">name_buffer</span><span class="hljs-params">(<span class="hljs-keyword">new</span> <span class="hljs-type">wchar_t</span>[size])</span></span>;<br><br>  <span class="hljs-comment">// 二次调用获取对象名称</span><br>  <span class="hljs-comment">// Query the name of the object.</span><br>  <span class="hljs-keyword">if</span> (!::<span class="hljs-built_in">GetUserObjectInformation</span>(handle, UOI_NAME, name_buffer.<span class="hljs-built_in">get</span>(), size,<br>                                  &amp;size)) &#123;<br>    <span class="hljs-built_in">NOTREACHED</span>();<br>    <span class="hljs-keyword">return</span> base::<span class="hljs-built_in">string16</span>();<br>  &#125;<br><br>  <span class="hljs-keyword">return</span> base::<span class="hljs-built_in">string16</span>(name_buffer.<span class="hljs-built_in">get</span>());<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>看到这里，再通过前面的注释提示，就明白了alternate
+desktop在<code>SpawnTarget</code>之前就已经做出来了，这也难怪job和token是Make，而alternate
+desktop却是Get。</p>
+<h2 id="setalternatedesktop-related"><code>SetAlternateDesktop</code>
+related</h2>
+<p>从AlternateDesktop的Create方法层层回溯，最终找到policy的<code>SetAlternateDesktop</code>方法。</p>
+<p>sandbox本身没有new出policy对象来做这样一件事，这是使用sandbox的驱动者的事，但是sandbox有一些单元测试脚本，给出了调用的示范，其实此前在token中也看过了，比如：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-built_in">TEST</span>(IntegrityLevelTest, TestLowILReal) &#123;<br>  <span class="hljs-function">TestRunner <span class="hljs-title">runner</span><span class="hljs-params">(JOB_LOCKDOWN, USER_INTERACTIVE, USER_INTERACTIVE)</span></span>;<br><br>  runner.<span class="hljs-built_in">SetTimeout</span>(INFINITE);<br><br>  runner.<span class="hljs-built_in">GetPolicy</span>()-&gt;<span class="hljs-built_in">SetAlternateDesktop</span>(<span class="hljs-literal">true</span>);<span class="hljs-comment">//true表示使用winstation</span><br>  runner.<span class="hljs-built_in">GetPolicy</span>()-&gt;<span class="hljs-built_in">SetIntegrityLevel</span>(INTEGRITY_LEVEL_LOW);<br><br>  <span class="hljs-built_in">EXPECT_EQ</span>(SBOX_TEST_SUCCEEDED, runner.<span class="hljs-built_in">RunTest</span>(<span class="hljs-string">L&quot;CheckIntegrityLevel&quot;</span>));<br><br>  runner.<span class="hljs-built_in">SetTestState</span>(BEFORE_REVERT);<br>  <span class="hljs-built_in">EXPECT_EQ</span>(SBOX_TEST_SUCCEEDED, runner.<span class="hljs-built_in">RunTest</span>(<span class="hljs-string">L&quot;CheckIntegrityLevel&quot;</span>));<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>于是，我们跟进<code>SetAlternateDesktop</code>看看：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-function">ResultCode <span class="hljs-title">PolicyBase::SetAlternateDesktop</span><span class="hljs-params">(<span class="hljs-type">bool</span> alternate_winstation)</span> </span>&#123;<br>  use_alternate_desktop_ = <span class="hljs-literal">true</span>;<span class="hljs-comment">//这个肯定得true啊，还信誓旦旦搞个成员变量</span><br>  use_alternate_winstation_ = alternate_winstation;<br>  <span class="hljs-keyword">return</span> <span class="hljs-built_in">CreateAlternateDesktop</span>(alternate_winstation);<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>步入<code>CreateAlternateDesktop</code>：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-function">ResultCode <span class="hljs-title">PolicyBase::CreateAlternateDesktop</span><span class="hljs-params">(<span class="hljs-type">bool</span> alternate_winstation)</span> </span>&#123;<br>  <span class="hljs-comment">// 需要winstation的分支</span><br>  <span class="hljs-keyword">if</span> (alternate_winstation) &#123;<br>    <span class="hljs-comment">// Check if it&#x27;s already created.</span><br>    <span class="hljs-comment">// 防止二次create</span><br>    <span class="hljs-keyword">if</span> (alternate_winstation_handle_ &amp;&amp; alternate_desktop_handle_)<br>      <span class="hljs-keyword">return</span> SBOX_ALL_OK;<br><br>    <span class="hljs-built_in">DCHECK</span>(!alternate_winstation_handle_);<br>    <span class="hljs-comment">// Create the window station.</span><br>    <span class="hljs-comment">// 创建winstation的关键Call，传入的句柄作为OUT型参数</span><br>    ResultCode result = <span class="hljs-built_in">CreateAltWindowStation</span>(&amp;alternate_winstation_handle_);<br>    <span class="hljs-keyword">if</span> (SBOX_ALL_OK != result)<br>      <span class="hljs-keyword">return</span> result;<br><br>    <span class="hljs-comment">// Verify that everything is fine.</span><br>    <span class="hljs-keyword">if</span> (!alternate_winstation_handle_ ||<br>        <span class="hljs-built_in">GetWindowObjectName</span>(alternate_winstation_handle_).<span class="hljs-built_in">empty</span>())<br>      <span class="hljs-keyword">return</span> SBOX_ERROR_CANNOT_CREATE_DESKTOP;<br><br>    <span class="hljs-comment">// Create the destkop.</span><br>    <span class="hljs-comment">// 创建desktop的关键Call</span><br>    result = <span class="hljs-built_in">CreateAltDesktop</span>(alternate_winstation_handle_,<br>                              &amp;alternate_desktop_handle_);<br>    <span class="hljs-keyword">if</span> (SBOX_ALL_OK != result)<br>      <span class="hljs-keyword">return</span> result;<br><br>    <span class="hljs-comment">// Verify that everything is fine.</span><br>    <span class="hljs-keyword">if</span> (!alternate_desktop_handle_ ||<br>        <span class="hljs-built_in">GetWindowObjectName</span>(alternate_desktop_handle_).<span class="hljs-built_in">empty</span>())<br>      <span class="hljs-keyword">return</span> SBOX_ERROR_CANNOT_CREATE_DESKTOP;<br>  &#125; <span class="hljs-keyword">else</span> &#123;<br>    <span class="hljs-comment">// Check if it already exists.</span><br>    <span class="hljs-comment">// 这个成员作为无winstation（意味着使用local winstation）的desktop句柄</span><br>    <span class="hljs-keyword">if</span> (alternate_desktop_local_winstation_handle_)<br>      <span class="hljs-keyword">return</span> SBOX_ALL_OK;<br><br>    <span class="hljs-comment">// Create the destkop.</span><br>    <span class="hljs-comment">// 第一个参数是nullptr</span><br>    ResultCode result =<br>        <span class="hljs-built_in">CreateAltDesktop</span>(<span class="hljs-literal">nullptr</span>, &amp;alternate_desktop_local_winstation_handle_);<br>    <span class="hljs-keyword">if</span> (SBOX_ALL_OK != result)<br>      <span class="hljs-keyword">return</span> result;<br><br>    <span class="hljs-comment">// Verify that everything is fine.</span><br>    <span class="hljs-keyword">if</span> (!alternate_desktop_local_winstation_handle_ ||<br>        <span class="hljs-built_in">GetWindowObjectName</span>(alternate_desktop_local_winstation_handle_).<span class="hljs-built_in">empty</span>())<br>      <span class="hljs-keyword">return</span> SBOX_ERROR_CANNOT_CREATE_DESKTOP;<br>  &#125;<br><br>  <span class="hljs-keyword">return</span> SBOX_ALL_OK;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>到此，就明白了这三个句柄成员的用途与联系了。</p>
+<p>进入两个关键的Create中看看：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-function">ResultCode <span class="hljs-title">CreateAltDesktop</span><span class="hljs-params">(HWINSTA winsta, HDESK* desktop)</span> </span>&#123;<br>  base::string16 desktop_name = <span class="hljs-string">L&quot;sbox_alternate_desktop_&quot;</span>;<br><br>  <span class="hljs-comment">// 没有create winstation就接local_winstation_</span><br>  <span class="hljs-keyword">if</span> (!winsta) &#123;<br>    desktop_name += <span class="hljs-string">L&quot;local_winstation_&quot;</span>;<br>  &#125;<br><br>  <span class="hljs-comment">// Append the current PID to the desktop name.</span><br>  <span class="hljs-comment">// 把当前进程的PID追加到desktop_name上</span><br>  <span class="hljs-type">wchar_t</span> buffer[<span class="hljs-number">16</span>];<br>  _snwprintf_s(buffer, <span class="hljs-built_in">sizeof</span>(buffer) / <span class="hljs-built_in">sizeof</span>(<span class="hljs-type">wchar_t</span>), <span class="hljs-string">L&quot;0x%X&quot;</span>,<br>               ::<span class="hljs-built_in">GetCurrentProcessId</span>());<br>  desktop_name += buffer;<br><br>  <span class="hljs-comment">// 以当前线程ID获取当前的Desktop</span><br>  HDESK current_desktop = <span class="hljs-built_in">GetThreadDesktop</span>(<span class="hljs-built_in">GetCurrentThreadId</span>());<br><br>  <span class="hljs-keyword">if</span> (!current_desktop)<br>    <span class="hljs-keyword">return</span> SBOX_ERROR_CANNOT_GET_DESKTOP;<br><br>  <span class="hljs-comment">// Get the security attributes from the current desktop, we will use this as</span><br>  <span class="hljs-comment">// the base security attributes for the new desktop.</span><br>  <span class="hljs-comment">// 从当前desktop获取安全属性，用来给新的desktop当模板</span><br>  SECURITY_ATTRIBUTES attributes = &#123;<span class="hljs-number">0</span>&#125;;<br>  <span class="hljs-keyword">if</span> (!<span class="hljs-built_in">GetSecurityAttributes</span>(current_desktop, &amp;attributes))<br>    <span class="hljs-keyword">return</span> SBOX_ERROR_CANNOT_QUERY_DESKTOP_SECURITY;<br><br>  <span class="hljs-comment">// Back up the current window station, in case we need to switch it.</span><br>  <span class="hljs-comment">// 获取当前的winstation</span><br>  HWINSTA current_winsta = ::<span class="hljs-built_in">GetProcessWindowStation</span>();<br><br>  <span class="hljs-comment">// 如果此前创建了winstation，就需要先切换到这个winstation上再创建desktop</span><br>  <span class="hljs-keyword">if</span> (winsta) &#123;<br>    <span class="hljs-comment">// We need to switch to the alternate window station before creating the</span><br>    <span class="hljs-comment">// desktop.</span><br>    <span class="hljs-comment">// 这个Windows API负责切换进程的winstation</span><br>    <span class="hljs-keyword">if</span> (!::<span class="hljs-built_in">SetProcessWindowStation</span>(winsta)) &#123;<br>      ::<span class="hljs-built_in">LocalFree</span>(attributes.lpSecurityDescriptor);<br>      <span class="hljs-keyword">return</span> SBOX_ERROR_CANNOT_CREATE_DESKTOP;<br>    &#125;<br>  &#125;<br><br>  <span class="hljs-comment">// Create the destkop.</span><br>  <span class="hljs-comment">// 此时就可以创建desktop了，名称已经填充好，标志也很明确</span><br>  <span class="hljs-comment">// 具体意义参考MSDN，和对象安全访问有关</span><br>  *desktop = ::<span class="hljs-built_in">CreateDesktop</span>(desktop_name.<span class="hljs-built_in">c_str</span>(), <span class="hljs-literal">nullptr</span>, <span class="hljs-literal">nullptr</span>, <span class="hljs-number">0</span>,<br>                             DESKTOP_CREATEWINDOW | DESKTOP_READOBJECTS |<br>                                 READ_CONTROL | WRITE_DAC | WRITE_OWNER,<br>                             &amp;attributes);<br>  ::<span class="hljs-built_in">LocalFree</span>(attributes.lpSecurityDescriptor);<br><br>  <span class="hljs-keyword">if</span> (winsta) &#123;<br>    <span class="hljs-comment">// Revert to the right window station.</span><br>    <span class="hljs-comment">// 切回来</span><br>    <span class="hljs-keyword">if</span> (!::<span class="hljs-built_in">SetProcessWindowStation</span>(current_winsta)) &#123;<br>      <span class="hljs-keyword">return</span> SBOX_ERROR_FAILED_TO_SWITCH_BACK_WINSTATION;<br>    &#125;<br>  &#125;<br><br>  <span class="hljs-keyword">if</span> (*desktop) &#123;<br>    <span class="hljs-comment">// Replace the DACL on the new Desktop with a reduced privilege version.</span><br>    <span class="hljs-comment">// We can soft fail on this for now, as it&#x27;s just an extra mitigation.</span><br>    <span class="hljs-comment">// 替换新desktop的DACL，做了降权处理</span><br>    <span class="hljs-type">static</span> <span class="hljs-type">const</span> ACCESS_MASK kDesktopDenyMask =<br>        WRITE_DAC | WRITE_OWNER | DELETE | DESKTOP_CREATEMENU |<br>        DESKTOP_CREATEWINDOW | DESKTOP_HOOKCONTROL | DESKTOP_JOURNALPLAYBACK |<br>        DESKTOP_JOURNALRECORD | DESKTOP_SWITCHDESKTOP;<br>    <span class="hljs-comment">// 涉及到对象DACL的意义以及存储结构</span><br>    <span class="hljs-comment">// 可以自行参考《Windows Internals》的描述，阅读Acl.cc相关的代码</span><br>    <span class="hljs-comment">// 理解SID和DACL之间判定方法、顺序影响等</span><br>    <span class="hljs-built_in">AddKnownSidToObject</span>(*desktop, SE_WINDOW_OBJECT, <span class="hljs-built_in">Sid</span>(WinRestrictedCodeSid),<br>                        DENY_ACCESS, kDesktopDenyMask);<br>    <span class="hljs-keyword">return</span> SBOX_ALL_OK;<br>  &#125;<br><br>  <span class="hljs-keyword">return</span> SBOX_ERROR_CANNOT_CREATE_DESKTOP;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>winstation的创建：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-function">ResultCode <span class="hljs-title">CreateAltWindowStation</span><span class="hljs-params">(HWINSTA* winsta)</span> </span>&#123;<br>  <span class="hljs-comment">// Get the security attributes from the current window station; we will</span><br>  <span class="hljs-comment">// use this as the base security attributes for the new window station.</span><br>  <span class="hljs-comment">// 老套路，先用当前的winstation的安全属性做模板</span><br>  HWINSTA current_winsta = ::<span class="hljs-built_in">GetProcessWindowStation</span>();<br>  <span class="hljs-keyword">if</span> (!current_winsta)<br>    <span class="hljs-keyword">return</span> SBOX_ERROR_CANNOT_GET_WINSTATION;<br><br>  SECURITY_ATTRIBUTES attributes = &#123;<span class="hljs-number">0</span>&#125;;<br>  <span class="hljs-comment">// 不过是GetSecurityInfo WinAPI的封装</span><br>  <span class="hljs-keyword">if</span> (!<span class="hljs-built_in">GetSecurityAttributes</span>(current_winsta, &amp;attributes))<br>    <span class="hljs-keyword">return</span> SBOX_ERROR_CANNOT_QUERY_WINSTATION_SECURITY;<br><br>  <span class="hljs-comment">// Create the window station using nullptr for the name to ask the os to</span><br>  <span class="hljs-comment">// generate it.</span><br>  <span class="hljs-comment">// 不指定名称，由OS生成，创建出一个winstation</span><br>  *winsta = ::<span class="hljs-built_in">CreateWindowStationW</span>(<br>      <span class="hljs-literal">nullptr</span>, <span class="hljs-number">0</span>, GENERIC_READ | WINSTA_CREATEDESKTOP, &amp;attributes);<br>  <span class="hljs-keyword">if</span> (!*winsta &amp;&amp; ::<span class="hljs-built_in">GetLastError</span>() == ERROR_ACCESS_DENIED) &#123;<br>    *winsta = ::<span class="hljs-built_in">CreateWindowStationW</span>(<br>        <span class="hljs-literal">nullptr</span>, <span class="hljs-number">0</span>, WINSTA_READATTRIBUTES | WINSTA_CREATEDESKTOP, &amp;attributes);<br>  &#125;<br>  <span class="hljs-built_in">LocalFree</span>(attributes.lpSecurityDescriptor);<br><br>  <span class="hljs-keyword">if</span> (*winsta)<br>    <span class="hljs-keyword">return</span> SBOX_ALL_OK;<br><br>  <span class="hljs-keyword">return</span> SBOX_ERROR_CANNOT_CREATE_WINSTATION;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90/" class="category-chain-item">源码剖析</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/chromium/" class="print-no-link">#chromium</a>
+      
+        <a href="/tags/chromium-sandbox/" class="print-no-link">#chromium-sandbox</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>Chromium-sandbox-AlternateDesktop-analysis</div>
+      <div>https://r00tk1ts.github.io/2018/05/19/chromium-sandbox-AlternateDesktop-analysis/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>r00tk1t</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2018年5月19日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2018/05/19/chromium-sandbox-Crosscall-analysis/" title="Chromium-sandbox-crosscall-analysis">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">Chromium-sandbox-crosscall-analysis</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2018/05/19/chromium-sandbox-Tokens-analysis/" title="Chromium-sandbox-Tokens-analysis">
+                        <span class="hidden-mobile">Chromium-sandbox-Tokens-analysis</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+  
+<script src="/js/diy/yinghua.js"></script>
+<script src="/js/diy/love.js"></script>
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

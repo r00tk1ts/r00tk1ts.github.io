@@ -1,0 +1,981 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/favicon.png">
+  <link rel="icon" href="/img/favicon.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="r00tk1t">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="近年来陆陆续续对Linux内核各模块做些研究，本文是对Linux内核中断的一点研究。主要参考ULK以及毛批，结合自己的一些深入的理解，以及从源代码中翻箱倒柜获取的心得。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Linux中断内幕">
+<meta property="og:url" content="https://r00tk1ts.github.io/2017/12/21/Linux%E4%B8%AD%E6%96%AD%E5%86%85%E5%B9%95/index.html">
+<meta property="og:site_name" content="玉涵的技能书">
+<meta property="og:description" content="近年来陆陆续续对Linux内核各模块做些研究，本文是对Linux内核中断的一点研究。主要参考ULK以及毛批，结合自己的一些深入的理解，以及从源代码中翻箱倒柜获取的心得。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://r00tk1ts.github.io/2017/12/21/Linux%E4%B8%AD%E6%96%AD%E5%86%85%E5%B9%95/20171220_1.jpg">
+<meta property="og:image" content="https://r00tk1ts.github.io/2017/12/21/Linux%E4%B8%AD%E6%96%AD%E5%86%85%E5%B9%95/20171220_2.jpg">
+<meta property="og:image" content="https://r00tk1ts.github.io/2017/12/21/Linux%E4%B8%AD%E6%96%AD%E5%86%85%E5%B9%95/20171220_4.jpg">
+<meta property="og:image" content="https://r00tk1ts.github.io/2017/12/21/Linux%E4%B8%AD%E6%96%AD%E5%86%85%E5%B9%95/20171220_3.jpg">
+<meta property="og:image" content="https://r00tk1ts.github.io/2017/12/21/Linux%E4%B8%AD%E6%96%AD%E5%86%85%E5%B9%95/20171220_5.jpg">
+<meta property="article:published_time" content="2017-12-21T12:54:11.000Z">
+<meta property="article:modified_time" content="2024-04-22T03:34:00.150Z">
+<meta property="article:author" content="r00tk1t">
+<meta property="article:tag" content="linux-kernel">
+<meta property="article:tag" content="ulk">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://r00tk1ts.github.io/2017/12/21/Linux%E4%B8%AD%E6%96%AD%E5%86%85%E5%B9%95/20171220_1.jpg">
+  
+  
+  
+  <title>Linux中断内幕 - 玉涵的技能书</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"r00tk1ts.github.io","root":"/","version":"1.9.5","typing":{"enable":true,"typeSpeed":80,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<!-- hexo injector head_end start --><link rel="stylesheet" href="https://cdn.staticfile.org/lxgw-wenkai-screen-webfont/1.7.0/style.min.css" /><!-- hexo injector head_end end --><meta name="generator" content="Hexo 6.1.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>玉涵的技能书</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/doc/">
+                <i class="iconfont icon-books"></i>
+                <span>藏经阁</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="Linux中断内幕"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2017-12-21 20:54" pubdate>
+          2017年12月21日 晚上
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          36k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          297 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">Linux中断内幕</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <p>近年来陆陆续续对Linux内核各模块做些研究，本文是对Linux内核中断的一点研究。主要参考ULK以及毛批，结合自己的一些深入的理解，以及从源代码中翻箱倒柜获取的心得。</p>
+<span id="more"></span>
+<h1 id="linux中断内幕">Linux中断内幕</h1>
+<p>早在学习8086汇编的时候，就接触过中断的概念。而在现代操作系统如Linux,
+Windows上，对中断的理解，概多源于道听途说，也就一知半解，时常被各种细分的术语搞得云里雾里。在阅读了大量的文献与Linux相关源码后，我将对Linux的中断内幕进行一波小小的归纳。有道是纸上得来终觉浅。</p>
+<blockquote>
+<p>外中断、内中断、硬中断、软中断、异常、陷阱、错误、终止、可编程中断/异常、IRQ、Tasklet、工作队列</p>
+<p>如果你对这些了如指掌，辨识得清清楚楚，绕过本文即可。</p>
+</blockquote>
+<h2 id="中断的宏观意义">中断的宏观意义</h2>
+<p>毛批和ULK在谈到中断时，标题都是将中断和异常并列而论，甚至毛批中将系统调用这么个子类也放在了标题，或许是因为系统调用太重要了。</p>
+<p>在研究了大量的资料后，私以为使用宏观意义的中断概念来做标题或许更佳，这也是本文标题的由来。</p>
+<p>追根溯源，中断只是个宏观概念，参见程序员素质二连，要么轮询、要么中断。这一思想在程序设计中随处可见，如自旋锁和睡眠锁，前者一直在BB着：“我现在可以起床了吗”，而后者则不声不响，等待其他人（进程）的唤醒（Hey
+guy，it's time to get up!）。</p>
+<p>所以中断的意义，我引用鱼C甲鱼兄的诠释：中断就是你在房间里看苍老师的片儿，你妈妈突然进来告诉你让你下去打酱油，于是你按下暂停键，出去打酱油，回来之后再continue。</p>
+<p>一个严格的归纳：从本质上来讲，中断是一种电信号，当设备有某种事件发生时，它就会产生中断，通过总线把电信号发送给中断控制器（如
+8259A）。如果中断的线是激活的，中断控制器就把电信号发送给处理器的某个特定引脚。处理器于是立即停止自己正在做的事，跳到中断处理程序的入口点，进行中断处理。</p>
+<h2 id="中断分类">中断分类</h2>
+<p>从信号源来分，中断有两种，由外部的硬件设备产生（这称为外中断）或者是CPU内部产生的（这称为内中断，内部产生可以有两种，一种是指令执行出错比如除0，另一种是使用软中断指令int
+x）。而从另一个角度来看，由硬件引起的叫硬中断，软件引起的叫软中断。Linux中软中断是个“二义”的概念，之所打上引号，是因为实际上殊途同归，后面会谈到。</p>
+<p>Linux中很难看到内外中断的说法，但是软硬中断则随处可见。按照我的理解，外中断就是硬中断，而内中断不完全是软中断（之所以这样说，是因为硬中断是Linux处理IRQ的上半部分，下半部分交由软中断完成，这里的软中断入口方式和直接使用int
+x指令不同，但最终结果都是找服务例程），采用软硬是为了更好的区分中断信号是硬件给的还是由软件产生的。</p>
+<p>而按照Intel手册的区分，中断应该分为同步中断和异步中断。显然，硬中断是异步的，因为你不知道它什么时候来搞事情（如键盘中断）。相反的，软中断则是同步的，因为只有在一条指令终止执行后CPU才会发出中断（如系统调用）。</p>
+<p>Intel手册将异步中断称为中断(interrupt)，同步中断称为异常(exception)。它们的不同已经清楚了，而共同点则是都有一个中断服务例程，也就是具体要做的事（例子中的打酱油）。</p>
+<p><strong>为了区分宏观意义的中断和异步中断，下文统一将前者称为中断，后者称为interrupt。</strong></p>
+<h3 id="interrupt">Interrupt</h3>
+<p>Interrupt分为可屏蔽中断(maskable interrupt)和非屏蔽中断(nonmaskable
+interrupt)。可屏蔽中断由两种状态：已屏蔽(masked)和未屏蔽(unmasked)，非屏蔽中断顾名思义不可屏蔽（有限的几个危急事件如硬件故障，所以我们常说硬中断是可屏蔽的，这并不包括nonmaskable
+interrupt）。</p>
+<h3 id="exception">Exception</h3>
+<p>Exception分为三类，错误(fault)、陷阱(trap)和终止(abort)。</p>
+<p>三者的区别主要在于返回的位置不同。fault在返回后依然会重新执行引起故障的指令（缺页异常就是fault，要保证连贯性）；trap返回后执行下一条指令（调试器断点）；abort则不会返回，这往往意味着发生了一个严重错误，异常中止处理程序会终止引起abort的进程。</p>
+<h3 id="小结">小结</h3>
+<p>所以中断分为四类：interrupt, fault, trap和abort。</p>
+<table>
+<thead>
+<tr class="header">
+<th>类别</th>
+<th>原因</th>
+<th>异步/同步</th>
+<th>返回行为</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>interrupt</td>
+<td>来自I/O设备的信号</td>
+<td>异步</td>
+<td>总是返回到下一条指令</td>
+</tr>
+<tr class="even">
+<td>fault</td>
+<td>潜在可恢复的错误</td>
+<td>同步</td>
+<td>返回到当前指令</td>
+</tr>
+<tr class="odd">
+<td>trap</td>
+<td>有意的异常</td>
+<td>同步</td>
+<td>总是返回到下一条指令</td>
+</tr>
+<tr class="even">
+<td>abort</td>
+<td>不可恢复的错误</td>
+<td>同步</td>
+<td>不返回</td>
+</tr>
+</tbody>
+</table>
+<h2 id="irq">IRQ</h2>
+<p>IRQ和中断的关联，我直接引用blcblc的归纳：</p>
+<p><strong>中断处理程序比一个进程要“轻”（中断的上下文很少，建立或终止中断处理需要的时间也很少）</strong></p>
+<p>中断处理是内核执行的最敏感的任务之一，因此它必须满足下列约束：</p>
+<p>​ ◎
+当内核正打算去完成一些别的事情时，中断随时会到来。因此，内核的目标就是让中断尽可能快地处理完，尽其所能把更多的处理向后推迟。因此，内核响应中断后需要进行的操作分为两部分：关键而紧急的部分，内核立即执行；其余推迟的部分，内核随后执行。
+​◎
+因为中断随时会到来，所以内核可能正在处理其中的一个中断时，另一个不同类型的中断又发生了。内核应该尽可能地允许这种情况发生，因为这能维持更多的I/O设备得到处理的机会。因此，中断处理程序必须编写成使相应的内核控制路径能以嵌套的方式执行。当最后一个内核控制路径终止时，内核必须能恢复被中断进程的执行，或者，如果中断信号已导致了重新调度，内核也应能切换到另外的进程。
+​◎
+尽管内核在处理前一个中断时可以接受一个新的中断，但在内核代码中还是存在一些临界区，在临界区中，中断必须被禁止。必须尽可能地限制这样的临界区，因为根据以前的要求，内核，尤其是中断处理程序，应该在大部分时间内以开中断的方式运行。</p>
+<p>因为外部设备不能直接发出中断，而必须通过中断控制器的标准组件来请求中断，<strong>所以这种请求更正确的叫法是IRQ，或中断请求（Interrupt
+Request）</strong>。中断不能由处理器外部的外设直接产生，而必须借助于一个称为可编程中断控制器（programmable
+interrupt controller,
+<strong>PIC</strong>）的标准组件来请求，该组件存在于每个系统中。外部设备，会有电路连接到用于向中断控制器发送中断请求的组件。控制器在执行了各种电工任务之后，将中断请求转发到CPU的中断输入中。</p>
+<p><strong>每个能够发出中断请求的硬件设备控制器都有这么一条名为IRQ的输出线</strong>。所有现有的IRQ线都会与这个中断控制器（PIC）的硬件电路的输入引脚相连。下面来看看这种中断控制器执行下列动作：</p>
+<p>​ 1) 监视IRQ线，检查产生的信号
+。如果有一条或两条以上的IRQ线上产生信号，就选择引脚编号较小的IRQ线。</p>
+<p>​ 2) 如果一个引发信号出现在IRQ线上：</p>
+<p>​ a) 把接收到的引发信号转换成对应的向量（索引）。</p>
+<p>​ b)
+把这个向量存放在中断控器的一个I/O端口，<strong>从而允许CPU通过数据总线读取此向量</strong>。</p>
+<p>​ c)
+<strong>把引发信号发送到处理器的INTR引脚，即产生一个中断</strong>。</p>
+<p>​ d)
+等待，<strong>直到CPU通过把这个中断信号写进可编程中断控制器的一个I/O端口来确认它</strong>；当这种情况发生时，清INTR线。</p>
+<p>​ 3) 返回到第一步。</p>
+<p>​
+IRQ线是从0开始顺序编号的，因此，第一条IRQ线通常表示成IRQ0。与IRQn关联的Intel缺省向量是n+32。如前所述，通过向中断控制器端口发布合适的指令，就可以修改IRQ和向量之间的映射。</p>
+<p>​
+可以有选择地禁止每条IRQ线。因此，<strong>可以对PIC编程从而禁止IRQ</strong>，也就是说，可以告诉PIC停止对给定的IRQ线发布中断，或者激活它们，<strong>禁止的中断是丢失不了的，它们一旦激活，PIC就又把它们发送到CPU。</strong>这个特点被大多数中断处理程序使用，因为这允许中断处理程序逐次地处理同一类型的IRQ。</p>
+<h2 id="idt">IDT</h2>
+<p>中断描述符表（<em>Interrupt Descriptor
+Table，IDT</em>）是一个系统表，它与每一个中断或异常向量相联系，每一个向量在表中存放的是相应的中断或异常处理程序的入口地址。内核在允许中断发生前，也就是在系统初始化时，必须把
+IDT 表的初始化地址装载到 <code>idtr</code>
+寄存器中，初始化表中的每一项。</p>
+<p>当处于实模式下时，IDT 被初始化并由 BIOS 程序所使用。然而，一旦 Linux
+开始接管，IDT 就被移到 RAM 的另一个区域，并进行第二次初始化，因为 Linux
+不使用任何 BIOS
+程序，而使用自己专门的中断服务程序（例程）（<em>interrupt service
+routine，ISR</em>）。中断和异常处理程序很像常规的 C 函数</p>
+<p>IDT的格式和GDT和LDT相似，表中每一项对应一个中断(interrupt or
+exception)向量，每个向量由8个字节组成，共256项。<code>idtr</code>使IDT可以位于内存的任何地方，它指定IDT的线性基地址及其限制（最大长度）。在允许中断之前，必须用<code>lidt</code>汇编指令来初始化<code>idtr</code>。</p>
+<p>IDT包含三种类型描述符作为表项，任务门描述符、中断门描述符和陷阱门描述符。</p>
+<p><img src="20171220_1.jpg" srcset="/img/loading.gif" lazyload /></p>
+<ul>
+<li>任务门：
+<ul>
+<li>当中断信号发生时，必须取代当前进程的那个进程的TSS选择符放在任务门中。</li>
+<li>TSS段选择符和CS、DS相似，通过GDT和LDT指向特殊的“系统段”中的一种，称为任务状态段。TSS用于保护现场，包括CPU中所有与具体进程有关的寄存器内容（包含页面目录指针CR3）以及3个堆栈指针。</li>
+<li>P标志位为1表示在内存中，DPL描述项优先级别，类型码为00101。</li>
+<li>中断发生时，如果CPU找到的项是任务门，且DPL安检通过，CPU就将现场保存在TSS中，将任务门指向的任务变成当前任务，实现任务切换。（为了完成切换回路，CPU还有一个TR寄存器，用于指向当前的TSS）</li>
+<li>Intel硬件设计任务门旨在让OS使用它来完成进程切换，但Linux并没有采用这一硬件特性，实际上Linux仅在处理Default
+fault Exception时使用了任务门，表示一种内核错误。</li>
+</ul></li>
+<li>中断门：
+<ul>
+<li>包含段选择符和中断或异常处理程序的段内偏移量。当控制权转移到一个适当的段时，处理器清IF标志，从而关闭将来会发生的可屏蔽中断。</li>
+<li>指向的是一个子程序，所以除了段选择码外，还需要结合段内偏移</li>
+</ul></li>
+<li>陷阱门：
+<ul>
+<li>与中断们类似，只是控制权传递到一个适当的段时处理器不修改IF标志。</li>
+<li>通过类型码区分中断门和陷阱门。</li>
+</ul></li>
+</ul>
+<blockquote>
+<p>实际上还有个调用门，它和中断门、陷阱门结构一致，类型码不同。IDT中不包含调用门，Linux不用它做中断处理。</p>
+<p>Linux分别抽离了三个陷阱门和一个中断门，美其名曰系统中断门和系统门。前者用于用户态进程访问陷阱门（门DPL值为3），通过系统门激活3个异常处理程序，分别对应向量4,5,128，也就是<code>into</code>，<code>bound</code>和<code>int 80H</code>三个指令；后者也是用户态访问中断门（DPL为3），提供向量3相关的处理程序，也就是<code>int 3</code>,
+单步中断。除了这四个个DPL为3的中断/陷阱门外，其他的DPL都是0，且Linux也把它们称为中断/陷阱门。</p>
+</blockquote>
+<h3 id="idt初始化">IDT初始化</h3>
+<p>内核初始化阶段完成虚存管理初始化后会调用trap_init()和init_IRQ()初始化IDT：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-comment">/*</span><br><span class="hljs-comment"> * 调用trap_init()来设置系统规定的异常与中断</span><br><span class="hljs-comment"> */</span><br><span class="hljs-function"><span class="hljs-type">void</span> __init <span class="hljs-title">trap_init</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span></span><br><span class="hljs-function"></span>&#123;<br><span class="hljs-meta">#<span class="hljs-keyword">ifdef</span> CONFIG_EISA</span><br>	<span class="hljs-type">void</span> __iomem *p = <span class="hljs-built_in">ioremap</span>(<span class="hljs-number">0x0FFFD9</span>, <span class="hljs-number">4</span>);<br>	<span class="hljs-keyword">if</span> (<span class="hljs-built_in">readl</span>(p) == <span class="hljs-string">&#x27;E&#x27;</span>+(<span class="hljs-string">&#x27;I&#x27;</span>&lt;&lt;<span class="hljs-number">8</span>)+(<span class="hljs-string">&#x27;S&#x27;</span>&lt;&lt;<span class="hljs-number">16</span>)+(<span class="hljs-string">&#x27;A&#x27;</span>&lt;&lt;<span class="hljs-number">24</span>)) &#123;<br>		EISA_bus = <span class="hljs-number">1</span>;<br>	&#125;<br>	<span class="hljs-built_in">iounmap</span>(p);<br><span class="hljs-meta">#<span class="hljs-keyword">endif</span></span><br><br><span class="hljs-meta">#<span class="hljs-keyword">ifdef</span> CONFIG_X86_LOCAL_APIC</span><br>	<span class="hljs-built_in">init_apic_mappings</span>();<br><span class="hljs-meta">#<span class="hljs-keyword">endif</span></span><br><br>	<span class="hljs-comment">/*</span><br><span class="hljs-comment">	 * 设置了0~19的中断/异常处理程序,这些都是intel所规定的,除些之后设置了系统调用入口(用户空间的 int SYSCALL_VECTOR )</span><br><span class="hljs-comment"> 	 */</span><br>	<span class="hljs-built_in">set_trap_gate</span>(<span class="hljs-number">0</span>,&amp;divide_error);<br>	<span class="hljs-built_in">set_intr_gate</span>(<span class="hljs-number">1</span>,&amp;debug);<br>	<span class="hljs-built_in">set_intr_gate</span>(<span class="hljs-number">2</span>,&amp;nmi);<br>	<span class="hljs-built_in">set_system_intr_gate</span>(<span class="hljs-number">3</span>, &amp;int3); <span class="hljs-comment">/* int3-5 can be called from all */</span><br>	<span class="hljs-built_in">set_system_gate</span>(<span class="hljs-number">4</span>,&amp;overflow);<br>	<span class="hljs-built_in">set_system_gate</span>(<span class="hljs-number">5</span>,&amp;bounds);<br>	<span class="hljs-built_in">set_trap_gate</span>(<span class="hljs-number">6</span>,&amp;invalid_op);<br>	<span class="hljs-built_in">set_trap_gate</span>(<span class="hljs-number">7</span>,&amp;device_not_available);<br>	<span class="hljs-comment">/* 通过GDT_ENTRY_DOUBLEFAULT_TSS 取得GDT 第32 表项的值填充eip和esp</span><br><span class="hljs-comment">	 * 并在私有栈上执行doublefault_fn() 异常处理函数</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-built_in">set_task_gate</span>(<span class="hljs-number">8</span>,GDT_ENTRY_DOUBLEFAULT_TSS);<br>	<span class="hljs-built_in">set_trap_gate</span>(<span class="hljs-number">9</span>,&amp;coprocessor_segment_overrun);<br>	<span class="hljs-built_in">set_trap_gate</span>(<span class="hljs-number">10</span>,&amp;invalid_TSS);<br>	<span class="hljs-built_in">set_trap_gate</span>(<span class="hljs-number">11</span>,&amp;segment_not_present);<br>	<span class="hljs-built_in">set_trap_gate</span>(<span class="hljs-number">12</span>,&amp;stack_segment);<br>	<span class="hljs-built_in">set_trap_gate</span>(<span class="hljs-number">13</span>,&amp;general_protection);<br>	<span class="hljs-built_in">set_intr_gate</span>(<span class="hljs-number">14</span>,&amp;page_fault);<br>	<span class="hljs-built_in">set_trap_gate</span>(<span class="hljs-number">15</span>,&amp;spurious_interrupt_bug);<br>	<span class="hljs-built_in">set_trap_gate</span>(<span class="hljs-number">16</span>,&amp;coprocessor_error);<br>	<span class="hljs-built_in">set_trap_gate</span>(<span class="hljs-number">17</span>,&amp;alignment_check);<br><span class="hljs-meta">#<span class="hljs-keyword">ifdef</span> CONFIG_X86_MCE</span><br>	<span class="hljs-built_in">set_trap_gate</span>(<span class="hljs-number">18</span>,&amp;machine_check);<br><span class="hljs-meta">#<span class="hljs-keyword">endif</span></span><br>	<span class="hljs-built_in">set_trap_gate</span>(<span class="hljs-number">19</span>,&amp;simd_coprocessor_error);<br><br>	<span class="hljs-comment">/*</span><br><span class="hljs-comment">	 * 系统调用</span><br><span class="hljs-comment">	 * 内核初始化期间,建立对应于向量128的中断描述符表表项</span><br><span class="hljs-comment">	 * 当用户态进程发出 int $0x80 指令时,CPU切换到内核态并开始从地址system_call处开始执行指令</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-built_in">set_system_gate</span>(SYSCALL_VECTOR,&amp;system_call);<br><br>	<span class="hljs-comment">/*</span><br><span class="hljs-comment">	 * Should be a barrier for any external CPU state.</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-built_in">cpu_init</span>();<br><br>	<span class="hljs-built_in">trap_init_hook</span>();<br>&#125;<br><br></code></pre></td></tr></table></figure>
+<p>源码中也可以看出前文描述符的Linux门的分类。这些set操作无非就是对DPL进行了封装：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-comment">/*设定中断门*/</span><br><span class="hljs-function"><span class="hljs-type">void</span> <span class="hljs-title">set_intr_gate</span><span class="hljs-params">(<span class="hljs-type">unsigned</span> <span class="hljs-type">int</span> n, <span class="hljs-type">void</span> *addr)</span></span><br><span class="hljs-function"></span>&#123;<br>	_set_gate(idt_table+n,<span class="hljs-number">14</span>,<span class="hljs-number">0</span>,addr,__KERNEL_CS);<br>&#125;<br><br><span class="hljs-comment">/*设定系统中断门*/</span> <br><span class="hljs-function"><span class="hljs-type">static</span> <span class="hljs-keyword">inline</span> <span class="hljs-type">void</span> <span class="hljs-title">set_system_intr_gate</span><span class="hljs-params">(<span class="hljs-type">unsigned</span> <span class="hljs-type">int</span> n, <span class="hljs-type">void</span> *addr)</span></span><br><span class="hljs-function"></span>&#123;<br>	_set_gate(idt_table+n, <span class="hljs-number">14</span>, <span class="hljs-number">3</span>, addr, __KERNEL_CS);<br>&#125;<br><br><span class="hljs-comment">/*设定陷阱门*/</span><br><span class="hljs-function"><span class="hljs-type">static</span> <span class="hljs-type">void</span> __init <span class="hljs-title">set_trap_gate</span><span class="hljs-params">(<span class="hljs-type">unsigned</span> <span class="hljs-type">int</span> n, <span class="hljs-type">void</span> *addr)</span></span><br><span class="hljs-function"></span>&#123;<br>	_set_gate(idt_table+n,<span class="hljs-number">15</span>,<span class="hljs-number">0</span>,addr,__KERNEL_CS);<br>&#125;<br><br><span class="hljs-comment">/*设定系统门*/</span><br><span class="hljs-function"><span class="hljs-type">static</span> <span class="hljs-type">void</span> __init <span class="hljs-title">set_system_gate</span><span class="hljs-params">(<span class="hljs-type">unsigned</span> <span class="hljs-type">int</span> n, <span class="hljs-type">void</span> *addr)</span></span><br><span class="hljs-function"></span>&#123;<br>    <span class="hljs-comment">/*</span><br><span class="hljs-comment">     * 设置如下字段</span><br><span class="hljs-comment">     *  Segment Selector: 内核代码段 __KERNEL_CS的段选择符</span><br><span class="hljs-comment">     *  Offset: 指向system_call()系统调用处理程序的指针</span><br><span class="hljs-comment">     *  Type: 设置为15，表示这个异常是一个陷阱，相应的处理程序不禁止可屏蔽中断</span><br><span class="hljs-comment">     *  DPL: 设置为3，这就允许用户态进程调用这个异常处理程序</span><br><span class="hljs-comment">	 */</span><br>	_set_gate(idt_table+n,<span class="hljs-number">15</span>,<span class="hljs-number">3</span>,addr,__KERNEL_CS);<br>&#125;<br><br><span class="hljs-comment">/*设定任务门*/</span><br><span class="hljs-function"><span class="hljs-type">static</span> <span class="hljs-type">void</span> __init <span class="hljs-title">set_task_gate</span><span class="hljs-params">(<span class="hljs-type">unsigned</span> <span class="hljs-type">int</span> n, <span class="hljs-type">unsigned</span> <span class="hljs-type">int</span> gdt_entry)</span></span><br><span class="hljs-function"></span>&#123;<br>	_set_gate(idt_table+n,<span class="hljs-number">5</span>,<span class="hljs-number">0</span>,<span class="hljs-number">0</span>,(gdt_entry&lt;&lt;<span class="hljs-number">3</span>));<br>&#125;<br><br></code></pre></td></tr></table></figure>
+<p>无非就是DPL, 类型码不同罢了。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-comment">/*</span><br><span class="hljs-comment"> * @gate_addr:相应IDT项的地址.</span><br><span class="hljs-comment"> * @type:设置IDT项的TYPE字段, 15表示系统门,14表示中断门.</span><br><span class="hljs-comment"> * @dpl:IDT项对应的DPL值,</span><br><span class="hljs-comment"> * @addr:中断处理程序的地址,</span><br><span class="hljs-comment"> * @seg:IDT中对应项的段选择符</span><br><span class="hljs-comment"> */</span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> _set_gate(gate_addr,type,dpl,addr,seg) \</span><br><span class="hljs-meta">do &#123; \</span><br><span class="hljs-meta">  int __d0, __d1; \</span><br><span class="hljs-meta">  __asm__ __volatile__ (<span class="hljs-string">&quot;movw %%dx,%%ax\n\t&quot;</span> \</span><br><span class="hljs-meta">	<span class="hljs-string">&quot;movw %4,%%dx\n\t&quot;</span> \</span><br><span class="hljs-meta">	<span class="hljs-string">&quot;movl %%eax,%0\n\t&quot;</span> \</span><br><span class="hljs-meta">	<span class="hljs-string">&quot;movl %%edx,%1&quot;</span> \</span><br><span class="hljs-meta">	:<span class="hljs-string">&quot;=m&quot;</span> (*((long *) (gate_addr))), \</span><br><span class="hljs-meta">	 <span class="hljs-string">&quot;=m&quot;</span> (*(1+(long *) (gate_addr))), <span class="hljs-string">&quot;=&amp;a&quot;</span> (__d0), <span class="hljs-string">&quot;=&amp;d&quot;</span> (__d1) \</span><br><span class="hljs-meta">	:<span class="hljs-string">&quot;i&quot;</span> ((short) (0x8000+(dpl&lt;&lt;13)+(type&lt;&lt;8))), \</span><br><span class="hljs-meta">	 <span class="hljs-string">&quot;3&quot;</span> ((char *) (addr)),<span class="hljs-string">&quot;2&quot;</span> ((seg) &lt;&lt; 16)); \</span><br><span class="hljs-meta">&#125; while (0)</span><br></code></pre></td></tr></table></figure>
+<p>牺牲可读性而提升效率的典型案例。AT&amp;T秀的我脑壳疼。</p>
+<blockquote>
+<p>读AT&amp;T要有耐性，先把输入输出部按部就班的和%x以及寄存器对应上，然后再读汇编指令。不清楚为什么要设计这么反人类的语法。。。</p>
+</blockquote>
+<p>再看对外部中断的IRQ初始化：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-comment">/*IRQ中断的设置*/</span><br><span class="hljs-function"><span class="hljs-type">void</span> __init <span class="hljs-title">init_IRQ</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span></span><br><span class="hljs-function"></span>&#123;<br>	<span class="hljs-type">int</span> i;<br><br>	<span class="hljs-comment">/* all the set up before the call gates are initialised */</span><br>	<span class="hljs-comment">//8259初始化，初始化了irq_desc[]数组</span><br>	<span class="hljs-built_in">pre_intr_init_hook</span>();<br><br>	<span class="hljs-comment">/*</span><br><span class="hljs-comment">	 * Cover the whole vector space, no vector can escape</span><br><span class="hljs-comment">	 * us. (some of these will be overridden and become</span><br><span class="hljs-comment">	 * &#x27;special&#x27; SMP interrupts)</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-comment">/*</span><br><span class="hljs-comment">	 * 通过替换setup_idt() 所建立的中断门来更新IDT</span><br><span class="hljs-comment">	 * interrupt 数组第n 项中存放IRQn 的中断处理程序的地址</span><br><span class="hljs-comment">	 * 这里不包括128(0x80) 号中断向量相关的中断门，因为它用于系统调用的编程异常</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-comment">//FIRST_EXTERNAL_VECTOR:第一个可用号,前面部份均为系统保留</span><br>	<span class="hljs-keyword">for</span> (i = <span class="hljs-number">0</span>; i &lt; (NR_VECTORS - FIRST_EXTERNAL_VECTOR); i++) &#123;<br>		<span class="hljs-type">int</span> vector = FIRST_EXTERNAL_VECTOR + i;<br>		<span class="hljs-keyword">if</span> (i &gt;= NR_IRQS)<br>			<span class="hljs-keyword">break</span>;<br>		<span class="hljs-comment">//跳过系统调用号</span><br>		<span class="hljs-keyword">if</span> (vector != SYSCALL_VECTOR) <br>			<span class="hljs-comment">//调用了set_intr_gate(vector, interrupt[i])为第n条中断线设置的中断处理函数为interrupt[n- FIRST_EXTERNAL_VECTOR].</span><br>			<span class="hljs-built_in">set_intr_gate</span>(vector, interrupt[i]);<br>	&#125;<br><br>	<span class="hljs-comment">/* setup after call gates are initialised (usually add in</span><br><span class="hljs-comment">	 * the architecture specific gates)</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-built_in">intr_init_hook</span>();<br><br>	<span class="hljs-comment">/*</span><br><span class="hljs-comment">	 * Set the clock to HZ Hz, we already have a valid</span><br><span class="hljs-comment">	 * vector now:</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-built_in">setup_pit_timer</span>();<br><br>	<span class="hljs-comment">/*</span><br><span class="hljs-comment">	 * External FPU? Set up irq13 if so, for</span><br><span class="hljs-comment">	 * original braindamaged IBM FERR coupling.</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-keyword">if</span> (boot_cpu_data.hard_math &amp;&amp; !cpu_has_fpu)<br>		<span class="hljs-built_in">setup_irq</span>(FPU_IRQ, &amp;fpu_irq);<br><br>	<span class="hljs-built_in">irq_ctx_init</span>(<span class="hljs-built_in">smp_processor_id</span>());<br>&#125;<br></code></pre></td></tr></table></figure>
+<h3 id="cpu处理流程">CPU处理流程</h3>
+<p>CPU执行下一条指令前，控制单元会检查是否已经发生了一个interrupt或exception。如果有，则进行这些操作：</p>
+<ol type="1">
+<li>确定关联的向量i</li>
+<li>读由<code>idtr</code>指向的IDT表的第i项（忽略任务门，我们假设是个中断门或陷阱门）</li>
+<li>从<code>gdtr</code>寄存器获得GDT基地址，在GDT中查找，读取IDT表项中选择符所标志的段描述符。这个描述符指定处理程序的基地址。</li>
+<li>安检。将当前特权级CPL（<code>cs</code>寄存器低2位）与段描述符（GDT中）的DPL比较，如果CPL小于DPL则产生通用保护异常，因为中断处理程序的特权不能低于引起中断的程序的特权。对于编程异常，则进一步安检：比较CPL与IDT中门描述符的DPL，如果DPL小于CPL，也产生通用保护异常，这是为了防止用户程序访问特殊的陷阱门或中断门。</li>
+<li>检查是否发生了特权级的变化（CPL是否不同于所选择的段描述符的DPL，用户栈-&gt;内核栈），如果是，控制单元必须开始使用与新的特权级相关的栈。操作如下：
+<ol type="1">
+<li>读<code>tr</code>寄存器，访问运行进程的TSS段</li>
+<li>用与新特权级相关的栈段和栈指针的正确值装载<code>ss</code>和<code>esp</code>寄存器。这些值可以在TSS中找到。</li>
+<li>在新的栈中保存<code>ss</code>和<code>esp</code>以前的值，这些值定义了与旧特权级相关的栈的逻辑地址。</li>
+</ol></li>
+<li>如果故障已发生，用引起异常的指令地址装载<code>cs</code>和<code>eip</code>寄存器，使得指令可以重新执行。</li>
+<li>栈中保存<code>eflags</code>，<code>cs</code>和<code>eip</code>。</li>
+<li>如果异常产生了一个硬件错误码，则也保存在栈中。</li>
+<li>装载<code>cs</code>和<code>eip</code>，值分别是IDT表中第i项门描述符的段选择符和偏移量字段。这些值指定了处理程序的第一条指令的逻辑地址。</li>
+</ol>
+<p>处理完成后，程序的最后一定有一个<code>iret</code>指令，回到被中断的进程，过程如下：</p>
+<ol type="1">
+<li>用保存在栈中的值装载<code>cs,eip</code>和<code>eflags</code>。如果曾经压了错误码，还需要<code>iret</code>前弹出（这个事情显然由处理例程做了，处理例程知道自己是interrupt还是exception）。</li>
+<li>检查处理程序的CPL是否等于<code>cs</code>中最低两位的值（这意味着中断的进程和处理程序运行在同一特权级），如果是，<code>iret</code>终止执行；否则继续下一步。</li>
+<li>从栈中装载<code>ss</code>和<code>esp</code>寄存器，因此返回到了旧特权级栈（内核栈-&gt;用户栈）。</li>
+<li>检查<code>ds,es,fs,gs</code>段寄存器的内容，如果其中一个寄存器包含的选择符是一个段描述符，并且其DPL值小于CPL，那么，清相应的段寄存器。控制单元这么做是为了禁止用户应用程序（CPL=3）利用内核以前所利用的段寄存器（DPL=0）。</li>
+</ol>
+<p>一图胜千言：</p>
+<p><img src="20171220_2.jpg" srcset="/img/loading.gif" lazyload /></p>
+<h3 id="irq数据结构">IRQ数据结构</h3>
+<p>每个IDT表项都有一个中断请求队列，这个请求队列用一个<code>irq_desc_t</code>描述符描述，所有的<code>irq_desc_t</code>组成了<code>irq_desc[]</code>数组。</p>
+<p><img src="20171220_4.jpg" srcset="/img/loading.gif" lazyload /></p>
+<p>Linux内核的定义：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-keyword">struct</span> <span class="hljs-title class_">hw_interrupt_type</span> &#123;<br>	<span class="hljs-type">const</span> <span class="hljs-type">char</span> * <span class="hljs-keyword">typename</span>;  <span class="hljs-comment">/*中断控制器的名字*/</span><br>	<span class="hljs-function"><span class="hljs-type">unsigned</span> <span class="hljs-title">int</span> <span class="hljs-params">(*startup)</span><span class="hljs-params">(<span class="hljs-type">unsigned</span> <span class="hljs-type">int</span> irq)</span></span>; <span class="hljs-comment">/*允许从IRQ线产生中断*/</span><br>	<span class="hljs-built_in">void</span> (*shutdown)(<span class="hljs-type">unsigned</span> <span class="hljs-type">int</span> irq); <span class="hljs-comment">/*禁止从IRQ线产生中断*/</span><br><br>	<span class="hljs-comment">/*enable与disable函数在8259A中与上述的startup shutdown函数相同*/</span><br>	<span class="hljs-built_in">void</span> (*enable)(<span class="hljs-type">unsigned</span> <span class="hljs-type">int</span> irq); <br>	<span class="hljs-built_in">void</span> (*disable)(<span class="hljs-type">unsigned</span> <span class="hljs-type">int</span> irq); <br>	<br>	<span class="hljs-built_in">void</span> (*ack)(<span class="hljs-type">unsigned</span> <span class="hljs-type">int</span> irq);  <span class="hljs-comment">/*在IRQ线上产生一个应答*/</span><br>	<span class="hljs-built_in">void</span> (*end)(<span class="hljs-type">unsigned</span> <span class="hljs-type">int</span> irq);  <span class="hljs-comment">/*在IRQ处理程序终止时被调用*/</span><br>	<span class="hljs-built_in">void</span> (*set_affinity)(<span class="hljs-type">unsigned</span> <span class="hljs-type">int</span> irq, <span class="hljs-type">cpumask_t</span> dest);  <span class="hljs-comment">/*在SMP系统中,设置IRQ处理的亲和力*/</span><br>&#125;;<br><br><span class="hljs-keyword">typedef</span> <span class="hljs-keyword">struct</span> <span class="hljs-title class_">hw_interrupt_type</span>  hw_irq_controller;<br><br><span class="hljs-keyword">typedef</span> <span class="hljs-keyword">struct</span> <span class="hljs-title class_">irq_desc</span> &#123;<br>	hw_irq_controller *handler; <span class="hljs-comment">/*指向一个中断控制器的指针（用来控制该中断线行为的函数指针）*/</span><br>	<span class="hljs-type">void</span> *handler_data;<br>	<span class="hljs-keyword">struct</span> <span class="hljs-title class_">irqaction</span> *action;	<span class="hljs-comment">/* IRQ action list */</span>	<span class="hljs-comment">/* 挂在IRQ上的中断处理程序 */</span><br>	<span class="hljs-type">unsigned</span> <span class="hljs-type">int</span> status;		<span class="hljs-comment">/* IRQ status */</span> <span class="hljs-comment">/* IRQ的状态;IRQ 是否被禁止了，有关IRQ的设备当前是否正被自动检测*/</span><br>	<span class="hljs-type">unsigned</span> <span class="hljs-type">int</span> depth;		<span class="hljs-comment">/* nested irq disables */</span> <span class="hljs-comment">/* 为0:该IRQ被启用,如果为一个正数,表示被禁用 */</span><br>	<span class="hljs-type">unsigned</span> <span class="hljs-type">int</span> irq_count;		<span class="hljs-comment">/* For detecting broken interrupts */</span> <span class="hljs-comment">/*  该IRQ发生的中断的次数 */</span><br>	<span class="hljs-type">unsigned</span> <span class="hljs-type">int</span> irqs_unhandled; <span class="hljs-comment">/*该IRQ线上没有被处理的IRQ总数*/</span><br>	<span class="hljs-type">spinlock_t</span> lock;<br>&#125; ____cacheline_aligned <span class="hljs-type">irq_desc_t</span>;<br><br><span class="hljs-keyword">extern</span> <span class="hljs-type">irq_desc_t</span> irq_desc [NR_IRQS];<br></code></pre></td></tr></table></figure>
+<p>在看<code>irqaction</code>:</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-keyword">struct</span> <span class="hljs-title class_">irqaction</span> &#123;<br>	<span class="hljs-built_in">irqreturn_t</span> (*handler)(<span class="hljs-type">int</span>, <span class="hljs-type">void</span> *, <span class="hljs-keyword">struct</span> pt_regs *); <span class="hljs-comment">//中断处理例程</span><br><br>	<span class="hljs-comment">/*flags:</span><br><span class="hljs-comment">	 *	SA_INTERRUPT:中断嵌套</span><br><span class="hljs-comment">	 *	SA_SAMPLE_RANDOM:这个中断源于物理随机性</span><br><span class="hljs-comment">	 *	SA_SHIRQ:中断线共享</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-type">unsigned</span> <span class="hljs-type">long</span> flags; <br>	<br>	<span class="hljs-type">cpumask_t</span> mask; <span class="hljs-comment">//在x86平台无用</span><br>	<span class="hljs-type">const</span> <span class="hljs-type">char</span> *name; <span class="hljs-comment">//产生中断的硬件名字</span><br>	<span class="hljs-type">void</span> *dev_id; <span class="hljs-comment">//设备ID,一般由厂商指定</span><br>	<span class="hljs-keyword">struct</span> <span class="hljs-title class_">irqaction</span> *next; <span class="hljs-comment">//下一个irqaction.共享的时候,通常一根中断线对应很多硬件设备的中断处理例程</span><br>	<span class="hljs-type">int</span> irq;<br>	<span class="hljs-keyword">struct</span> <span class="hljs-title class_">proc_dir_entry</span> *dir;<br>&#125;;<br></code></pre></td></tr></table></figure>
+<p>handler即指向了最为重要的中断服务程序。IDT表初始化完成之初，这些中断服务队列都是空的，所以当CPU通过门进入了总服务程序后，仅仅是做了对中断控制器的<code>ack()</code>和<code>end()</code>表面应答，没什么实际内容。而一个真正的服务程序都是通过<code>request_irq()</code>登记的：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * 设备驱动程序利用IRQ前，调用request_irq。</span><br><span class="hljs-comment"> */</span><br><span class="hljs-function"><span class="hljs-type">int</span> <span class="hljs-title">request_irq</span><span class="hljs-params">(<span class="hljs-type">unsigned</span> <span class="hljs-type">int</span> irq,</span></span><br><span class="hljs-params"><span class="hljs-function">		<span class="hljs-type">irqreturn_t</span> (*handler)(<span class="hljs-type">int</span>, <span class="hljs-type">void</span> *, <span class="hljs-keyword">struct</span> pt_regs *),</span></span><br><span class="hljs-params"><span class="hljs-function">		<span class="hljs-type">unsigned</span> <span class="hljs-type">long</span> irqflags, <span class="hljs-type">const</span> <span class="hljs-type">char</span> * devname, <span class="hljs-type">void</span> *dev_id)</span></span><br><span class="hljs-function"></span>&#123;<br>	<span class="hljs-keyword">struct</span> <span class="hljs-title class_">irqaction</span> * action;<br>	<span class="hljs-type">int</span> retval;<br><br>	<span class="hljs-comment">/*</span><br><span class="hljs-comment">	 * Sanity-check: shared interrupts must pass in a real dev-ID,</span><br><span class="hljs-comment">	 * otherwise we&#x27;ll have trouble later trying to figure out</span><br><span class="hljs-comment">	 * which interrupt is which (messes up the interrupt freeing</span><br><span class="hljs-comment">	 * logic etc).</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-keyword">if</span> ((irqflags &amp; SA_SHIRQ) &amp;&amp; !dev_id)<br>		<span class="hljs-keyword">return</span> -EINVAL;<br>	<span class="hljs-keyword">if</span> (irq &gt;= NR_IRQS)<br>		<span class="hljs-keyword">return</span> -EINVAL;<br>	<span class="hljs-keyword">if</span> (!handler)<br>		<span class="hljs-keyword">return</span> -EINVAL;<br><br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 先建立一个新的irqaction描述符，并用参数值初始化它。</span><br><span class="hljs-comment">	 */</span><br>	action = <span class="hljs-built_in">kmalloc</span>(<span class="hljs-built_in">sizeof</span>(<span class="hljs-keyword">struct</span> irqaction), GFP_ATOMIC);<br>	<span class="hljs-keyword">if</span> (!action)<br>		<span class="hljs-keyword">return</span> -ENOMEM;<br><br>	action-&gt;handler = handler;<br>	action-&gt;flags = irqflags;<br>	<span class="hljs-built_in">cpus_clear</span>(action-&gt;mask);<br>	action-&gt;name = devname;<br>	action-&gt;next = <span class="hljs-literal">NULL</span>;<br>	action-&gt;dev_id = dev_id;<br><br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * setup_irq函数把action描述符插入到合适的IRQ链表。</span><br><span class="hljs-comment">	 */</span><br>	retval = <span class="hljs-built_in">setup_irq</span>(irq, action);<br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 如果setup_irq返回一个错误码，</span><br><span class="hljs-comment">	 * 说明IRQ线已经被另一个设备使用，并且设备不允许中断共享。</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-keyword">if</span> (retval)<br>		<span class="hljs-built_in">kfree</span>(action);<br><br>	<span class="hljs-keyword">return</span> retval;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>展开setup:</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * 将irqaction插入到链表中</span><br><span class="hljs-comment"> * irq-IRQ号</span><br><span class="hljs-comment"> * new-要插入的描述符</span><br><span class="hljs-comment"> */</span><br><span class="hljs-function"><span class="hljs-type">int</span> <span class="hljs-title">setup_irq</span><span class="hljs-params">(<span class="hljs-type">unsigned</span> <span class="hljs-type">int</span> irq, <span class="hljs-keyword">struct</span> irqaction * <span class="hljs-keyword">new</span>)</span></span><br><span class="hljs-function"></span>&#123;<br>	<span class="hljs-keyword">struct</span> <span class="hljs-title class_">irq_desc</span> *desc = irq_desc + irq;<br>	<span class="hljs-keyword">struct</span> <span class="hljs-title class_">irqaction</span> *old, **p;<br>	<span class="hljs-type">unsigned</span> <span class="hljs-type">long</span> flags;<br>	<span class="hljs-type">int</span> shared = <span class="hljs-number">0</span>;<br><br>	<span class="hljs-keyword">if</span> (desc-&gt;handler == &amp;no_irq_type)<br>		<span class="hljs-keyword">return</span> -ENOSYS;<br>	<span class="hljs-comment">/*</span><br><span class="hljs-comment">	 * Some drivers like serial.c use request_irq() heavily,</span><br><span class="hljs-comment">	 * so we have to be careful not to interfere with a</span><br><span class="hljs-comment">	 * running system.</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-comment">/*</span><br><span class="hljs-comment">	 * 如果中断可生成随机熵，则初始化随机熵机制</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-keyword">if</span> (<span class="hljs-keyword">new</span>-&gt;flags &amp; SA_SAMPLE_RANDOM) &#123;<br>		<span class="hljs-comment">/*</span><br><span class="hljs-comment">		 * This function might sleep, we want to call it first,</span><br><span class="hljs-comment">		 * outside of the atomic block.</span><br><span class="hljs-comment">		 * Yes, this might clear the entropy pool if the wrong</span><br><span class="hljs-comment">		 * driver is attempted to be loaded, without actually</span><br><span class="hljs-comment">		 * installing a new handler, but is this really a problem,</span><br><span class="hljs-comment">		 * only the sysadmin is able to do this.</span><br><span class="hljs-comment">		 */</span><br>		<span class="hljs-built_in">rand_initialize_irq</span>(irq);<br>	&#125;<br><br>	<span class="hljs-comment">/*</span><br><span class="hljs-comment">	 * The following block of code has to be executed atomically</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-built_in">spin_lock_irqsave</span>(&amp;desc-&gt;lock,flags);<br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 检查是否已经有设备在使用这个IRQ了。</span><br><span class="hljs-comment">	 */</span><br>	p = &amp;desc-&gt;action;<br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 有设备在使用了。</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-keyword">if</span> ((old = *p) != <span class="hljs-literal">NULL</span>) &#123;<br>		<span class="hljs-comment">/* Can&#x27;t share interrupts unless both agree to */</span><br>		<span class="hljs-comment">/**</span><br><span class="hljs-comment">		 * 如果有设备在使用这个IRQ线，就再次检查它是否允许共享IRQ。</span><br><span class="hljs-comment">		 * 在这里，仅仅检查第一个挂接到IRQ上的设备是否允许共享就行了。</span><br><span class="hljs-comment">		 * 其实，第一个设备允许共享就代表这个IRQ上的所有设备允许共享。</span><br><span class="hljs-comment">		 */</span><br>		<span class="hljs-keyword">if</span> (!(old-&gt;flags &amp; <span class="hljs-keyword">new</span>-&gt;flags &amp; SA_SHIRQ)) &#123;<br>			<span class="hljs-comment">/**</span><br><span class="hljs-comment">			 * IRQ线不允许共享，那就打开中断，并返回错误码。</span><br><span class="hljs-comment">			 */</span><br>			<span class="hljs-built_in">spin_unlock_irqrestore</span>(&amp;desc-&gt;lock,flags);<br>			<span class="hljs-keyword">return</span> -EBUSY;<br>		&#125;<br><br>		<span class="hljs-comment">/* add new interrupt at end of irq queue */</span><br>		<span class="hljs-comment">/**</span><br><span class="hljs-comment">		 * 在这里，我们已经知道设备上挂接了设备，那就循环，找到最后一个挂接的设备</span><br><span class="hljs-comment">		 * 我们要插入的设备应该挂接到这个设备的后面。</span><br><span class="hljs-comment">		 */</span><br>		<span class="hljs-keyword">do</span> &#123;<br>			p = &amp;old-&gt;next;<br>			old = *p;<br>		&#125; <span class="hljs-keyword">while</span> (old);<br>		<span class="hljs-comment">/**</span><br><span class="hljs-comment">		 * IRQ上有设备，并且运行到这里了，表示IRQ允许共享。</span><br><span class="hljs-comment">		 */</span><br>		shared = <span class="hljs-number">1</span>;<br>	&#125;<br><br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 把action加到链表的末尾。</span><br><span class="hljs-comment">	 */</span><br>	*p = <span class="hljs-keyword">new</span>;<br><br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 判断是否是与其他设备共享IRQ</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-keyword">if</span> (!shared) &#123;<br>		<span class="hljs-comment">/**</span><br><span class="hljs-comment">		 * 不是共享IRQ，就说明本设备是IRQ上的第一个设备</span><br><span class="hljs-comment">		 */</span><br>		<span class="hljs-comment">/*</span><br><span class="hljs-comment">		 * 初始化相应IRQ描述符，</span><br><span class="hljs-comment">		 * 清除IRQ_DISABLED， IRQ_AUTODETECT， IRQ_WAITING ，IRQ_INPROGRESS标志</span><br><span class="hljs-comment">		 */</span><br>		desc-&gt;depth = <span class="hljs-number">0</span>;<br>		desc-&gt;status &amp;= ~(IRQ_DISABLED | IRQ_AUTODETECT |<br>				  IRQ_WAITING | IRQ_INPROGRESS);<br>		<span class="hljs-comment">/**</span><br><span class="hljs-comment">		 * startup 或enable是为了确保IRQ信号被激活。</span><br><span class="hljs-comment">		 */</span><br>		<span class="hljs-keyword">if</span> (desc-&gt;handler-&gt;startup)<br>			desc-&gt;handler-&gt;<span class="hljs-built_in">startup</span>(irq);<br>		<span class="hljs-keyword">else</span><br>			desc-&gt;handler-&gt;<span class="hljs-built_in">enable</span>(irq);<br>	&#125;<br>	<span class="hljs-built_in">spin_unlock_irqrestore</span>(&amp;desc-&gt;lock,flags);<br><br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 建立proc文件</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-keyword">new</span>-&gt;irq = irq;<br>	<span class="hljs-built_in">register_irq_proc</span>(irq);<br>	<span class="hljs-keyword">new</span>-&gt;dir = <span class="hljs-literal">NULL</span>;<br>	<span class="hljs-built_in">register_handler_proc</span>(irq, <span class="hljs-keyword">new</span>);<br><br>	<span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p><strong>在内核中，设备驱动程序一般都要通过<code>request_irq()</code>登记中断服务程序。</strong></p>
+<h2 id="中断的嵌套">中断的嵌套</h2>
+<p>Linux中断处理程序是无需重入的。当一个给定的中断处理在执行时，相应的中断线在所有处理器上都会被屏蔽掉，以防止在同一中断线上接收另一个新的中断。通常所有其他的中断都是打开的，所以这些不同中断线上的其他中断都能被处理，但当前中断线总是被禁止的。</p>
+<p>由此可以看出，同一个中断处理程序绝对不会被同时调用以处理嵌套的中断。这大大简化了中断处理程序的编写（不然同步处理得烦死，硬件的设计也很理性，否则还不是坑自己）。</p>
+<p>Linux下硬中断可以嵌套，且没有优先级的概念，也就是说任何一个中断都可以打断正在执行的中断（当然，根据前面的描述，同种中断除外）。软中断则不能嵌套，但同类型软中断可以在不同CPU上并行执行。</p>
+<p><img src="20171220_3.jpg" srcset="/img/loading.gif" lazyload /></p>
+<blockquote>
+<p>关于Linux软中断的疑问：</p>
+<p>​ Q:
+Linux的下半部BH机制、软中断机制和<code>tasklet</code>机制。我印象中只有BH机制使用了<code>int</code>指令和中断向量表。软中断机制的软中断向量表难道不是内核自己维护的数据结构吗，软中断（<code>int</code>）和软中断（下半部）不应该是两码事吗？</p>
+<p>​ A:
+软中断是软件引起的中断，区别于硬件引起的。可以由<code>int</code>指令引发然后执行中断向量表中的函数，也可以由内核设置标志位然后唤醒事先注册的处理函数。实现方式不同就是了。</p>
+<p>​ r00tk1t:
+实际上我是赞同这一理解方式的，但严格来说<code>softirq</code>和软中断信号是两回事。关于此，毛批中的说法可能是最恰当的：硬中断是外部设备对CPU的中断，<code>softirq</code>通常是硬中断服务程序对内核的中断，而软中断信号是内核对某个进程的中断。后两者都是由软件产生的，只是来源不同，但最终处理殊途同归。</p>
+</blockquote>
+<h2 id="中断服务程序">中断服务程序</h2>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><code class="hljs assembly">/*interrupt数组定义*/<br>ENTRY(interrupt)<br>.text<br><br><br>vector=0<br>ENTRY(irq_entries_start)<br>.rept NR_IRQS<br>	ALIGN<br>/*<br> * 把中断号减去256的结果保存在栈中，内核用负数表示所有的中断，因为正数表示系统调用，<br> * 当引用这个数的时候，可以对所有的中断处理程序都执行相同的代码，这段通用代码开始于标签common_interrupt<br> */	<br>/*<br> * 相当于,interrupt[i]执行下列操作:<br> * Pushl $i-256	  //中断号取负再压栈<br> * Jmp common_interrupt		 //跳转至一段公共的处理函数<br> */<br>1:	pushl $vector-256<br>	jmp common_interrupt<br>.data<br>	.long 1b<br>.text<br>vector=vector+1<br>.endr<br></code></pre></td></tr></table></figure>
+<p>之所以设计成了<code>$i-256</code>而不是直接push序号，是因为正数是给系统调用用的。common_interrupt是一个公共的处理函数，展开看一下：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br></pre></td><td class="code"><pre><code class="hljs assembly">ALIGN<br><br>/*IRQ入口,中断入口*/<br>common_interrupt:<br>	/*common_interrupt 首先调用 SAVE ALL保存寄存器*/<br>	SAVE_ALL<br>	<br>	/*寄存器保存后，栈顶的地址被存放到eax寄存器里面*/<br>	movl %esp,%eax<br>	/*<br>	 * 调用do_IRQ()函数,<br>	 * 调用相应的中断处理函数<br>	 */<br>	call do_IRQ<br>	/* <br>	 * 执行do_IRQ的ret指令的时候，控制转移到ret_from_intr()函数<br>	 * 从中断返回<br>	 */<br>	jmp ret_from_intr<br>	<br>/*<br> * SAVE_ALL可以在栈中保存中断处理程序可能会使用的所有CPU寄存器<br> * 但eflags, cs, eip, ss 及esp除外，因为这些寄存器已经由控制单元自动保存了<br> * 然后这个宏把用户数据段的选择符装到ds和es寄存器<br> */<br>/*<br> * 相当于把中断发生时,硬件没有保存的寄存器压栈保存下来.把DS.ES设为了__USER_DS是有一定原因的,参考上节所述.<br> *<br> * 设置为__USER_DS的原因:<br> * (检查ds、es、fs及gs段寄存器的内容，如果其中一个寄存器包含的选择符是一个段描述符，并且其DPL值小于CPL，那么，清相关的段寄存器。<br> *  控制单元这么做是为了禁止用户态的程序利用内核以前所用的段寄存器。如果不清除这些寄存器的话，恶意的用户程序就会利用他们来访问内核地址空间。<br> *  注意到4: 举例说明一下.如果通过系统调用进入内核态.然后将DS,ES的值赋为__KERNEL_DS(在2.4 的内核里),处理完后(调用iret后),<br> *           恢复CS,EIP的值,此时CS的CPL是3.因为DS,ES被设为了__KERNEL_DS,所以其DPL是 0,所以要将DS,ES中的值清除.在2.6内核中,发生中断或异常后,<br> *           将DS,ES的值设为了__USER_DS,避免了上述的清除过程,提高了效率.)<br> */<br>#define SAVE_ALL \<br>	cld; \<br>	pushl %es; \<br>	pushl %ds; \<br>	pushl %eax; \<br>	pushl %ebp; \<br>	pushl %edi; \<br>	pushl %esi; \<br>	pushl %edx; \<br>	pushl %ecx; \<br>	pushl %ebx; \<br>	movl $(__USER_DS), %edx; \<br>	movl %edx, %ds; \<br>	movl %edx, %es;<br></code></pre></td></tr></table></figure>
+<p>SAVE_ALL的功能一目了然。注意到这里没有<code>eflags,cs,eip,ss,esp</code>。因为这些已经由控制单元自动保存了。</p>
+<p>前面所做的一切，实际上都是为了给<code>do_IRQ()</code>建立一个模拟的子程序调用环境。而<code>do_IRQ()</code>就是处理具体中断请求队列的地方。</p>
+<p>在展开<code>do_IRQ</code>之前，先看看返回到的地方：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br></pre></td><td class="code"><pre><code class="hljs assembly"># userspace resumption stub bypassing syscall exit tracing<br>	ALIGN<br><br>/*异常返回分析: 异常返回的后半部份与IRQ中断返回相比只是多了一个preempt_stop的处理.*/<br>ret_from_exception:<br>	/**<br>	 * 在中断返回前，handle_IRQ_event调用local_irq_disable禁止了中断<br>	 * 所以在中断返回时，不用关中断，但是在异常返回时，需要将中断关闭。<br>	 */<br>	preempt_stop<br><br>/*IRQ中断返回分析*/<br>ret_from_intr:<br>	/**<br>	 * 把当前thread_info半截到ebp中。<br>	 */<br>	GET_THREAD_INFO(%ebp) //取得当前过程的task描述符<br>	/**<br>	 * 接下来判断EFLAGS和CS，确定是否运行在用户态，是否是VM模式。<br>	 */<br>	movl EFLAGS(%esp), %eax		# mix EFLAGS and CS //中断前的EFLAGS中的值存进EAX<br>	movb CS(%esp), %al	//将中断前的CS低16移至AL<br>	//#至此EFLAGS 的H16和CS的L16构成了EAX的内容<br>	<br>	testl $(VM_MASK | 3), %eax //EFLAGS中有一位表示是否运行在vm86模式中,CS的最低二位表示当前进程的运行级别<br>	/**<br>	 * 如果是运行在内核态，并且不是VM模式，就跳到resume_kernel，<br>	 * 否则跳转到resume_userspace<br>	 */<br>	jz resume_kernel		# returning to kernel or vm86-space // 如果中断前不是在用户空间,且不是在VM86模式下,跳转到resume_kernel<br>/**<br> * 恢复用户态程序的流程入口。<br> */<br>ENTRY(resume_userspace)<br>	/**<br>	 * 不清楚为什么还要禁用中断<br>	 */<br>	//开中断,以防中断丢失  <br>	// TODO: cli不是关中断么?<br> 	cli				# make sure we don&#x27;t miss an interrupt<br>					# setting need_resched or sigpending<br>					# between sampling and the iret<br>	/**<br>	 * 检查thread_info的flag<br>	 */<br>	movl TI_flags(%ebp), %ecx //将task-&gt;flags成员的值存进ecx <br>	/**<br>	 * 如果设置了_TIF_WORK_MASK中任何一位，就表示有等待处理的事情<br>	 * 跳到work_pending处理这些挂起的事件。<br>	 * 否则调用restore_all回到用户态。<br>	 */<br>	andl $_TIF_WORK_MASK, %ecx	# is there any work to be done on<br>					# int/exception return? //还有事情没做完?<br>	jne work_pending //还有事情没做完?<br>	jmp restore_all //所有事情都处理完了<br>	<br>	....<br>	<br>	<br>	//restore_all被定义成RESTRORE_ALL<br>restore_all:<br>    /*<br>     * 恢复保存在内核栈中的寄存器的值，并执行iret汇编指令以重新开始用户态的执行<br>	 */<br>	RESTORE_ALL<br>	<br>	......<br>	<br>	#define RESTORE_ALL	\<br>	RESTORE_REGS	\ //pop在SAVE_ALL中入栈的寄存器<br>	addl $4, %esp;	\  //记否?在SAVE_ALL之前压入了一个中断向量的负值或者是系统调用号<br>1:	iret;		\ //iret中断返回,交给硬件完成中断的返回工作<br>.section .fixup,&quot;ax&quot;;   \<br>2:	sti;		\<br>	movl $(__USER_DS), %edx; \<br>	movl %edx, %ds; \<br>	movl %edx, %es; \<br>	movl $11,%eax;	\<br>	call do_exit;	\<br>.previous;		\<br>.section __ex_table,&quot;a&quot;;\<br>	.align 4;	\<br>	.long 1b,2b;	\<br>.previous<br></code></pre></td></tr></table></figure>
+<p>再看<code>do_IRQ()</code>:</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-comment">/** </span><br><span class="hljs-comment"> * do_IRQ执行与一个中断相关的所有中断服务例程.</span><br><span class="hljs-comment"> */</span><br><span class="hljs-function">fastcall <span class="hljs-type">unsigned</span> <span class="hljs-type">int</span> <span class="hljs-title">do_IRQ</span><span class="hljs-params">(<span class="hljs-keyword">struct</span> pt_regs *regs)</span></span><br><span class="hljs-function"></span>&#123;	<br>	<span class="hljs-comment">/* high bits used in ret_from_ code */</span><br>	<span class="hljs-type">int</span> irq = regs-&gt;orig_eax &amp; <span class="hljs-number">0xff</span>;<br><span class="hljs-meta">#<span class="hljs-keyword">ifdef</span> CONFIG_4KSTACKS</span><br>	<span class="hljs-keyword">union</span> <span class="hljs-title class_">irq_ctx</span> *curctx, *irqctx;<br>	u32 *isp;<br><span class="hljs-meta">#<span class="hljs-keyword">endif</span></span><br><br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * irq_enter增加中断嵌套计数</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-built_in">irq_enter</span>();<br><span class="hljs-meta">#<span class="hljs-keyword">ifdef</span> CONFIG_DEBUG_STACKOVERFLOW</span><br>	<span class="hljs-comment">/* Debugging check for stack overflow: is there less than 1KB free? */</span><br>	&#123;<br>		<span class="hljs-type">long</span> esp;<br><br>		__asm__ __volatile__(<span class="hljs-string">&quot;andl %%esp,%0&quot;</span> :<br>					<span class="hljs-string">&quot;=r&quot;</span> (esp) : <span class="hljs-string">&quot;0&quot;</span> (THREAD_SIZE - <span class="hljs-number">1</span>));<br>		<span class="hljs-keyword">if</span> (<span class="hljs-built_in">unlikely</span>(esp &lt; (<span class="hljs-built_in">sizeof</span>(<span class="hljs-keyword">struct</span> thread_info) + STACK_WARN))) &#123;<br>			<span class="hljs-built_in">printk</span>(<span class="hljs-string">&quot;do_IRQ: stack overflow: %ld\n&quot;</span>,<br>				esp - <span class="hljs-built_in">sizeof</span>(<span class="hljs-keyword">struct</span> thread_info));<br>			<span class="hljs-built_in">dump_stack</span>();<br>		&#125;<br>	&#125;<br><span class="hljs-meta">#<span class="hljs-keyword">endif</span></span><br><br><span class="hljs-comment">/*CONFIG_4KSTACKS: 如果thread_union大小为4KB*/</span><br><span class="hljs-meta">#<span class="hljs-keyword">ifdef</span> CONFIG_4KSTACKS</span><br><br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 如果中断栈使用不同的的栈,就需要切换栈.</span><br><span class="hljs-comment">	 */</span><br><br>	<span class="hljs-comment">/*</span><br><span class="hljs-comment">	 * 执行current_thread_info 以获取与内核栈相连的thread_info描述符的地址保存到curctx</span><br><span class="hljs-comment">	 */</span><br>	curctx = (<span class="hljs-keyword">union</span> irq_ctx *) <span class="hljs-built_in">current_thread_info</span>();<br>	<span class="hljs-comment">/*</span><br><span class="hljs-comment">	 * 硬中断请求栈地址保存到irqctx</span><br><span class="hljs-comment">	 */</span><br>	irqctx = hardirq_ctx[<span class="hljs-built_in">smp_processor_id</span>()];<br><br>	<span class="hljs-comment">/*</span><br><span class="hljs-comment">	 * this is where we switch to the IRQ stack. However, if we are</span><br><span class="hljs-comment">	 * already using the IRQ stack (because we interrupted a hardirq</span><br><span class="hljs-comment">	 * handler) we can&#x27;t do that and just have to keep using the</span><br><span class="hljs-comment">	 * current stack (which is the irq stack already after all)</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 当前在使用内核栈,而不是硬中断请求栈.就需要切换栈</span><br><span class="hljs-comment">	 * </span><br><span class="hljs-comment">	 * curctx 和irqctx 相等，说明内核已经在使用硬件中断请求栈，</span><br><span class="hljs-comment">	 * 这种情况发生在内核处理另外一个中断时又产生了中断请求的时候</span><br><span class="hljs-comment">	 * 不相等就要切换内核栈</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-keyword">if</span> (curctx != irqctx) &#123;<br>		<span class="hljs-type">int</span> arg1, arg2, ebx;<br><br>		<span class="hljs-comment">/* build the stack frame on the IRQ stack */</span><br>		isp = (u32*) ((<span class="hljs-type">char</span>*)irqctx + <span class="hljs-built_in">sizeof</span>(*irqctx));<br>		<span class="hljs-comment">/**</span><br><span class="hljs-comment">		 * 保存当前进程描述符指针</span><br><span class="hljs-comment">		 */</span><br>		irqctx-&gt;tinfo.task = curctx-&gt;tinfo.task;<br>		<span class="hljs-comment">/**</span><br><span class="hljs-comment">		 * 把esp栈指针寄存器的当前值存入irqctx的thread_info(内核oops时使用)</span><br><span class="hljs-comment">		 * current_stack_pointer 用来在C 中获得当前的栈指针</span><br><span class="hljs-comment">		 */</span><br>		irqctx-&gt;tinfo.previous_esp = current_stack_pointer;<br><br>		<span class="hljs-comment">/**</span><br><span class="hljs-comment">		 * 将中断请求栈的栈顶装入esp,isp即为中断栈顶</span><br><span class="hljs-comment">		 * 调用完__do_IRQ后,从ebx中恢复esp</span><br><span class="hljs-comment">		 */</span><br>		<span class="hljs-function"><span class="hljs-keyword">asm</span> <span class="hljs-title">volatile</span><span class="hljs-params">(</span></span><br><span class="hljs-params"><span class="hljs-function">			<span class="hljs-string">&quot;       xchgl   %%ebx,%%esp      \n&quot;</span></span></span><br><span class="hljs-params"><span class="hljs-function">			<span class="hljs-string">&quot;       call    __do_IRQ         \n&quot;</span></span></span><br><span class="hljs-params"><span class="hljs-function">			<span class="hljs-string">&quot;       movl   %%ebx,%%esp      \n&quot;</span></span></span><br><span class="hljs-params"><span class="hljs-function">			: <span class="hljs-string">&quot;=a&quot;</span> (arg1), <span class="hljs-string">&quot;=d&quot;</span> (arg2), <span class="hljs-string">&quot;=b&quot;</span> (ebx)</span></span><br><span class="hljs-params"><span class="hljs-function">			:  <span class="hljs-string">&quot;0&quot;</span> (irq),   <span class="hljs-string">&quot;1&quot;</span> (regs),  <span class="hljs-string">&quot;2&quot;</span> (isp)</span></span><br><span class="hljs-params"><span class="hljs-function">			: <span class="hljs-string">&quot;memory&quot;</span>, <span class="hljs-string">&quot;cc&quot;</span>, <span class="hljs-string">&quot;ecx&quot;</span></span></span><br><span class="hljs-params"><span class="hljs-function">		)</span></span>;<br>	&#125; <span class="hljs-keyword">else</span><span class="hljs-comment">/* 否则,发生了中断嵌套,不用切换 */</span><br><span class="hljs-meta">#<span class="hljs-keyword">endif</span></span><br>		__do_IRQ(irq, regs);<br><br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 递减中断计数器并检查是否有可延迟函数</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-built_in">irq_exit</span>();<br><br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 结束后,会返回ret_from_intr函数. </span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-keyword">return</span> <span class="hljs-number">1</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>只是些外围的操作，增加嵌套深度，检查栈溢出等，核心处理在：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-comment">/*</span><br><span class="hljs-comment"> * do_IRQ handles all normal device IRQ&#x27;s (the special</span><br><span class="hljs-comment"> * SMP cross-CPU interrupts have their own specific</span><br><span class="hljs-comment"> * handlers).</span><br><span class="hljs-comment"> */</span><br>fastcall <span class="hljs-type">unsigned</span> <span class="hljs-type">int</span> __do_IRQ(<span class="hljs-type">unsigned</span> <span class="hljs-type">int</span> irq, <span class="hljs-keyword">struct</span> pt_regs *regs)<br>&#123;<br>	<span class="hljs-type">irq_desc_t</span> *desc = irq_desc + irq;<br>	<span class="hljs-keyword">struct</span> <span class="hljs-title class_">irqaction</span> * action;<br>	<span class="hljs-type">unsigned</span> <span class="hljs-type">int</span> status;<br><br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 中断发生次数计数.</span><br><span class="hljs-comment">	 */</span><br>	kstat_this_cpu.irqs[irq]++;<br>	<span class="hljs-keyword">if</span> (desc-&gt;status &amp; IRQ_PER_CPU) &#123;<br>		<span class="hljs-type">irqreturn_t</span> action_ret;<br><br>		<span class="hljs-comment">/*</span><br><span class="hljs-comment">		 * No locking required for CPU-local interrupts:</span><br><span class="hljs-comment">		 */</span><br>		desc-&gt;handler-&gt;<span class="hljs-built_in">ack</span>(irq);<br>		action_ret = <span class="hljs-built_in">handle_IRQ_event</span>(irq, regs, desc-&gt;action);<br>		<span class="hljs-keyword">if</span> (!noirqdebug)<br>			<span class="hljs-built_in">note_interrupt</span>(irq, desc, action_ret);<br>		desc-&gt;handler-&gt;<span class="hljs-built_in">end</span>(irq);<br>		<span class="hljs-keyword">return</span> <span class="hljs-number">1</span>;<br>	&#125;<br><br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 虽然中断是关闭的,但是还是需要使用自旋锁保护desc</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-built_in">spin_lock</span>(&amp;desc-&gt;lock);<br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 如果是旧的8259A PIC,ack就是mask_and_ack_8259A,它应答PIC上的中断并禁用这条IRQ线.屏蔽IRQ线是为了确保在这个中断处理程序结束前,</span><br><span class="hljs-comment">	 * CPU不进一步接受这种中断的出现.</span><br><span class="hljs-comment">	 * do_IRQ是以禁止本地中断运行,事实上,CPU控制单元自动清eflags寄存器的IF标志.因为中断处理程序是通过IDT中断门调用的.</span><br><span class="hljs-comment">	 * 不过,内核在执行这个中断的中断服务例程之前可能会重新激活本地中断.</span><br><span class="hljs-comment">	 * 在使用APIC时,应答中断信赖于中断类型,可能是ack,也可能延迟到中断处理程序结束(也就是应答由end方法去做).</span><br><span class="hljs-comment">	 * 无论如何,中断处理程序结束前,本地APIC不进一步接收这种中断,尽管这种中断可能会被其他CPU接受.</span><br><span class="hljs-comment">	 */</span><br>	desc-&gt;handler-&gt;<span class="hljs-built_in">ack</span>(irq);<br>	<span class="hljs-comment">/*</span><br><span class="hljs-comment">	 * REPLAY is when Linux resends an IRQ that was dropped earlier</span><br><span class="hljs-comment">	 * WAITING is used by probe to mark irqs that are being tested</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 初始化主IRQ描述符的几个标志.设置IRQ_PENDING标志.也清除IRQ_WAITING和IRQ_REPLAY</span><br><span class="hljs-comment">	 * 这几个标志可以很好的解决中断重入的问题.</span><br><span class="hljs-comment">	 * IRQ_REPLAY标志是&quot;挽救丢失的中断&quot;所用.在此不详述.</span><br><span class="hljs-comment">	 */</span><br>	status = desc-&gt;status &amp; ~(IRQ_REPLAY | IRQ_WAITING);<br>	status |= IRQ_PENDING; <span class="hljs-comment">/* we _want_ to handle it */</span><br><br>	<span class="hljs-comment">/*</span><br><span class="hljs-comment">	 * If the IRQ is disabled for whatever reason, we cannot</span><br><span class="hljs-comment">	 * use the action we have.</span><br><span class="hljs-comment">	 */</span><br>	action = <span class="hljs-literal">NULL</span>;<br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * IRQ_DISABLED和IRQ_INPROGRESS被设置时,什么都不做(action==NULL)</span><br><span class="hljs-comment">	 * 即使IRQ线被禁止,CPU也可能执行do_IRQ函数.首先,可能是因为挽救丢失的中断,其次,也可能是有问题的主板产生伪中断.</span><br><span class="hljs-comment">	 * 所以,是否真的执行中断代码,需要根据IRQ_DISABLED标志来判断,而不仅仅是禁用IRQ线.</span><br><span class="hljs-comment">	 * IRQ_INPROGRESS标志的作用是:如果一个CPU正在处理一个中断,那么它会设置它的IRQ_INPROGRESS.这样,其他CPU上发生同样的中断</span><br><span class="hljs-comment">	 * 就可以检查是否在其他CPU上正在处理同种类型的中断,如果是,就什么都不做,这样做有以下好处:</span><br><span class="hljs-comment">	 * 一是使内核结构简单,驱动程序的中断服务例程式不必是可重入的.二是可以避免弄脏当前CPU的硬件高速缓存.</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-keyword">if</span> (<span class="hljs-built_in">likely</span>(!(status &amp; (IRQ_DISABLED | IRQ_INPROGRESS)))) &#123;<br>		action = desc-&gt;action;<br>		<span class="hljs-comment">/*</span><br><span class="hljs-comment">		 * 确定我们要处理了，就设置IRQ_INPROGRESS 标志，</span><br><span class="hljs-comment">		 * 去除IRQ_PENDING 标志表示确认我们要处理这个中断了</span><br><span class="hljs-comment">		 */</span><br>		status &amp;= ~IRQ_PENDING; <span class="hljs-comment">/* we commit to handling */</span><br>		status |= IRQ_INPROGRESS; <span class="hljs-comment">/* we are handling it */</span><br>	&#125;<br>	desc-&gt;status = status;<br><br>	<span class="hljs-comment">/*</span><br><span class="hljs-comment">	 * If there is no IRQ handler or it was disabled, exit early.</span><br><span class="hljs-comment">	 * Since we set PENDING, if another processor is handling</span><br><span class="hljs-comment">	 * a different instance of this same irq, the other processor</span><br><span class="hljs-comment">	 * will take care of it.</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 当前面两种情况出现时,不需要(或者是不需要马上)处理中断.就退出</span><br><span class="hljs-comment">	 * 或者没有相关的中断服务例程时,也退出.当内核正在检测硬件设备时就会发生这种情况.</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-keyword">if</span> (<span class="hljs-built_in">unlikely</span>(!action))<br>		<span class="hljs-keyword">goto</span> out;<br><br>	<span class="hljs-comment">/*</span><br><span class="hljs-comment">	 * Edge triggered interrupts need to remember</span><br><span class="hljs-comment">	 * pending events.</span><br><span class="hljs-comment">	 * This applies to any hw interrupts that allow a second</span><br><span class="hljs-comment">	 * instance of the same irq to arrive while we are in do_IRQ</span><br><span class="hljs-comment">	 * or in the handler. But the code here only handles the _second_</span><br><span class="hljs-comment">	 * instance of the irq, not the third or fourth. So it is mostly</span><br><span class="hljs-comment">	 * useful for irq hardware that does not mask cleanly in an</span><br><span class="hljs-comment">	 * SMP environment.</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 这里是需要循环处理的,并不是说调用一次handle_IRQ_event就行了.</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-keyword">for</span> (;;) &#123;<br>		<span class="hljs-type">irqreturn_t</span> action_ret;<br><br>		<span class="hljs-comment">/**</span><br><span class="hljs-comment">		 * 现在打开自旋锁了,那么,其他CPU可能也接收到同类中断,并设置IRQ_PENDING标志.</span><br><span class="hljs-comment">		 * xie.baoyou注:请注意开关锁的使用方法.有点巧妙,不可言传.</span><br><span class="hljs-comment">		 */</span><br>		<span class="hljs-built_in">spin_unlock</span>(&amp;desc-&gt;lock);<br><br>		<span class="hljs-comment">/**</span><br><span class="hljs-comment">		 * 调用中断服务例程.</span><br><span class="hljs-comment">		 */</span><br>		action_ret = <span class="hljs-built_in">handle_IRQ_event</span>(irq, regs, action);<br><br>		<span class="hljs-built_in">spin_lock</span>(&amp;desc-&gt;lock);<br>		<span class="hljs-keyword">if</span> (!noirqdebug)<br>			<span class="hljs-built_in">note_interrupt</span>(irq, desc, action_ret);<br>		<span class="hljs-comment">/**</span><br><span class="hljs-comment">		 * 如果其他CPU没有接收到同类中断,就退出</span><br><span class="hljs-comment">		 * 否则,继续处理同类中断.</span><br><span class="hljs-comment">		 */</span><br>		<span class="hljs-keyword">if</span> (<span class="hljs-built_in">likely</span>(!(desc-&gt;status &amp; IRQ_PENDING)))<br>			<span class="hljs-keyword">break</span>;<br>		<span class="hljs-comment">/**</span><br><span class="hljs-comment">		 * 清除了IRQ_PENDING,如果再出现IRQ_PENDING,就说明是其他CPU上接收到了同类中断.</span><br><span class="hljs-comment">		 * 注意,IRQ_PENDING仅仅是一个标志,如果在调用中断处理函数的过程中,来了多次的同类中断,则意味着只有一次被处理,其余的都丢失了.</span><br><span class="hljs-comment">		 */</span><br>		desc-&gt;status &amp;= ~IRQ_PENDING;<br>	&#125;<br>	desc-&gt;status &amp;= ~IRQ_INPROGRESS;<br><br>out:<br>	<span class="hljs-comment">/*</span><br><span class="hljs-comment">	 * The -&gt;end() handler has to deal with interrupts which got</span><br><span class="hljs-comment">	 * disabled while the handler was running.</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 现在准备退出了,end方法可能是应答中断(APIC),也可能是通过end_8259A_irq方法重新激活IRQ(只要不是伪中断).</span><br><span class="hljs-comment">	 */</span><br>	desc-&gt;handler-&gt;<span class="hljs-built_in">end</span>(irq);<br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 好,工作已经全部完成了,释放自旋锁吧.注意两个锁的配对使用方法.</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-built_in">spin_unlock</span>(&amp;desc-&gt;lock);<br><br>	<span class="hljs-keyword">return</span> <span class="hljs-number">1</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>感兴趣的是对服务例程的调用：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * 执行中断服务例程</span><br><span class="hljs-comment"> */</span><br><span class="hljs-function">fastcall <span class="hljs-type">int</span> <span class="hljs-title">handle_IRQ_event</span><span class="hljs-params">(<span class="hljs-type">unsigned</span> <span class="hljs-type">int</span> irq, <span class="hljs-keyword">struct</span> pt_regs *regs,</span></span><br><span class="hljs-params"><span class="hljs-function">				<span class="hljs-keyword">struct</span> irqaction *action)</span></span><br><span class="hljs-function"></span>&#123;<br>	<span class="hljs-type">int</span> ret, retval = <span class="hljs-number">0</span>, status = <span class="hljs-number">0</span>;<br><br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 如果没有设置SA_INTERRUPT，说明中断处理程序是可以在开中断情况下执行的</span><br><span class="hljs-comment">	 * 这也是程序中少见的，调用local_irq_enable的地方。</span><br><span class="hljs-comment">	 * 一般来说，调用local_irq_enable是危险的，不允许，绝不允许。这里只是例外。</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-keyword">if</span> (!(action-&gt;flags &amp; SA_INTERRUPT))<br>		<span class="hljs-built_in">local_irq_enable</span>();<br><br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 一开始，action是irqaction链表的头，irqaction表示一个ISR</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-keyword">do</span> &#123;<br>		<span class="hljs-comment">/**</span><br><span class="hljs-comment">		 * handler是中断服务例程的处理函数。它接收三个参数：</span><br><span class="hljs-comment">		 * irq-IRQ号，它允许一个ISR处理几条IRQ。</span><br><span class="hljs-comment">		 * dev_id-设备号，注册中断服务例程时指定，此时回传给处理函数。它允许一个ISR处理几个同类型的设备。</span><br><span class="hljs-comment">		 * regs-指向内核栈的pt_regs。它允许ISR访问内核执行上下文。可是，哪个ISR会用它呢？</span><br><span class="hljs-comment">		 */</span><br>		ret = action-&gt;<span class="hljs-built_in">handler</span>(irq, action-&gt;dev_id, regs);<br>		<span class="hljs-keyword">if</span> (ret == IRQ_HANDLED)<br>			status |= action-&gt;flags;<br>		<span class="hljs-comment">/**</span><br><span class="hljs-comment">		 * 一般来说，handler处理了本次中断，就会返回1</span><br><span class="hljs-comment">		 * 返回0和1是有用的，这样可以让内核判断中断是否被处理了。</span><br><span class="hljs-comment">		 * 如果过多的中断没有被处理，就说明硬件有问题，产生了伪中断。</span><br><span class="hljs-comment">		 */</span><br>		retval |= ret;<br>		action = action-&gt;next;<br>	&#125; <span class="hljs-keyword">while</span> (action);<br><br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 如果中断是随机数的产生源，就添加一个随机因子。</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-keyword">if</span> (status &amp; SA_SAMPLE_RANDOM)<br>		<span class="hljs-built_in">add_interrupt_randomness</span>(irq);<br><br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 退出时，总是会关中断，这里不判断if (!(action-&gt;flags &amp; SA_INTERRUPT))</span><br><span class="hljs-comment">	 * 是因为：判断的汇编指令比直接执行cli费时，既然无论如何都是需要保证处于关中断状态，为什么多作那些判断呢。</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-built_in">local_irq_disable</span>();<br><br>	<span class="hljs-keyword">return</span> retval;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>最终在泛用接口中通过<code>action-&gt;handler</code>找到特化接口。</p>
+<p>附：中断和异常服务例程返回的流程图</p>
+<p><img src="20171220_5.jpg" srcset="/img/loading.gif" lazyload /></p>
+<h2 id="硬中断服务例程的下半身">硬中断服务例程的下半身</h2>
+<h3 id="softirq">softirq</h3>
+<p>前面已星星点点渗透了软中断的定义。这里谈到的<code>softirq</code>即是指“硬件中断服务例程对内核的中断”。</p>
+<p>前文也已了解到，之所以要有这种<code>softirq</code>，将硬中断的处理分成上下两部分，是因为兼顾硬中断及时的处理（比如网卡如果处理的慢了，一旦缓冲区满了就开始丢包）以及<code>softirq</code>任务的繁重，上下两部分的设计提高了效率，但却容易使后来者一时云里雾里。</p>
+<p>而事实上，在Linux
+2.6内核中，早已不是最原始的仅通过<code>softirq</code>来实现的版本了。Linux对于下半部分的实现机制，除了<code>softirq</code>以外，还有<code>tasklet</code>和工作队列。<code>tasklet</code>实际上是通过软中断实现的，但和软中断有所不同。而工作队列则是另一回事了。</p>
+<p><code>softirq</code>实际上应用场合很少，因为tasklet往往是足够用的，且更易编写，而<code>softirq</code>是在编译期间静态分配的，也就相对僵硬。</p>
+<p><code>softirq</code>由一个数组表示：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * 所有的软中断，目前使用了前六个。数组的下标就是软中断的优先级。</span><br><span class="hljs-comment"> * 下标越低，优先级越高。</span><br><span class="hljs-comment"> */</span><br><span class="hljs-type">static</span> <span class="hljs-keyword">struct</span> <span class="hljs-title class_">softirq_action</span> softirq_vec[<span class="hljs-number">32</span>] __cacheline_aligned_in_smp;<br><br><span class="hljs-keyword">struct</span> <span class="hljs-title class_">softirq_action</span><br>&#123;<br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 软中断处理函数</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-built_in">void</span>	(*action)(<span class="hljs-keyword">struct</span> softirq_action *);<br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 回传给软中断处理函数的数据。</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-type">void</span>	*data;<br>&#125;;<br></code></pre></td></tr></table></figure>
+<p>6个<code>softirq</code>分别是:</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-keyword">enum</span><br>&#123;<br>	HI_SOFTIRQ=<span class="hljs-number">0</span>,	<span class="hljs-comment">//处理高优先级的tasklet</span><br>	TIMER_SOFTIRQ,	<span class="hljs-comment">//和时钟中断相关的tasklet</span><br>	NET_TX_SOFTIRQ,	<span class="hljs-comment">//把数据包传送到网卡</span><br>	NET_RX_SOFTIRQ,	<span class="hljs-comment">//从网卡接收到数据包</span><br>	SCSI_SOFTIRQ,	<span class="hljs-comment">//SCSI命令的后台中断处理</span><br>	TASKLET_SOFTIRQ	<span class="hljs-comment">//处理常规tasklet</span><br>&#125;;<br></code></pre></td></tr></table></figure>
+<p>这里隐隐约约可以看出<code>tasklet</code>确实是依靠<code>softirq</code>实现的，且还有2种优先级，分别是最高和最低(数字越小优先级越高，<code>softirq</code>按优先级处理)。</p>
+<p>把<code>softirq</code>放到这个数组中，就完成了<code>softirq</code>的注册，想要执行<code>softirq</code>必须先标记注册好的<code>softirq</code>，这个过程被称为触发<code>softirq</code>。</p>
+<p>注册：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * 初始化软中断</span><br><span class="hljs-comment"> * nr-软中断下标</span><br><span class="hljs-comment"> * action-软中断处理函数</span><br><span class="hljs-comment"> * data-软中断处理函数的参数。执行处理函数时，将它回传给软中断。</span><br><span class="hljs-comment">*/</span><br><br><span class="hljs-function"><span class="hljs-type">void</span> <span class="hljs-title">open_softirq</span><span class="hljs-params">(<span class="hljs-type">int</span> nr, <span class="hljs-type">void</span> (*action)(<span class="hljs-keyword">struct</span> softirq_action*), <span class="hljs-type">void</span> *data)</span></span><br><span class="hljs-function"></span>&#123;<br>	softirq_vec[nr].data = data;<br>	softirq_vec[nr].action = action;<br>&#125;<br><br></code></pre></td></tr></table></figure>
+<p>触发：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * 激活软中断</span><br><span class="hljs-comment"> * nr-要激活的软中断下标</span><br><span class="hljs-comment"> */</span><br><span class="hljs-function"><span class="hljs-type">void</span> fastcall <span class="hljs-title">raise_softirq</span><span class="hljs-params">(<span class="hljs-type">unsigned</span> <span class="hljs-type">int</span> nr)</span></span><br><span class="hljs-function"></span>&#123;<br>	<span class="hljs-type">unsigned</span> <span class="hljs-type">long</span> flags;<br><br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 禁用本地CPU中断。</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-built_in">local_irq_save</span>(flags);<br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * raise_softirq_irqoff是本函数的执行体，不过它是在关中断下运行。</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-built_in">raise_softirq_irqoff</span>(nr);<br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 打开本地中断</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-built_in">local_irq_restore</span>(flags);<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>通常，<strong>中断处理程序（就是上半部分）会在返回之前标记它的<code>softirq</code></strong>，所以不必担心，然后在合适的时刻就会执行该软中断。</p>
+<p>合适的时刻：</p>
+<ol type="1">
+<li>从一个硬件中断代码处返回时(可以展开看<code>do_IRQ()</code>最后的<code>irq_exit()</code>)</li>
+<li>在<code>ksoftirqd</code>内核线程中</li>
+<li>在那些显示检查和执行待处理的<code>softirq</code>的代码中</li>
+</ol>
+<p>不管是上面哪个时刻，软中断最终都是会被执行的，调用<code>do_softirq()</code>该函数会循环遍历（循环检查pending的每一个位，所以循环最多只能执行32次）</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * 处理挂起的软中断</span><br><span class="hljs-comment"> */</span><br><span class="hljs-function">asmlinkage <span class="hljs-type">void</span> <span class="hljs-title">do_softirq</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span></span><br><span class="hljs-function"></span>&#123;<br>	<span class="hljs-type">unsigned</span> <span class="hljs-type">long</span> flags;<br>	<span class="hljs-keyword">struct</span> <span class="hljs-title class_">thread_info</span> *curctx;<br>	<span class="hljs-keyword">union</span> <span class="hljs-title class_">irq_ctx</span> *irqctx;<br>	u32 *isp;<br><br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 如果in_interrupt返回真，说明系统要么是处于中断中，要么是禁用了软中断。</span><br><span class="hljs-comment">	 * 请注意in_interrupt()的实现代码：preempt_count() &amp; (HARDIRQ_MASK | SOFTIRQ_MASK)</span><br><span class="hljs-comment">	 * 它判断当前是否在硬件中断中，或者是否在软中断中。</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-keyword">if</span> (<span class="hljs-built_in">in_interrupt</span>())<br>		<span class="hljs-keyword">return</span>;<br><br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 在此时需要关闭中断，因为接下来我们需要将判断是否有挂起的中断</span><br><span class="hljs-comment">	 * 如果不在关中断的情况下访问这个标志，那么，这个标志就可能被中断程序修改。</span><br><span class="hljs-comment">	 * 从另一个方面来说，我们还会在后面切换堆栈，这也需要在关中断中进行。</span><br><span class="hljs-comment">	 * 开中断的时机在__do_softirq中。当然，本函数结束时，也会恢复中断标志。</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-built_in">local_irq_save</span>(flags);<br><br>	<span class="hljs-keyword">if</span> (<span class="hljs-built_in">local_softirq_pending</span>()) &#123;<span class="hljs-comment">/* 有挂起的软中断 */</span><br>		<span class="hljs-comment">/**</span><br><span class="hljs-comment">		 * 根据配置来确定是否切换堆栈(请注意，本段代码受宏CONFIG_4KSTACKS的控制)。</span><br><span class="hljs-comment">		 * 当然，这里用的是softirq_ctx而不是hardirq_ctx来保存当前进程。</span><br><span class="hljs-comment">		 */</span><br>		curctx = <span class="hljs-built_in">current_thread_info</span>();<br>		irqctx = softirq_ctx[<span class="hljs-built_in">smp_processor_id</span>()];<br>		irqctx-&gt;tinfo.task = curctx-&gt;task;<br>		irqctx-&gt;tinfo.previous_esp = current_stack_pointer;<br><br>		<span class="hljs-comment">/* build the stack frame on the softirq stack */</span><br>		<span class="hljs-comment">/**</span><br><span class="hljs-comment">		 * isp保存的是软中断栈的栈顶。</span><br><span class="hljs-comment">		 * 可以放心的是，软中断在单个CPU上不会重入，而softirq_ctx是每CPU变量</span><br><span class="hljs-comment">		 * 所以，在这里我们可以放心的切换栈顶了。</span><br><span class="hljs-comment">		 */</span><br>		isp = (u32*) ((<span class="hljs-type">char</span>*)irqctx + <span class="hljs-built_in">sizeof</span>(*irqctx));<br><br>		<span class="hljs-comment">/**</span><br><span class="hljs-comment">		 * 切换栈到isp，并调用__do_softirq.</span><br><span class="hljs-comment">		 * 然后再恢复栈（可能是恢复到中断栈、进程内核栈、内核线程栈）。</span><br><span class="hljs-comment">		 */</span><br>		<span class="hljs-function"><span class="hljs-keyword">asm</span> <span class="hljs-title">volatile</span><span class="hljs-params">(</span></span><br><span class="hljs-params"><span class="hljs-function">			<span class="hljs-string">&quot;       xchgl   %%ebx,%%esp     \n&quot;</span></span></span><br><span class="hljs-params"><span class="hljs-function">			<span class="hljs-string">&quot;       call    __do_softirq    \n&quot;</span></span></span><br><span class="hljs-params"><span class="hljs-function">			<span class="hljs-string">&quot;       movl    %%ebx,%%esp     \n&quot;</span></span></span><br><span class="hljs-params"><span class="hljs-function">			: <span class="hljs-string">&quot;=b&quot;</span>(isp)</span></span><br><span class="hljs-params"><span class="hljs-function">			: <span class="hljs-string">&quot;0&quot;</span>(isp)</span></span><br><span class="hljs-params"><span class="hljs-function">			: <span class="hljs-string">&quot;memory&quot;</span>, <span class="hljs-string">&quot;cc&quot;</span>, <span class="hljs-string">&quot;edx&quot;</span>, <span class="hljs-string">&quot;ecx&quot;</span>, <span class="hljs-string">&quot;eax&quot;</span></span></span><br><span class="hljs-params"><span class="hljs-function">		)</span></span>;<br>	&#125;<br><br>	<span class="hljs-comment">/*</span><br><span class="hljs-comment">	 * 恢复保存的IF 标志的状态并返回</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-built_in">local_irq_restore</span>(flags);<br>&#125;<br></code></pre></td></tr></table></figure>
+<p><code>ksoftirqd</code>内核线程中：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-function"><span class="hljs-type">static</span> <span class="hljs-type">int</span> <span class="hljs-title">ksoftirqd</span><span class="hljs-params">(<span class="hljs-type">void</span> * __bind_cpu)</span></span><br><span class="hljs-function"></span>&#123;<br>	<span class="hljs-built_in">set_user_nice</span>(current, <span class="hljs-number">19</span>);<br>	current-&gt;flags |= PF_NOFREEZE;<br><br>	<span class="hljs-built_in">set_current_state</span>(TASK_INTERRUPTIBLE);<br><br>	<span class="hljs-keyword">while</span> (!<span class="hljs-built_in">kthread_should_stop</span>()) &#123;<br>		<span class="hljs-comment">/**</span><br><span class="hljs-comment">		 * 没有挂起的中断，调度出去。</span><br><span class="hljs-comment">		 */</span><br>		<span class="hljs-keyword">if</span> (!<span class="hljs-built_in">local_softirq_pending</span>())<br>			<span class="hljs-built_in">schedule</span>();<br><br>		<span class="hljs-comment">/**</span><br><span class="hljs-comment">		 * 在上次循环结尾处，可能设置状态为TASK_INTERRUPTIBLE，现在把它改过来。</span><br><span class="hljs-comment">		 */</span><br>		__set_current_state(TASK_RUNNING);<br><br>		<span class="hljs-keyword">while</span> (<span class="hljs-built_in">local_softirq_pending</span>()) &#123;<br>			<span class="hljs-comment">/* Preempt disable stops cpu going offline.</span><br><span class="hljs-comment">			   If already offline, we&#x27;ll be on wrong CPU:</span><br><span class="hljs-comment">			   don&#x27;t process */</span><br>			<span class="hljs-comment">/**</span><br><span class="hljs-comment">			 * 现在是增加抢占计数，而不是软中断计数。</span><br><span class="hljs-comment">			 * 增加软中断计数，防止软中断重入是在do_softirq中。</span><br><span class="hljs-comment">			 */</span><br>			<span class="hljs-built_in">preempt_disable</span>();<br>			<span class="hljs-keyword">if</span> (<span class="hljs-built_in">cpu_is_offline</span>((<span class="hljs-type">long</span>)__bind_cpu))<br>				<span class="hljs-keyword">goto</span> wait_to_die;<br>			<span class="hljs-comment">/**</span><br><span class="hljs-comment">			 * 回想一下，do_softirq会设置软中断计数标志，而ininterrupt会根据这个标志返回是否处于中断上下文。</span><br><span class="hljs-comment">			 * 其实，现在我们是在线程上下文执行do_softirq。</span><br><span class="hljs-comment">			 * 所以说，ininterrupt有点名不符实。</span><br><span class="hljs-comment">			 * liufeng: 线程上线问就不会发现有软中断计数器的增加?</span><br><span class="hljs-comment">			 */</span><br>			<span class="hljs-built_in">do_softirq</span>();<br>			<span class="hljs-built_in">preempt_enable</span>();<br>			<span class="hljs-comment">/**</span><br><span class="hljs-comment">			 * 增加一个调度点，仅此而已。</span><br><span class="hljs-comment">			 */</span><br>			<span class="hljs-built_in">cond_resched</span>();<br>		&#125;<br><br>		<span class="hljs-comment">/**</span><br><span class="hljs-comment">		 * 没有挂起的软中断，就将状态设置为TASK_INTERRUPTIBLE</span><br><span class="hljs-comment">		 * 下次循环时，就会调度出去。</span><br><span class="hljs-comment">		 */</span><br>		<span class="hljs-built_in">set_current_state</span>(TASK_INTERRUPTIBLE);<br>	&#125;<br>	__set_current_state(TASK_RUNNING);<br>	<span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br><br>wait_to_die:<br>	<span class="hljs-built_in">preempt_enable</span>();<br>	<span class="hljs-comment">/* Wait for kthread_stop */</span><br>	<span class="hljs-built_in">set_current_state</span>(TASK_INTERRUPTIBLE);<br>	<span class="hljs-keyword">while</span> (!<span class="hljs-built_in">kthread_should_stop</span>()) &#123;<br>		<span class="hljs-built_in">schedule</span>();<br>		<span class="hljs-built_in">set_current_state</span>(TASK_INTERRUPTIBLE);<br>	&#125;<br>	__set_current_state(TASK_RUNNING);<br>	<span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+<h3 id="tasklet">tasklet</h3>
+<p>直接引用leno对<code>tasklet</code>的归纳。</p>
+<p>因为<code>tasklet</code>是使用软中断实现的，所以<code>tasklet</code>本身就是个软中断，我们是通过<code>tasklet</code>来实现下半部的机制的，所以在处理方式上和软中断十分的相似，<code>tasklet</code>由<code>tasklet</code>结构体表示，每一个结构体单独代表一个<code>tasklet</code>，它的定义如下：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * taskletra描述符</span><br><span class="hljs-comment"> */</span><br><span class="hljs-keyword">struct</span> <span class="hljs-title class_">tasklet_struct</span><br>&#123;<br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 指向下一个描述符</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-keyword">struct</span> <span class="hljs-title class_">tasklet_struct</span> *next;<br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * tasklet的状态。</span><br><span class="hljs-comment">	 * </span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-type">unsigned</span> <span class="hljs-type">long</span> state;<br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 锁计数器。</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-type">atomic_t</span> count;<br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * tasklet功能函数</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-built_in">void</span> (*func)(<span class="hljs-type">unsigned</span> <span class="hljs-type">long</span>);<br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 传给功能函数的参数。</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-type">unsigned</span> <span class="hljs-type">long</span> data;<br>&#125;;<br></code></pre></td></tr></table></figure>
+<p>其中<code>tasklet</code>的状态一共只有三种：0，TASKLET_STATE_SCHED，TASKLET_STATE_RUN，只能在这三种之间取值，0表示啥也没有等待调度，SCHED表示已经调度，RUN表示该<code>tasklet</code>正在运行。</p>
+<p>已经被调度的<code>tasklet</code>结构体存放在两种单处理器数据结构当中，分别是<code>tasklet_vec</code>（普通优先级的<code>tasklet</code>）和<code>tasklet_hi_vec</code>（高优先级的<code>tasklet</code>），几乎没区别，只是优先级不一样，调度的步骤如下</p>
+<ol type="1">
+<li>检查tasklet的状态是否为TASKLET_STATE_SCHED，如果是，就证明不需要调度了，直接返回</li>
+<li>调用_tasklet_schedule()函数进行调度</li>
+<li>保存中断状态，禁止本地中断，防止数据被其他中断拿去更改</li>
+<li>头插加入链表，就刚才说的那两个优先级不同的链表</li>
+<li>唤起tasklet中断（封装好的软中断）</li>
+<li>恢复中断并返</li>
+</ol>
+<p>运行的步骤如下：</p>
+<ol type="1">
+<li>禁止中断，检测两个链表里面有没有东西</li>
+<li>把当前处理器的该链表设置为NULL（意思就是我要把链表里的东西全弄完，先置成NULL）</li>
+<li>允许响应中断</li>
+<li>循环遍历<code>tasklet</code>链表上的每一个节点</li>
+<li>如果是多处理器系统，查看节点状态如果是RUN就证明在其他处理器上运行中，直接跳到下一个节点（因为同一时间里，相同类型的<code>tasklet</code>只有一个能执行）</li>
+<li>如果当前节点的状态不是RUN，就设置成RUN，以防其他处理器调用</li>
+<li>检查count是不是0（看看别人是否正在占用）如果不是0则被禁止，跳到下一个挂起的<code>tasklet</code>去</li>
+<li>安全确保，开始执行</li>
+<li>一直循环，直到没有<code>tasklet</code>了（因为我们把链表置为NULL了，必须把拿出来的东西处理完）</li>
+</ol>
+<p>其实<code>tasklet</code>给人的感觉就是一个对软中断的封装的简单接口而已。。</p>
+<p>每个处理器都有一组辅助处理软中断（当然也就包括<code>tasklet</code>）的内核线程，那么什么时候执行这些软中断呢，上面在软中断部分也阐述了，但是这样有个问题，那就是软中断如果继续调软中断，就会不停的执行软中断。。这样在处理器负载很严重的时候就不太好了，会导致用户空间进程饥饿，还有一种方案，那就是并不立即处理软中断，而是等待一段时间，但是在处理器比较闲的时候这么做很显然不太好，因为完全可以立即执行你却让处理器闲着。作为改进，<strong>当大量软中断出现的时候，内核会唤醒一组内核线程来处理这些负载</strong>，关键来了，<strong>这些带着软中断的线程的优先级会被设置到最低的优先级上（nice值取最高为19）</strong>，这样的话在处理器比较忙的时候，这些软中断不会跟用户空间进程争夺处理器资源，而且最终一定会被执行，处理器空闲的时候也可以直接得到运行。</p>
+<blockquote>
+<p>更为精细的叙述可以参考ULK。</p>
+</blockquote>
+<p>以<code>tasklet_schedule</code>为例，简单做展开，<code>tasklet_hi_schedule</code>就不展开了，毕竟理解了<code>softirq</code>，也就理解了<code>tasklet</code>，非常简单。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * 调度tasklet，将其挂到软中断中。</span><br><span class="hljs-comment"> */</span><br><span class="hljs-function"><span class="hljs-type">static</span> <span class="hljs-keyword">inline</span> <span class="hljs-type">void</span> <span class="hljs-title">tasklet_schedule</span><span class="hljs-params">(<span class="hljs-keyword">struct</span> tasklet_struct *t)</span></span><br><span class="hljs-function"></span>&#123;<br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 检查任务的TASKLET_STATE_SCHED标志，如果已经设置，就退出。</span><br><span class="hljs-comment">	 * 设置了TASKLET_STATE_SCHED，表示它已经被调度到软中断上了，现在处于挂起状态</span><br><span class="hljs-comment">	 * 不能(也不用)再调度了。</span><br><span class="hljs-comment">	 *</span><br><span class="hljs-comment">	 * 既然TASKLET_STATE_SCHED标志已经保证一个tasklet不会在多个CPU上同时被插入到链表中，为什么还需要TASKLET_STATE_RUN标志呢？</span><br><span class="hljs-comment">	 * 这是因为在调用回调函数前，TASKLET_STATE_SCHED可能被清除，如果只有TASKLET_STATE_SCHED这个标志的话，可能还是会造成过程重入。</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-keyword">if</span> (!<span class="hljs-built_in">test_and_set_bit</span>(TASKLET_STATE_SCHED, &amp;t-&gt;state))<br>		__tasklet_schedule(t);<br>  <br><span class="hljs-type">void</span> fastcall __tasklet_schedule(<span class="hljs-keyword">struct</span> tasklet_struct *t)<br>&#123;<br>	<span class="hljs-type">unsigned</span> <span class="hljs-type">long</span> flags;<br><br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 首先禁止本地中断。</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-built_in">local_irq_save</span>(flags);<br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 将tasklet挂到tasklet_vec[n]链表的头。</span><br><span class="hljs-comment">	 */</span><br>	t-&gt;next = __get_cpu_var(tasklet_vec).list;<br>	__get_cpu_var(tasklet_vec).list = t;<br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * raise_softirq_irqoff激活TASKLET_SOFTIRQ软中断。</span><br><span class="hljs-comment">	 * 它与raise_soft相似，但是它假设已经关本地中断了。</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-built_in">raise_softirq_irqoff</span>(TASKLET_SOFTIRQ);<br><br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 恢复IF标志。</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-built_in">local_irq_restore</span>(flags);<br>&#125;<br>  <br><span class="hljs-function"><span class="hljs-keyword">inline</span> fastcall <span class="hljs-type">void</span> <span class="hljs-title">raise_softirq_irqoff</span><span class="hljs-params">(<span class="hljs-type">unsigned</span> <span class="hljs-type">int</span> nr)</span></span><br><span class="hljs-function"></span>&#123;<br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 标记nr对应的软中断为挂起状态。</span><br><span class="hljs-comment">	 */</span><br>	__raise_softirq_irqoff(nr);<br><br>	<span class="hljs-comment">/*</span><br><span class="hljs-comment">	 * If we&#x27;re in an interrupt or softirq, we&#x27;re done</span><br><span class="hljs-comment">	 * (this also catches softirq-disabled code). We will</span><br><span class="hljs-comment">	 * actually run the softirq once we return from</span><br><span class="hljs-comment">	 * the irq or softirq.</span><br><span class="hljs-comment">	 *</span><br><span class="hljs-comment">	 * Otherwise we wake up ksoftirqd to make sure we</span><br><span class="hljs-comment">	 * schedule the softirq soon.</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * in_interrupt是判断是否在中断上下文中。</span><br><span class="hljs-comment">	 * 程序在中断上下文中，表示：要么当前禁用了软中断，要么处在硬中断嵌套中，此时都不用唤醒ksoftirqd内核线程。</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-keyword">if</span> (!<span class="hljs-built_in">in_interrupt</span>())<br>		<span class="hljs-built_in">wakeup_softirqd</span>();<br>&#125;<br>  <br><span class="hljs-comment">/*</span><br><span class="hljs-comment"> * 唤醒本地CPU的ksoftirqd内核线程</span><br><span class="hljs-comment"> */</span><br><span class="hljs-function"><span class="hljs-type">static</span> <span class="hljs-keyword">inline</span> <span class="hljs-type">void</span> <span class="hljs-title">wakeup_softirqd</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span></span><br><span class="hljs-function"></span>&#123;<br>	<span class="hljs-comment">/* Interrupts are disabled: no need to stop preemption */</span><br>	<span class="hljs-keyword">struct</span> <span class="hljs-title class_">task_struct</span> *tsk = __get_cpu_var(ksoftirqd);<br><br>	<span class="hljs-keyword">if</span> (tsk &amp;&amp; tsk-&gt;state != TASK_RUNNING)<br>		<span class="hljs-built_in">wake_up_process</span>(tsk);<br>&#125;<br></code></pre></td></tr></table></figure>
+<h3 id="工作队列">工作队列</h3>
+<p>工作队列是另外一种比较新的将工作推后的形式，和之前的两种处理方式不同，它会把工作交给一个内核线程去执行，这就意味着是由进程上下文来处理了！就可以睡眠了！！（中断是不允许睡眠的，如果睡了将没有进程能唤醒他，形成死锁）所以很简单就可以在这两种方法之间做出选择。</p>
+<p>每一个处理器都有一个对应的工作者线程：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * 工作队列描述符，它包含有一个NR_CPUS个元素的数组。</span><br><span class="hljs-comment"> * 分多个队列的主要目的是每个CPU都有自己的工作队列，避免了多个CPU访问全局数据时，造成TLB不停刷新</span><br><span class="hljs-comment"> */</span><br><span class="hljs-keyword">struct</span> <span class="hljs-title class_">workqueue_struct</span> &#123;<br>	<span class="hljs-keyword">struct</span> <span class="hljs-title class_">cpu_workqueue_struct</span> cpu_wq[NR_CPUS];<br>	<span class="hljs-type">const</span> <span class="hljs-type">char</span> *name;<br>	<span class="hljs-keyword">struct</span> <span class="hljs-title class_">list_head</span> list; 	<span class="hljs-comment">/* Empty if single thread */</span><br>&#125;;<br><br><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * 每个CPU的工作队列描述符</span><br><span class="hljs-comment"> * 工作队列与可延迟函数的主要区别在于：工作队列运行在进程上下文，而可延迟函数运行在中断上下文。</span><br><span class="hljs-comment"> */</span><br><span class="hljs-keyword">struct</span> <span class="hljs-title class_">cpu_workqueue_struct</span> &#123;<br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 保护该工作队列的自旋锁</span><br><span class="hljs-comment">	 * 虽然每个CPU都有自己的工作队列，但是有时候也需要访问其他CPU的工作队列</span><br><span class="hljs-comment">	 * 所以也需要自旋锁	 </span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-type">spinlock_t</span> lock;<br><br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * flush_workqueue使用的计数</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-type">long</span> remove_sequence;	<span class="hljs-comment">/* Least-recently added (next to run) */</span><br>	<span class="hljs-type">long</span> insert_sequence;	<span class="hljs-comment">/* Next to add */</span><br><br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 挂起链表的头结点</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-keyword">struct</span> <span class="hljs-title class_">list_head</span> worklist;<br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 等待队列，其中的工作者线程因为等待更多的工作而处于睡眠状态</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-type">wait_queue_head_t</span> more_work;<br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 等待队列，其中的进程由于等待工作队列被刷新而处于睡眠状态</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-type">wait_queue_head_t</span> work_done;<br><br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 指向workqueue_struct的指针，workqueue_struct中包含了本描述符</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-keyword">struct</span> <span class="hljs-title class_">workqueue_struct</span> *wq;<br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 指向工作者线程的进程描述符指针</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-type">task_t</span> *thread;<br><br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 当前的执行深度（当工作队列链表中的函数阻塞时，这个字段的值会比1大）</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-type">int</span> run_depth;		<span class="hljs-comment">/* Detect run_workqueue() recursion depth */</span><br>&#125; ____cacheline_aligned;<br></code></pre></td></tr></table></figure>
+<p><code>cpu_wq</code>中的每一项对应系统中的一个处理器。</p>
+<p>这些工作的结构体被连成链表，当链表上的所有工作都做完了之后，线程就会休眠</p>
+<p>实现方式也很简单，</p>
+<ol type="1">
+<li>线程首先把自己设置为休眠状态（只是设置，并没有立即进入休眠）并把自己加入等待队列</li>
+<li>如果工作链表是空的，就用<code>schedule()</code>调度函数进入睡眠状态</li>
+<li>如果链表中有对象，线程就不会睡眠了，就把自己的状态改为TASK_RUNNING，然后从等待队列中出来</li>
+<li>如果链表非空，执行那些被退后的下半部分应该干的工作（就是循环一直找。。。）</li>
+</ol>
+<h3 id="下半部机制的选择">下半部机制的选择</h3>
+<ul>
+<li><strong>如果你对共享有很高的要求，虽然比较麻烦，但还是使用软中断吧，因为可以各种操作（虽然保障这些很麻烦）</strong></li>
+<li><strong>如果你不是对共享有那么高的要求，推荐使用<code>tasklet</code>，因为两种同类型的<code>tasklet</code>不能同时并行</strong></li>
+<li><strong>如果你想在进程上下文中解决下半部分的问题，使用工作队列吧，当然如果你想睡眠，你也没得选了</strong></li>
+</ul>
+<h2 id="参考文献">参考文献</h2>
+<p>《Understanding the Linux Kernel, 3rd Edition》</p>
+<p>《Linux内核源代码情景分析(上)》</p>
+<p>http://blog.csdn.net/zhangskd/article/details/21992933</p>
+<p>https://www.cnblogs.com/lenomirei/p/5562086.html</p>
+<p>http://www.cnblogs.com/lenomirei/p/5564131.html</p>
+<p>https://www.ibm.com/developerworks/cn/linux/l-cn-linuxkernelint/</p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/Linux/" class="category-chain-item">Linux</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/linux-kernel/" class="print-no-link">#linux-kernel</a>
+      
+        <a href="/tags/ulk/" class="print-no-link">#ulk</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>Linux中断内幕</div>
+      <div>https://r00tk1ts.github.io/2017/12/21/Linux中断内幕/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>r00tk1t</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2017年12月21日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2018/05/13/chromium-sandbox-BrokerServices/" title="Chromium-sandbox-BrokerServices-analysis">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">Chromium-sandbox-BrokerServices-analysis</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2017/10/25/Linux%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86-%E9%9D%9E%E8%BF%9E%E7%BB%AD%E5%86%85%E5%AD%98%E5%8C%BA%E7%AE%A1%E7%90%86/" title="Linux内核学习——内存管理之非连续内存区管理">
+                        <span class="hidden-mobile">Linux内核学习——内存管理之非连续内存区管理</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+  
+<script src="/js/diy/yinghua.js"></script>
+<script src="/js/diy/love.js"></script>
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

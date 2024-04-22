@@ -1,0 +1,742 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/favicon.png">
+  <link rel="icon" href="/img/favicon.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="r00tk1t">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="本篇是sandbox源码剖析的第十五篇，主要分析了子系统ThreadProcess的三大组件。 Target进程执行9个进程线程相关API时，应用于此的三大组件进行了一些处理。该子系统和Filesystem类似，但9个API却分成了3个类别，具体内容请参考本文的详细解读。 阅读本篇前，请先阅读前面所有章节。 想要流程的阅读本系列你需要以下几个条件： 1. 较高水平的C++编码能力（至少通读C++">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Chromium-sandbox-ThreadProcess-analysis">
+<meta property="og:url" content="https://r00tk1ts.github.io/2018/06/03/chromium-sandbox-ThreadProcess-analysis/index.html">
+<meta property="og:site_name" content="玉涵的技能书">
+<meta property="og:description" content="本篇是sandbox源码剖析的第十五篇，主要分析了子系统ThreadProcess的三大组件。 Target进程执行9个进程线程相关API时，应用于此的三大组件进行了一些处理。该子系统和Filesystem类似，但9个API却分成了3个类别，具体内容请参考本文的详细解读。 阅读本篇前，请先阅读前面所有章节。 想要流程的阅读本系列你需要以下几个条件： 1. 较高水平的C++编码能力（至少通读C++">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2018-06-03T03:40:11.000Z">
+<meta property="article:modified_time" content="2024-04-22T03:34:00.168Z">
+<meta property="article:author" content="r00tk1t">
+<meta property="article:tag" content="chromium">
+<meta property="article:tag" content="chromium-sandbox">
+<meta name="twitter:card" content="summary_large_image">
+  
+  
+  
+  <title>Chromium-sandbox-ThreadProcess-analysis - 玉涵的技能书</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"r00tk1ts.github.io","root":"/","version":"1.9.5","typing":{"enable":true,"typeSpeed":80,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<!-- hexo injector head_end start --><link rel="stylesheet" href="https://cdn.staticfile.org/lxgw-wenkai-screen-webfont/1.7.0/style.min.css" /><!-- hexo injector head_end end --><meta name="generator" content="Hexo 6.1.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>玉涵的技能书</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/doc/">
+                <i class="iconfont icon-books"></i>
+                <span>藏经阁</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="Chromium-sandbox-ThreadProcess-analysis"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2018-06-03 11:40" pubdate>
+          2018年6月3日 中午
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          34k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          286 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">Chromium-sandbox-ThreadProcess-analysis</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <p>本篇是sandbox源码剖析的第十五篇，主要分析了子系统ThreadProcess的三大组件。</p>
+<p>Target进程执行9个进程线程相关API时，应用于此的三大组件进行了一些处理。该子系统和Filesystem类似，但9个API却分成了3个类别，具体内容请参考本文的详细解读。</p>
+<p>阅读本篇前，请先阅读前面所有章节。</p>
+<p>想要流程的阅读本系列你需要以下几个条件： 1.
+较高水平的C++编码能力（至少通读C++ Primer
+5th，刷过课后题，有一定编码量）。 2. 熟悉Windows
+API编程，尤其是安全相关的内容。 3.
+对二进制安全有一定了解，熟悉各类型安全漏洞成因、漏洞缓解措施及bypass手法。</p>
+<span id="more"></span>
+<h1
+id="chromium-sandbox-threadprocess-analysis">chromium-sandbox-ThreadProcess-analysis</h1>
+<p>上一篇分析了Filesystem子系统，通过对filesystem子系统三大组件的分析，我们已经理清了完整的脉络。本篇我们采用相同的方式，长驱直入，分析ThreadProcess子系统。</p>
+<h2 id="初始化设置">初始化设置</h2>
+<p>在分析三大组件前，先看看初始化时都置办了哪些物件。</p>
+<h3
+id="topleveldispatchertopleveldispatcher"><code>TopLevelDispatcher::TopLevelDispatcher</code></h3>
+<p><code>TopLevelDispatcher</code>的构造器是在<code>PolicyBase</code>的构造器中调用的，构造器内部我们已经非常熟悉了，它会将<code>ipc_targets_</code>指针数组的每一个成员指向正确的dispatcher对象。而对于ThreadProcess子系统来说，这个dispatcher对象是一个<code>ThreadProcessDispatcher</code>对象：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs cpp">dispatcher = <span class="hljs-keyword">new</span> <span class="hljs-built_in">ThreadProcessDispatcher</span>(policy_);<br>ipc_targets_[IPC_NTOPENTHREAD_TAG] = dispatcher;<br>ipc_targets_[IPC_NTOPENPROCESS_TAG] = dispatcher;<br>ipc_targets_[IPC_CREATEPROCESSW_TAG] = dispatcher;<br>ipc_targets_[IPC_NTOPENPROCESSTOKEN_TAG] = dispatcher;<br>ipc_targets_[IPC_NTOPENPROCESSTOKENEX_TAG] = dispatcher;<br>ipc_targets_[IPC_CREATETHREAD_TAG] = dispatcher;<br>thread_process_dispatcher_.<span class="hljs-built_in">reset</span>(dispatcher);<br></code></pre></td></tr></table></figure>
+<p>可以看到该子系统相关的IPC请求tag有6种，分别是NtOpenThread,
+NtOpenProcess, CreateProcess, NtOpenProcessToken, NtOpenProcessTokenEx,
+CreateThread。</p>
+<h3 id="policybaseaddtarget"><code>PolicyBase::AddTarget</code></h3>
+<p><code>PolicyBase</code>的Rules是预先由操纵者设计好的，当在<code>BrokerServices::SpawnTarget</code>中调用<code>PolicyBase::AddTarget</code>时，会进行一大堆关键操作，此前我们已经分析过数个了。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-function">ResultCode <span class="hljs-title">PolicyBase::AddTarget</span><span class="hljs-params">(TargetProcess* target)</span> </span>&#123;<br>  <span class="hljs-comment">// 把AddRules添加的PolicyRule解析出来全部置入PolicyGlobal</span><br>  <span class="hljs-keyword">if</span> (policy_)<br>    policy_maker_-&gt;<span class="hljs-built_in">Done</span>();<br><br>  <span class="hljs-keyword">if</span> (!<span class="hljs-built_in">ApplyProcessMitigationsToSuspendedProcess</span>(target-&gt;<span class="hljs-built_in">Process</span>(),<br>                                                 mitigations_)) &#123;<br>    <span class="hljs-keyword">return</span> SBOX_ERROR_APPLY_ASLR_MITIGATIONS;<br>  &#125;<br><br>  <span class="hljs-comment">// 我们本次对它感兴趣</span><br>  ResultCode ret = <span class="hljs-built_in">SetupAllInterceptions</span>(target);<br><br>  <span class="hljs-keyword">if</span> (ret != SBOX_ALL_OK)<br>    <span class="hljs-keyword">return</span> ret;<br><br>  <span class="hljs-keyword">if</span> (!<span class="hljs-built_in">SetupHandleCloser</span>(target))<br>    <span class="hljs-keyword">return</span> SBOX_ERROR_SETUP_HANDLE_CLOSER;<br><br>  DWORD win_error = ERROR_SUCCESS;<br>  <span class="hljs-comment">// Initialize the sandbox infrastructure for the target.</span><br>  <span class="hljs-comment">// TODO(wfh) do something with win_error code here.</span><br>  ret = target-&gt;<span class="hljs-built_in">Init</span>(dispatcher_.<span class="hljs-built_in">get</span>(), policy_, kIPCMemSize, kPolMemSize,<br>                     &amp;win_error);<br><br>  <span class="hljs-keyword">if</span> (ret != SBOX_ALL_OK)<br>    <span class="hljs-keyword">return</span> ret;<br><br>  g_shared_delayed_integrity_level = delayed_integrity_level_;<br>  ret = target-&gt;<span class="hljs-built_in">TransferVariable</span>(<span class="hljs-string">&quot;g_shared_delayed_integrity_level&quot;</span>,<br>                                 &amp;g_shared_delayed_integrity_level,<br>                                 <span class="hljs-built_in">sizeof</span>(g_shared_delayed_integrity_level));<br>  g_shared_delayed_integrity_level = INTEGRITY_LEVEL_LAST;<br>  <span class="hljs-keyword">if</span> (SBOX_ALL_OK != ret)<br>    <span class="hljs-keyword">return</span> ret;<br><br>  <span class="hljs-comment">// Add in delayed mitigations and pseudo-mitigations enforced at startup.</span><br>  g_shared_delayed_mitigations =<br>      delayed_mitigations_ | <span class="hljs-built_in">FilterPostStartupProcessMitigations</span>(mitigations_);<br>  <span class="hljs-keyword">if</span> (!<span class="hljs-built_in">CanSetProcessMitigationsPostStartup</span>(g_shared_delayed_mitigations))<br>    <span class="hljs-keyword">return</span> SBOX_ERROR_BAD_PARAMS;<br><br>  ret = target-&gt;<span class="hljs-built_in">TransferVariable</span>(<span class="hljs-string">&quot;g_shared_delayed_mitigations&quot;</span>,<br>                                 &amp;g_shared_delayed_mitigations,<br>                                 <span class="hljs-built_in">sizeof</span>(g_shared_delayed_mitigations));<br>  g_shared_delayed_mitigations = <span class="hljs-number">0</span>;<br>  <span class="hljs-keyword">if</span> (SBOX_ALL_OK != ret)<br>    <span class="hljs-keyword">return</span> ret;<br><br>  <span class="hljs-function">AutoLock <span class="hljs-title">lock</span><span class="hljs-params">(&amp;lock_)</span></span>;<br>  targets_.<span class="hljs-built_in">push_back</span>(target);<br>  <span class="hljs-keyword">return</span> SBOX_ALL_OK;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p><code>LowLevelPolicy::Done</code>操作没什么好说的，我们感兴趣的是<code>SetupAllInterceptions</code>：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-function">ResultCode <span class="hljs-title">PolicyBase::SetupAllInterceptions</span><span class="hljs-params">(TargetProcess* target)</span> </span>&#123;<br>  <span class="hljs-function">InterceptionManager <span class="hljs-title">manager</span><span class="hljs-params">(target, relaxed_interceptions_)</span></span>;<br><br>  <span class="hljs-keyword">if</span> (policy_) &#123;<br>    <span class="hljs-comment">// 对每个IPC tag，都要进行dispatcher_-&gt;SetupService</span><br>    <span class="hljs-comment">// 此处的dispatcher_是个TopLevelDispatcher，内部会根据tag分发</span><br>    <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> i = <span class="hljs-number">0</span>; i &lt; IPC_LAST_TAG; i++) &#123;<br>      <span class="hljs-keyword">if</span> (policy_-&gt;entry[i] &amp;&amp; !dispatcher_-&gt;<span class="hljs-built_in">SetupService</span>(&amp;manager, i))<br>        <span class="hljs-keyword">return</span> SBOX_ERROR_SETUP_INTERCEPTION_SERVICE;<br>    &#125;<br>  &#125;<br><br>  <span class="hljs-comment">// 这些是target不允许加载的dll，加入manager管制</span><br>  <span class="hljs-keyword">if</span> (!blacklisted_dlls_.<span class="hljs-built_in">empty</span>()) &#123;<br>    std::vector&lt;base::string16&gt;::iterator it = blacklisted_dlls_.<span class="hljs-built_in">begin</span>();<br>    <span class="hljs-keyword">for</span> (; it != blacklisted_dlls_.<span class="hljs-built_in">end</span>(); ++it) &#123;<br>      manager.<span class="hljs-built_in">AddToUnloadModules</span>(it-&gt;<span class="hljs-built_in">c_str</span>());<br>    &#125;<br>  &#125;<br><br>  <span class="hljs-comment">// 非常关键的调用</span><br>  <span class="hljs-keyword">if</span> (!<span class="hljs-built_in">SetupBasicInterceptions</span>(&amp;manager, is_csrss_connected_))<br>    <span class="hljs-keyword">return</span> SBOX_ERROR_SETUP_BASIC_INTERCEPTIONS;<br><br>  ResultCode rc = manager.<span class="hljs-built_in">InitializeInterceptions</span>();<br>  <span class="hljs-keyword">if</span> (rc != SBOX_ALL_OK)<br>    <span class="hljs-keyword">return</span> rc;<br><br>  <span class="hljs-comment">// Finally, setup imports on the target so the interceptions can work.</span><br>  <span class="hljs-keyword">if</span> (!<span class="hljs-built_in">SetupNtdllImports</span>(target))<br>    <span class="hljs-keyword">return</span> SBOX_ERROR_SETUP_NTDLL_IMPORTS;<br><br>  <span class="hljs-keyword">return</span> SBOX_ALL_OK;<br>&#125;<br><br><span class="hljs-comment">// Delegate to the appropriate dispatcher.</span><br><span class="hljs-function"><span class="hljs-type">bool</span> <span class="hljs-title">TopLevelDispatcher::SetupService</span><span class="hljs-params">(InterceptionManager* manager,</span></span><br><span class="hljs-params"><span class="hljs-function">                                      <span class="hljs-type">int</span> service)</span> </span>&#123;<br>  <span class="hljs-keyword">if</span> (IPC_PING1_TAG == service || IPC_PING2_TAG == service)<br>    <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;<br><br>  <span class="hljs-comment">// GetDispatcher不过是取出ipc_targets_[service]，它在构造器中设置过了</span><br>  Dispatcher* dispatcher = <span class="hljs-built_in">GetDispatcher</span>(service);<br>  <span class="hljs-keyword">if</span> (!dispatcher) &#123;<br>    <span class="hljs-built_in">NOTREACHED</span>();<br>    <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;<br>  &#125;<br>  <span class="hljs-keyword">return</span> dispatcher-&gt;<span class="hljs-built_in">SetupService</span>(manager, service);<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>上一篇分析的<code>FilesystemDispatcher</code>在此处对5个系统调用进行了Interceptions的安装。类比一下，其他的子系统应该也差不多。我们先看看<code>ThreadProcessDispatcher::SetupService</code>：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-function"><span class="hljs-type">bool</span> <span class="hljs-title">ThreadProcessDispatcher::SetupService</span><span class="hljs-params">(InterceptionManager* manager,</span></span><br><span class="hljs-params"><span class="hljs-function">                                           <span class="hljs-type">int</span> service)</span> </span>&#123;<br>  <span class="hljs-keyword">switch</span> (service) &#123;<br>    <span class="hljs-keyword">case</span> IPC_NTOPENTHREAD_TAG:<br>    <span class="hljs-keyword">case</span> IPC_NTOPENPROCESS_TAG:<br>    <span class="hljs-keyword">case</span> IPC_NTOPENPROCESSTOKEN_TAG:<br>    <span class="hljs-keyword">case</span> IPC_NTOPENPROCESSTOKENEX_TAG:<br>    <span class="hljs-keyword">case</span> IPC_CREATETHREAD_TAG:<br>      <span class="hljs-comment">// There is no explicit policy for these services.</span><br>      <span class="hljs-comment">// 这里非常奇怪，SetupService对这5个IPC tag没有做任何的拦截，它们不需要拦截？</span><br>      <span class="hljs-comment">// 还是说因为某种原因而不在此处处理？</span><br>      <span class="hljs-built_in">NOTREACHED</span>();<br>      <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;<br><br>    <span class="hljs-keyword">case</span> IPC_CREATEPROCESSW_TAG:<br>      <span class="hljs-comment">// 只有CreateProcess这个kernel32.dll的函数在这里处理</span><br>      <span class="hljs-comment">// 这里和filesystem不同，它是个eat类型的interception</span><br>      <span class="hljs-comment">// eat是通过修改dll导入表地址的方式来hook的，且它的安装是broker交由target自己处理的</span><br>      <span class="hljs-comment">// hook函数叫TargetCreateProcess</span><br>      <span class="hljs-keyword">return</span> <span class="hljs-built_in">INTERCEPT_EAT</span>(manager, kKerneldllName, CreateProcessW,<br>                           CREATE_PROCESSW_ID, <span class="hljs-number">44</span>) &amp;&amp;<br>             <span class="hljs-built_in">INTERCEPT_EAT</span>(manager, <span class="hljs-string">L&quot;kernel32.dll&quot;</span>, CreateProcessA,<br>                           CREATE_PROCESSA_ID, <span class="hljs-number">44</span>);<br><br>    <span class="hljs-keyword">default</span>:<br>      <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;<br>  &#125;<br>&#125;<br><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> INTERCEPT_EAT(manager, dll, function, id, num_params) \</span><br><span class="hljs-meta">  manager-&gt;AddToPatchedFunctions(                             \</span><br><span class="hljs-meta">      dll, #function, sandbox::INTERCEPTION_EAT,              \</span><br><span class="hljs-meta">      reinterpret_cast<span class="hljs-string">&lt;void*&gt;</span>(MAKE_SERVICE_NAME(function)), id)</span><br></code></pre></td></tr></table></figure>
+<p>再看看此后的关键call——<code>SetupBasicInterceptions</code>:</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-function"><span class="hljs-type">bool</span> <span class="hljs-title">SetupBasicInterceptions</span><span class="hljs-params">(InterceptionManager* manager,</span></span><br><span class="hljs-params"><span class="hljs-function">                             <span class="hljs-type">bool</span> is_csrss_connected)</span> </span>&#123;<br>  <span class="hljs-comment">// Interceptions provided by process_thread_policy, without actual policy.</span><br>  <span class="hljs-comment">// 这3个连同下面的NtOpenProcessTokenEx都是有对应IPC tag的，看来它们4个的拦截器实际上是装了的，只不过移到了此处</span><br>  <span class="hljs-comment">// 根据注释，之所以移到此处是因为它们无需policy</span><br>  <span class="hljs-comment">// 但是dispatcher也和policy没有直接关系啊，我不太理解这种设计，历史原因？</span><br>  <span class="hljs-keyword">if</span> (!<span class="hljs-built_in">INTERCEPT_NT</span>(manager, NtOpenThread, OPEN_THREAD_ID, <span class="hljs-number">20</span>) ||<br>      !<span class="hljs-built_in">INTERCEPT_NT</span>(manager, NtOpenProcess, OPEN_PROCESS_ID, <span class="hljs-number">20</span>) ||<br>      !<span class="hljs-built_in">INTERCEPT_NT</span>(manager, NtOpenProcessToken, OPEN_PROCESS_TOKEN_ID, <span class="hljs-number">16</span>))<br>    <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;<br><br>  <span class="hljs-comment">// Interceptions with neither policy nor IPC.</span><br>  <span class="hljs-comment">// 这两个函数没有对应的IPC tag，是因为它们无需IPC请求</span><br>  <span class="hljs-keyword">if</span> (!<span class="hljs-built_in">INTERCEPT_NT</span>(manager, NtSetInformationThread, SET_INFORMATION_THREAD_ID,<br>                    <span class="hljs-number">20</span>) ||<br>      !<span class="hljs-built_in">INTERCEPT_NT</span>(manager, NtOpenThreadToken, OPEN_THREAD_TOKEN_ID, <span class="hljs-number">20</span>))<br>    <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;<br><br>  <span class="hljs-comment">// This one is also provided by process_thread_policy.</span><br>  <span class="hljs-keyword">if</span> (!<span class="hljs-built_in">INTERCEPT_NT</span>(manager, NtOpenProcessTokenEx, OPEN_PROCESS_TOKEN_EX_ID,<br>                    <span class="hljs-number">20</span>))<br>    <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;<br><br>  <span class="hljs-comment">// NtOpenThreadTokenEx也没有对应的IPC tag，它也无需IPC请求</span><br>  <span class="hljs-keyword">if</span> (!<span class="hljs-built_in">INTERCEPT_NT</span>(manager, NtOpenThreadTokenEx, OPEN_THREAD_TOKEN_EX_ID, <span class="hljs-number">24</span>))<br>    <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;<br><br>  <span class="hljs-comment">// 如果csrss未连接，那么还要拦截kernel32.dll的CreateThread</span><br>  <span class="hljs-comment">// 它是有IPC tag的，注意它是导入表hook</span><br>  <span class="hljs-keyword">if</span> (!is_csrss_connected) &#123;<br>    <span class="hljs-keyword">if</span> (!<span class="hljs-built_in">INTERCEPT_EAT</span>(manager, kKerneldllName, CreateThread, CREATE_THREAD_ID,<br>                       <span class="hljs-number">28</span>))<br>      <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;<br>  &#125;<br><br>  <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>9个函数中有3个是不需要IPC请求的，其余6个仅有CreateProcess在dispatcher的<code>SetupService</code>中进行了设置，其他都是由<code>SetupBasicInterceptions</code>部署的。除了没有IPC请求的3个以及需要判定<code>is_csrss_connected</code>的CreateThread，其他的几个为什么不放入Dispatcher中的<code>SetupService</code>处理，我也不是很懂，字面的意思是因为它们无需实际的policy，但另一方面，dispatcher和policy并没有直接关联。</p>
+<p>或许继续分析会找到答案也说不定。</p>
+<h2 id="policy">policy</h2>
+<p>和filesystem子系统大同小异，policy也提供了一个最为重要的接口<code>GenerateRules</code>以及6个在dispatcher中调用的action。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-comment">// This class centralizes most of the knowledge related to process execution.</span><br><span class="hljs-keyword">class</span> <span class="hljs-title class_">ProcessPolicy</span> &#123;<br> <span class="hljs-keyword">public</span>:<br>  <span class="hljs-comment">// Creates the required low-level policy rules to evaluate a high-level.</span><br>  <span class="hljs-comment">// policy rule for process creation</span><br>  <span class="hljs-comment">// &#x27;name&#x27; is the executable to be spawn.</span><br>  <span class="hljs-comment">// &#x27;semantics&#x27; is the desired semantics.</span><br>  <span class="hljs-comment">// &#x27;policy&#x27; is the policy generator to which the rules are going to be added.</span><br>  <span class="hljs-function"><span class="hljs-type">static</span> <span class="hljs-type">bool</span> <span class="hljs-title">GenerateRules</span><span class="hljs-params">(<span class="hljs-type">const</span> <span class="hljs-type">wchar_t</span>* name,</span></span><br><span class="hljs-params"><span class="hljs-function">                            TargetPolicy::Semantics semantics,</span></span><br><span class="hljs-params"><span class="hljs-function">                            LowLevelPolicy* policy)</span></span>;<br><br>  <span class="hljs-comment">// Opens a thread from the child process and returns the handle.</span><br>  <span class="hljs-comment">// client_info contains the information about the child process,</span><br>  <span class="hljs-comment">// desired_access is the access requested by the child and thread_id</span><br>  <span class="hljs-comment">// is the thread_id to be opened.</span><br>  <span class="hljs-comment">// The function returns the return value of NtOpenThread.</span><br>  <span class="hljs-function"><span class="hljs-type">static</span> NTSTATUS <span class="hljs-title">OpenThreadAction</span><span class="hljs-params">(<span class="hljs-type">const</span> ClientInfo&amp; client_info,</span></span><br><span class="hljs-params"><span class="hljs-function">                                   <span class="hljs-type">uint32_t</span> desired_access,</span></span><br><span class="hljs-params"><span class="hljs-function">                                   <span class="hljs-type">uint32_t</span> thread_id,</span></span><br><span class="hljs-params"><span class="hljs-function">                                   HANDLE* handle)</span></span>;<br><br>  <span class="hljs-comment">// Opens the process id passed in and returns the duplicated handle to</span><br>  <span class="hljs-comment">// the child. We only allow the child processes to open themselves. Any other</span><br>  <span class="hljs-comment">// pid open is denied.</span><br>  <span class="hljs-function"><span class="hljs-type">static</span> NTSTATUS <span class="hljs-title">OpenProcessAction</span><span class="hljs-params">(<span class="hljs-type">const</span> ClientInfo&amp; client_info,</span></span><br><span class="hljs-params"><span class="hljs-function">                                    <span class="hljs-type">uint32_t</span> desired_access,</span></span><br><span class="hljs-params"><span class="hljs-function">                                    <span class="hljs-type">uint32_t</span> process_id,</span></span><br><span class="hljs-params"><span class="hljs-function">                                    HANDLE* handle)</span></span>;<br><br>  <span class="hljs-comment">// Opens the token associated with the process and returns the duplicated</span><br>  <span class="hljs-comment">// handle to the child. We only allow the child processes to open its own</span><br>  <span class="hljs-comment">// token (using ::GetCurrentProcess()).</span><br>  <span class="hljs-function"><span class="hljs-type">static</span> NTSTATUS <span class="hljs-title">OpenProcessTokenAction</span><span class="hljs-params">(<span class="hljs-type">const</span> ClientInfo&amp; client_info,</span></span><br><span class="hljs-params"><span class="hljs-function">                                         HANDLE process,</span></span><br><span class="hljs-params"><span class="hljs-function">                                         <span class="hljs-type">uint32_t</span> desired_access,</span></span><br><span class="hljs-params"><span class="hljs-function">                                         HANDLE* handle)</span></span>;<br><br>  <span class="hljs-comment">// Opens the token associated with the process and returns the duplicated</span><br>  <span class="hljs-comment">// handle to the child. We only allow the child processes to open its own</span><br>  <span class="hljs-comment">// token (using ::GetCurrentProcess()).</span><br>  <span class="hljs-function"><span class="hljs-type">static</span> NTSTATUS <span class="hljs-title">OpenProcessTokenExAction</span><span class="hljs-params">(<span class="hljs-type">const</span> ClientInfo&amp; client_info,</span></span><br><span class="hljs-params"><span class="hljs-function">                                           HANDLE process,</span></span><br><span class="hljs-params"><span class="hljs-function">                                           <span class="hljs-type">uint32_t</span> desired_access,</span></span><br><span class="hljs-params"><span class="hljs-function">                                           <span class="hljs-type">uint32_t</span> attributes,</span></span><br><span class="hljs-params"><span class="hljs-function">                                           HANDLE* handle)</span></span>;<br><br>  <span class="hljs-comment">// Processes a &#x27;CreateProcessW()&#x27; request from the target.</span><br>  <span class="hljs-comment">// &#x27;client_info&#x27; : the target process that is making the request.</span><br>  <span class="hljs-comment">// &#x27;eval_result&#x27; : The desired policy action to accomplish.</span><br>  <span class="hljs-comment">// &#x27;app_name&#x27; : The full path of the process to be created.</span><br>  <span class="hljs-comment">// &#x27;command_line&#x27; : The command line passed to the created process.</span><br>  <span class="hljs-comment">// &#x27;current_dir&#x27; : The CWD with which to spawn the child process.</span><br>  <span class="hljs-function"><span class="hljs-type">static</span> DWORD <span class="hljs-title">CreateProcessWAction</span><span class="hljs-params">(EvalResult eval_result,</span></span><br><span class="hljs-params"><span class="hljs-function">                                    <span class="hljs-type">const</span> ClientInfo&amp; client_info,</span></span><br><span class="hljs-params"><span class="hljs-function">                                    <span class="hljs-type">const</span> base::string16&amp; app_name,</span></span><br><span class="hljs-params"><span class="hljs-function">                                    <span class="hljs-type">const</span> base::string16&amp; command_line,</span></span><br><span class="hljs-params"><span class="hljs-function">                                    <span class="hljs-type">const</span> base::string16&amp; current_dir,</span></span><br><span class="hljs-params"><span class="hljs-function">                                    PROCESS_INFORMATION* process_info)</span></span>;<br><br>  <span class="hljs-comment">// Processes a &#x27;CreateThread()&#x27; request from the target.</span><br>  <span class="hljs-comment">// &#x27;client_info&#x27; : the target process that is making the request.</span><br>  <span class="hljs-function"><span class="hljs-type">static</span> DWORD <span class="hljs-title">CreateThreadAction</span><span class="hljs-params">(<span class="hljs-type">const</span> ClientInfo&amp; client_info,</span></span><br><span class="hljs-params"><span class="hljs-function">                                  SIZE_T stack_size,</span></span><br><span class="hljs-params"><span class="hljs-function">                                  LPTHREAD_START_ROUTINE start_address,</span></span><br><span class="hljs-params"><span class="hljs-function">                                  PVOID parameter,</span></span><br><span class="hljs-params"><span class="hljs-function">                                  DWORD creation_flags,</span></span><br><span class="hljs-params"><span class="hljs-function">                                  LPDWORD thread_id,</span></span><br><span class="hljs-params"><span class="hljs-function">                                  HANDLE* handle)</span></span>;<br>&#125;;<br></code></pre></td></tr></table></figure>
+<p><code>GenerateRules</code>也是一个德行：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-function"><span class="hljs-type">bool</span> <span class="hljs-title">ProcessPolicy::GenerateRules</span><span class="hljs-params">(<span class="hljs-type">const</span> <span class="hljs-type">wchar_t</span>* name,</span></span><br><span class="hljs-params"><span class="hljs-function">                                  TargetPolicy::Semantics semantics,</span></span><br><span class="hljs-params"><span class="hljs-function">                                  LowLevelPolicy* policy)</span> </span>&#123;<br>  std::unique_ptr&lt;PolicyRule&gt; process;<br>  <span class="hljs-keyword">switch</span> (semantics) &#123;<br>    <span class="hljs-keyword">case</span> TargetPolicy::PROCESS_MIN_EXEC: &#123;<br>      <span class="hljs-comment">// 如果是PROCESS_MIN_EXEC，那么rule的action opcode设定为资源只读</span><br>      process.<span class="hljs-built_in">reset</span>(<span class="hljs-keyword">new</span> <span class="hljs-built_in">PolicyRule</span>(GIVE_READONLY));<br>      <span class="hljs-keyword">break</span>;<br>    &#125;;<br>    <span class="hljs-keyword">case</span> TargetPolicy::PROCESS_ALL_EXEC: &#123;<br>      <span class="hljs-comment">// 如果是PROCESS_ALL_EXEC，那么rule的action opcode设定位full access</span><br>      process.<span class="hljs-built_in">reset</span>(<span class="hljs-keyword">new</span> <span class="hljs-built_in">PolicyRule</span>(GIVE_ALLACCESS));<br>      <span class="hljs-keyword">break</span>;<br>    &#125;;<br>    <span class="hljs-keyword">default</span>: &#123; <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>; &#125;;<br>  &#125;<br><br>  <span class="hljs-comment">// NameBased::Name这一参数需要是name</span><br>  <span class="hljs-keyword">if</span> (!process-&gt;<span class="hljs-built_in">AddStringMatch</span>(IF, NameBased::NAME, name, CASE_INSENSITIVE)) &#123;<br>    <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;<br>  &#125;<br>  <span class="hljs-comment">// 绑定IPC_CREATEPROCESSW_TAG这一service id与process</span><br>  <span class="hljs-comment">// 实际的意义就是如果此后service id为IPC_CREATEPROCESSW_TAG请求到来以后</span><br>  <span class="hljs-comment">// 如果NameBased::NAME这一参数位与此处设置的name相同，那么审判的结果就是</span><br>  <span class="hljs-comment">// GIVE_READONLY或GIVE_ALLACCESS（取决于AddRule时的semantics）</span><br>  <span class="hljs-keyword">if</span> (!policy-&gt;<span class="hljs-built_in">AddRule</span>(IPC_CREATEPROCESSW_TAG, process.<span class="hljs-built_in">get</span>())) &#123;<br>    <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;<br>  &#125;<br>  <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;<br>&#125;<br><br>	<span class="hljs-comment">// 相关的两个semantics语义</span><br>	PROCESS_MIN_EXEC,      <span class="hljs-comment">// Allows to create a process with minimal rights</span><br>                           <span class="hljs-comment">// over the resulting process and thread handles.</span><br>                           <span class="hljs-comment">// No other parameters besides the command line are</span><br>                           <span class="hljs-comment">// passed to the child process.</span><br>    PROCESS_ALL_EXEC,      <span class="hljs-comment">// Allows the creation of a process and return full</span><br>                           <span class="hljs-comment">// access on the returned handles.</span><br>                           <span class="hljs-comment">// This flag can be used only when the main token of</span><br>                           <span class="hljs-comment">// the sandboxed application is at least INTERACTIVE.</span><br></code></pre></td></tr></table></figure>
+<p>实际上在<code>GenerateRules</code>中就可以发现，对于ThreadProcess子系统来说，所有的规则都只能限制CreateProcess。回想<code>SetupService</code>，它内部也仅对CreateProcess进行了拦截器的部署，其他的5个IPC请求的tag，由于没有实际的policy参数条件约束，所以设计上并未在此处进行拦截器部署。另外5个拦截器的部署是在一个全局的<code>SetupBasicInterceptions</code>中处理的。</p>
+<p>所以，从设计者的角度来讲，dispatcher的<code>SetupService</code>和policy的<code>GenerateRules</code>有一定程度的耦合。</p>
+<p>6个action函数先不关心，继续看dispatcher。</p>
+<h2 id="dispatcher">dispatcher</h2>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-comment">// This class handles process and thread-related IPC calls.</span><br><span class="hljs-keyword">class</span> <span class="hljs-title class_">ThreadProcessDispatcher</span> : <span class="hljs-keyword">public</span> Dispatcher &#123;<br> <span class="hljs-keyword">public</span>:<br>  <span class="hljs-function"><span class="hljs-keyword">explicit</span> <span class="hljs-title">ThreadProcessDispatcher</span><span class="hljs-params">(PolicyBase* policy_base)</span></span>;<br>  ~<span class="hljs-built_in">ThreadProcessDispatcher</span>() <span class="hljs-keyword">override</span> &#123;&#125;<br><br>  <span class="hljs-comment">// Dispatcher interface.</span><br>  <span class="hljs-comment">// Setup已经见过了</span><br>  <span class="hljs-function"><span class="hljs-type">bool</span> <span class="hljs-title">SetupService</span><span class="hljs-params">(InterceptionManager* manager, <span class="hljs-type">int</span> service)</span> <span class="hljs-keyword">override</span></span>;<br><br> <span class="hljs-keyword">private</span>:<br>  <span class="hljs-comment">// Processes IPC requests coming from calls to NtOpenThread() in the target.</span><br>  <span class="hljs-function"><span class="hljs-type">bool</span> <span class="hljs-title">NtOpenThread</span><span class="hljs-params">(IPCInfo* ipc, <span class="hljs-type">uint32_t</span> desired_access, <span class="hljs-type">uint32_t</span> thread_id)</span></span>;<br><br>  <span class="hljs-comment">// Processes IPC requests coming from calls to NtOpenProcess() in the target.</span><br>  <span class="hljs-function"><span class="hljs-type">bool</span> <span class="hljs-title">NtOpenProcess</span><span class="hljs-params">(IPCInfo* ipc,</span></span><br><span class="hljs-params"><span class="hljs-function">                     <span class="hljs-type">uint32_t</span> desired_access,</span></span><br><span class="hljs-params"><span class="hljs-function">                     <span class="hljs-type">uint32_t</span> process_id)</span></span>;<br><br>  <span class="hljs-comment">// Processes IPC requests from calls to NtOpenProcessToken() in the target.</span><br>  <span class="hljs-function"><span class="hljs-type">bool</span> <span class="hljs-title">NtOpenProcessToken</span><span class="hljs-params">(IPCInfo* ipc,</span></span><br><span class="hljs-params"><span class="hljs-function">                          HANDLE process,</span></span><br><span class="hljs-params"><span class="hljs-function">                          <span class="hljs-type">uint32_t</span> desired_access)</span></span>;<br><br>  <span class="hljs-comment">// Processes IPC requests from calls to NtOpenProcessTokenEx() in the target.</span><br>  <span class="hljs-function"><span class="hljs-type">bool</span> <span class="hljs-title">NtOpenProcessTokenEx</span><span class="hljs-params">(IPCInfo* ipc,</span></span><br><span class="hljs-params"><span class="hljs-function">                            HANDLE process,</span></span><br><span class="hljs-params"><span class="hljs-function">                            <span class="hljs-type">uint32_t</span> desired_access,</span></span><br><span class="hljs-params"><span class="hljs-function">                            <span class="hljs-type">uint32_t</span> attributes)</span></span>;<br><br>  <span class="hljs-comment">// Processes IPC requests coming from calls to CreateProcessW() in the target.</span><br>  <span class="hljs-function"><span class="hljs-type">bool</span> <span class="hljs-title">CreateProcessW</span><span class="hljs-params">(IPCInfo* ipc,</span></span><br><span class="hljs-params"><span class="hljs-function">                      base::string16* name,</span></span><br><span class="hljs-params"><span class="hljs-function">                      base::string16* cmd_line,</span></span><br><span class="hljs-params"><span class="hljs-function">                      base::string16* cur_dir,</span></span><br><span class="hljs-params"><span class="hljs-function">                      base::string16* target_cur_dir,</span></span><br><span class="hljs-params"><span class="hljs-function">                      CountedBuffer* info)</span></span>;<br><br>  <span class="hljs-comment">// Processes IPC requests coming from calls to CreateThread() in the target.</span><br>  <span class="hljs-function"><span class="hljs-type">bool</span> <span class="hljs-title">CreateThread</span><span class="hljs-params">(IPCInfo* ipc,</span></span><br><span class="hljs-params"><span class="hljs-function">                    SIZE_T stack_size,</span></span><br><span class="hljs-params"><span class="hljs-function">                    LPTHREAD_START_ROUTINE start_address,</span></span><br><span class="hljs-params"><span class="hljs-function">                    LPVOID parameter,</span></span><br><span class="hljs-params"><span class="hljs-function">                    DWORD creation_flags)</span></span>;<br><br>  PolicyBase* policy_base_;<br>  <span class="hljs-built_in">DISALLOW_COPY_AND_ASSIGN</span>(ThreadProcessDispatcher);<br>&#125;;<br></code></pre></td></tr></table></figure>
+<p>构造器实际上也颇为重要，实际上他是在<code>PolicyBase::AddTarget</code>首次<code>GetTarget</code>时调用到的(还记得各子系统static局部dispatcher对象吗)：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br></pre></td><td class="code"><pre><code class="hljs cpp">ThreadProcessDispatcher::<span class="hljs-built_in">ThreadProcessDispatcher</span>(PolicyBase* policy_base)<br>    : <span class="hljs-built_in">policy_base_</span>(policy_base) &#123;<br>  <span class="hljs-comment">// 做出6个IPCCall，把它们塞入dispatcher的ipc_calls_用于此后处理IPC请求时</span><br>  <span class="hljs-comment">// 匹配请求，它们绑定的6个callback函数也在该类中定义，它们内部会进行broker端的处理</span><br>  <span class="hljs-type">static</span> <span class="hljs-type">const</span> IPCCall open_thread = &#123;<br>      &#123;IPC_NTOPENTHREAD_TAG, &#123;UINT32_TYPE, UINT32_TYPE&#125;&#125;,<br>      <span class="hljs-built_in">reinterpret_cast</span>&lt;CallbackGeneric&gt;(<br>          &amp;ThreadProcessDispatcher::NtOpenThread)&#125;;<br><br>  <span class="hljs-type">static</span> <span class="hljs-type">const</span> IPCCall open_process = &#123;<br>      &#123;IPC_NTOPENPROCESS_TAG, &#123;UINT32_TYPE, UINT32_TYPE&#125;&#125;,<br>      <span class="hljs-built_in">reinterpret_cast</span>&lt;CallbackGeneric&gt;(<br>          &amp;ThreadProcessDispatcher::NtOpenProcess)&#125;;<br><br>  <span class="hljs-type">static</span> <span class="hljs-type">const</span> IPCCall process_token = &#123;<br>      &#123;IPC_NTOPENPROCESSTOKEN_TAG, &#123;VOIDPTR_TYPE, UINT32_TYPE&#125;&#125;,<br>      <span class="hljs-built_in">reinterpret_cast</span>&lt;CallbackGeneric&gt;(<br>          &amp;ThreadProcessDispatcher::NtOpenProcessToken)&#125;;<br><br>  <span class="hljs-type">static</span> <span class="hljs-type">const</span> IPCCall process_tokenex = &#123;<br>      &#123;IPC_NTOPENPROCESSTOKENEX_TAG, &#123;VOIDPTR_TYPE, UINT32_TYPE, UINT32_TYPE&#125;&#125;,<br>      <span class="hljs-built_in">reinterpret_cast</span>&lt;CallbackGeneric&gt;(<br>          &amp;ThreadProcessDispatcher::NtOpenProcessTokenEx)&#125;;<br><br>  <span class="hljs-type">static</span> <span class="hljs-type">const</span> IPCCall create_params = &#123;<br>      &#123;IPC_CREATEPROCESSW_TAG,<br>       &#123;WCHAR_TYPE, WCHAR_TYPE, WCHAR_TYPE, WCHAR_TYPE, INOUTPTR_TYPE&#125;&#125;,<br>      <span class="hljs-built_in">reinterpret_cast</span>&lt;CallbackGeneric&gt;(<br>          &amp;ThreadProcessDispatcher::CreateProcessW)&#125;;<br><br>  <span class="hljs-comment">// NOTE(liamjm): 2nd param is size_t: Using VOIDPTR_TYPE as they are</span><br>  <span class="hljs-comment">// the same size on windows.</span><br>  <span class="hljs-built_in">static_assert</span>(<span class="hljs-built_in">sizeof</span>(<span class="hljs-type">size_t</span>) == <span class="hljs-built_in">sizeof</span>(<span class="hljs-type">void</span>*),<br>                <span class="hljs-string">&quot;VOIDPTR_TYPE not same size as size_t&quot;</span>);<br>  <span class="hljs-type">static</span> <span class="hljs-type">const</span> IPCCall create_thread_params = &#123;<br>      &#123;IPC_CREATETHREAD_TAG,<br>       &#123;VOIDPTR_TYPE, VOIDPTR_TYPE, VOIDPTR_TYPE, UINT32_TYPE&#125;&#125;,<br>      <span class="hljs-built_in">reinterpret_cast</span>&lt;CallbackGeneric&gt;(<br>          &amp;ThreadProcessDispatcher::CreateThread)&#125;;<br><br>  ipc_calls_.<span class="hljs-built_in">push_back</span>(open_thread);<br>  ipc_calls_.<span class="hljs-built_in">push_back</span>(open_process);<br>  ipc_calls_.<span class="hljs-built_in">push_back</span>(process_token);<br>  ipc_calls_.<span class="hljs-built_in">push_back</span>(process_tokenex);<br>  ipc_calls_.<span class="hljs-built_in">push_back</span>(create_params);<br>  ipc_calls_.<span class="hljs-built_in">push_back</span>(create_thread_params);<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>Server端IPC的处理机制本篇就不再说了，我们直接来看看这些请求处理的callback函数是如何处理的：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-comment">// 以下4个是ntdll的4个系统调用</span><br><span class="hljs-function"><span class="hljs-type">bool</span> <span class="hljs-title">ThreadProcessDispatcher::NtOpenThread</span><span class="hljs-params">(IPCInfo* ipc,</span></span><br><span class="hljs-params"><span class="hljs-function">                                           <span class="hljs-type">uint32_t</span> desired_access,</span></span><br><span class="hljs-params"><span class="hljs-function">                                           <span class="hljs-type">uint32_t</span> thread_id)</span> </span>&#123;<br>  HANDLE handle;<br>  <span class="hljs-comment">// 直接就调用了ProcessPolicy::OpenThreadAction，没有任何处理</span><br>  <span class="hljs-comment">// 下面的3个函数也类似</span><br>  NTSTATUS ret = ProcessPolicy::<span class="hljs-built_in">OpenThreadAction</span>(<br>      *ipc-&gt;client_info, desired_access, thread_id, &amp;handle);<br>  ipc-&gt;return_info.nt_status = ret;<br>  ipc-&gt;return_info.handle = handle;<br>  <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;<br>&#125;<br><br><span class="hljs-function"><span class="hljs-type">bool</span> <span class="hljs-title">ThreadProcessDispatcher::NtOpenProcess</span><span class="hljs-params">(IPCInfo* ipc,</span></span><br><span class="hljs-params"><span class="hljs-function">                                            <span class="hljs-type">uint32_t</span> desired_access,</span></span><br><span class="hljs-params"><span class="hljs-function">                                            <span class="hljs-type">uint32_t</span> process_id)</span> </span>&#123;<br>  HANDLE handle;<br>  NTSTATUS ret = ProcessPolicy::<span class="hljs-built_in">OpenProcessAction</span>(<br>      *ipc-&gt;client_info, desired_access, process_id, &amp;handle);<br>  ipc-&gt;return_info.nt_status = ret;<br>  ipc-&gt;return_info.handle = handle;<br>  <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;<br>&#125;<br><br><span class="hljs-function"><span class="hljs-type">bool</span> <span class="hljs-title">ThreadProcessDispatcher::NtOpenProcessToken</span><span class="hljs-params">(IPCInfo* ipc,</span></span><br><span class="hljs-params"><span class="hljs-function">                                                 HANDLE process,</span></span><br><span class="hljs-params"><span class="hljs-function">                                                 <span class="hljs-type">uint32_t</span> desired_access)</span> </span>&#123;<br>  HANDLE handle;<br>  NTSTATUS ret = ProcessPolicy::<span class="hljs-built_in">OpenProcessTokenAction</span>(<br>      *ipc-&gt;client_info, process, desired_access, &amp;handle);<br>  ipc-&gt;return_info.nt_status = ret;<br>  ipc-&gt;return_info.handle = handle;<br>  <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;<br>&#125;<br><br><span class="hljs-function"><span class="hljs-type">bool</span> <span class="hljs-title">ThreadProcessDispatcher::NtOpenProcessTokenEx</span><span class="hljs-params">(IPCInfo* ipc,</span></span><br><span class="hljs-params"><span class="hljs-function">                                                   HANDLE process,</span></span><br><span class="hljs-params"><span class="hljs-function">                                                   <span class="hljs-type">uint32_t</span> desired_access,</span></span><br><span class="hljs-params"><span class="hljs-function">                                                   <span class="hljs-type">uint32_t</span> attributes)</span> </span>&#123;<br>  HANDLE handle;<br>  NTSTATUS ret = ProcessPolicy::<span class="hljs-built_in">OpenProcessTokenExAction</span>(<br>      *ipc-&gt;client_info, process, desired_access, attributes, &amp;handle);<br>  ipc-&gt;return_info.nt_status = ret;<br>  ipc-&gt;return_info.handle = handle;<br>  <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>另外两个kernel32.dll的函数则不太一致：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-function"><span class="hljs-type">bool</span> <span class="hljs-title">ThreadProcessDispatcher::CreateProcessW</span><span class="hljs-params">(IPCInfo* ipc,</span></span><br><span class="hljs-params"><span class="hljs-function">                                             base::string16* name,</span></span><br><span class="hljs-params"><span class="hljs-function">                                             base::string16* cmd_line,</span></span><br><span class="hljs-params"><span class="hljs-function">                                             base::string16* cur_dir,</span></span><br><span class="hljs-params"><span class="hljs-function">                                             base::string16* target_cur_dir,</span></span><br><span class="hljs-params"><span class="hljs-function">                                             CountedBuffer* info)</span> </span>&#123;<br>  <span class="hljs-keyword">if</span> (<span class="hljs-built_in">sizeof</span>(PROCESS_INFORMATION) != info-&gt;<span class="hljs-built_in">Size</span>())<br>    <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;<br><br>  <span class="hljs-comment">// Check if there is an application name.</span><br>  base::string16 exe_name;<br>  <span class="hljs-keyword">if</span> (!name-&gt;<span class="hljs-built_in">empty</span>())<br>    exe_name = *name;<br>  <span class="hljs-keyword">else</span><br>    exe_name = <span class="hljs-built_in">GetPathFromCmdLine</span>(*cmd_line);<br><br>  <span class="hljs-keyword">if</span> (<span class="hljs-built_in">IsPathRelative</span>(exe_name)) &#123;<br>    <span class="hljs-keyword">if</span> (!<span class="hljs-built_in">ConvertToAbsolutePath</span>(*cur_dir, name-&gt;<span class="hljs-built_in">empty</span>(), &amp;exe_name)) &#123;<br>      <span class="hljs-comment">// Cannot find the path. Maybe the file does not exist.</span><br>      ipc-&gt;return_info.win32_result = ERROR_FILE_NOT_FOUND;<br>      <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;<br>    &#125;<br>  &#125;<br><br>  <span class="hljs-comment">// 这里构造CountedParameterSet&lt;NameBased&gt;进行了审判</span><br>  <span class="hljs-type">const</span> <span class="hljs-type">wchar_t</span>* const_exe_name = exe_name.<span class="hljs-built_in">c_str</span>();<br>  CountedParameterSet&lt;NameBased&gt; params;<br>  params[NameBased::NAME] = <span class="hljs-built_in">ParamPickerMake</span>(const_exe_name);<br><br>  EvalResult eval =<br>      policy_base_-&gt;<span class="hljs-built_in">EvalPolicy</span>(IPC_CREATEPROCESSW_TAG, params.<span class="hljs-built_in">GetBase</span>());<br><br>  PROCESS_INFORMATION* proc_info =<br>      <span class="hljs-built_in">reinterpret_cast</span>&lt;PROCESS_INFORMATION*&gt;(info-&gt;<span class="hljs-built_in">Buffer</span>());<br>  <span class="hljs-comment">// Here we force the app_name to be the one we used for the policy lookup.</span><br>  <span class="hljs-comment">// If our logic was wrong, at least we wont allow create a random process.</span><br>  <span class="hljs-comment">// 连同审判结果一起传入了ProcessPolicy::CreateProcessWAction</span><br>  DWORD ret = ProcessPolicy::<span class="hljs-built_in">CreateProcessWAction</span>(<br>      eval, *ipc-&gt;client_info, exe_name, *cmd_line, *target_cur_dir, proc_info);<br><br>  ipc-&gt;return_info.win32_result = ret;<br>  <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;<br>&#125;<br><br><span class="hljs-function"><span class="hljs-type">bool</span> <span class="hljs-title">ThreadProcessDispatcher::CreateThread</span><span class="hljs-params">(IPCInfo* ipc,</span></span><br><span class="hljs-params"><span class="hljs-function">                                           SIZE_T stack_size,</span></span><br><span class="hljs-params"><span class="hljs-function">                                           LPTHREAD_START_ROUTINE start_address,</span></span><br><span class="hljs-params"><span class="hljs-function">                                           LPVOID parameter,</span></span><br><span class="hljs-params"><span class="hljs-function">                                           DWORD creation_flags)</span> </span>&#123;<br>  <span class="hljs-keyword">if</span> (!start_address) &#123;<br>    <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;<br>  &#125;<br><br>  HANDLE handle;<br>  <span class="hljs-comment">// CreateThread就很干脆，没有审判</span><br>  DWORD ret = ProcessPolicy::<span class="hljs-built_in">CreateThreadAction</span>(<br>      *ipc-&gt;client_info, stack_size, start_address, parameter, creation_flags,<br>      <span class="hljs-literal">nullptr</span>, &amp;handle);<br><br>  ipc-&gt;return_info.nt_status = ret;<br>  ipc-&gt;return_info.handle = handle;<br>  <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>再次回到policy组件，最为关心的当属进行了Rule审判的<code>CreateProcessWAction</code>:</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-function">DWORD <span class="hljs-title">ProcessPolicy::CreateProcessWAction</span><span class="hljs-params">(EvalResult eval_result,</span></span><br><span class="hljs-params"><span class="hljs-function">                                          <span class="hljs-type">const</span> ClientInfo&amp; client_info,</span></span><br><span class="hljs-params"><span class="hljs-function">                                          <span class="hljs-type">const</span> base::string16&amp; app_name,</span></span><br><span class="hljs-params"><span class="hljs-function">                                          <span class="hljs-type">const</span> base::string16&amp; command_line,</span></span><br><span class="hljs-params"><span class="hljs-function">                                          <span class="hljs-type">const</span> base::string16&amp; current_dir,</span></span><br><span class="hljs-params"><span class="hljs-function">                                          PROCESS_INFORMATION* process_info)</span> </span>&#123;<br>  <span class="hljs-comment">// The only action supported is ASK_BROKER which means create the process.</span><br>  <span class="hljs-comment">// 这里的注释有点问题，实际上匹配rule时EvalResult只能是GIVE_ALLACCESS或GIVE_READONLY</span><br>  <span class="hljs-keyword">if</span> (GIVE_ALLACCESS != eval_result &amp;&amp; GIVE_READONLY != eval_result) &#123;<br>    <span class="hljs-keyword">return</span> ERROR_ACCESS_DENIED;<br>  &#125;<br><br>  <span class="hljs-comment">// 如果通过了审判，那么会调用一个helper函数来进一步调用CreateProcess API</span><br>  STARTUPINFO startup_info = &#123;<span class="hljs-number">0</span>&#125;;<br>  startup_info.cb = <span class="hljs-built_in">sizeof</span>(startup_info);<br>  <span class="hljs-function">std::unique_ptr&lt;<span class="hljs-type">wchar_t</span>, base::FreeDeleter&gt; <span class="hljs-title">cmd_line</span><span class="hljs-params">(</span></span><br><span class="hljs-params"><span class="hljs-function">      _wcsdup(command_line.c_str()))</span></span>;<br><br>  <span class="hljs-type">bool</span> should_give_full_access = (GIVE_ALLACCESS == eval_result);<br><br>  <span class="hljs-type">const</span> <span class="hljs-type">wchar_t</span>* cwd = current_dir.<span class="hljs-built_in">c_str</span>();<br>  <span class="hljs-keyword">if</span> (current_dir.<span class="hljs-built_in">empty</span>())<br>    cwd = <span class="hljs-literal">nullptr</span>;<br><br>  <span class="hljs-keyword">if</span> (!<span class="hljs-built_in">CreateProcessExWHelper</span>(client_info.process, should_give_full_access,<br>                              app_name.<span class="hljs-built_in">c_str</span>(), cmd_line.<span class="hljs-built_in">get</span>(), <span class="hljs-literal">nullptr</span>,<br>                              <span class="hljs-literal">nullptr</span>, <span class="hljs-literal">false</span>, <span class="hljs-number">0</span>, <span class="hljs-literal">nullptr</span>, cwd, &amp;startup_info,<br>                              process_info)) &#123;<br>    <span class="hljs-keyword">return</span> ERROR_ACCESS_DENIED;<br>  &#125;<br>  <span class="hljs-keyword">return</span> ERROR_SUCCESS;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>这个helper函数实际上就是一层封装：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-comment">// Creates a child process and duplicates the handles to &#x27;target_process&#x27;. The</span><br><span class="hljs-comment">// remaining parameters are the same as CreateProcess().</span><br><span class="hljs-function"><span class="hljs-type">bool</span> <span class="hljs-title">CreateProcessExWHelper</span><span class="hljs-params">(HANDLE target_process,</span></span><br><span class="hljs-params"><span class="hljs-function">                            <span class="hljs-type">bool</span> give_full_access,</span></span><br><span class="hljs-params"><span class="hljs-function">                            LPCWSTR lpApplicationName,</span></span><br><span class="hljs-params"><span class="hljs-function">                            LPWSTR lpCommandLine,</span></span><br><span class="hljs-params"><span class="hljs-function">                            LPSECURITY_ATTRIBUTES lpProcessAttributes,</span></span><br><span class="hljs-params"><span class="hljs-function">                            LPSECURITY_ATTRIBUTES lpThreadAttributes,</span></span><br><span class="hljs-params"><span class="hljs-function">                            <span class="hljs-type">bool</span> bInheritHandles,</span></span><br><span class="hljs-params"><span class="hljs-function">                            DWORD dwCreationFlags,</span></span><br><span class="hljs-params"><span class="hljs-function">                            LPVOID lpEnvironment,</span></span><br><span class="hljs-params"><span class="hljs-function">                            LPCWSTR lpCurrentDirectory,</span></span><br><span class="hljs-params"><span class="hljs-function">                            LPSTARTUPINFOW lpStartupInfo,</span></span><br><span class="hljs-params"><span class="hljs-function">                            LPPROCESS_INFORMATION lpProcessInformation)</span> </span>&#123;<br>  <span class="hljs-comment">// 这里进行了CreateProcessW API的调用</span><br>  <span class="hljs-keyword">if</span> (!::<span class="hljs-built_in">CreateProcessW</span>(lpApplicationName, lpCommandLine, lpProcessAttributes,<br>                        lpThreadAttributes, bInheritHandles, dwCreationFlags,<br>                        lpEnvironment, lpCurrentDirectory, lpStartupInfo,<br>                        lpProcessInformation)) &#123;<br>    <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;<br>  &#125;<br><br>  DWORD process_access = kProcessRights;<br>  DWORD thread_access = kThreadRights;<br>  <span class="hljs-comment">// 访问权限会受传入的give_full_access影响，而give_full_access对应宿主的两个EvalResult</span><br>  <span class="hljs-keyword">if</span> (give_full_access) &#123;<br>    process_access = PROCESS_ALL_ACCESS;<br>    thread_access = THREAD_ALL_ACCESS;<br>  &#125;<br>  <span class="hljs-comment">// 复制句柄给target进程，它会在IPC处理后填充到CrossCallResult中返还给target client</span><br>  <span class="hljs-keyword">if</span> (!::<span class="hljs-built_in">DuplicateHandle</span>(::<span class="hljs-built_in">GetCurrentProcess</span>(), lpProcessInformation-&gt;hProcess,<br>                         target_process, &amp;lpProcessInformation-&gt;hProcess,<br>                         process_access, <span class="hljs-literal">false</span>, DUPLICATE_CLOSE_SOURCE)) &#123;<br>    ::<span class="hljs-built_in">CloseHandle</span>(lpProcessInformation-&gt;hThread);<br>    <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;<br>  &#125;<br>  <span class="hljs-keyword">if</span> (!::<span class="hljs-built_in">DuplicateHandle</span>(::<span class="hljs-built_in">GetCurrentProcess</span>(), lpProcessInformation-&gt;hThread,<br>                         target_process, &amp;lpProcessInformation-&gt;hThread,<br>                         thread_access, <span class="hljs-literal">false</span>, DUPLICATE_CLOSE_SOURCE)) &#123;<br>    <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;<br>  &#125;<br>  <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>其他的5个action，就仅仅是封装罢了：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-function">NTSTATUS <span class="hljs-title">ProcessPolicy::OpenThreadAction</span><span class="hljs-params">(<span class="hljs-type">const</span> ClientInfo&amp; client_info,</span></span><br><span class="hljs-params"><span class="hljs-function">                                         <span class="hljs-type">uint32_t</span> desired_access,</span></span><br><span class="hljs-params"><span class="hljs-function">                                         <span class="hljs-type">uint32_t</span> thread_id,</span></span><br><span class="hljs-params"><span class="hljs-function">                                         HANDLE* handle)</span> </span>&#123;<br>  *handle = <span class="hljs-literal">nullptr</span>;<br><br>  NtOpenThreadFunction NtOpenThread = <span class="hljs-literal">nullptr</span>;<br>  <span class="hljs-built_in">ResolveNTFunctionPtr</span>(<span class="hljs-string">&quot;NtOpenThread&quot;</span>, &amp;NtOpenThread);<br><br>  OBJECT_ATTRIBUTES attributes = &#123;<span class="hljs-number">0</span>&#125;;<br>  attributes.Length = <span class="hljs-built_in">sizeof</span>(attributes);<br>  CLIENT_ID client_id = &#123;<span class="hljs-number">0</span>&#125;;<br>  client_id.UniqueProcess =<br>      <span class="hljs-built_in">reinterpret_cast</span>&lt;PVOID&gt;(<span class="hljs-built_in">static_cast</span>&lt;ULONG_PTR&gt;(client_info.process_id));<br>  client_id.UniqueThread =<br>      <span class="hljs-built_in">reinterpret_cast</span>&lt;PVOID&gt;(<span class="hljs-built_in">static_cast</span>&lt;ULONG_PTR&gt;(thread_id));<br><br>  HANDLE local_handle = <span class="hljs-literal">nullptr</span>;<br>  NTSTATUS status =<br>      <span class="hljs-built_in">NtOpenThread</span>(&amp;local_handle, desired_access, &amp;attributes, &amp;client_id);<br>  <span class="hljs-keyword">if</span> (<span class="hljs-built_in">NT_SUCCESS</span>(status)) &#123;<br>    <span class="hljs-keyword">if</span> (!::<span class="hljs-built_in">DuplicateHandle</span>(::<span class="hljs-built_in">GetCurrentProcess</span>(), local_handle,<br>                           client_info.process, handle, <span class="hljs-number">0</span>, <span class="hljs-literal">false</span>,<br>                           DUPLICATE_CLOSE_SOURCE | DUPLICATE_SAME_ACCESS)) &#123;<br>      <span class="hljs-keyword">return</span> STATUS_ACCESS_DENIED;<br>    &#125;<br>  &#125;<br><br>  <span class="hljs-keyword">return</span> status;<br>&#125;<br><br><span class="hljs-function">NTSTATUS <span class="hljs-title">ProcessPolicy::OpenProcessAction</span><span class="hljs-params">(<span class="hljs-type">const</span> ClientInfo&amp; client_info,</span></span><br><span class="hljs-params"><span class="hljs-function">                                          <span class="hljs-type">uint32_t</span> desired_access,</span></span><br><span class="hljs-params"><span class="hljs-function">                                          <span class="hljs-type">uint32_t</span> process_id,</span></span><br><span class="hljs-params"><span class="hljs-function">                                          HANDLE* handle)</span> </span>&#123;<br>  *handle = <span class="hljs-literal">nullptr</span>;<br><br>  NtOpenProcessFunction NtOpenProcess = <span class="hljs-literal">nullptr</span>;<br>  <span class="hljs-built_in">ResolveNTFunctionPtr</span>(<span class="hljs-string">&quot;NtOpenProcess&quot;</span>, &amp;NtOpenProcess);<br><br>  <span class="hljs-keyword">if</span> (client_info.process_id != process_id)<br>    <span class="hljs-keyword">return</span> STATUS_ACCESS_DENIED;<br><br>  OBJECT_ATTRIBUTES attributes = &#123;<span class="hljs-number">0</span>&#125;;<br>  attributes.Length = <span class="hljs-built_in">sizeof</span>(attributes);<br>  CLIENT_ID client_id = &#123;<span class="hljs-number">0</span>&#125;;<br>  client_id.UniqueProcess =<br>      <span class="hljs-built_in">reinterpret_cast</span>&lt;PVOID&gt;(<span class="hljs-built_in">static_cast</span>&lt;ULONG_PTR&gt;(client_info.process_id));<br>  HANDLE local_handle = <span class="hljs-literal">nullptr</span>;<br>  NTSTATUS status =<br>      <span class="hljs-built_in">NtOpenProcess</span>(&amp;local_handle, desired_access, &amp;attributes, &amp;client_id);<br>  <span class="hljs-keyword">if</span> (<span class="hljs-built_in">NT_SUCCESS</span>(status)) &#123;<br>    <span class="hljs-keyword">if</span> (!::<span class="hljs-built_in">DuplicateHandle</span>(::<span class="hljs-built_in">GetCurrentProcess</span>(), local_handle,<br>                           client_info.process, handle, <span class="hljs-number">0</span>, <span class="hljs-literal">false</span>,<br>                           DUPLICATE_CLOSE_SOURCE | DUPLICATE_SAME_ACCESS)) &#123;<br>      <span class="hljs-keyword">return</span> STATUS_ACCESS_DENIED;<br>    &#125;<br>  &#125;<br><br>  <span class="hljs-keyword">return</span> status;<br>&#125;<br><br><span class="hljs-function">NTSTATUS <span class="hljs-title">ProcessPolicy::OpenProcessTokenAction</span><span class="hljs-params">(<span class="hljs-type">const</span> ClientInfo&amp; client_info,</span></span><br><span class="hljs-params"><span class="hljs-function">                                               HANDLE process,</span></span><br><span class="hljs-params"><span class="hljs-function">                                               <span class="hljs-type">uint32_t</span> desired_access,</span></span><br><span class="hljs-params"><span class="hljs-function">                                               HANDLE* handle)</span> </span>&#123;<br>  *handle = <span class="hljs-literal">nullptr</span>;<br>  NtOpenProcessTokenFunction NtOpenProcessToken = <span class="hljs-literal">nullptr</span>;<br>  <span class="hljs-built_in">ResolveNTFunctionPtr</span>(<span class="hljs-string">&quot;NtOpenProcessToken&quot;</span>, &amp;NtOpenProcessToken);<br><br>  <span class="hljs-keyword">if</span> (CURRENT_PROCESS != process)<br>    <span class="hljs-keyword">return</span> STATUS_ACCESS_DENIED;<br><br>  HANDLE local_handle = <span class="hljs-literal">nullptr</span>;<br>  NTSTATUS status =<br>      <span class="hljs-built_in">NtOpenProcessToken</span>(client_info.process, desired_access, &amp;local_handle);<br>  <span class="hljs-keyword">if</span> (<span class="hljs-built_in">NT_SUCCESS</span>(status)) &#123;<br>    <span class="hljs-keyword">if</span> (!::<span class="hljs-built_in">DuplicateHandle</span>(::<span class="hljs-built_in">GetCurrentProcess</span>(), local_handle,<br>                           client_info.process, handle, <span class="hljs-number">0</span>, <span class="hljs-literal">false</span>,<br>                           DUPLICATE_CLOSE_SOURCE | DUPLICATE_SAME_ACCESS)) &#123;<br>      <span class="hljs-keyword">return</span> STATUS_ACCESS_DENIED;<br>    &#125;<br>  &#125;<br>  <span class="hljs-keyword">return</span> status;<br>&#125;<br><br><span class="hljs-function">NTSTATUS <span class="hljs-title">ProcessPolicy::OpenProcessTokenExAction</span><span class="hljs-params">(<span class="hljs-type">const</span> ClientInfo&amp; client_info,</span></span><br><span class="hljs-params"><span class="hljs-function">                                                 HANDLE process,</span></span><br><span class="hljs-params"><span class="hljs-function">                                                 <span class="hljs-type">uint32_t</span> desired_access,</span></span><br><span class="hljs-params"><span class="hljs-function">                                                 <span class="hljs-type">uint32_t</span> attributes,</span></span><br><span class="hljs-params"><span class="hljs-function">                                                 HANDLE* handle)</span> </span>&#123;<br>  *handle = <span class="hljs-literal">nullptr</span>;<br>  NtOpenProcessTokenExFunction NtOpenProcessTokenEx = <span class="hljs-literal">nullptr</span>;<br>  <span class="hljs-built_in">ResolveNTFunctionPtr</span>(<span class="hljs-string">&quot;NtOpenProcessTokenEx&quot;</span>, &amp;NtOpenProcessTokenEx);<br><br>  <span class="hljs-keyword">if</span> (CURRENT_PROCESS != process)<br>    <span class="hljs-keyword">return</span> STATUS_ACCESS_DENIED;<br><br>  HANDLE local_handle = <span class="hljs-literal">nullptr</span>;<br>  NTSTATUS status = <span class="hljs-built_in">NtOpenProcessTokenEx</span>(client_info.process, desired_access,<br>                                         attributes, &amp;local_handle);<br>  <span class="hljs-keyword">if</span> (<span class="hljs-built_in">NT_SUCCESS</span>(status)) &#123;<br>    <span class="hljs-keyword">if</span> (!::<span class="hljs-built_in">DuplicateHandle</span>(::<span class="hljs-built_in">GetCurrentProcess</span>(), local_handle,<br>                           client_info.process, handle, <span class="hljs-number">0</span>, <span class="hljs-literal">false</span>,<br>                           DUPLICATE_CLOSE_SOURCE | DUPLICATE_SAME_ACCESS)) &#123;<br>      <span class="hljs-keyword">return</span> STATUS_ACCESS_DENIED;<br>    &#125;<br>  &#125;<br>  <span class="hljs-keyword">return</span> status;<br>&#125;<br><br><span class="hljs-function">DWORD <span class="hljs-title">ProcessPolicy::CreateThreadAction</span><span class="hljs-params">(</span></span><br><span class="hljs-params"><span class="hljs-function">    <span class="hljs-type">const</span> ClientInfo&amp; client_info,</span></span><br><span class="hljs-params"><span class="hljs-function">    <span class="hljs-type">const</span> SIZE_T stack_size,</span></span><br><span class="hljs-params"><span class="hljs-function">    <span class="hljs-type">const</span> LPTHREAD_START_ROUTINE start_address,</span></span><br><span class="hljs-params"><span class="hljs-function">    <span class="hljs-type">const</span> LPVOID parameter,</span></span><br><span class="hljs-params"><span class="hljs-function">    <span class="hljs-type">const</span> DWORD creation_flags,</span></span><br><span class="hljs-params"><span class="hljs-function">    LPDWORD thread_id,</span></span><br><span class="hljs-params"><span class="hljs-function">    HANDLE* handle)</span> </span>&#123;<br>  *handle = <span class="hljs-literal">nullptr</span>;<br>  HANDLE local_handle =<br>      ::<span class="hljs-built_in">CreateRemoteThread</span>(client_info.process, <span class="hljs-literal">nullptr</span>, stack_size,<br>                           start_address, parameter, creation_flags, thread_id);<br>  <span class="hljs-keyword">if</span> (!local_handle) &#123;<br>    <span class="hljs-keyword">return</span> ::<span class="hljs-built_in">GetLastError</span>();<br>  &#125;<br>  <span class="hljs-keyword">if</span> (!::<span class="hljs-built_in">DuplicateHandle</span>(::<span class="hljs-built_in">GetCurrentProcess</span>(), local_handle,<br>                         client_info.process, handle, <span class="hljs-number">0</span>, <span class="hljs-literal">false</span>,<br>                         DUPLICATE_CLOSE_SOURCE | DUPLICATE_SAME_ACCESS)) &#123;<br>    <span class="hljs-keyword">return</span> ERROR_ACCESS_DENIED;<br>  &#125;<br>  <span class="hljs-keyword">return</span> ERROR_SUCCESS;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>IPC请求处理的后半段相关部分已经分析过了，剩下的就是回去看看target
+client端是如何发起请求的了。</p>
+<h2 id="interceptions">interceptions</h2>
+<p>target在调用以上9个WIN
+API或系统调用时，实际上调用到的是broker或target自己为target部署的拦截器函数。其中系统调用的拦截器由broker为target部署，而除了ntdll的其他dll（这里仅有kernel32.dll）中函数的导入表(Eat)拦截器是target自己部署的（broker会在<code>AddToPatchFunction</code>和<code>AddUnloadModule</code>后把它们传给target，sidestep和smart_sidestep虽有组件但目前尚未用到）。</p>
+<p>对于ThreadProcess子系统的拦截器来说，一共有3种：</p>
+<ol type="1">
+<li>broker部署的4个系统调用拦截器</li>
+<li>target自身部署的2个kernel32.dll的导入表拦截器</li>
+<li>无需IPC请求的3个系统调用拦截器</li>
+</ol>
+<p>其中前两种都在process_thread_interceptions.cc中定义，后一种则独立开来，在policy_target.cc中定义。policy_target.cc中不仅包含这3个interceptions，还包含一个我们上一篇分析过的函数<code>QueryBroker</code>。</p>
+<p>我们先看第一种，以<code>TargetNtOpenThread</code>为例：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-comment">// Hooks NtOpenThread and proxy the call to the broker if it&#x27;s trying to</span><br><span class="hljs-comment">// open a thread in the same process.</span><br><span class="hljs-function">NTSTATUS WINAPI <span class="hljs-title">TargetNtOpenThread</span><span class="hljs-params">(NtOpenThreadFunction orig_OpenThread,</span></span><br><span class="hljs-params"><span class="hljs-function">                                   PHANDLE thread,</span></span><br><span class="hljs-params"><span class="hljs-function">                                   ACCESS_MASK desired_access,</span></span><br><span class="hljs-params"><span class="hljs-function">                                   POBJECT_ATTRIBUTES object_attributes,</span></span><br><span class="hljs-params"><span class="hljs-function">                                   PCLIENT_ID client_id)</span> </span>&#123;<br>  <span class="hljs-comment">// x86下第一个参数是原始函数</span><br>  NTSTATUS status =<br>      <span class="hljs-built_in">orig_OpenThread</span>(thread, desired_access, object_attributes, client_id);<br>  <span class="hljs-keyword">if</span> (<span class="hljs-built_in">NT_SUCCESS</span>(status))<br>    <span class="hljs-keyword">return</span> status;<br><br>  <span class="hljs-keyword">do</span> &#123;<br>    <span class="hljs-keyword">if</span> (!SandboxFactory::<span class="hljs-built_in">GetTargetServices</span>()-&gt;<span class="hljs-built_in">GetState</span>()-&gt;<span class="hljs-built_in">InitCalled</span>())<br>      <span class="hljs-keyword">break</span>;<br>    <span class="hljs-keyword">if</span> (!client_id)<br>      <span class="hljs-keyword">break</span>;<br><br>    <span class="hljs-type">uint32_t</span> thread_id = <span class="hljs-number">0</span>;<br>    <span class="hljs-type">bool</span> should_break = <span class="hljs-literal">false</span>;<br>    __try &#123;<br>      <span class="hljs-comment">// We support only the calls for the current process</span><br>      <span class="hljs-keyword">if</span> (client_id-&gt;UniqueProcess)<br>        should_break = <span class="hljs-literal">true</span>;<br><br>      <span class="hljs-comment">// Object attributes should be nullptr or empty.</span><br>      <span class="hljs-keyword">if</span> (!should_break &amp;&amp; object_attributes) &#123;<br>        <span class="hljs-keyword">if</span> (object_attributes-&gt;Attributes || object_attributes-&gt;ObjectName ||<br>            object_attributes-&gt;RootDirectory ||<br>            object_attributes-&gt;SecurityDescriptor ||<br>            object_attributes-&gt;SecurityQualityOfService) &#123;<br>          should_break = <span class="hljs-literal">true</span>;<br>        &#125;<br>      &#125;<br><br>      thread_id = <span class="hljs-built_in">static_cast</span>&lt;<span class="hljs-type">uint32_t</span>&gt;(<br>          <span class="hljs-built_in">reinterpret_cast</span>&lt;ULONG_PTR&gt;(client_id-&gt;UniqueThread));<br>    &#125; __except (EXCEPTION_EXECUTE_HANDLER) &#123;<br>      <span class="hljs-keyword">break</span>;<br>    &#125;<br><br>    <span class="hljs-keyword">if</span> (should_break)<br>      <span class="hljs-keyword">break</span>;<br><br>    <span class="hljs-keyword">if</span> (!<span class="hljs-built_in">ValidParameter</span>(thread, <span class="hljs-built_in">sizeof</span>(HANDLE), WRITE))<br>      <span class="hljs-keyword">break</span>;<br><br>    <span class="hljs-type">void</span>* memory = <span class="hljs-built_in">GetGlobalIPCMemory</span>();<br>    <span class="hljs-keyword">if</span> (!memory)<br>      <span class="hljs-keyword">break</span>;<br><br>    <span class="hljs-comment">// 填充参数以后，发起具体的tag（service id）的IPC请求</span><br>    <span class="hljs-function">SharedMemIPCClient <span class="hljs-title">ipc</span><span class="hljs-params">(memory)</span></span>;<br>    CrossCallReturn answer = &#123;<span class="hljs-number">0</span>&#125;;<br>    ResultCode code = <span class="hljs-built_in">CrossCall</span>(ipc, IPC_NTOPENTHREAD_TAG, desired_access,<br>                                thread_id, &amp;answer);<br>    <span class="hljs-keyword">if</span> (SBOX_ALL_OK != code)<br>      <span class="hljs-keyword">break</span>;<br><br>    <span class="hljs-keyword">if</span> (!<span class="hljs-built_in">NT_SUCCESS</span>(answer.nt_status))<br>      <span class="hljs-comment">// The nt_status here is most likely STATUS_INVALID_CID because</span><br>      <span class="hljs-comment">// in the broker we set the process id in the CID (client ID) param</span><br>      <span class="hljs-comment">// to be the current process. If you try to open a thread from another</span><br>      <span class="hljs-comment">// process you will get this INVALID_CID error. On the other hand, if you</span><br>      <span class="hljs-comment">// try to open a thread in your own process, it should return success.</span><br>      <span class="hljs-comment">// We don&#x27;t want to return STATUS_INVALID_CID here, so we return the</span><br>      <span class="hljs-comment">// return of the original open thread status, which is most likely</span><br>      <span class="hljs-comment">// STATUS_ACCESS_DENIED.</span><br>      <span class="hljs-keyword">break</span>;<br><br>    __try &#123;<br>      <span class="hljs-comment">// Write the output parameters.</span><br>      *thread = answer.handle;<br>    &#125; __except (EXCEPTION_EXECUTE_HANDLER) &#123;<br>      <span class="hljs-keyword">break</span>;<br>    &#125;<br><br>    <span class="hljs-keyword">return</span> answer.nt_status;<br>  &#125; <span class="hljs-keyword">while</span> (<span class="hljs-literal">false</span>);<br><br>  <span class="hljs-keyword">return</span> status;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>第二类有两个，<code>TargetCreateProcess</code>和<code>TargetCreateThread</code>，前者有ASCII和Unicode两个版本，且它是有Rule可match的，后者一无所有：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-function">BOOL WINAPI <span class="hljs-title">TargetCreateProcessW</span><span class="hljs-params">(CreateProcessWFunction orig_CreateProcessW,</span></span><br><span class="hljs-params"><span class="hljs-function">                                 LPCWSTR application_name,</span></span><br><span class="hljs-params"><span class="hljs-function">                                 LPWSTR command_line,</span></span><br><span class="hljs-params"><span class="hljs-function">                                 LPSECURITY_ATTRIBUTES process_attributes,</span></span><br><span class="hljs-params"><span class="hljs-function">                                 LPSECURITY_ATTRIBUTES thread_attributes,</span></span><br><span class="hljs-params"><span class="hljs-function">                                 BOOL inherit_handles,</span></span><br><span class="hljs-params"><span class="hljs-function">                                 DWORD flags,</span></span><br><span class="hljs-params"><span class="hljs-function">                                 LPVOID environment,</span></span><br><span class="hljs-params"><span class="hljs-function">                                 LPCWSTR current_directory,</span></span><br><span class="hljs-params"><span class="hljs-function">                                 LPSTARTUPINFOW startup_info,</span></span><br><span class="hljs-params"><span class="hljs-function">                                 LPPROCESS_INFORMATION process_information)</span> </span>&#123;<br>  <span class="hljs-keyword">if</span> (SandboxFactory::<span class="hljs-built_in">GetTargetServices</span>()-&gt;<span class="hljs-built_in">GetState</span>()-&gt;<span class="hljs-built_in">IsCsrssConnected</span>() &amp;&amp;<br>      <span class="hljs-built_in">orig_CreateProcessW</span>(application_name, command_line, process_attributes,<br>                          thread_attributes, inherit_handles, flags,<br>                          environment, current_directory, startup_info,<br>                          process_information)) &#123;<br>    <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;<br>  &#125;<br><br>  <span class="hljs-comment">// We don&#x27;t trust that the IPC can work this early.</span><br>  <span class="hljs-keyword">if</span> (!SandboxFactory::<span class="hljs-built_in">GetTargetServices</span>()-&gt;<span class="hljs-built_in">GetState</span>()-&gt;<span class="hljs-built_in">InitCalled</span>())<br>    <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;<br><br>  <span class="hljs-comment">// Don&#x27;t call GetLastError before InitCalled() succeeds because kernel32 may</span><br>  <span class="hljs-comment">// not be mapped yet.</span><br>  DWORD original_error = ::<span class="hljs-built_in">GetLastError</span>();<br><br>  <span class="hljs-keyword">do</span> &#123;<br>    <span class="hljs-keyword">if</span> (!<span class="hljs-built_in">ValidParameter</span>(process_information, <span class="hljs-built_in">sizeof</span>(PROCESS_INFORMATION),<br>                        WRITE))<br>      <span class="hljs-keyword">break</span>;<br><br>    <span class="hljs-type">void</span>* memory = <span class="hljs-built_in">GetGlobalIPCMemory</span>();<br>    <span class="hljs-keyword">if</span> (!memory)<br>      <span class="hljs-keyword">break</span>;<br><br>    <span class="hljs-type">const</span> <span class="hljs-type">wchar_t</span>* cur_dir = <span class="hljs-literal">nullptr</span>;<br><br>    <span class="hljs-type">wchar_t</span> this_current_directory[MAX_PATH];<br>    DWORD result = ::<span class="hljs-built_in">GetCurrentDirectory</span>(MAX_PATH, this_current_directory);<br>    <span class="hljs-keyword">if</span> (<span class="hljs-number">0</span> != result &amp;&amp; result &lt; MAX_PATH)<br>      cur_dir = this_current_directory;<br><br>    <span class="hljs-comment">// target端也仅仅是发起了IPC请求，没有像filesystem那样在target端自己还来了一次QueryBroker</span><br>    <span class="hljs-function">SharedMemIPCClient <span class="hljs-title">ipc</span><span class="hljs-params">(memory)</span></span>;<br>    CrossCallReturn answer = &#123;<span class="hljs-number">0</span>&#125;;<br><br>    <span class="hljs-function">InOutCountedBuffer <span class="hljs-title">proc_info</span><span class="hljs-params">(process_information,</span></span><br><span class="hljs-params"><span class="hljs-function">                                 <span class="hljs-keyword">sizeof</span>(PROCESS_INFORMATION))</span></span>;<br><br>    ResultCode code =<br>        <span class="hljs-built_in">CrossCall</span>(ipc, IPC_CREATEPROCESSW_TAG, application_name, command_line,<br>                  cur_dir, current_directory, proc_info, &amp;answer);<br>    <span class="hljs-keyword">if</span> (SBOX_ALL_OK != code)<br>      <span class="hljs-keyword">break</span>;<br><br>    ::<span class="hljs-built_in">SetLastError</span>(answer.win32_result);<br>    <span class="hljs-keyword">if</span> (ERROR_SUCCESS != answer.win32_result)<br>      <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;<br><br>    <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;<br>  &#125; <span class="hljs-keyword">while</span> (<span class="hljs-literal">false</span>);<br><br>  ::<span class="hljs-built_in">SetLastError</span>(original_error);<br>  <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>中规中矩的<code>TargetCreateThread</code>：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-function">HANDLE WINAPI <span class="hljs-title">TargetCreateThread</span><span class="hljs-params">(CreateThreadFunction orig_CreateThread,</span></span><br><span class="hljs-params"><span class="hljs-function">                                 LPSECURITY_ATTRIBUTES thread_attributes,</span></span><br><span class="hljs-params"><span class="hljs-function">                                 SIZE_T stack_size,</span></span><br><span class="hljs-params"><span class="hljs-function">                                 LPTHREAD_START_ROUTINE start_address,</span></span><br><span class="hljs-params"><span class="hljs-function">                                 LPVOID parameter,</span></span><br><span class="hljs-params"><span class="hljs-function">                                 DWORD creation_flags,</span></span><br><span class="hljs-params"><span class="hljs-function">                                 LPDWORD thread_id)</span> </span>&#123;<br>  HANDLE hThread = <span class="hljs-literal">nullptr</span>;<br><br>  TargetServices* target_services = SandboxFactory::<span class="hljs-built_in">GetTargetServices</span>();<br>  <span class="hljs-keyword">if</span> (!target_services || target_services-&gt;<span class="hljs-built_in">GetState</span>()-&gt;<span class="hljs-built_in">IsCsrssConnected</span>()) &#123;<br>    hThread = <span class="hljs-built_in">orig_CreateThread</span>(thread_attributes, stack_size, start_address,<br>                                parameter, creation_flags, thread_id);<br>    <span class="hljs-keyword">if</span> (hThread)<br>      <span class="hljs-keyword">return</span> hThread;<br>  &#125;<br><br>  DWORD original_error = ::<span class="hljs-built_in">GetLastError</span>();<br>  <span class="hljs-keyword">do</span> &#123;<br>    <span class="hljs-keyword">if</span> (!target_services)<br>      <span class="hljs-keyword">break</span>;<br><br>    <span class="hljs-comment">// We don&#x27;t trust that the IPC can work this early.</span><br>    <span class="hljs-keyword">if</span> (!target_services-&gt;<span class="hljs-built_in">GetState</span>()-&gt;<span class="hljs-built_in">InitCalled</span>())<br>      <span class="hljs-keyword">break</span>;<br><br>    __try &#123;<br>      <span class="hljs-keyword">if</span> (thread_id &amp;&amp; !<span class="hljs-built_in">ValidParameter</span>(thread_id, <span class="hljs-built_in">sizeof</span>(*thread_id), WRITE))<br>        <span class="hljs-keyword">break</span>;<br><br>      <span class="hljs-keyword">if</span> (!start_address)<br>        <span class="hljs-keyword">break</span>;<br>      <span class="hljs-comment">// We don&#x27;t support thread_attributes not being null.</span><br>      <span class="hljs-keyword">if</span> (thread_attributes)<br>        <span class="hljs-keyword">break</span>;<br>    &#125; __except (EXCEPTION_EXECUTE_HANDLER) &#123;<br>      <span class="hljs-keyword">break</span>;<br>    &#125;<br><br>    <span class="hljs-type">void</span>* memory = <span class="hljs-built_in">GetGlobalIPCMemory</span>();<br>    <span class="hljs-keyword">if</span> (!memory)<br>      <span class="hljs-keyword">break</span>;<br><br>    <span class="hljs-function">SharedMemIPCClient <span class="hljs-title">ipc</span><span class="hljs-params">(memory)</span></span>;<br>    CrossCallReturn answer = &#123;<span class="hljs-number">0</span>&#125;;<br><br>    <span class="hljs-comment">// <span class="hljs-doctag">NOTE:</span> we don&#x27;t pass the thread_attributes through. This matches the</span><br>    <span class="hljs-comment">// approach in CreateProcess and in CreateThreadInternal().</span><br>    ResultCode code = <span class="hljs-built_in">CrossCall</span>(ipc, IPC_CREATETHREAD_TAG,<br>                                <span class="hljs-built_in">reinterpret_cast</span>&lt;LPVOID&gt;(stack_size),<br>                                <span class="hljs-built_in">reinterpret_cast</span>&lt;LPVOID&gt;(start_address),<br>                                parameter, creation_flags, &amp;answer);<br>    <span class="hljs-keyword">if</span> (SBOX_ALL_OK != code)<br>      <span class="hljs-keyword">break</span>;<br><br>    ::<span class="hljs-built_in">SetLastError</span>(answer.win32_result);<br>    <span class="hljs-keyword">if</span> (ERROR_SUCCESS != answer.win32_result)<br>      <span class="hljs-keyword">return</span> <span class="hljs-literal">nullptr</span>;<br><br>    __try &#123;<br>      <span class="hljs-keyword">if</span> (thread_id)<br>        *thread_id = ::<span class="hljs-built_in">GetThreadId</span>(answer.handle);<br>      <span class="hljs-keyword">return</span> answer.handle;<br>    &#125; __except (EXCEPTION_EXECUTE_HANDLER) &#123;<br>      <span class="hljs-keyword">break</span>;<br>    &#125;<br>  &#125; <span class="hljs-keyword">while</span> (<span class="hljs-literal">false</span>);<br><br>  ::<span class="hljs-built_in">SetLastError</span>(original_error);<br>  <span class="hljs-keyword">return</span> <span class="hljs-literal">nullptr</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>第三种就有点意思了，我们都展开看看：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-comment">// Hooks NtSetInformationThread to block RevertToSelf from being</span><br><span class="hljs-comment">// called before the actual call to LowerToken.</span><br><span class="hljs-comment">// 看起来之所以要hook这个函数，是为了防止调用LowerToken前，进行RevertToSelf</span><br><span class="hljs-function">NTSTATUS WINAPI <span class="hljs-title">TargetNtSetInformationThread</span><span class="hljs-params">(</span></span><br><span class="hljs-params"><span class="hljs-function">    NtSetInformationThreadFunction orig_SetInformationThread,</span></span><br><span class="hljs-params"><span class="hljs-function">    HANDLE thread,</span></span><br><span class="hljs-params"><span class="hljs-function">    NT_THREAD_INFORMATION_CLASS thread_info_class,</span></span><br><span class="hljs-params"><span class="hljs-function">    PVOID thread_information,</span></span><br><span class="hljs-params"><span class="hljs-function">    ULONG thread_information_bytes)</span> </span>&#123;<br>  <span class="hljs-keyword">do</span> &#123;<br>    <span class="hljs-comment">// 判断LowerToken是否被掉用过，如果已经被掉用过就跳出去</span><br>    <span class="hljs-keyword">if</span> (SandboxFactory::<span class="hljs-built_in">GetTargetServices</span>()-&gt;<span class="hljs-built_in">GetState</span>()-&gt;<span class="hljs-built_in">RevertedToSelf</span>())<br>      <span class="hljs-keyword">break</span>;<br>    <span class="hljs-comment">// 传入的thread_info_class是否是Impersonate token，如果是就跳出去</span><br>    <span class="hljs-keyword">if</span> (ThreadImpersonationToken != thread_info_class)<br>      <span class="hljs-keyword">break</span>;<br>    <span class="hljs-comment">// This is a revert to self.</span><br>    <span class="hljs-comment">// 如果上述两种情况不满足，说明是个RevertToSelf，抱歉，不放行。</span><br>    <span class="hljs-keyword">return</span> STATUS_SUCCESS;<br>  &#125; <span class="hljs-keyword">while</span> (<span class="hljs-literal">false</span>);<br><br>  <span class="hljs-comment">// 放行</span><br>  <span class="hljs-keyword">return</span> <span class="hljs-built_in">orig_SetInformationThread</span>(<br>      thread, thread_info_class, thread_information, thread_information_bytes);<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>另外两个是和thread token相关：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-comment">// Hooks NtOpenThreadToken to force the open_as_self parameter to be set to</span><br><span class="hljs-comment">// false if we are still running with the impersonation token. open_as_self set</span><br><span class="hljs-comment">// to true means that the token will be open using the process token instead of</span><br><span class="hljs-comment">// the impersonation token. This is bad because the process token does not have</span><br><span class="hljs-comment">// access to open the thread token.</span><br><span class="hljs-function">NTSTATUS WINAPI</span><br><span class="hljs-function"><span class="hljs-title">TargetNtOpenThreadToken</span><span class="hljs-params">(NtOpenThreadTokenFunction orig_OpenThreadToken,</span></span><br><span class="hljs-params"><span class="hljs-function">                        HANDLE thread,</span></span><br><span class="hljs-params"><span class="hljs-function">                        ACCESS_MASK desired_access,</span></span><br><span class="hljs-params"><span class="hljs-function">                        BOOLEAN open_as_self,</span></span><br><span class="hljs-params"><span class="hljs-function">                        PHANDLE token)</span> </span>&#123;<br>  <span class="hljs-comment">// 这个拦截函数纯粹是为了在LowerToken调用前，防止以open_as_self=true的形式获取</span><br>  <span class="hljs-comment">// 线程token，此时target仍以impersonate这个高权限token在运行，所以不能让操作得逞</span><br>  <span class="hljs-comment">// 此时获取thread token必须得是lockdown token而不能是当前的impersonate token</span><br>  <span class="hljs-keyword">if</span> (!SandboxFactory::<span class="hljs-built_in">GetTargetServices</span>()-&gt;<span class="hljs-built_in">GetState</span>()-&gt;<span class="hljs-built_in">RevertedToSelf</span>())<br>    open_as_self = <span class="hljs-literal">false</span>;<br><br>  <span class="hljs-keyword">return</span> <span class="hljs-built_in">orig_OpenThreadToken</span>(thread, desired_access, open_as_self, token);<br>&#125;<br><br><span class="hljs-comment">// See comment for TargetNtOpenThreadToken</span><br><span class="hljs-comment">// 这个同理，双胞胎同等对待</span><br><span class="hljs-function">NTSTATUS WINAPI</span><br><span class="hljs-function"><span class="hljs-title">TargetNtOpenThreadTokenEx</span><span class="hljs-params">(NtOpenThreadTokenExFunction orig_OpenThreadTokenEx,</span></span><br><span class="hljs-params"><span class="hljs-function">                          HANDLE thread,</span></span><br><span class="hljs-params"><span class="hljs-function">                          ACCESS_MASK desired_access,</span></span><br><span class="hljs-params"><span class="hljs-function">                          BOOLEAN open_as_self,</span></span><br><span class="hljs-params"><span class="hljs-function">                          ULONG handle_attributes,</span></span><br><span class="hljs-params"><span class="hljs-function">                          PHANDLE token)</span> </span>&#123;<br>  <span class="hljs-keyword">if</span> (!SandboxFactory::<span class="hljs-built_in">GetTargetServices</span>()-&gt;<span class="hljs-built_in">GetState</span>()-&gt;<span class="hljs-built_in">RevertedToSelf</span>())<br>    open_as_self = <span class="hljs-literal">false</span>;<br><br>  <span class="hljs-keyword">return</span> <span class="hljs-built_in">orig_OpenThreadTokenEx</span>(thread, desired_access, open_as_self,<br>                                handle_attributes, token);<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>到此，我们就缕清了ThreadProcess子系统的相关内容，尽管和filesystem子系统有一定的不同，但整体的架构是一致的，只是具体的应用因场景而有所差异。</p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90/" class="category-chain-item">源码剖析</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/chromium/" class="print-no-link">#chromium</a>
+      
+        <a href="/tags/chromium-sandbox/" class="print-no-link">#chromium-sandbox</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>Chromium-sandbox-ThreadProcess-analysis</div>
+      <div>https://r00tk1ts.github.io/2018/06/03/chromium-sandbox-ThreadProcess-analysis/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>r00tk1t</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2018年6月3日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2018/08/13/Linux%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86-%E8%BF%9B%E7%A8%8B%E5%9C%B0%E5%9D%80%E7%A9%BA%E9%97%B4/" title="Linux内核学习——内存管理之进程地址空间">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">Linux内核学习——内存管理之进程地址空间</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2018/06/03/chromium-sandbox-Filesystem-analysis/" title="Chromium-sandbox-Filesystem-analysis">
+                        <span class="hidden-mobile">Chromium-sandbox-Filesystem-analysis</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+  
+<script src="/js/diy/yinghua.js"></script>
+<script src="/js/diy/love.js"></script>
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

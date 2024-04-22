@@ -1,0 +1,753 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/favicon.png">
+  <link rel="icon" href="/img/favicon.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="r00tk1t">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="本篇是sandbox源码剖析的第九篇，主要分析了windows平台下，Chromium sandbox中broker制造并传输target需要关闭的句柄的实现机制。阅读本篇前，请先阅读前四篇。 想要流程的阅读本系列你需要以下几个条件： 1. 较高水平的C++编码能力（至少通读C++ Primer 5th，刷过课后题，有一定编码量）。 2. 熟悉Windows API编程，尤其是安全相关的内容。 3">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Chromium-sandbox-HandleCloser-analysis">
+<meta property="og:url" content="https://r00tk1ts.github.io/2018/05/21/chromium-sandbox-HandleCloser-analysis/index.html">
+<meta property="og:site_name" content="玉涵的技能书">
+<meta property="og:description" content="本篇是sandbox源码剖析的第九篇，主要分析了windows平台下，Chromium sandbox中broker制造并传输target需要关闭的句柄的实现机制。阅读本篇前，请先阅读前四篇。 想要流程的阅读本系列你需要以下几个条件： 1. 较高水平的C++编码能力（至少通读C++ Primer 5th，刷过课后题，有一定编码量）。 2. 熟悉Windows API编程，尤其是安全相关的内容。 3">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2018-05-21T12:13:11.000Z">
+<meta property="article:modified_time" content="2024-04-22T03:34:00.165Z">
+<meta property="article:author" content="r00tk1t">
+<meta property="article:tag" content="chromium">
+<meta property="article:tag" content="chromium-sandbox">
+<meta name="twitter:card" content="summary_large_image">
+  
+  
+  
+  <title>Chromium-sandbox-HandleCloser-analysis - 玉涵的技能书</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"r00tk1ts.github.io","root":"/","version":"1.9.5","typing":{"enable":true,"typeSpeed":80,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<!-- hexo injector head_end start --><link rel="stylesheet" href="https://cdn.staticfile.org/lxgw-wenkai-screen-webfont/1.7.0/style.min.css" /><!-- hexo injector head_end end --><meta name="generator" content="Hexo 6.1.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>玉涵的技能书</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/doc/">
+                <i class="iconfont icon-books"></i>
+                <span>藏经阁</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="Chromium-sandbox-HandleCloser-analysis"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2018-05-21 20:13" pubdate>
+          2018年5月21日 晚上
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          22k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          186 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">Chromium-sandbox-HandleCloser-analysis</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <p>本篇是sandbox源码剖析的第九篇，主要分析了windows平台下，Chromium
+sandbox中broker制造并传输target需要关闭的句柄的实现机制。阅读本篇前，请先阅读前四篇。</p>
+<p>想要流程的阅读本系列你需要以下几个条件： 1.
+较高水平的C++编码能力（至少通读C++ Primer
+5th，刷过课后题，有一定编码量）。 2. 熟悉Windows
+API编程，尤其是安全相关的内容。 3.
+对二进制安全有一定了解，熟悉各类型安全漏洞成因、漏洞缓解措施及bypass手法。</p>
+<span id="more"></span>
+<h1
+id="chromium-sandbox-handlecloser-analysis">chromium-sandbox-HandleCloser-analysis</h1>
+<p>在分析了<code>PolicyBase</code>的三大组件后，转去分析了一波不太相关的<code>SharedMemIPC</code>机制。实际上<code>PolicyBase</code>内部还有很多东西我们没有拆解，比如AppContainer、<code>HandleClose</code>、Mitigations等等。今天来分析一个比较简单的<code>HandleCloser</code>类。该类模块维护了一个句柄类型到名称的映射，用于在target进程中关闭句柄。而联系此前在<code>PolicyBase</code>中所观察到的对<code>handle_closer_</code>成员的使用以及句柄列表的传输，这个模块的功用也就呼之欲出了。</p>
+<h2 id="policybase-related"><code>PolicyBase</code> related</h2>
+<p>从<code>PolicyBase</code>的操纵开始分析，在<code>BrokerServicesBase::SpawnTarget</code>中创建<code>TargetProcess</code>并将target挂到<code>PolicyBase</code>对象时，调用了<code>PolicyBase::AddTarget</code>，而它的内部进行了这样几个操作：</p>
+<ol type="1">
+<li>low-level-policy的收工（这个low-level-policy是个狭义的policy，和<code>PolicyBase</code>的这个policy不是一个层面的意思，我们之后会说到，windows子系统行为鉴权的三大构成：policy+dispatcher+interception）</li>
+<li>mitigation对target进程的应用（当前还是挂起态）</li>
+<li>部署Interceptions</li>
+<li>部署<code>HandleCloser</code></li>
+<li>创建<code>SharedMemIPC</code>的Server端，实际上创建的是IPC
+server和<code>Dispatcher</code>，用于处理target进程的IPC请求。</li>
+<li>对target进程的全局变量<code>g_shared_delayed_integrity_level</code>和<code>g_shared_delayed_mitigations</code>赋值</li>
+</ol>
+<p>这里关于第五点和第六点，我们都已经清楚了它的实现机理与意义，前三个我们暂时不关心，看看第四点对<code>HandleCloser</code>的部署：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-function"><span class="hljs-type">bool</span> <span class="hljs-title">PolicyBase::SetupHandleCloser</span><span class="hljs-params">(TargetProcess* target)</span> </span>&#123;<br>  <span class="hljs-comment">// 调用了handle_closer_的InitializeTargetHandles方法</span><br>  <span class="hljs-comment">// handle_closer_是PolicyBase内部的HandleCloser对象</span><br>  <span class="hljs-keyword">return</span> handle_closer_.<span class="hljs-built_in">InitializeTargetHandles</span>(target);<br>&#125;<br></code></pre></td></tr></table></figure>
+<h2 id="handlecloser"><code>HandleCloser</code></h2>
+<p>在展开<code>HandleCloser</code>类头定义前，先看看该类成员类型<code>HandleMap</code>的定义。<code>HandleMap</code>是这样的一种类型：<code>typedef std::map&lt;const base::string16, std::set&lt;base::string16&gt;&gt; HandleMap;</code></p>
+<p>从<code>const string16</code>(也就是<code>const std::wstring</code>)到<code>set&lt;base::string16&gt;</code>的一个map。</p>
+<p>除了<code>HandleMap</code>以外，先不关心其他的辅助结构，看看类头：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-comment">// Adds handles to close after lockdown.</span><br><span class="hljs-comment">// 在target进程被LowerToken()降权时，关闭加入的所有句柄</span><br><span class="hljs-keyword">class</span> <span class="hljs-title class_">HandleCloser</span> &#123;<br> <span class="hljs-keyword">public</span>:<br>  <span class="hljs-built_in">HandleCloser</span>();<br>  ~<span class="hljs-built_in">HandleCloser</span>();<br><br>  <span class="hljs-comment">// Adds a handle that will be closed in the target process after lockdown.</span><br>  <span class="hljs-comment">// A nullptr value for handle_name indicates all handles of the specified</span><br>  <span class="hljs-comment">// type. An empty string for handle_name indicates the handle is unnamed.</span><br>  <span class="hljs-comment">// 可以看到这个接口需要被提供句柄类型和名称</span><br>  <span class="hljs-comment">// 如果name是nullptr，那就表示所有的该类型句柄都要加入</span><br>  <span class="hljs-comment">// 如果name是空串，就表示该句柄是匿名的</span><br>  <span class="hljs-function">ResultCode <span class="hljs-title">AddHandle</span><span class="hljs-params">(<span class="hljs-type">const</span> base::char16* handle_type,</span></span><br><span class="hljs-params"><span class="hljs-function">                       <span class="hljs-type">const</span> base::char16* handle_name)</span></span>;<br><br>  <span class="hljs-comment">// Serializes and copies the closer table into the target process.</span><br>  <span class="hljs-comment">// 看起来是序列化待关闭句柄表，copy给target进程</span><br>  <span class="hljs-comment">// 这个函数就是在PolicyBase::SetupHandleCloser中调用的</span><br>  <span class="hljs-function"><span class="hljs-type">bool</span> <span class="hljs-title">InitializeTargetHandles</span><span class="hljs-params">(TargetProcess* target)</span></span>;<br><br> <span class="hljs-keyword">private</span>:<br>  <span class="hljs-comment">// Calculates the memory needed to copy the serialized handles list (rounded</span><br>  <span class="hljs-comment">// to the nearest machine-word size).</span><br>  <span class="hljs-comment">// copy序列化句柄列表时，用于计算buffer尺寸</span><br>  <span class="hljs-function"><span class="hljs-type">size_t</span> <span class="hljs-title">GetBufferSize</span><span class="hljs-params">()</span></span>;<br><br>  <span class="hljs-comment">// Serializes the handle list into the target process.</span><br>  <span class="hljs-comment">// 序列化句柄列表到target进程</span><br>  <span class="hljs-function"><span class="hljs-type">bool</span> <span class="hljs-title">SetupHandleList</span><span class="hljs-params">(<span class="hljs-type">void</span>* buffer, <span class="hljs-type">size_t</span> buffer_bytes)</span></span>;<br><br>  HandleMap handles_to_close_;	<span class="hljs-comment">//这个HandleMap就是维护句柄类型到名称的成员</span><br><br>  <span class="hljs-built_in">DISALLOW_COPY_AND_ASSIGN</span>(HandleCloser);<br>&#125;;<br></code></pre></td></tr></table></figure>
+<p>此外，有个全局的<code>g_handle_closer_info</code>指针指向<code>HandleCloserInfo</code>结构。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-comment">// Global parameters and a pointer to the list of entries.</span><br><span class="hljs-comment">// 看起来是个全局量，内部维护了一个到handle列表的指针</span><br><span class="hljs-keyword">struct</span> <span class="hljs-title class_">HandleCloserInfo</span> &#123;<br>  <span class="hljs-type">size_t</span> record_bytes;  <span class="hljs-comment">// Rounded to sizeof(size_t) bytes.</span><br>  <span class="hljs-type">size_t</span> num_handle_types;	<span class="hljs-comment">//有多少种类型</span><br>  <span class="hljs-keyword">struct</span> <span class="hljs-title class_">HandleListEntry</span> handle_entries[<span class="hljs-number">1</span>];	<span class="hljs-comment">//应该是flexible</span><br>&#125;;<br><br><span class="hljs-comment">// Type and set of corresponding handle names to close.</span><br><span class="hljs-comment">// 某种类型句柄的所有handle</span><br><span class="hljs-keyword">struct</span> <span class="hljs-title class_">HandleListEntry</span> &#123;<br>  <span class="hljs-type">size_t</span> record_bytes;     <span class="hljs-comment">// Rounded to sizeof(size_t) bytes.</span><br>  <span class="hljs-type">size_t</span> offset_to_names;  <span class="hljs-comment">// Nul terminated strings of name_count names.</span><br>  <span class="hljs-type">size_t</span> name_count;	<span class="hljs-comment">// 有多少个name</span><br>  base::char16 handle_type[<span class="hljs-number">1</span>];	<span class="hljs-comment">// 这个应该不是flexible，表示type类型</span><br>&#125;;<br></code></pre></td></tr></table></figure>
+<p>这里的设计很像<code>SharedMemIPC</code>中buffer的设计，它也分为三级结构：</p>
+<ol type="1">
+<li><code>HandleCloserInfo</code>的<code>num_handle_types</code>表明了有多少个<code>HandleListEntry</code>结构</li>
+<li>每个<code>HandleListEntry</code>包含了一个<code>offset_to_names</code>成员，指向了存储该type的句柄所有名称的位置</li>
+<li>指向的真实数据就是一堆句柄的名称了，它们应该是紧凑的附加在<code>HandleListEntry</code>数组的正后方的。</li>
+</ol>
+<p>当然，这里仅仅是大胆的猜测，是否真的如此，还得继续看代码逻辑处理。</p>
+<p>###<code>InitializeTargetHandles</code></p>
+<p>由<code>PolicyBase::SetupHandleCloser</code>跟入：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-function"><span class="hljs-type">bool</span> <span class="hljs-title">HandleCloser::InitializeTargetHandles</span><span class="hljs-params">(TargetProcess* target)</span> </span>&#123;<br>  <span class="hljs-comment">// Do nothing on an empty list (global pointer already initialized to</span><br>  <span class="hljs-comment">// nullptr).</span><br>  <span class="hljs-comment">// 如果没什么需要target关闭的，返回就好了</span><br>  <span class="hljs-keyword">if</span> (handles_to_close_.<span class="hljs-built_in">empty</span>())<br>    <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;<br><br>  <span class="hljs-type">size_t</span> bytes_needed = <span class="hljs-built_in">GetBufferSize</span>();<span class="hljs-comment">//先不管他怎么算出来的</span><br>  <span class="hljs-comment">// new出一片空间，划分成size_t大小的块，local_buffer指向首块</span><br>  <span class="hljs-function">std::unique_ptr&lt;<span class="hljs-type">size_t</span>[]&gt; <span class="hljs-title">local_buffer</span><span class="hljs-params">(</span></span><br><span class="hljs-params"><span class="hljs-function">      <span class="hljs-keyword">new</span> <span class="hljs-type">size_t</span>[bytes_needed / <span class="hljs-keyword">sizeof</span>(<span class="hljs-type">size_t</span>)])</span></span>;<br><br>  <span class="hljs-comment">// 切成size_t数组的缓冲区丢给SetupHandleList，内部应该就是对buffer结构的部署</span><br>  <span class="hljs-keyword">if</span> (!<span class="hljs-built_in">SetupHandleList</span>(local_buffer.<span class="hljs-built_in">get</span>(), bytes_needed))<br>    <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;<br><br>  <span class="hljs-comment">// 拿到target进程的进程句柄</span><br>  HANDLE child = target-&gt;<span class="hljs-built_in">Process</span>();<br><br>  <span class="hljs-comment">// Windows跨进程写入数据的常见套路VirtualAllocEx-&gt;WriteProcessMemory</span><br>  <span class="hljs-comment">// 然而第二个参数使用的是nullptr，这就表示broker在这里并不是把数据写入到某个固定的内存空间</span><br>  <span class="hljs-comment">// Allocate memory in the target process without specifying the address</span><br>  <span class="hljs-type">void</span>* remote_data = ::<span class="hljs-built_in">VirtualAllocEx</span>(child, <span class="hljs-literal">nullptr</span>, bytes_needed, MEM_COMMIT,<br>                                       PAGE_READWRITE);<br>  <span class="hljs-keyword">if</span> (!remote_data)<br>    <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;<br><br>  <span class="hljs-comment">// Copy the handle buffer over.</span><br>  SIZE_T bytes_written;<br>  <span class="hljs-type">bool</span> result = ::<span class="hljs-built_in">WriteProcessMemory</span>(child, remote_data, local_buffer.<span class="hljs-built_in">get</span>(),<br>                                     bytes_needed, &amp;bytes_written);<br>  <span class="hljs-keyword">if</span> (!result || bytes_written != bytes_needed) &#123;<br>    ::<span class="hljs-built_in">VirtualFreeEx</span>(child, remote_data, <span class="hljs-number">0</span>, MEM_RELEASE);<br>    <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;<br>  &#125;<br>	<br>  <span class="hljs-comment">// 为了让target自己能够找到这段内存空间，broker把一个指向这段内存起始的remote_data也传了过去</span><br>  <span class="hljs-comment">// 依然是通过老方法TransferVariable，对target自己的全局变量g_handles_to_close赋值</span><br>  <span class="hljs-comment">// 这里也可以看到，内存空间已经布局成了HandleCloserInfo，暂时和我们的猜想一致</span><br>  g_handles_to_close = <span class="hljs-built_in">reinterpret_cast</span>&lt;HandleCloserInfo*&gt;(remote_data);<br>  ResultCode rc = target-&gt;<span class="hljs-built_in">TransferVariable</span>(<br>      <span class="hljs-string">&quot;g_handles_to_close&quot;</span>, &amp;g_handles_to_close, <span class="hljs-built_in">sizeof</span>(g_handles_to_close));<br><br>  <span class="hljs-keyword">return</span> (SBOX_ALL_OK == rc);<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>展开<code>GetBufferSize</code>看看：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-function"><span class="hljs-type">size_t</span> <span class="hljs-title">HandleCloser::GetBufferSize</span><span class="hljs-params">()</span> </span>&#123;<br>  <span class="hljs-comment">// 先算出HandleCloserInfo第一层数据的尺寸</span><br>  <span class="hljs-type">size_t</span> bytes_total = <span class="hljs-built_in">offsetof</span>(HandleCloserInfo, handle_entries);<br><br>  <span class="hljs-comment">// 迭代每种type的handles，</span><br>  <span class="hljs-keyword">for</span> (HandleMap::iterator i = handles_to_close_.<span class="hljs-built_in">begin</span>();<br>       i != handles_to_close_.<span class="hljs-built_in">end</span>(); ++i) &#123;<br>    <span class="hljs-comment">// bytes_entry表示HandleListEntry二层结构的尺寸加上handle_type本身这个字符串的尺寸</span><br>    <span class="hljs-type">size_t</span> bytes_entry = <span class="hljs-built_in">offsetof</span>(HandleListEntry, handle_type) +<br>                         (i-&gt;first.<span class="hljs-built_in">size</span>() + <span class="hljs-number">1</span>) * <span class="hljs-built_in">sizeof</span>(base::char16);<br>    <span class="hljs-comment">// 迭代该类型handles的set，里面存的都是名称</span><br>    <span class="hljs-keyword">for</span> (HandleMap::mapped_type::iterator j = i-&gt;second.<span class="hljs-built_in">begin</span>();<br>         j != i-&gt;second.<span class="hljs-built_in">end</span>(); ++j) &#123;<br>      <span class="hljs-comment">// 这里又对bytes_entry累加了所有名称的长度</span><br>      bytes_entry += ((*j).<span class="hljs-built_in">size</span>() + <span class="hljs-number">1</span>) * <span class="hljs-built_in">sizeof</span>(base::char16);<br>    &#125;<br><br>    <span class="hljs-comment">// Round up to the nearest multiple of word size.</span><br>    <span class="hljs-comment">// 因为字符串的单位不规则，为了解构时方便索引下一个HandleListEntry，做了个对齐操作</span><br>    bytes_entry = <span class="hljs-built_in">RoundUpToWordSize</span>(bytes_entry);<br>    <span class="hljs-comment">// 加到总的尺寸上</span><br>    bytes_total += bytes_entry;<br>  &#125;<br><br>  <span class="hljs-keyword">return</span> bytes_total;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>好吧，看到这个<code>GetBuffer</code>感觉和此前的猜想有些出入，至少<code>HandleListEntry</code>的<code>handle_type</code>是flexible的，但它的长度是不定的，而紧随在一个<code>HandleListEntry</code>之后的并不是下一个<code>HandleListEntry</code>，应该是该种类型handles的名称字符串集合，<code>HandleListEntry</code>的<code>offset_to_names</code>指向了第一个name起始。</p>
+<p>为了确认这一布局，我们在<code>SetupHandleList</code>中一探究竟：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-function"><span class="hljs-type">bool</span> <span class="hljs-title">HandleCloser::SetupHandleList</span><span class="hljs-params">(<span class="hljs-type">void</span>* buffer, <span class="hljs-type">size_t</span> buffer_bytes)</span> </span>&#123;<br>  <span class="hljs-comment">// buffer_bytes就是GetBuffer算出来的尺寸，buffer就是new出来的空间</span><br>  ::<span class="hljs-built_in">ZeroMemory</span>(buffer, buffer_bytes);<br>  HandleCloserInfo* handle_info = <span class="hljs-built_in">reinterpret_cast</span>&lt;HandleCloserInfo*&gt;(buffer);<br>  <span class="hljs-comment">// 总的字节数，有多少种句柄</span><br>  handle_info-&gt;record_bytes = buffer_bytes;<br>  handle_info-&gt;num_handle_types = handles_to_close_.<span class="hljs-built_in">size</span>();<br><br>  <span class="hljs-comment">// output指向第一个HandleListEntry起始位置</span><br>  <span class="hljs-comment">// end指向整个buffer的末尾</span><br>  base::char16* output =<br>      <span class="hljs-built_in">reinterpret_cast</span>&lt;base::char16*&gt;(&amp;handle_info-&gt;handle_entries[<span class="hljs-number">0</span>]);<br>  base::char16* end = <span class="hljs-built_in">reinterpret_cast</span>&lt;base::char16*&gt;(<br>      <span class="hljs-built_in">reinterpret_cast</span>&lt;<span class="hljs-type">char</span>*&gt;(buffer) + buffer_bytes);<br>  <span class="hljs-comment">// 这里面包含了各种不定长的HandleListEntry对nameset的嵌套</span><br>  <span class="hljs-comment">// 还是迭代每种类型</span><br>  <span class="hljs-keyword">for</span> (HandleMap::iterator i = handles_to_close_.<span class="hljs-built_in">begin</span>();<br>       i != handles_to_close_.<span class="hljs-built_in">end</span>(); ++i) &#123;<br>    <span class="hljs-comment">// 这说明算出来的buffer有问题</span><br>    <span class="hljs-keyword">if</span> (output &gt;= end)<br>      <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;<br>    <span class="hljs-comment">// 找到本次迭代的HandleListEntry</span><br>    <span class="hljs-comment">// 尽管HandleListEntry在HandleClientInfo中定义成了flexible array，但因为不定长的原因</span><br>    <span class="hljs-comment">// 不能直接使用HandleListEntry[index]来索引</span><br>    HandleListEntry* list_entry = <span class="hljs-built_in">reinterpret_cast</span>&lt;HandleListEntry*&gt;(output);<br>    <span class="hljs-comment">//调整output到handle_type，起始处是个type name</span><br>    output = &amp;list_entry-&gt;handle_type[<span class="hljs-number">0</span>];<br><br>    <span class="hljs-comment">// Copy the typename and set the offset and count.</span><br>    i-&gt;first.<span class="hljs-built_in">copy</span>(output, i-&gt;first.<span class="hljs-built_in">size</span>());<br>    *(output += i-&gt;first.<span class="hljs-built_in">size</span>()) = <span class="hljs-string">L&#x27;\0&#x27;</span>;<br>    output++;<br>    <span class="hljs-comment">// skip typename后，就是一串name了，偏移也就可以算出来了</span><br>    list_entry-&gt;offset_to_names =<br>        <span class="hljs-built_in">reinterpret_cast</span>&lt;<span class="hljs-type">char</span>*&gt;(output) - <span class="hljs-built_in">reinterpret_cast</span>&lt;<span class="hljs-type">char</span>*&gt;(list_entry);<br>    list_entry-&gt;name_count = i-&gt;second.<span class="hljs-built_in">size</span>();<br><br>    <span class="hljs-comment">// Copy the handle names.</span><br>    <span class="hljs-comment">// 拷贝所有的handle name到buffer中，output相应做位置调整</span><br>    <span class="hljs-keyword">for</span> (HandleMap::mapped_type::iterator j = i-&gt;second.<span class="hljs-built_in">begin</span>();<br>         j != i-&gt;second.<span class="hljs-built_in">end</span>(); ++j) &#123;<br>      output = std::<span class="hljs-built_in">copy</span>((*j).<span class="hljs-built_in">begin</span>(), (*j).<span class="hljs-built_in">end</span>(), output) + <span class="hljs-number">1</span>;<br>    &#125;<br><br>    <span class="hljs-comment">// Round up to the nearest multiple of sizeof(size_t).</span><br>    <span class="hljs-comment">// 向上取整，按size_t对齐，这个和GetBuffer的对齐方法必须要一致，否则这里的迭代会有问题</span><br>    output = <span class="hljs-built_in">RoundUpToWordSize</span>(output);<br>    list_entry-&gt;record_bytes =<br>        <span class="hljs-built_in">reinterpret_cast</span>&lt;<span class="hljs-type">char</span>*&gt;(output) - <span class="hljs-built_in">reinterpret_cast</span>&lt;<span class="hljs-type">char</span>*&gt;(list_entry);<br>    <span class="hljs-comment">//处理下一个type</span><br>  &#125;<br><br>  <span class="hljs-built_in">DCHECK_EQ</span>(<span class="hljs-built_in">reinterpret_cast</span>&lt;<span class="hljs-type">size_t</span>&gt;(output), <span class="hljs-built_in">reinterpret_cast</span>&lt;<span class="hljs-type">size_t</span>&gt;(end));<br>  <span class="hljs-keyword">return</span> output &lt;= end;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>看了这个布局函数，也就彻底明白了<code>HandleCloserInfo</code>的嵌套结构。所以，<code>HandleCloserInfo</code>和<code>SharedMemIPC</code>的设计不同，前者只有两级结构，二级结构的flexible数组是不定长的，而后者则是三级结构，二级结构flexible数组定长。</p>
+<p>此外，我们在<code>InitializeTargetHandles</code>中看到，这些数组都被拷贝给了target进程中，由<code>g_handles_to_close</code>全局变量来定位，且不管target自己是怎么关闭这些handle的（还能怎么关，不过是同种方式解包然后<code>CloseHandle</code>），至少我们知道了在调用<code>InitializeTargetHandles</code>之前，<code>handles_to_close_</code>成员就应该已经填充好了需要关闭的句柄（这就和target可继承句柄列表的设置很像，先填充成员，再<code>CreateProcess</code>）。</p>
+<p>那么添加句柄的接口是谁呢？是还未分析的<code>AddHandle</code>。操纵<code>AddHandle</code>的又是谁呢？现在还不知道。</p>
+<h3 id="addhandle"><code>AddHandle</code></h3>
+<p>先看看<code>AddHandle</code>：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-function">ResultCode <span class="hljs-title">HandleCloser::AddHandle</span><span class="hljs-params">(<span class="hljs-type">const</span> base::char16* handle_type,</span></span><br><span class="hljs-params"><span class="hljs-function">                                   <span class="hljs-type">const</span> base::char16* handle_name)</span> </span>&#123;<br>  <span class="hljs-keyword">if</span> (!handle_type)	<span class="hljs-comment">// 这个必须有</span><br>    <span class="hljs-keyword">return</span> SBOX_ERROR_BAD_PARAMS;<br><br>  base::string16 resolved_name;<br>  <span class="hljs-keyword">if</span> (handle_name) &#123;	<span class="hljs-comment">// 这个可以有</span><br>    resolved_name = handle_name;<br>    <span class="hljs-keyword">if</span> (handle_type == base::<span class="hljs-built_in">string16</span>(<span class="hljs-string">L&quot;Key&quot;</span>))	<span class="hljs-comment">// 如果handle是Key类型，那么名称要修剪一下,ResolveRegistryName其实是一个Windows注册表相关操作简单的封装</span><br>      <span class="hljs-comment">// 这里就不详细研究名称是什么了，想要了解可以用调试器下断点分析</span><br>      <span class="hljs-keyword">if</span> (!<span class="hljs-built_in">ResolveRegistryName</span>(resolved_name, &amp;resolved_name))<br>        <span class="hljs-keyword">return</span> SBOX_ERROR_BAD_PARAMS;<br>  &#125;<br><br>  <span class="hljs-comment">// 先在handles_to_close_找一下是否有该类型的句柄，map中type为键</span><br>  HandleMap::iterator names = handles_to_close_.<span class="hljs-built_in">find</span>(handle_type);<br>  <span class="hljs-keyword">if</span> (names == handles_to_close_.<span class="hljs-built_in">end</span>()) &#123;  <span class="hljs-comment">// We have no entries for this type.</span><br>    <span class="hljs-comment">// 如果没有的话，就插入handle_type, HandleMap::mapped_type()这样的一个entry</span><br>    std::pair&lt;HandleMap::iterator, <span class="hljs-type">bool</span>&gt; result = handles_to_close_.<span class="hljs-built_in">insert</span>(<br>        HandleMap::<span class="hljs-built_in">value_type</span>(handle_type, HandleMap::<span class="hljs-built_in">mapped_type</span>()));<br>    names = result.first;<span class="hljs-comment">// names索引插入的entry</span><br>    <span class="hljs-keyword">if</span> (handle_name)<br>      	names-&gt;second.<span class="hljs-built_in">insert</span>(resolved_name);<span class="hljs-comment">// 如果有名字，那就在该type对应的空set中插入该名字</span><br>  &#125; <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (!handle_name) &#123;  <span class="hljs-comment">// Now we need to close all handles of this type.</span><br>    <span class="hljs-comment">// 如果handle_name是nullptr，会清掉当前该type对应set的所有名字</span><br>    <span class="hljs-comment">// 原来是clear，看前面注释还以为是把所有该类型句柄都加进来。。。想想也不太可能</span><br>    names-&gt;second.<span class="hljs-built_in">clear</span>();<br>  &#125; <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (!names-&gt;second.<span class="hljs-built_in">empty</span>()) &#123;  <span class="hljs-comment">// Add another name for this type.</span><br>    <span class="hljs-comment">// 如果当前type对应的set不为空，则插入另一个名字</span><br>    names-&gt;second.<span class="hljs-built_in">insert</span>(resolved_name);<br>  &#125;  <span class="hljs-comment">// If we&#x27;re already closing all handles of type then we&#x27;re done.</span><br>	<span class="hljs-comment">// 如果此时已经全都清掉了，那再来的就不管了。</span><br>  <span class="hljs-keyword">return</span> SBOX_ALL_OK;<br>&#125;<br></code></pre></td></tr></table></figure>
+<blockquote>
+<p>逻辑很紧凑，也可以看出它的工作机理和外部的操纵息息相关，外部如果出现第一次插入某个匿名的不存在其他该type的句柄，然后后续又插入一个该type的命名句柄，并不会顺利插入。</p>
+<p>感觉这个函数挖了坑，说不定以后会有错误的使用者出现。</p>
+</blockquote>
+<p>再来找找操纵者，除了test测试代码，仅在这里找到：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-function">ResultCode <span class="hljs-title">PolicyBase::AddKernelObjectToClose</span><span class="hljs-params">(<span class="hljs-type">const</span> base::char16* handle_type,</span></span><br><span class="hljs-params"><span class="hljs-function">                                              <span class="hljs-type">const</span> base::char16* handle_name)</span> </span>&#123;<br>  <span class="hljs-keyword">return</span> handle_closer_.<span class="hljs-built_in">AddHandle</span>(handle_type, handle_name);<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>再次查找<code>AddKernelObjectToClose</code>的caller，除了test，只有<code>PolicyBase::SetDisconnectCsrss</code>中有身影：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-function">ResultCode <span class="hljs-title">PolicyBase::SetDisconnectCsrss</span><span class="hljs-params">()</span> </span>&#123;<br><span class="hljs-comment">// Does not work on 32-bit, and the ASAN runtime falls over with the</span><br><span class="hljs-comment">// CreateThread EAT patch used when this is enabled.</span><br><span class="hljs-comment">// See https://crbug.com/783296#c27.</span><br><span class="hljs-comment">// 未开启ASAN的win10 x64所用，看起来和某个bug有关，以后有空看看</span><br><span class="hljs-meta">#<span class="hljs-keyword">if</span> defined(_WIN64) &amp;&amp; !defined(ADDRESS_SANITIZER)</span><br>  <span class="hljs-keyword">if</span> (base::win::<span class="hljs-built_in">GetVersion</span>() &gt;= base::win::VERSION_WIN10) &#123;<br>    is_csrss_connected_ = <span class="hljs-literal">false</span>;<br>    <span class="hljs-keyword">return</span> <span class="hljs-built_in">AddKernelObjectToClose</span>(<span class="hljs-string">L&quot;ALPC Port&quot;</span>, <span class="hljs-literal">nullptr</span>);<span class="hljs-comment">//但这里是把ALPC Port都clear了</span><br>  &#125;<br><span class="hljs-meta">#<span class="hljs-keyword">endif</span>  <span class="hljs-comment">// !defined(_WIN64)</span></span><br>  <span class="hljs-keyword">return</span> SBOX_ALL_OK;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>这里是个clear操作，显然是为了让win10 x64的target可以使用ALPC
+Port句柄。sandbox找不到其他的调用处，应该是启动器外部通过<code>PolicyBase</code>调用了<code>AddKernelObjectToClose</code>。</p>
+<p>毕竟<code>PolicyBase</code>是传进来的，外部通过<code>BrokerServicesBase::CreatePolicy</code>创建policy，然后对policy一顿操作，然后<code>BrokerServicesBase::SpawnTarget</code>中传入了policy。</p>
+<h2 id="handlecloseragent"><code>HandleCloserAgent</code></h2>
+<p>Broker这边的流程都已了解了，下面我们找找target自身是如何关闭这些句柄的。在handle_closer_agent.h中找到了target用到的封装类。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-comment">// Target process code to close the handle list copied over from the broker.</span><br><span class="hljs-comment">// 这个是target进程的代码，它关闭broker传过来的句柄列表</span><br><span class="hljs-keyword">class</span> <span class="hljs-title class_">HandleCloserAgent</span> &#123;<br> <span class="hljs-keyword">public</span>:<br>  <span class="hljs-built_in">HandleCloserAgent</span>();<br>  ~<span class="hljs-built_in">HandleCloserAgent</span>();<br><br>  <span class="hljs-comment">// Reads the serialized list from the broker and creates the lookup map.</span><br>  <span class="hljs-comment">// Updates is_csrss_connected based on type of handles closed.</span><br>  <span class="hljs-comment">// 从broker读取序列化列表，创建一个lookup map</span><br>  <span class="hljs-comment">// 根据关闭的句柄类型，更新is_csrss_connected</span><br>  <span class="hljs-function"><span class="hljs-type">void</span> <span class="hljs-title">InitializeHandlesToClose</span><span class="hljs-params">(<span class="hljs-type">bool</span>* is_csrss_connected)</span></span>;<br><br>  <span class="hljs-comment">// Closes any handles matching those in the lookup map.</span><br>  <span class="hljs-comment">// 关闭lookup map中匹配的句柄</span><br>  <span class="hljs-function"><span class="hljs-type">bool</span> <span class="hljs-title">CloseHandles</span><span class="hljs-params">()</span></span>;<br><br>  <span class="hljs-comment">// True if we have handles waiting to be closed.</span><br>  <span class="hljs-comment">// 这是个static方法，用于判断当前是否在等待句柄被关闭</span><br>  <span class="hljs-function"><span class="hljs-type">static</span> <span class="hljs-type">bool</span> <span class="hljs-title">NeedsHandlesClosed</span><span class="hljs-params">()</span></span>;<br><br> <span class="hljs-keyword">private</span>:<br>  <span class="hljs-comment">// Attempt to stuff a closed handle with a dummy Event.</span><br>  <span class="hljs-function"><span class="hljs-type">bool</span> <span class="hljs-title">AttemptToStuffHandleSlot</span><span class="hljs-params">(HANDLE closed_handle,</span></span><br><span class="hljs-params"><span class="hljs-function">                                <span class="hljs-type">const</span> base::string16&amp; type)</span></span>;<br><br>  HandleMap handles_to_close_;<br>  base::win::ScopedHandle dummy_handle_;<br><br>  <span class="hljs-built_in">DISALLOW_COPY_AND_ASSIGN</span>(HandleCloserAgent);<br>&#125;;<br></code></pre></td></tr></table></figure>
+<h3
+id="initializehandlestoclose"><code>InitializeHandlesToClose</code></h3>
+<p>这个函数应该就是从传过来的g_handles_to_close读操作。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-comment">// Reads g_handles_to_close and creates the lookup map.</span><br><span class="hljs-function"><span class="hljs-type">void</span> <span class="hljs-title">HandleCloserAgent::InitializeHandlesToClose</span><span class="hljs-params">(<span class="hljs-type">bool</span>* is_csrss_connected)</span> </span>&#123;<br>  <span class="hljs-built_in">CHECK</span>(g_handles_to_close);<br>  <span class="hljs-comment">//target进也定义了一个g_handles_to_close指针，但实际上是由broker进程来写入</span><br><br>  <span class="hljs-comment">// Default to connected state</span><br>  <span class="hljs-comment">// 默认情况是连接到运行时子系统的</span><br>  *is_csrss_connected = <span class="hljs-literal">true</span>;<br><br>  <span class="hljs-comment">// Grab the header.</span><br>  <span class="hljs-comment">// 开始了，对HandleCloserInfo开始parse</span><br>  HandleListEntry* entry = g_handles_to_close-&gt;handle_entries;<br>  <span class="hljs-keyword">for</span> (<span class="hljs-type">size_t</span> i = <span class="hljs-number">0</span>; i &lt; g_handles_to_close-&gt;num_handle_types; ++i) &#123;<br>    <span class="hljs-comment">// Set the type name.</span><br>    base::char16* input = entry-&gt;handle_type;<br>    <span class="hljs-comment">// 如果关闭的句柄有ALPC Port类型，就会断开与csrss的连接（csrss就是通过这个ALPC端口连接的）</span><br>    <span class="hljs-comment">// 还记得前面探索AddTarget时发现的win10 x64特殊处理吗？</span><br>    <span class="hljs-keyword">if</span> (!<span class="hljs-built_in">wcscmp</span>(input, <span class="hljs-string">L&quot;ALPC Port&quot;</span>)) &#123;<br>      *is_csrss_connected = <span class="hljs-literal">false</span>;<br>    &#125;<br>    <span class="hljs-comment">//handle_names是句柄名的set</span><br>    HandleMap::mapped_type&amp; handle_names = handles_to_close_[input];<br>    input = <span class="hljs-built_in">reinterpret_cast</span>&lt;base::char16*&gt;(<span class="hljs-built_in">reinterpret_cast</span>&lt;<span class="hljs-type">char</span>*&gt;(entry) +<br>                                            entry-&gt;offset_to_names);<br>    <span class="hljs-comment">// Grab all the handle names.</span><br>    <span class="hljs-comment">// 这就导入到成员handles_to_close_中了</span><br>    <span class="hljs-keyword">for</span> (<span class="hljs-type">size_t</span> j = <span class="hljs-number">0</span>; j &lt; entry-&gt;name_count; ++j) &#123;<br>      std::pair&lt;HandleMap::mapped_type::iterator, <span class="hljs-type">bool</span>&gt; name =<br>          handle_names.<span class="hljs-built_in">insert</span>(input);<br>      <span class="hljs-built_in">CHECK</span>(name.second);<br>      input += name.first-&gt;<span class="hljs-built_in">size</span>() + <span class="hljs-number">1</span>;<br>    &#125;<br><br>    <span class="hljs-comment">// Move on to the next entry.</span><br>    <span class="hljs-comment">// 继续下一个</span><br>    entry = <span class="hljs-built_in">reinterpret_cast</span>&lt;HandleListEntry*&gt;(<span class="hljs-built_in">reinterpret_cast</span>&lt;<span class="hljs-type">char</span>*&gt;(entry) +<br>                                               entry-&gt;record_bytes);<br><br>    <span class="hljs-built_in">DCHECK</span>(<span class="hljs-built_in">reinterpret_cast</span>&lt;base::char16*&gt;(entry) &gt;= input);<br>    <span class="hljs-built_in">DCHECK</span>(<span class="hljs-built_in">reinterpret_cast</span>&lt;base::char16*&gt;(entry) - input &lt;<br>           <span class="hljs-built_in">static_cast</span>&lt;<span class="hljs-type">ptrdiff_t</span>&gt;(<span class="hljs-built_in">sizeof</span>(<span class="hljs-type">size_t</span>) / <span class="hljs-built_in">sizeof</span>(base::char16)));<br>  &#125;<br><br>  <span class="hljs-comment">// Clean up the memory we copied over.</span><br>  <span class="hljs-comment">// 拷贝到handles_to_close_完毕，可以清了g_handles_to_close</span><br>  ::<span class="hljs-built_in">VirtualFree</span>(g_handles_to_close, <span class="hljs-number">0</span>, MEM_RELEASE);<br>  g_handles_to_close = <span class="hljs-literal">nullptr</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+<h3 id="closehandles"><code>CloseHandles</code></h3>
+<p>导入操作已经知晓了，此时<code>handles_to_close_</code>已装载。下一个最为重要的就是close操作了：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-function"><span class="hljs-type">bool</span> <span class="hljs-title">HandleCloserAgent::CloseHandles</span><span class="hljs-params">()</span> </span>&#123;<br>  DWORD handle_count = UINT_MAX;<br>  <span class="hljs-type">const</span> <span class="hljs-type">int</span> kInvalidHandleThreshold = <span class="hljs-number">100</span>;<br>  <span class="hljs-comment">// 句柄都是4的倍数，可以参考wrk的句柄表设计，PID的设计也复用了句柄表设计，所以都是4的倍数</span><br>  <span class="hljs-type">const</span> <span class="hljs-type">size_t</span> kHandleOffset = <span class="hljs-number">4</span>;  <span class="hljs-comment">// Handles are always a multiple of 4.</span><br><br>  <span class="hljs-keyword">if</span> (!::<span class="hljs-built_in">GetProcessHandleCount</span>(::<span class="hljs-built_in">GetCurrentProcess</span>(), &amp;handle_count))<br>    <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;<br><br>  <span class="hljs-comment">// Set up buffers for the type info and the name.</span><br>  <span class="hljs-function">std::vector&lt;BYTE&gt; <span class="hljs-title">type_info_buffer</span><span class="hljs-params">(<span class="hljs-keyword">sizeof</span>(OBJECT_TYPE_INFORMATION) +</span></span><br><span class="hljs-params"><span class="hljs-function">                                     <span class="hljs-number">32</span> * <span class="hljs-keyword">sizeof</span>(<span class="hljs-type">wchar_t</span>))</span></span>;<br>  OBJECT_TYPE_INFORMATION* type_info =<br>      <span class="hljs-built_in">reinterpret_cast</span>&lt;OBJECT_TYPE_INFORMATION*&gt;(&amp;(type_info_buffer[<span class="hljs-number">0</span>]));<br>  base::string16 handle_name;<br>  HANDLE handle = <span class="hljs-literal">nullptr</span>;<br>  <span class="hljs-type">int</span> invalid_count = <span class="hljs-number">0</span>;<br><br>  <span class="hljs-comment">// Keep incrementing until we hit the number of handles reported by</span><br>  <span class="hljs-comment">// GetProcessHandleCount(). If we hit a very long sequence of invalid</span><br>  <span class="hljs-comment">// handles we assume that we&#x27;ve run past the end of the table.</span><br>  <span class="hljs-comment">// 以句柄号从下限值到上限值迭代，通过NtQueryObject来判断某个句柄值是否有效，然后再匹配</span><br>  <span class="hljs-keyword">while</span> (handle_count &amp;&amp; invalid_count &lt; kInvalidHandleThreshold) &#123;<br>    <span class="hljs-built_in">reinterpret_cast</span>&lt;<span class="hljs-type">size_t</span>&amp;&gt;(handle) += kHandleOffset;<br>    NTSTATUS rc;<br><br>    <span class="hljs-comment">// Get the type name, reusing the buffer.</span><br>    <span class="hljs-comment">// 又见二次调用的操作，只不过做了二层封装</span><br>    ULONG size = <span class="hljs-built_in">static_cast</span>&lt;ULONG&gt;(type_info_buffer.<span class="hljs-built_in">size</span>());<br>    rc = <span class="hljs-built_in">QueryObjectTypeInformation</span>(handle, type_info, &amp;size);<span class="hljs-comment">//封装了NtQueryObject的一些操作</span><br>    <span class="hljs-keyword">while</span> (rc == STATUS_INFO_LENGTH_MISMATCH || rc == STATUS_BUFFER_OVERFLOW) &#123;<br>      type_info_buffer.<span class="hljs-built_in">resize</span>(size + <span class="hljs-built_in">sizeof</span>(<span class="hljs-type">wchar_t</span>));<br>      type_info =<br>          <span class="hljs-built_in">reinterpret_cast</span>&lt;OBJECT_TYPE_INFORMATION*&gt;(&amp;(type_info_buffer[<span class="hljs-number">0</span>]));<br>      rc = <span class="hljs-built_in">QueryObjectTypeInformation</span>(handle, type_info, &amp;size);<br>      <span class="hljs-comment">// Leave padding for the nul terminator.</span><br>      <span class="hljs-keyword">if</span> (<span class="hljs-built_in">NT_SUCCESS</span>(rc) &amp;&amp; size == type_info_buffer.<span class="hljs-built_in">size</span>())<br>        rc = STATUS_INFO_LENGTH_MISMATCH;<br>    &#125;<br>    <span class="hljs-comment">// 如果这个句柄号是有效的，那么就说明确实有这个句柄，没有的话就不浪费感情lookup匹配了</span><br>    <span class="hljs-keyword">if</span> (!<span class="hljs-built_in">NT_SUCCESS</span>(rc) || !type_info-&gt;Name.Buffer) &#123;<br>      ++invalid_count;<br>      <span class="hljs-keyword">continue</span>;<br>    &#125;<br><br>    --handle_count;<br>    type_info-&gt;Name.Buffer[type_info-&gt;Name.Length / <span class="hljs-built_in">sizeof</span>(<span class="hljs-type">wchar_t</span>)] = <span class="hljs-string">L&#x27;\0&#x27;</span>;<br>    <span class="hljs-comment">// 这段是查找传过来的handles_to_close_，看看是否需要关闭该句柄</span><br>    <span class="hljs-comment">// 如果需要关闭，那就CloseHandle</span><br>    <span class="hljs-comment">// Check if we&#x27;re looking for this type of handle.</span><br>    HandleMap::iterator result = handles_to_close_.<span class="hljs-built_in">find</span>(type_info-&gt;Name.Buffer);<br>    <span class="hljs-keyword">if</span> (result != handles_to_close_.<span class="hljs-built_in">end</span>()) &#123;<br>      HandleMap::mapped_type&amp; names = result-&gt;second;<br>      <span class="hljs-comment">// Empty set means close all handles of this type; otherwise check name.</span><br>      <span class="hljs-keyword">if</span> (!names.<span class="hljs-built_in">empty</span>()) &#123;<br>        <span class="hljs-comment">// Move on to the next handle if this name doesn&#x27;t match.</span><br>        <span class="hljs-comment">// 这个GetHandleName在handle_closer.cc中实现，实际上依然是NtQueryObject的封装</span><br>        <span class="hljs-keyword">if</span> (!<span class="hljs-built_in">GetHandleName</span>(handle, &amp;handle_name) || !names.<span class="hljs-built_in">count</span>(handle_name))<br>          <span class="hljs-keyword">continue</span>;<br>      &#125;<br><br>      <span class="hljs-keyword">if</span> (!::<span class="hljs-built_in">SetHandleInformation</span>(handle, HANDLE_FLAG_PROTECT_FROM_CLOSE, <span class="hljs-number">0</span>))<br>        <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;<br>      <span class="hljs-keyword">if</span> (!::<span class="hljs-built_in">CloseHandle</span>(handle))<br>        <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;<br>      <span class="hljs-comment">// Attempt to stuff this handle with a new dummy Event.</span><br>      <span class="hljs-comment">// 尝试填满Handle槽？不懂什么意思，传入了handle和type</span><br>      <span class="hljs-built_in">AttemptToStuffHandleSlot</span>(handle, result-&gt;first);<br>    &#125;<br>  &#125;<br><br>  <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;<br>&#125;<br><br><span class="hljs-comment">// Returns the object manager&#x27;s name associated with a handle</span><br><span class="hljs-comment">// 通过handle反查name，实际上用NtQueryObject这个万用API可以做到，查询的class为</span><br><span class="hljs-comment">// ObjectNameInformation</span><br><span class="hljs-comment">// NtQueryObject很强大，根据传入的OBJECT_INFORMATION_CLASS值可以查询不同的信息</span><br><span class="hljs-function"><span class="hljs-type">bool</span> <span class="hljs-title">GetHandleName</span><span class="hljs-params">(HANDLE handle, base::string16* handle_name)</span> </span>&#123;<br>  <span class="hljs-type">static</span> NtQueryObject QueryObject = <span class="hljs-literal">nullptr</span>;<br>  <span class="hljs-keyword">if</span> (!QueryObject)<br>    <span class="hljs-built_in">ResolveNTFunctionPtr</span>(<span class="hljs-string">&quot;NtQueryObject&quot;</span>, &amp;QueryObject);<br><br>  ULONG size = MAX_PATH;<br>  std::unique_ptr&lt;UNICODE_STRING, base::FreeDeleter&gt; name;<br>  NTSTATUS result;<br><br>  <span class="hljs-keyword">do</span> &#123;<br>    name.<span class="hljs-built_in">reset</span>(<span class="hljs-built_in">static_cast</span>&lt;UNICODE_STRING*&gt;(<span class="hljs-built_in">malloc</span>(size)));<br>    <span class="hljs-built_in">DCHECK</span>(name.<span class="hljs-built_in">get</span>());<br>    result =<br>        <span class="hljs-built_in">QueryObject</span>(handle, ObjectNameInformation, name.<span class="hljs-built_in">get</span>(), size, &amp;size);<br>  &#125; <span class="hljs-keyword">while</span> (result == STATUS_INFO_LENGTH_MISMATCH ||<br>           result == STATUS_BUFFER_OVERFLOW);<br><br>  <span class="hljs-keyword">if</span> (<span class="hljs-built_in">NT_SUCCESS</span>(result) &amp;&amp; name-&gt;Buffer &amp;&amp; name-&gt;Length)<br>    handle_name-&gt;<span class="hljs-built_in">assign</span>(name-&gt;Buffer, name-&gt;Length / <span class="hljs-built_in">sizeof</span>(<span class="hljs-type">wchar_t</span>));<br>  <span class="hljs-keyword">else</span><br>    handle_name-&gt;<span class="hljs-built_in">clear</span>();<br><br>  <span class="hljs-keyword">return</span> <span class="hljs-built_in">NT_SUCCESS</span>(result);<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>另一个<code>QueryObjectTypeInformation</code>也类似：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-comment">// Returns type infomation for an NT object. This routine is expected to be</span><br><span class="hljs-comment">// called for invalid handles so it catches STATUS_INVALID_HANDLE exceptions</span><br><span class="hljs-comment">// that can be generated when handle tracing is enabled.</span><br><span class="hljs-comment">// 返回的是handle对应的type而非name</span><br><span class="hljs-function">NTSTATUS <span class="hljs-title">QueryObjectTypeInformation</span><span class="hljs-params">(HANDLE handle, <span class="hljs-type">void</span>* buffer, ULONG* size)</span> </span>&#123;<br>  <span class="hljs-type">static</span> NtQueryObject QueryObject = <span class="hljs-literal">nullptr</span>;<br>  <span class="hljs-comment">// 还是用NtQueryObject</span><br>  <span class="hljs-keyword">if</span> (!QueryObject)<br>    <span class="hljs-built_in">ResolveNTFunctionPtr</span>(<span class="hljs-string">&quot;NtQueryObject&quot;</span>, &amp;QueryObject);<br><br>  NTSTATUS status = STATUS_UNSUCCESSFUL;<br>  __try &#123;<br>    <span class="hljs-comment">// 这一次用的class是ObjectTypeInformation</span><br>    status = <span class="hljs-built_in">QueryObject</span>(handle, ObjectTypeInformation, buffer, *size, size);<br>  &#125; __except (<span class="hljs-built_in">GetExceptionCode</span>() == STATUS_INVALID_HANDLE<br>                  ? EXCEPTION_EXECUTE_HANDLER<br>                  : EXCEPTION_CONTINUE_SEARCH) &#123;<br>    status = STATUS_INVALID_HANDLE;<br>  &#125;<br>  <span class="hljs-keyword">return</span> status;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p><code>CloseHandles</code>最后调用了<code>AttemptToStuffHandleSlot</code>：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-comment">// Attempts to stuff |closed_handle| with a duplicated handle for a dummy Event</span><br><span class="hljs-comment">// with no access. This should allow the handle to be closed, to avoid</span><br><span class="hljs-comment">// generating EXCEPTION_INVALID_HANDLE on shutdown, but nothing else. For now</span><br><span class="hljs-comment">// the only supported |type| is Event or File.</span><br><span class="hljs-comment">// 关闭句柄时防止产生EXCEPTION_INVALID_HANDLE，仅仅支持Event或File类型句柄</span><br><span class="hljs-comment">// 这东西用途我还不理解，看起来是对于Event和File句柄做的额外操作，复制一个再CloseHandle</span><br><span class="hljs-comment">// 不懂有什么用</span><br><span class="hljs-function"><span class="hljs-type">bool</span> <span class="hljs-title">HandleCloserAgent::AttemptToStuffHandleSlot</span><span class="hljs-params">(HANDLE closed_handle,</span></span><br><span class="hljs-params"><span class="hljs-function">                                                 <span class="hljs-type">const</span> base::string16&amp; type)</span> </span>&#123;<br>  <span class="hljs-comment">// Only attempt to stuff Files and Events at the moment.</span><br>  <span class="hljs-keyword">if</span> (type != <span class="hljs-string">L&quot;Event&quot;</span> &amp;&amp; type != <span class="hljs-string">L&quot;File&quot;</span>) &#123;<br>    <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;<br>  &#125;<br><br>  <span class="hljs-keyword">if</span> (!dummy_handle_.<span class="hljs-built_in">IsValid</span>())<br>    <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;<br><br>  <span class="hljs-comment">// This should never happen, as g_dummy is created before closing to_stuff.</span><br>  <span class="hljs-built_in">DCHECK</span>(dummy_handle_.<span class="hljs-built_in">Get</span>() != closed_handle);<br><br>  std::vector&lt;HANDLE&gt; to_close;<br>  HANDLE dup_dummy = <span class="hljs-literal">nullptr</span>;<br>  <span class="hljs-type">size_t</span> count = <span class="hljs-number">16</span>;<br><br>  <span class="hljs-keyword">do</span> &#123;<br>    <span class="hljs-keyword">if</span> (!::<span class="hljs-built_in">DuplicateHandle</span>(::<span class="hljs-built_in">GetCurrentProcess</span>(), dummy_handle_.<span class="hljs-built_in">Get</span>(),<br>                           ::<span class="hljs-built_in">GetCurrentProcess</span>(), &amp;dup_dummy, <span class="hljs-number">0</span>, <span class="hljs-literal">false</span>, <span class="hljs-number">0</span>))<br>      <span class="hljs-keyword">break</span>;<br>    <span class="hljs-keyword">if</span> (dup_dummy != closed_handle)<br>      to_close.<span class="hljs-built_in">push_back</span>(dup_dummy);<br>  &#125; <span class="hljs-keyword">while</span> (count-- &amp;&amp; <span class="hljs-built_in">reinterpret_cast</span>&lt;<span class="hljs-type">uintptr_t</span>&gt;(dup_dummy) &lt;<br>                          <span class="hljs-built_in">reinterpret_cast</span>&lt;<span class="hljs-type">uintptr_t</span>&gt;(closed_handle));<br><br>  <span class="hljs-keyword">for</span> (HANDLE h : to_close)<br>    ::<span class="hljs-built_in">CloseHandle</span>(h);<br><br>  <span class="hljs-comment">// TODO(wfh): Investigate why stuffing handles sometimes fails.</span><br>  <span class="hljs-comment">// http://crbug.com/649904</span><br>  <span class="hljs-keyword">return</span> dup_dummy == closed_handle;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>这里主要是不懂dummy_handle_成员的意义，不知道为什么要频繁尝试复制，且再次Close掉。这里面应该涉及到了某种技术，而这个函数只是抛开基础架设的一个应用。</p>
+<p>如果以后我对它有了正确的理解，再来补充吧，留个坑。</p>
+<p>下面感兴趣的就是target进程如何操纵。</p>
+<h2 id="targetservicesbase-related"><code>TargetServicesBase</code>
+related</h2>
+<p><code>TargetServicesBase</code>是给target进程提供的服务面。在<code>TargetServicesBase::LowerToken</code>中找到了这样一个操作：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-comment">// Failure here is a breach of security so the process is terminated.</span><br><span class="hljs-function"><span class="hljs-type">void</span> <span class="hljs-title">TargetServicesBase::LowerToken</span><span class="hljs-params">()</span> </span>&#123;<br>  <span class="hljs-keyword">if</span> (ERROR_SUCCESS !=<br>      <span class="hljs-built_in">SetProcessIntegrityLevel</span>(g_shared_delayed_integrity_level))<br>    ::<span class="hljs-built_in">TerminateProcess</span>(::<span class="hljs-built_in">GetCurrentProcess</span>(), SBOX_FATAL_INTEGRITY);<br>  process_state_.<span class="hljs-built_in">SetRevertedToSelf</span>();<br>  <span class="hljs-comment">// If the client code as called RegOpenKey, advapi32.dll has cached some</span><br>  <span class="hljs-comment">// handles. The following code gets rid of them.</span><br>  <span class="hljs-comment">// 最不起眼的其实是最关键的call，不过本次我们就不理它了</span><br>  <span class="hljs-keyword">if</span> (!::<span class="hljs-built_in">RevertToSelf</span>())<br>    ::<span class="hljs-built_in">TerminateProcess</span>(::<span class="hljs-built_in">GetCurrentProcess</span>(), SBOX_FATAL_DROPTOKEN);<br>  <span class="hljs-keyword">if</span> (!<span class="hljs-built_in">FlushCachedRegHandles</span>())<br>    ::<span class="hljs-built_in">TerminateProcess</span>(::<span class="hljs-built_in">GetCurrentProcess</span>(), SBOX_FATAL_FLUSHANDLES);<br>  <span class="hljs-keyword">if</span> (ERROR_SUCCESS != ::<span class="hljs-built_in">RegDisablePredefinedCache</span>())<br>    ::<span class="hljs-built_in">TerminateProcess</span>(::<span class="hljs-built_in">GetCurrentProcess</span>(), SBOX_FATAL_CACHEDISABLE);<br>  <span class="hljs-keyword">if</span> (!<span class="hljs-built_in">WarmupWindowsLocales</span>())<br>    ::<span class="hljs-built_in">TerminateProcess</span>(::<span class="hljs-built_in">GetCurrentProcess</span>(), SBOX_FATAL_WARMUP);<br>  <span class="hljs-type">bool</span> is_csrss_connected = <span class="hljs-literal">true</span>;<br>  <span class="hljs-comment">// 就是它，关闭了句柄，并根据ALPC port是否被关闭来设置csrss的连接状态</span><br>  <span class="hljs-keyword">if</span> (!<span class="hljs-built_in">CloseOpenHandles</span>(&amp;is_csrss_connected))<br>    ::<span class="hljs-built_in">TerminateProcess</span>(::<span class="hljs-built_in">GetCurrentProcess</span>(), SBOX_FATAL_CLOSEHANDLES);<br>  process_state_.<span class="hljs-built_in">SetCsrssConnected</span>(is_csrss_connected);<br>  <span class="hljs-comment">// Enabling mitigations must happen last otherwise handle closing breaks</span><br>  <span class="hljs-keyword">if</span> (g_shared_delayed_mitigations &amp;&amp;<br>      !<span class="hljs-built_in">ApplyProcessMitigationsToCurrentProcess</span>(g_shared_delayed_mitigations))<br>    ::<span class="hljs-built_in">TerminateProcess</span>(::<span class="hljs-built_in">GetCurrentProcess</span>(), SBOX_FATAL_MITIGATION);<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>这里还可以看到<code>g_shared_delayed_integrity_level</code>和<code>g_shared_delayed_mitigations</code>的使用。</p>
+<p>展开<code>CloseOpenHandles</code>:</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-comment">// Checks if we have handle entries pending and runs the closer.</span><br><span class="hljs-comment">// Updates is_csrss_connected based on which handle types are closed.</span><br><span class="hljs-function"><span class="hljs-type">bool</span> <span class="hljs-title">CloseOpenHandles</span><span class="hljs-params">(<span class="hljs-type">bool</span>* is_csrss_connected)</span> </span>&#123;<br>  <span class="hljs-keyword">if</span> (HandleCloserAgent::<span class="hljs-built_in">NeedsHandlesClosed</span>()) &#123;<span class="hljs-comment">//其实就是!!g_handles_to_close，转bool值判断</span><br>    <span class="hljs-comment">// 此时broker已经写好了g_handles_to_close，开始吧</span><br>    HandleCloserAgent handle_closer;<br>    <span class="hljs-comment">// 第一步，InitializeHandlesToClose</span><br>    handle_closer.<span class="hljs-built_in">InitializeHandlesToClose</span>(is_csrss_connected);<br>    <span class="hljs-keyword">if</span> (!*is_csrss_connected) &#123;<br>      <span class="hljs-keyword">if</span> (!<span class="hljs-built_in">CsrssDisconnectCleanup</span>()) &#123;<br>        <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;<br>      &#125;<br>    &#125;<br>    <span class="hljs-comment">// 第二步，CloseHandles</span><br>    <span class="hljs-keyword">if</span> (!handle_closer.<span class="hljs-built_in">CloseHandles</span>())<br>      <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;<br>  &#125;<br>  <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>到此，关于<code>HandleCloser</code>和<code>HandleCloserAgent</code>的分析就结束了，相对简单的一部分。</p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90/" class="category-chain-item">源码剖析</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/chromium/" class="print-no-link">#chromium</a>
+      
+        <a href="/tags/chromium-sandbox/" class="print-no-link">#chromium-sandbox</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>Chromium-sandbox-HandleCloser-analysis</div>
+      <div>https://r00tk1ts.github.io/2018/05/21/chromium-sandbox-HandleCloser-analysis/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>r00tk1t</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2018年5月21日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2018/05/26/chromium-sandbox-Interception/" title="Chromium-sandbox-Interception-analysis">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">Chromium-sandbox-Interception-analysis</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2018/05/20/chromium-sandbox-SharedMemIPC/" title="Chromium-sandbox-SharedMemIPC-analysis">
+                        <span class="hidden-mobile">Chromium-sandbox-SharedMemIPC-analysis</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+  
+<script src="/js/diy/yinghua.js"></script>
+<script src="/js/diy/love.js"></script>
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

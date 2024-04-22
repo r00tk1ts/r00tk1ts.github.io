@@ -1,0 +1,823 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/favicon.png">
+  <link rel="icon" href="/img/favicon.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="r00tk1t">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="近年来陆陆续续对Linux内核各模块做些研究，本文是对Linux内核中进程基本概念的一点研究。主要参考ULK以及毛批，结合自己的一些深入的理解，以及从源代码中翻箱倒柜获取的心得。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Linux内核学习——Linux进程概述">
+<meta property="og:url" content="https://r00tk1ts.github.io/2017/08/22/Linux%E8%BF%9B%E7%A8%8B%E6%A6%82%E8%BF%B0/index.html">
+<meta property="og:site_name" content="玉涵的技能书">
+<meta property="og:description" content="近年来陆陆续续对Linux内核各模块做些研究，本文是对Linux内核中进程基本概念的一点研究。主要参考ULK以及毛批，结合自己的一些深入的理解，以及从源代码中翻箱倒柜获取的心得。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://r00tk1ts.github.io/2017/08/22/Linux%E8%BF%9B%E7%A8%8B%E6%A6%82%E8%BF%B0/20170822_1.jpg">
+<meta property="og:image" content="https://r00tk1ts.github.io/2017/08/22/Linux%E8%BF%9B%E7%A8%8B%E6%A6%82%E8%BF%B0/20170822_2.jpg">
+<meta property="og:image" content="https://r00tk1ts.github.io/2017/08/22/Linux%E8%BF%9B%E7%A8%8B%E6%A6%82%E8%BF%B0/20170822_3.jpg">
+<meta property="og:image" content="https://r00tk1ts.github.io/2017/08/22/Linux%E8%BF%9B%E7%A8%8B%E6%A6%82%E8%BF%B0/20170822_4.jpg">
+<meta property="og:image" content="https://r00tk1ts.github.io/2017/08/22/Linux%E8%BF%9B%E7%A8%8B%E6%A6%82%E8%BF%B0/20170822_5.jpg">
+<meta property="og:image" content="https://r00tk1ts.github.io/2017/08/22/Linux%E8%BF%9B%E7%A8%8B%E6%A6%82%E8%BF%B0/20170822_6.jpg">
+<meta property="article:published_time" content="2017-08-22T13:51:11.000Z">
+<meta property="article:modified_time" content="2024-04-22T03:34:00.162Z">
+<meta property="article:author" content="r00tk1t">
+<meta property="article:tag" content="linux-kernel">
+<meta property="article:tag" content="ulk">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://r00tk1ts.github.io/2017/08/22/Linux%E8%BF%9B%E7%A8%8B%E6%A6%82%E8%BF%B0/20170822_1.jpg">
+  
+  
+  
+  <title>Linux内核学习——Linux进程概述 - 玉涵的技能书</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"r00tk1ts.github.io","root":"/","version":"1.9.5","typing":{"enable":true,"typeSpeed":80,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<!-- hexo injector head_end start --><link rel="stylesheet" href="https://cdn.staticfile.org/lxgw-wenkai-screen-webfont/1.7.0/style.min.css" /><!-- hexo injector head_end end --><meta name="generator" content="Hexo 6.1.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>玉涵的技能书</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/doc/">
+                <i class="iconfont icon-books"></i>
+                <span>藏经阁</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="Linux内核学习——Linux进程概述"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2017-08-22 21:51" pubdate>
+          2017年8月22日 晚上
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          21k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          175 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">Linux内核学习——Linux进程概述</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <p>近年来陆陆续续对Linux内核各模块做些研究，本文是对Linux内核中进程基本概念的一点研究。主要参考ULK以及毛批，结合自己的一些深入的理解，以及从源代码中翻箱倒柜获取的心得。</p>
+<span id="more"></span>
+<h1 id="linux内核学习linux进程概述">Linux内核学习——Linux进程概述</h1>
+<h2 id="活在os理论中的进程与线程">活在OS理论中的进程与线程</h2>
+<p>进程与线程是OS理论中的基本概念。在理论中，进程通常被定义成一个正在运行的程序的实例。举个例子，你在Windows系统上运行一个notepad.exe，这个notepad.exe就会被拉到RAM中映射成一个应用程序，这个应用程序就是进程。同理，在Linux下，使用vim编辑某个文件，vim也被拉到了RAM中映射出一个进程。</p>
+<p>进程由两部分组成： - OS管理进程的内核对象。 - 自己的地址空间</p>
+<p>线程和进程很相似，同样由两部分组成： - 一个是线程的内核对象 -
+自己专有的资源（如线程堆栈地址空间）</p>
+<h2 id="linux的进程轻量级进程与线程">Linux的进程、轻量级进程与线程</h2>
+<p>然而，理论毕竟是理论，各种OS真正在实现时，其抽象体与具象体的设计往往并不一致。</p>
+<p>拿我比较熟悉的Windows来说，Windows中进程是一个相对抽象的概念，进程本身是不干活的，进程包含了一个(主线程)或多个线程，这些线程实际上才是干活的主体对象。一个进程只是定义了内核对象（用于管理，状态标志等）和一片自己的地址空间(每个程序都告诉自己有4G的线性地址，其中高2G内核领空共用)。每个线程也有他自己的内核对象，以及它所属进程的地址空间中的一部分（主要是线程堆栈）。用Windows话来说，进程是不活泼的，从不执行任何东西，只是线程的容器。线程是活泼的，同属于一个进程的所有线程共享这片地址空间，但每个线程又有它自己的一亩三分地，这就使得同组线程的交互极为简单，而不同组线程又被相对隔离。</p>
+<p>而Linux则大相径庭，Linux中进程和线程的概念有那么一点混淆不清，不似Windows般泾渭分明。纵观Linux源代码，各路Author常把进程称为task或thread（实际上叫Process更合适），各种结构的命名上可见一斑。</p>
+<p>但无论你如何命名，如何设计，从内核观点来看，进程的目的就在于担当分配系统资源（CPU分片、地址空间）的实体。Linux中除了第一个pid为0的进程，所有的进程都是复制出来的。父子进程虽然可以共享程序代码页，但有自己独立的数据拷贝。子进程自身内存单元的修改对父进程是不可见的，反之亦然。</p>
+<blockquote>
+<p>这和Windows的进程设计完全不同，Windows是可以由OS通过CreateProcess捏出一个无父无母的进程，Linux的每个进程却都是克隆出来的，Linux从未提供一个类似CreateProcess的方法来凭空捏一个进程，唯有通过fork(),clone()或vfork()复制。</p>
+</blockquote>
+<p>Linux内核没有线程，POSIX兼容的pthread库在早期的Linux上，其多个执行流的创建、处理、调度整个都是在用户态进行的。因此，pthread引入的所谓多线程应用程序从内核角度来看，只是一个普通进程。</p>
+<p>然而，Linux还是拗不过潮流，这种老式的设计在很多情况下的表现不尽人意。ULK的例子尤为生动，假设一个象棋程序使用两个线程：线程A负责GUI，等待人类棋手移动并显示计算机的移动；线程B思考下一手棋。尽管A等待人类选手时，B应当继续运行，把时间利用起来。但是，如果象棋程序是一个单独进程，A就不能简单的发出等待用户行为的阻塞系统调用，否则B也会阻塞。相反，A需要利用复杂的非阻塞技术确保进程仍然是可运行的（轮询，自旋）。</p>
+<p>现代Linux对此妥协，对比Windows的设计来说，前者引入了一个不伦不类的概念：轻量级进程(lightweight
+process)。用于对多线程提供更好的支持。两个轻量级进程基本上可以共享一些资源，比如地址空间、打开的文件等。只要其中一个修改共享资源，那么另一个就立即查看这种修改。当然，两个线程访问共享资源时需要同步处理。</p>
+<p>于是处理多线程时，可以把轻量级进程和每个线程关联起来。线程之间可以简单地共享同一内存地址空间、打开文件集等。每个线程也就由内核独立调度，不再出现一个发出阻塞系统调用，其他宕机的情况。</p>
+<p>归根结底，Linux的基本单元是进程。</p>
+<h2 id="进程描述符">进程描述符</h2>
+<p>有进程就得有管理的媒介。进程描述符用于提供内核进程的优先级、运行状态、地址空间等信息。Linux的进程描述符是<code>task_struct</code>结构，该字段极为庞大复杂，包含了进程相关的所有信息。</p>
+<p><img src="20170822_1.jpg" srcset="/img/loading.gif" lazyload /></p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br><span class="line">158</span><br><span class="line">159</span><br><span class="line">160</span><br><span class="line">161</span><br><span class="line">162</span><br><span class="line">163</span><br><span class="line">164</span><br><span class="line">165</span><br><span class="line">166</span><br><span class="line">167</span><br><span class="line">168</span><br><span class="line">169</span><br><span class="line">170</span><br><span class="line">171</span><br><span class="line">172</span><br><span class="line">173</span><br><span class="line">174</span><br><span class="line">175</span><br><span class="line">176</span><br><span class="line">177</span><br><span class="line">178</span><br><span class="line">179</span><br><span class="line">180</span><br><span class="line">181</span><br><span class="line">182</span><br><span class="line">183</span><br><span class="line">184</span><br><span class="line">185</span><br><span class="line">186</span><br><span class="line">187</span><br><span class="line">188</span><br><span class="line">189</span><br><span class="line">190</span><br><span class="line">191</span><br><span class="line">192</span><br><span class="line">193</span><br><span class="line">194</span><br><span class="line">195</span><br><span class="line">196</span><br><span class="line">197</span><br><span class="line">198</span><br><span class="line">199</span><br><span class="line">200</span><br><span class="line">201</span><br><span class="line">202</span><br><span class="line">203</span><br><span class="line">204</span><br><span class="line">205</span><br><span class="line">206</span><br><span class="line">207</span><br><span class="line">208</span><br><span class="line">209</span><br><span class="line">210</span><br><span class="line">211</span><br><span class="line">212</span><br><span class="line">213</span><br><span class="line">214</span><br><span class="line">215</span><br><span class="line">216</span><br><span class="line">217</span><br><span class="line">218</span><br><span class="line">219</span><br><span class="line">220</span><br><span class="line">221</span><br><span class="line">222</span><br><span class="line">223</span><br><span class="line">224</span><br><span class="line">225</span><br><span class="line">226</span><br><span class="line">227</span><br><span class="line">228</span><br><span class="line">229</span><br><span class="line">230</span><br><span class="line">231</span><br><span class="line">232</span><br><span class="line">233</span><br><span class="line">234</span><br><span class="line">235</span><br><span class="line">236</span><br><span class="line">237</span><br><span class="line">238</span><br><span class="line">239</span><br><span class="line">240</span><br><span class="line">241</span><br><span class="line">242</span><br><span class="line">243</span><br><span class="line">244</span><br><span class="line">245</span><br><span class="line">246</span><br><span class="line">247</span><br><span class="line">248</span><br><span class="line">249</span><br><span class="line">250</span><br><span class="line">251</span><br><span class="line">252</span><br><span class="line">253</span><br><span class="line">254</span><br><span class="line">255</span><br><span class="line">256</span><br><span class="line">257</span><br><span class="line">258</span><br><span class="line">259</span><br><span class="line">260</span><br><span class="line">261</span><br><span class="line">262</span><br><span class="line">263</span><br><span class="line">264</span><br><span class="line">265</span><br><span class="line">266</span><br><span class="line">267</span><br><span class="line">268</span><br><span class="line">269</span><br><span class="line">270</span><br><span class="line">271</span><br><span class="line">272</span><br><span class="line">273</span><br><span class="line">274</span><br><span class="line">275</span><br><span class="line">276</span><br><span class="line">277</span><br><span class="line">278</span><br><span class="line">279</span><br><span class="line">280</span><br><span class="line">281</span><br><span class="line">282</span><br><span class="line">283</span><br><span class="line">284</span><br><span class="line">285</span><br><span class="line">286</span><br><span class="line">287</span><br><span class="line">288</span><br><span class="line">289</span><br><span class="line">290</span><br><span class="line">291</span><br><span class="line">292</span><br><span class="line">293</span><br><span class="line">294</span><br><span class="line">295</span><br><span class="line">296</span><br><span class="line">297</span><br><span class="line">298</span><br><span class="line">299</span><br><span class="line">300</span><br><span class="line">301</span><br><span class="line">302</span><br><span class="line">303</span><br><span class="line">304</span><br><span class="line">305</span><br><span class="line">306</span><br><span class="line">307</span><br><span class="line">308</span><br><span class="line">309</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-keyword">struct</span> <span class="hljs-title class_">task_struct</span> &#123;<br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 进程状态。</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-keyword">volatile</span> <span class="hljs-type">long</span> state;	<span class="hljs-comment">/* -1 unrunnable, 0 runnable, &gt;0 stopped */</span><br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 进程的基本信息。</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-keyword">struct</span> <span class="hljs-title class_">thread_info</span> *thread_info;<br>	<span class="hljs-type">atomic_t</span> usage;<br>	<span class="hljs-type">unsigned</span> <span class="hljs-type">long</span> flags;	<span class="hljs-comment">/* per process flags, defined below */</span><br>	<span class="hljs-type">unsigned</span> <span class="hljs-type">long</span> ptrace;<br><br>	<span class="hljs-type">int</span> lock_depth;		<span class="hljs-comment">/* Lock depth */</span><br><br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 进行的动态优先权和静态优先权</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-type">int</span> prio, static_prio;<br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 进程所在运行队列。每个优先级对应一个运行队列。</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-keyword">struct</span> <span class="hljs-title class_">list_head</span> run_list;<br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 指向当前运行队列的prio_array_t</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-type">prio_array_t</span> *array;<br><br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 进程的平均睡眠时间</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-type">unsigned</span> <span class="hljs-type">long</span> sleep_avg;<br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * timestamp-进程最近插入运行队列的时间。或涉及本进程的最近一次进程切换的时间</span><br><span class="hljs-comment">	 * last_ran-最近一次替换本进程的进程切换时间。</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-type">unsigned</span> <span class="hljs-type">long</span> <span class="hljs-type">long</span> timestamp, last_ran;<br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 进程被唤醒时所使用的代码。</span><br><span class="hljs-comment">	 *     0:进程处于TASK_RUNNING状态。</span><br><span class="hljs-comment">	 *     1:进程处于TASK_INTERRUPTIBLE或者TASK_STOPPED状态，而且正在被系统调用服务例程或内核线程唤醒。</span><br><span class="hljs-comment">	 *     2:进程处于TASK_INTERRUPTIBLE或者TASK_STOPPED状态，而且正在被ISR或者可延迟函数唤醒。</span><br><span class="hljs-comment">	 *     -1:表示从UNINTERRUPTIBLE状态被唤醒</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-type">int</span> activated;<br><br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 进程的调度类型:sched_normal,sched_rr或者sched_fifo</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-type">unsigned</span> <span class="hljs-type">long</span> policy;<br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 能执行进程的CPU的位掩码</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-type">cpumask_t</span> cpus_allowed;<br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * time_slice-在进程的时间片中，还剩余的时钟节拍数。</span><br><span class="hljs-comment">	 * first_time_slice-如果进程肯定不会用完其时间片，就把该标志设置为1.</span><br><span class="hljs-comment">	 *            xie.baoyou注:原文如此,应该是表示任务是否是第一次执行。这样，如果是第一次执行，并且在开始运行</span><br><span class="hljs-comment">	 *                         的第一个时间片内就运行完毕，那么就将剩余的时间片还给父进程。主要是考虑到有进程</span><br><span class="hljs-comment">	 *                         会大量的动态创建子进程时，而子进程会立即退出这种情况。如果不还给父进程时间片，会对这种进程不公平。</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-type">unsigned</span> <span class="hljs-type">int</span> time_slice, first_time_slice;<br><br><span class="hljs-meta">#<span class="hljs-keyword">ifdef</span> CONFIG_SCHEDSTATS</span><br>	<span class="hljs-keyword">struct</span> <span class="hljs-title class_">sched_info</span> sched_info;<br><span class="hljs-meta">#<span class="hljs-keyword">endif</span></span><br><br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 通过此链表把所有进程链接到一个双向链表中。</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-keyword">struct</span> <span class="hljs-title class_">list_head</span> tasks;<br>	<span class="hljs-comment">/*</span><br><span class="hljs-comment">	 * ptrace_list/ptrace_children forms the list of my children</span><br><span class="hljs-comment">	 * that were stolen by a ptracer.</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 链表的头。该链表包含所有被debugger程序跟踪的P的子进程。</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-keyword">struct</span> <span class="hljs-title class_">list_head</span> ptrace_children;<br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 指向所跟踪进程其实际父进程链表的前一个下一个元素。</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-keyword">struct</span> <span class="hljs-title class_">list_head</span> ptrace_list;<br><br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * mm:指向内存区描述符的指针</span><br><span class="hljs-comment">	 * mm字段指向进程所拥有的内存描述符，而active_mm字段指向进程运行时所使用的内存描述符</span><br><span class="hljs-comment">	 * 对于普通进程而已，这两个字段存放相同的指针，但是，内核线程不拥有任何内存描述符，因此，他们的mm字段总是为NULL</span><br><span class="hljs-comment">	 * 当内核线程得以运行时，他的active_mm字段被初始化为前一个运行进程的active_mm值</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-keyword">struct</span> <span class="hljs-title class_">mm_struct</span> *mm, *active_mm;<br><br><span class="hljs-comment">/* task state */</span><br>	<span class="hljs-keyword">struct</span> <span class="hljs-title class_">linux_binfmt</span> *binfmt;<br>	<span class="hljs-type">long</span> exit_state;<br>	<span class="hljs-type">int</span> exit_code, exit_signal;<br>	<span class="hljs-type">int</span> pdeath_signal;  <span class="hljs-comment">/*  The signal sent when the parent dies  */</span><br>	<span class="hljs-comment">/* ??? */</span><br>	<span class="hljs-type">unsigned</span> <span class="hljs-type">long</span> personality;<br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 进程发出execve系统调用的次数。</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-type">unsigned</span> did_exec:<span class="hljs-number">1</span>;<br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 进程PID</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-type">pid_t</span> pid;<br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 线程组领头线程的PID。</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-type">pid_t</span> tgid;<br>	<span class="hljs-comment">/* </span><br><span class="hljs-comment">	 * pointers to (original) parent process, youngest child, younger sibling,</span><br><span class="hljs-comment">	 * older sibling, respectively.  (p-&gt;father can be replaced with </span><br><span class="hljs-comment">	 * p-&gt;parent-&gt;pid)</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 指向创建进程的进程的描述符。</span><br><span class="hljs-comment">	 * 如果进程的父进程不再存在，就指向进程1的描述符。</span><br><span class="hljs-comment">	 * 因此，如果用户运行一个后台进程而且退出了shell，后台进程就会成为init的子进程。</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-keyword">struct</span> <span class="hljs-title class_">task_struct</span> *real_parent; <span class="hljs-comment">/* real parent process (when being debugged) */</span><br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 指向进程的当前父进程。这种进程的子进程终止时，必须向父进程发信号。</span><br><span class="hljs-comment">	 * 它的值通常与real_parent一致。</span><br><span class="hljs-comment">	 * 但偶尔也可以不同。例如：当另一个进程发出监控进程的ptrace系统调用请求时。</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-keyword">struct</span> <span class="hljs-title class_">task_struct</span> *parent;	<span class="hljs-comment">/* parent process */</span><br>	<span class="hljs-comment">/*</span><br><span class="hljs-comment">	 * children/sibling forms the list of my children plus the</span><br><span class="hljs-comment">	 * tasks I&#x27;m ptracing.</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 链表头部。链表指向的所有元素都是进程创建的子进程。</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-keyword">struct</span> <span class="hljs-title class_">list_head</span> children;	<span class="hljs-comment">/* list of my children */</span><br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 指向兄弟进程链表的下一个元素或前一个元素的指针。</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-keyword">struct</span> <span class="hljs-title class_">list_head</span> sibling;	<span class="hljs-comment">/* linkage in my parent&#x27;s children list */</span><br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * P所在进程组的领头进程的描述符指针。</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-keyword">struct</span> <span class="hljs-title class_">task_struct</span> *group_leader;	<span class="hljs-comment">/* threadgroup leader */</span><br><br>	<span class="hljs-comment">/* PID/PID hash table linkage. */</span><br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * PID散列表。通过这四个表，可以方便的查找同一线程组的其他线程，同一会话的其他进程等等。</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-keyword">struct</span> <span class="hljs-title class_">pid</span> pids[PIDTYPE_MAX];<br><br>	<span class="hljs-keyword">struct</span> <span class="hljs-title class_">completion</span> *vfork_done;		<span class="hljs-comment">/* for vfork() */</span><br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 子进程在用户态的地址。这些用户态地址的值将被设置或者清除。</span><br><span class="hljs-comment">	 * 在do_fork时记录这些地址，稍后再设置或者清除它们的值。</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-type">int</span> __user *set_child_tid;		<span class="hljs-comment">/* CLONE_CHILD_SETTID */</span><br>	<span class="hljs-type">int</span> __user *clear_child_tid;		<span class="hljs-comment">/* CLONE_CHILD_CLEARTID */</span><br><br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 进程的实时优先级。</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-type">unsigned</span> <span class="hljs-type">long</span> rt_priority;<br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 以下三对值用于用户态的定时器。当定时器到期时，会向用户态进程发送信号。</span><br><span class="hljs-comment">	 * 每一对值分别存放了两个信号之间以节拍为单位的间隔，及定时器的当前值。</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-type">unsigned</span> <span class="hljs-type">long</span> it_real_value, it_real_incr;<br>	<span class="hljs-type">cputime_t</span> it_virt_value, it_virt_incr;<br>	<span class="hljs-type">cputime_t</span> it_prof_value, it_prof_incr;<br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 每个进程的动态定时器。用于实现ITIMER_REAL类型的间隔定时器。</span><br><span class="hljs-comment">	 * 由settimer系统调用初始化。</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-keyword">struct</span> <span class="hljs-title class_">timer_list</span> real_timer;<br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 进程在用户态和内核态下经过的节拍数</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-type">cputime_t</span> utime, stime;<br>	<span class="hljs-type">unsigned</span> <span class="hljs-type">long</span> nvcsw, nivcsw; <span class="hljs-comment">/* context switch counts */</span><br>	<span class="hljs-keyword">struct</span> <span class="hljs-title class_">timespec</span> start_time;<br><span class="hljs-comment">/* mm fault and swap info: this can arguably be seen as either mm-specific or thread-specific */</span><br>	<span class="hljs-type">unsigned</span> <span class="hljs-type">long</span> min_flt, maj_flt;<br><span class="hljs-comment">/* process credentials */</span><br>	<span class="hljs-type">uid_t</span> uid,euid,suid,fsuid;<br>	<span class="hljs-type">gid_t</span> gid,egid,sgid,fsgid;<br>	<span class="hljs-keyword">struct</span> <span class="hljs-title class_">group_info</span> *group_info;<br>	<span class="hljs-type">kernel_cap_t</span>   cap_effective, cap_inheritable, cap_permitted;<br>	<span class="hljs-type">unsigned</span> keep_capabilities:<span class="hljs-number">1</span>;<br>	<span class="hljs-keyword">struct</span> <span class="hljs-title class_">user_struct</span> *user;<br><span class="hljs-meta">#<span class="hljs-keyword">ifdef</span> CONFIG_KEYS</span><br>	<span class="hljs-keyword">struct</span> <span class="hljs-title class_">key</span> *session_keyring;	<span class="hljs-comment">/* keyring inherited over fork */</span><br>	<span class="hljs-keyword">struct</span> <span class="hljs-title class_">key</span> *process_keyring;	<span class="hljs-comment">/* keyring private to this process (CLONE_THREAD) */</span><br>	<span class="hljs-keyword">struct</span> <span class="hljs-title class_">key</span> *thread_keyring;	<span class="hljs-comment">/* keyring private to this thread */</span><br><span class="hljs-meta">#<span class="hljs-keyword">endif</span></span><br>	<span class="hljs-type">int</span> oomkilladj; <span class="hljs-comment">/* OOM kill score adjustment (bit shift). */</span><br>	<span class="hljs-type">char</span> comm[TASK_COMM_LEN];<br><span class="hljs-comment">/* file system info */</span><br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 文件系统在查找路径时使用，避免符号链接查找深度过深，导致死循环。</span><br><span class="hljs-comment">	 * link_count是__do_follow_link递归调用的层次。</span><br><span class="hljs-comment">	 * total_link_count调用__do_follow_link的总次数。</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-type">int</span> link_count, total_link_count;<br><span class="hljs-comment">/* ipc stuff */</span><br>	<span class="hljs-keyword">struct</span> <span class="hljs-title class_">sysv_sem</span> sysvsem;<br><span class="hljs-comment">/* CPU-specific state of this task */</span><br>	<span class="hljs-keyword">struct</span> <span class="hljs-title class_">thread_struct</span> thread;<br><span class="hljs-comment">/* filesystem information */</span><br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 与文件系统相关的信息。如当前目录。</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-keyword">struct</span> <span class="hljs-title class_">fs_struct</span> *fs;<br><span class="hljs-comment">/* open file information */</span><br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 指向文件描述符的指针</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-keyword">struct</span> <span class="hljs-title class_">files_struct</span> *files;<br><span class="hljs-comment">/* namespace */</span><br>	<span class="hljs-keyword">struct</span> <span class="hljs-title class_">namespace</span> *<span class="hljs-keyword">namespace</span>;<br><span class="hljs-comment">/* signal handlers */</span><br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 指向进程的信号描述符的指针</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-keyword">struct</span> <span class="hljs-title class_">signal_struct</span> *signal;<br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 指向进程的信号处理程序描述符的指针</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-keyword">struct</span> <span class="hljs-title class_">sighand_struct</span> *sighand;<br><br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * blocked-被阻塞的信号的掩码</span><br><span class="hljs-comment">	 * real_blocked-被阻塞信号的临时掩码（由rt_sigtimedwait系统调用使用）</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-type">sigset_t</span> blocked, real_blocked;<br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 存放私有挂起信号的数据结构</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-keyword">struct</span> <span class="hljs-title class_">sigpending</span> pending;<br><br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 信号处理程序备用堆栈的地址</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-type">unsigned</span> <span class="hljs-type">long</span> sas_ss_sp;<br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 信号处理程序备用堆栈的大小</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-type">size_t</span> sas_ss_size;<br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 指向一个函数的指针，设备驱动程序使用这个函数阻塞进程的某些信号</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-built_in">int</span> (*notifier)(<span class="hljs-type">void</span> *priv);<br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 指向notifier函数可能使用的数据</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-type">void</span> *notifier_data;<br>	<span class="hljs-comment">/*</span><br><span class="hljs-comment">	 * 设备驱动程序通过notifier 函数所阻塞的信号的位掩码</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-type">sigset_t</span> *notifier_mask;<br>	<br>	<span class="hljs-type">void</span> *security;<br>	<span class="hljs-keyword">struct</span> <span class="hljs-title class_">audit_context</span> *audit_context;<br><br><span class="hljs-comment">/* Thread group tracking */</span><br>   	u32 parent_exec_id;<br>   	u32 self_exec_id;<br><span class="hljs-comment">/* Protection of (de-)allocation: mm, files, fs, tty, keyrings */</span><br>	<span class="hljs-type">spinlock_t</span> alloc_lock;<br><span class="hljs-comment">/* Protection of proc_dentry: nesting proc_lock, dcache_lock, write_lock_irq(&amp;tasklist_lock); */</span><br>	<span class="hljs-type">spinlock_t</span> proc_lock;<br><span class="hljs-comment">/* context-switch lock */</span><br>	<span class="hljs-type">spinlock_t</span> switch_lock;<br><br><span class="hljs-comment">/* journalling filesystem info */</span><br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 当前活动日志操作处理的地址。</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-type">void</span> *journal_info;<br><br><span class="hljs-comment">/* VM state */</span><br>	<span class="hljs-keyword">struct</span> <span class="hljs-title class_">reclaim_state</span> *reclaim_state;<br><br>	<span class="hljs-keyword">struct</span> <span class="hljs-title class_">dentry</span> *proc_dentry;<br>	<span class="hljs-keyword">struct</span> <span class="hljs-title class_">backing_dev_info</span> *backing_dev_info;<br><br>	<span class="hljs-keyword">struct</span> <span class="hljs-title class_">io_context</span> *io_context;<br><br>	<span class="hljs-type">unsigned</span> <span class="hljs-type">long</span> ptrace_message;<br>	<span class="hljs-type">siginfo_t</span> *last_siginfo; <span class="hljs-comment">/* For ptrace use.  */</span><br><span class="hljs-comment">/*</span><br><span class="hljs-comment"> * current io wait handle: wait queue entry to use for io waits</span><br><span class="hljs-comment"> * If this thread is processing aio, this points at the waitqueue</span><br><span class="hljs-comment"> * inside the currently handled kiocb. It may be NULL (i.e. default</span><br><span class="hljs-comment"> * to a stack based synchronous wait) if its doing sync IO.</span><br><span class="hljs-comment"> */</span><br>	<span class="hljs-type">wait_queue_t</span> *io_wait;<br><span class="hljs-comment">/* i/o counters(bytes read/written, #syscalls */</span><br>	u64 rchar, wchar, syscr, syscw;<br><span class="hljs-meta">#<span class="hljs-keyword">if</span> defined(CONFIG_BSD_PROCESS_ACCT)</span><br>	u64 acct_rss_mem1;	<span class="hljs-comment">/* accumulated rss usage */</span><br>	u64 acct_vm_mem1;	<span class="hljs-comment">/* accumulated virtual memory usage */</span><br>	<span class="hljs-type">clock_t</span> acct_stimexpd;	<span class="hljs-comment">/* clock_t-converted stime since last update */</span><br><span class="hljs-meta">#<span class="hljs-keyword">endif</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">ifdef</span> CONFIG_NUMA</span><br>  	<span class="hljs-keyword">struct</span> <span class="hljs-title class_">mempolicy</span> *mempolicy;<br>	<span class="hljs-type">short</span> il_next;<br><span class="hljs-meta">#<span class="hljs-keyword">endif</span></span><br>&#125;;<br></code></pre></td></tr></table></figure>
+<p>包罗万象！</p>
+<h3 id="进程状态">进程状态</h3>
+<p>state描述进程状态，0表示正在运行或准备执行(runnable)，-1表示unrunnable，而大于0的情况都是stop态，此时要根据具体的值来判断其所处状态：</p>
+<p>以下代码展示了各种状态值： <figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * 进程要么在CPU上执行，要么准备执行。</span><br><span class="hljs-comment"> */</span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> TASK_RUNNING		0</span><br><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * 可中断的等待状态。</span><br><span class="hljs-comment"> * 进程被挂起，直到某个条件变为真。产生一个硬件中断，释放进程正等待的系统资源，或传递一个信号都是可以唤醒进程的条件</span><br><span class="hljs-comment"> */</span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> TASK_INTERRUPTIBLE	1</span><br><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * 不可中断的等待状态。</span><br><span class="hljs-comment"> * 这种情况很少，但是有时也有用：比如进程打开一个设备文件，其相应的驱动程序在探测硬件设备时，就是这种状态。</span><br><span class="hljs-comment"> * 在探测完成前，设备驱动程序如果被中断，那么硬件设备的状态可能会处于不可预知状态。</span><br><span class="hljs-comment"> */</span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> TASK_UNINTERRUPTIBLE	2</span><br><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * 暂停状态。当收到SIGSTOP,SIGTSTP,SIGTTIN或者SIGTTOU信号后，会进入此状态。</span><br><span class="hljs-comment"> */</span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> TASK_STOPPED		4</span><br><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * 被跟踪状态。当进程被另外一个进程监控时，任何信号都可以把这个置于该状态</span><br><span class="hljs-comment"> */</span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> TASK_TRACED		8</span><br><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * 僵死状态。进程的执行被终止，但是，父进程还没有调用完wait4和waitpid来返回有关</span><br><span class="hljs-comment"> * 死亡进程的信息。在此时，内核不能释放相关数据结构，因为父进程可能还需要它。</span><br><span class="hljs-comment"> */</span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> EXIT_ZOMBIE		16</span><br><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * 在父进程调用wait4后，删除前，为避免其他进程在同一进程上也执行wait4调用</span><br><span class="hljs-comment"> * 将其状态由EXIT_ZOMBIE转为EXIT_DEAD，即僵死撤销状态。</span><br><span class="hljs-comment"> */</span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> EXIT_DEAD		32</span><br></code></pre></td></tr></table></figure></p>
+<p>state字段的值通常都是简单的赋值语句：<code>p-&gt;state = TASK_RUNNING</code></p>
+<blockquote>
+<p>虽然设计上可以看出每个状态都是一个二进制位，理论上可以置多位。但当前的Linux中，这些标志全部都是互斥的。</p>
+</blockquote>
+<p>每个进程都有也必须有自己的进程描述符（包括轻量级进程，因为它也能独立调度每个执行上下文）。进程和描述符间存在一一对应的关系，进程描述符指针指向这些地址，内核对进程的大部分引用都是通过进程描述符指针进行的。</p>
+<h3 id="pid">PID</h3>
+<p>Linux的每个进程都有一个PID，这个PID放在task_struct的pid中。pid循环使用，内核通过一个pidmap-array位图来管理PID的分配。Linux把不同的PID与系统中每个进程相关联。这种方式十分灵活，因为系统中每个执行上下文都可以被唯一地识别。</p>
+<p>而因为考虑到多线程的支持，Linux引入线程组的表示。一个线程组中所有线程使用和该线程组领头线程相同的PID，也就是该组中第一个轻量级进程的PID，它放入task_struct的tgid字段。多线程应用程序的所有线程共享相同的PID。绝大多数进程都属于一个线程组，包含单一的成员；线程组的领头线程其tgid的值与pid的值相同。</p>
+<blockquote>
+<p>getpid()返回的是tgid值而不是gid值。某种视角来看，Linux多线程的支持概念中，线程和进程的地位刚好和Windows相反。</p>
+</blockquote>
+<h3 id="进程-进程描述符">进程&lt;-&gt;进程描述符</h3>
+<p>进程是动态的，内核显然不能把进程描述符放在永久分配的静态内存区，而应该放在动态内存中。对每个进程来说，Linux把两个不同的数据结构紧凑地存放在一个单独为进程分配的存储区域内：内核态堆栈+thread_info。</p>
+<p><img src="20170822_2.jpg" srcset="/img/loading.gif" lazyload /></p>
+<p>共同占据了8K也就是两页的内存，栈向上增长，thread_info有个task指针指向了进程描述符，进程描述符也通过thread_info指针指向这一结构，形成互相引用的关系。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * 内核栈与thread_info的联合体。</span><br><span class="hljs-comment"> */</span><br><span class="hljs-keyword">union</span> <span class="hljs-title class_">thread_union</span> &#123;<br>	<span class="hljs-keyword">struct</span> <span class="hljs-title class_">thread_info</span> thread_info;<br>	<span class="hljs-type">unsigned</span> <span class="hljs-type">long</span> stack[THREAD_SIZE/<span class="hljs-built_in">sizeof</span>(<span class="hljs-type">long</span>)];<br>&#125;;<br></code></pre></td></tr></table></figure>
+<blockquote>
+<p>考虑到效率因素，内核会让这8K占据连续的两个物理页框，第一个页框起始地址总是<code>1&lt;&lt;13</code>的倍数。另一方面因为连续页框会导致大量碎片，所以x86也提供了编译时的设置项，可以让内核栈和线程描述符跨越一个单独的页框。</p>
+</blockquote>
+<p>因为esp的关系，内核想要获取thread_info非常简单，current_thread_info()来完成这一简单的操作：</p>
+<figure class="highlight nginx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs nginx"><span class="hljs-comment"># AT&amp;T汇编产生的汇编指令</span><br><span class="hljs-attribute">movl</span> <span class="hljs-variable">$0</span>xffffe000, <span class="hljs-variable">$ecx</span><br>andl <span class="hljs-variable">$esp</span>, <span class="hljs-variable">$ecx</span><br>movl <span class="hljs-variable">$ecx</span>, p<br></code></pre></td></tr></table></figure>
+<p>实际上就是简单的把esp的低13位归零，自然就对应着thread_union的起始地址，也正是thread_info。
+进一步拿到current则有:</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-meta">#<span class="hljs-keyword">define</span> current get_current()</span><br><br><span class="hljs-type">static</span> <span class="hljs-keyword">inline</span> <span class="hljs-keyword">struct</span> <span class="hljs-title class_">task_struct</span> * <span class="hljs-built_in">get_current</span>(<span class="hljs-type">void</span>)<br>&#123;<br>	<span class="hljs-keyword">return</span> <span class="hljs-built_in">current_thread_info</span>()-&gt;task;<br>&#125;<br></code></pre></td></tr></table></figure>
+<blockquote>
+<p>栈存放进程描述符的优点在于多处理器上，每个处理器只需要通过检查栈就可以获得当前正确的进程。</p>
+</blockquote>
+<h3 id="双向链表">双向链表</h3>
+<p>Linux内核有个通用的结构list_head，本身只是个双向循环链表。但Linux常常把它嵌入到某个struct中，间接实现struct的链式管理：</p>
+<p><img src="20170822_3.jpg" srcset="/img/loading.gif" lazyload /></p>
+<p>注意next和prev指针指向的不是某个struct，而是struct中list_head的首地址（显然是为了泛用型设计）。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br><span class="line">158</span><br><span class="line">159</span><br><span class="line">160</span><br><span class="line">161</span><br><span class="line">162</span><br><span class="line">163</span><br><span class="line">164</span><br><span class="line">165</span><br><span class="line">166</span><br><span class="line">167</span><br><span class="line">168</span><br><span class="line">169</span><br><span class="line">170</span><br><span class="line">171</span><br><span class="line">172</span><br><span class="line">173</span><br><span class="line">174</span><br><span class="line">175</span><br><span class="line">176</span><br><span class="line">177</span><br><span class="line">178</span><br><span class="line">179</span><br><span class="line">180</span><br><span class="line">181</span><br><span class="line">182</span><br><span class="line">183</span><br><span class="line">184</span><br><span class="line">185</span><br><span class="line">186</span><br><span class="line">187</span><br><span class="line">188</span><br><span class="line">189</span><br><span class="line">190</span><br><span class="line">191</span><br><span class="line">192</span><br><span class="line">193</span><br><span class="line">194</span><br><span class="line">195</span><br><span class="line">196</span><br><span class="line">197</span><br><span class="line">198</span><br><span class="line">199</span><br><span class="line">200</span><br><span class="line">201</span><br><span class="line">202</span><br><span class="line">203</span><br><span class="line">204</span><br><span class="line">205</span><br><span class="line">206</span><br><span class="line">207</span><br><span class="line">208</span><br><span class="line">209</span><br><span class="line">210</span><br><span class="line">211</span><br><span class="line">212</span><br><span class="line">213</span><br><span class="line">214</span><br><span class="line">215</span><br><span class="line">216</span><br><span class="line">217</span><br><span class="line">218</span><br><span class="line">219</span><br><span class="line">220</span><br><span class="line">221</span><br><span class="line">222</span><br><span class="line">223</span><br><span class="line">224</span><br><span class="line">225</span><br><span class="line">226</span><br><span class="line">227</span><br><span class="line">228</span><br><span class="line">229</span><br><span class="line">230</span><br><span class="line">231</span><br><span class="line">232</span><br><span class="line">233</span><br><span class="line">234</span><br><span class="line">235</span><br><span class="line">236</span><br><span class="line">237</span><br><span class="line">238</span><br><span class="line">239</span><br><span class="line">240</span><br><span class="line">241</span><br><span class="line">242</span><br><span class="line">243</span><br><span class="line">244</span><br><span class="line">245</span><br><span class="line">246</span><br><span class="line">247</span><br><span class="line">248</span><br><span class="line">249</span><br><span class="line">250</span><br><span class="line">251</span><br><span class="line">252</span><br><span class="line">253</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-comment">/*</span><br><span class="hljs-comment"> * Simple doubly linked list implementation.</span><br><span class="hljs-comment"> *</span><br><span class="hljs-comment"> * Some of the internal functions (&quot;__xxx&quot;) are useful when</span><br><span class="hljs-comment"> * manipulating whole lists rather than single entries, as</span><br><span class="hljs-comment"> * sometimes we already know the next/prev entries and we can</span><br><span class="hljs-comment"> * generate better code by using them directly rather than</span><br><span class="hljs-comment"> * using the generic single-entry routines.</span><br><span class="hljs-comment"> */</span><br><br><span class="hljs-keyword">struct</span> <span class="hljs-title class_">list_head</span> &#123;<br>	<span class="hljs-keyword">struct</span> <span class="hljs-title class_">list_head</span> *next, *prev;<br>&#125;;<br><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> LIST_HEAD_INIT(name) &#123; &amp;(name), &amp;(name) &#125;</span><br><br><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * 创建一个新的链表。是新链表头的占位符，并且是一个哑元素。</span><br><span class="hljs-comment"> * 同时初始化prev和next字段，让它们指向list_name变量本身。</span><br><span class="hljs-comment"> */</span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> LIST_HEAD(name) \</span><br><span class="hljs-meta">	struct list_head name = LIST_HEAD_INIT(name)</span><br><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> INIT_LIST_HEAD(ptr) do &#123; \</span><br><span class="hljs-meta">	(ptr)-&gt;next = (ptr); (ptr)-&gt;prev = (ptr); \</span><br><span class="hljs-meta">&#125; while (0)</span><br><br><span class="hljs-comment">/*</span><br><span class="hljs-comment"> * Insert a new entry between two known consecutive entries.</span><br><span class="hljs-comment"> *</span><br><span class="hljs-comment"> * This is only for internal list manipulation where we know</span><br><span class="hljs-comment"> * the prev/next entries already!</span><br><span class="hljs-comment"> */</span><br><span class="hljs-type">static</span> <span class="hljs-keyword">inline</span> <span class="hljs-type">void</span> __list_add(<span class="hljs-keyword">struct</span> list_head *<span class="hljs-keyword">new</span>,<br>			      <span class="hljs-keyword">struct</span> list_head *prev,<br>			      <span class="hljs-keyword">struct</span> list_head *next)<br>&#123;<br>	next-&gt;prev = <span class="hljs-keyword">new</span>;<br>	<span class="hljs-keyword">new</span>-&gt;next = next;<br>	<span class="hljs-keyword">new</span>-&gt;prev = prev;<br>	prev-&gt;next = <span class="hljs-keyword">new</span>;<br>&#125;<br><br><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * list_add - add a new entry</span><br><span class="hljs-comment"> * @new: new entry to be added</span><br><span class="hljs-comment"> * @head: list head to add it after</span><br><span class="hljs-comment"> *</span><br><span class="hljs-comment"> * Insert a new entry after the specified head.</span><br><span class="hljs-comment"> * This is good for implementing stacks.</span><br><span class="hljs-comment"> */</span><br><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * 把元素插入特定元素之后</span><br><span class="hljs-comment"> */</span><br><span class="hljs-function"><span class="hljs-type">static</span> <span class="hljs-keyword">inline</span> <span class="hljs-type">void</span> <span class="hljs-title">list_add</span><span class="hljs-params">(<span class="hljs-keyword">struct</span> list_head *<span class="hljs-keyword">new</span>, <span class="hljs-keyword">struct</span> list_head *head)</span></span><br><span class="hljs-function"></span>&#123;<br>	__list_add(<span class="hljs-keyword">new</span>, head, head-&gt;next);<br>&#125;<br><br><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * list_add_tail - add a new entry</span><br><span class="hljs-comment"> * @new: new entry to be added</span><br><span class="hljs-comment"> * @head: list head to add it before</span><br><span class="hljs-comment"> *</span><br><span class="hljs-comment"> * Insert a new entry before the specified head.</span><br><span class="hljs-comment"> * This is useful for implementing queues.</span><br><span class="hljs-comment"> */</span><br><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * 把元素插到特定元素之前。</span><br><span class="hljs-comment"> */</span><br><span class="hljs-function"><span class="hljs-type">static</span> <span class="hljs-keyword">inline</span> <span class="hljs-type">void</span> <span class="hljs-title">list_add_tail</span><span class="hljs-params">(<span class="hljs-keyword">struct</span> list_head *<span class="hljs-keyword">new</span>, <span class="hljs-keyword">struct</span> list_head *head)</span></span><br><span class="hljs-function"></span>&#123;<br>	__list_add(<span class="hljs-keyword">new</span>, head-&gt;prev, head);<br>&#125;<br><br><span class="hljs-comment">/*</span><br><span class="hljs-comment"> * Insert a new entry between two known consecutive entries.</span><br><span class="hljs-comment"> *</span><br><span class="hljs-comment"> * This is only for internal list manipulation where we know</span><br><span class="hljs-comment"> * the prev/next entries already!</span><br><span class="hljs-comment"> */</span><br><span class="hljs-type">static</span> <span class="hljs-keyword">inline</span> <span class="hljs-type">void</span> __list_add_rcu(<span class="hljs-keyword">struct</span> list_head * <span class="hljs-keyword">new</span>,<br>		<span class="hljs-keyword">struct</span> list_head * prev, <span class="hljs-keyword">struct</span> list_head * next)<br>&#123;<br>	<span class="hljs-keyword">new</span>-&gt;next = next;<br>	<span class="hljs-keyword">new</span>-&gt;prev = prev;<br>	<span class="hljs-built_in">smp_wmb</span>();<br>	next-&gt;prev = <span class="hljs-keyword">new</span>;<br>	prev-&gt;next = <span class="hljs-keyword">new</span>;<br>&#125;<br><br>...<br><br><span class="hljs-comment">/*</span><br><span class="hljs-comment"> * Delete a list entry by making the prev/next entries</span><br><span class="hljs-comment"> * point to each other.</span><br><span class="hljs-comment"> *</span><br><span class="hljs-comment"> * This is only for internal list manipulation where we know</span><br><span class="hljs-comment"> * the prev/next entries already!</span><br><span class="hljs-comment"> */</span><br><span class="hljs-type">static</span> <span class="hljs-keyword">inline</span> <span class="hljs-type">void</span> __list_del(<span class="hljs-keyword">struct</span> list_head * prev, <span class="hljs-keyword">struct</span> list_head * next)<br>&#123;<br>	next-&gt;prev = prev;<br>	prev-&gt;next = next;<br>&#125;<br><br><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * list_del - deletes entry from list.</span><br><span class="hljs-comment"> * @entry: the element to delete from the list.</span><br><span class="hljs-comment"> * Note: list_empty on entry does not return true after this, the entry is</span><br><span class="hljs-comment"> * in an undefined state.</span><br><span class="hljs-comment"> */</span><br><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * 删除特定元素</span><br><span class="hljs-comment"> */</span><br><span class="hljs-function"><span class="hljs-type">static</span> <span class="hljs-keyword">inline</span> <span class="hljs-type">void</span> <span class="hljs-title">list_del</span><span class="hljs-params">(<span class="hljs-keyword">struct</span> list_head *entry)</span></span><br><span class="hljs-function"></span>&#123;<br>	__list_del(entry-&gt;prev, entry-&gt;next);<br>	entry-&gt;next = LIST_POISON1;<br>	entry-&gt;prev = LIST_POISON2;<br>&#125;<br><br>...<br><br><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * list_empty - tests whether a list is empty</span><br><span class="hljs-comment"> * @head: the list to test.</span><br><span class="hljs-comment"> */</span><br><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * 检查指定的链表是否为空</span><br><span class="hljs-comment"> */</span><br><span class="hljs-function"><span class="hljs-type">static</span> <span class="hljs-keyword">inline</span> <span class="hljs-type">int</span> <span class="hljs-title">list_empty</span><span class="hljs-params">(<span class="hljs-type">const</span> <span class="hljs-keyword">struct</span> list_head *head)</span></span><br><span class="hljs-function"></span>&#123;<br>	<span class="hljs-keyword">return</span> head-&gt;next == head;<br>&#125;<br><br>...<br><br><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * list_entry - get the struct for this entry</span><br><span class="hljs-comment"> * @ptr:	the &amp;struct list_head pointer.</span><br><span class="hljs-comment"> * @type:	the type of the struct this is embedded in.</span><br><span class="hljs-comment"> * @member:	the name of the list_struct within the struct.</span><br><span class="hljs-comment"> */</span><br><span class="hljs-comment">/** </span><br><span class="hljs-comment"> * 返回链表所在结构</span><br><span class="hljs-comment"> */</span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> list_entry(ptr, type, member) \</span><br><span class="hljs-meta">	container_of(ptr, type, member)</span><br><br><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * list_for_each	-	iterate over a list</span><br><span class="hljs-comment"> * @pos:	the &amp;struct list_head to use as a loop counter.</span><br><span class="hljs-comment"> * @head:	the head for your list.</span><br><span class="hljs-comment"> */</span><br><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * 扫描指定的链表</span><br><span class="hljs-comment"> */</span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> list_for_each(pos, head) \</span><br><span class="hljs-meta">	for (pos = (head)-&gt;next; prefetch(pos-&gt;next), pos != (head); \</span><br><span class="hljs-meta">        	pos = pos-&gt;next)</span><br><br><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * __list_for_each	-	iterate over a list</span><br><span class="hljs-comment"> * @pos:	the &amp;struct list_head to use as a loop counter.</span><br><span class="hljs-comment"> * @head:	the head for your list.</span><br><span class="hljs-comment"> *</span><br><span class="hljs-comment"> * This variant differs from list_for_each() in that it&#x27;s the</span><br><span class="hljs-comment"> * simplest possible list iteration code, no prefetching is done.</span><br><span class="hljs-comment"> * Use this for code that knows the list to be very short (empty</span><br><span class="hljs-comment"> * or 1 entry) most of the time.</span><br><span class="hljs-comment"> */</span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> __list_for_each(pos, head) \</span><br><span class="hljs-meta">	for (pos = (head)-&gt;next; pos != (head); pos = pos-&gt;next)</span><br><br><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * list_for_each_prev	-	iterate over a list backwards</span><br><span class="hljs-comment"> * @pos:	the &amp;struct list_head to use as a loop counter.</span><br><span class="hljs-comment"> * @head:	the head for your list.</span><br><span class="hljs-comment"> */</span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> list_for_each_prev(pos, head) \</span><br><span class="hljs-meta">	for (pos = (head)-&gt;prev; prefetch(pos-&gt;prev), pos != (head); \</span><br><span class="hljs-meta">        	pos = pos-&gt;prev)</span><br><br><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * list_for_each_safe	-	iterate over a list safe against removal of list entry</span><br><span class="hljs-comment"> * @pos:	the &amp;struct list_head to use as a loop counter.</span><br><span class="hljs-comment"> * @n:		another &amp;struct list_head to use as temporary storage</span><br><span class="hljs-comment"> * @head:	the head for your list.</span><br><span class="hljs-comment"> */</span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> list_for_each_safe(pos, n, head) \</span><br><span class="hljs-meta">	for (pos = (head)-&gt;next, n = pos-&gt;next; pos != (head); \</span><br><span class="hljs-meta">		pos = n, n = pos-&gt;next)</span><br><br><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * list_for_each_entry	-	iterate over list of given type</span><br><span class="hljs-comment"> * @pos:	the type * to use as a loop counter.</span><br><span class="hljs-comment"> * @head:	the head for your list.</span><br><span class="hljs-comment"> * @member:	the name of the list_struct within the struct.</span><br><span class="hljs-comment"> */</span><br><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * 与list_for_each相似，但是返回每个链表结点所在结构</span><br><span class="hljs-comment"> */</span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> list_for_each_entry(pos, head, member)				\</span><br><span class="hljs-meta">	for (pos = list_entry((head)-&gt;next, typeof(*pos), member);	\</span><br><span class="hljs-meta">	     prefetch(pos-&gt;member.next), &amp;pos-&gt;member != (head); 	\</span><br><span class="hljs-meta">	     pos = list_entry(pos-&gt;member.next, typeof(*pos), member))</span><br><br><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * list_for_each_entry_reverse - iterate backwards over list of given type.</span><br><span class="hljs-comment"> * @pos:	the type * to use as a loop counter.</span><br><span class="hljs-comment"> * @head:	the head for your list.</span><br><span class="hljs-comment"> * @member:	the name of the list_struct within the struct.</span><br><span class="hljs-comment"> */</span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> list_for_each_entry_reverse(pos, head, member)			\</span><br><span class="hljs-meta">	for (pos = list_entry((head)-&gt;prev, typeof(*pos), member);	\</span><br><span class="hljs-meta">	     prefetch(pos-&gt;member.prev), &amp;pos-&gt;member != (head); 	\</span><br><span class="hljs-meta">	     pos = list_entry(pos-&gt;member.prev, typeof(*pos), member))</span><br><br><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * list_prepare_entry - prepare a pos entry for use as a start point in</span><br><span class="hljs-comment"> *			list_for_each_entry_continue</span><br><span class="hljs-comment"> * @pos:	the type * to use as a start point</span><br><span class="hljs-comment"> * @head:	the head of the list</span><br><span class="hljs-comment"> * @member:	the name of the list_struct within the struct.</span><br><span class="hljs-comment"> */</span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> list_prepare_entry(pos, head, member) \</span><br><span class="hljs-meta">	((pos) ? : list_entry(head, typeof(*pos), member))</span><br><br><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * list_for_each_entry_continue -	iterate over list of given type</span><br><span class="hljs-comment"> *			continuing after existing point</span><br><span class="hljs-comment"> * @pos:	the type * to use as a loop counter.</span><br><span class="hljs-comment"> * @head:	the head for your list.</span><br><span class="hljs-comment"> * @member:	the name of the list_struct within the struct.</span><br><span class="hljs-comment"> */</span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> list_for_each_entry_continue(pos, head, member) 		\</span><br><span class="hljs-meta">	for (pos = list_entry(pos-&gt;member.next, typeof(*pos), member);	\</span><br><span class="hljs-meta">	     prefetch(pos-&gt;member.next), &amp;pos-&gt;member != (head);	\</span><br><span class="hljs-meta">	     pos = list_entry(pos-&gt;member.next, typeof(*pos), member))</span><br><br><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * list_for_each_entry_safe - iterate over list of given type safe against removal of list entry</span><br><span class="hljs-comment"> * @pos:	the type * to use as a loop counter.</span><br><span class="hljs-comment"> * @n:		another type * to use as temporary storage</span><br><span class="hljs-comment"> * @head:	the head for your list.</span><br><span class="hljs-comment"> * @member:	the name of the list_struct within the struct.</span><br><span class="hljs-comment"> */</span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> list_for_each_entry_safe(pos, n, head, member)			\</span><br><span class="hljs-meta">	for (pos = list_entry((head)-&gt;next, typeof(*pos), member),	\</span><br><span class="hljs-meta">		n = list_entry(pos-&gt;member.next, typeof(*pos), member);	\</span><br><span class="hljs-meta">	     &amp;pos-&gt;member != (head); 					\</span><br><span class="hljs-meta">	     pos = n, n = list_entry(n-&gt;member.next, typeof(*n), member))</span><br></code></pre></td></tr></table></figure>
+<p>篇幅太长，详细可以自己看<code>include/linux/List.h</code></p>
+<h3 id="进程链表">进程链表</h3>
+<p>进程链表是list_head的一个例子，进程链表把所有进程描述符链接起来。每个task_struct结构包含一个list_head类型的tasks字段，该字段的prev和next指向前后的task_struct元素（前面代码已给出）。</p>
+<p>链表头是init_task描述符，就是0进程。init_task的prev指向链表最后插入的进程描述符的tasks。</p>
+<h3 id="task_running态进程链表">TASK_RUNNING态进程链表</h3>
+<p>CPU调度时，只需要考虑可运行进程(TASK_RUNNING态)即可。Linux2.6为此优化了数据结构，设计了多个优先级不等的可运行进程链表，通过task_struct中另外一个list_head字段run_list链入对应优先权为k的链中。每个CPU都有自己的运行队列（可运行进程链表集）。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * 进程优先级数组。每个CPU对应一个此结构。</span><br><span class="hljs-comment"> */</span><br><span class="hljs-keyword">struct</span> <span class="hljs-title class_">prio_array</span> &#123;<br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 链表中进程描述符的数量。</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-type">unsigned</span> <span class="hljs-type">int</span> nr_active;<br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 优先权数组。当且仅当某个优先权的进程链表不为空时设置相应的位标志。</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-type">unsigned</span> <span class="hljs-type">long</span> bitmap[BITMAP_SIZE];<br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 140个优先权队列的头结点。</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-keyword">struct</span> <span class="hljs-title class_">list_head</span> queue[MAX_PRIO];<br>&#125;;<br><br><span class="hljs-keyword">typedef</span> <span class="hljs-keyword">struct</span> <span class="hljs-title class_">prio_array</span> <span class="hljs-type">prio_array_t</span>;<br></code></pre></td></tr></table></figure>
+<h3 id="进程间的关系">进程间的关系</h3>
+<p>进程描述符中有4个描述进程关系的字段： - real_parent<br />
+-
+指向创建了P的进程的描述符，如果P父进程不再存在，则指向1的描述符(init进程)
+- parent -
+指向P的当前父进程（这种进程的子进程终止时，必须向父进程发信号）。它的值通常与real_parent一致，但偶尔也可以不同，例如，当另一个进程发出监控P的ptrace()系统调用请求时
+- children - 链表头，链表中的所有元素都是P创建的子进程 - sibling -
+指向兄弟进程链表中的下一个元素或前一个元素指针，这些兄弟进程的父进程都是P</p>
+<p>进程关系的示意图(一图胜千言呐!)：</p>
+<p><img src="20170822_4.jpg" srcset="/img/loading.gif" lazyload /></p>
+<p>建立非亲属关系的进程描述符字段： - group_leader -
+P所在进程组的领头进程的描述符指针 - signal-&gt;pgrp -
+P所在进程组的领头进程的PID - tgid<br />
+- P所在线程组的领头进程的PID - signal-&gt;session -
+P的登录会话领头进程的PID - ptrace_children -
+链表的头，该链表包含所有被debugger程序跟踪的P的子进程 - ptrace_list -
+指向所跟踪进程其实际父进程链表的前一个和下一个元素（用于P被跟踪的时候）</p>
+<h3 id="pidhash表及链表">pidhash表及链表</h3>
+<p>内核必须能从进程PID导出对应的进程描述符指针，比如kill()系统调用（P1调用kill()，参数为P2的PID）。顺序扫描进程链表并逐一检查效率太低了，Linux实际上在布局进程描述符时，不仅采用了内嵌的双向链表，还有4个散列表。他们分别是：</p>
+<table>
+<thead>
+<tr class="header">
+<th>Hash表类型</th>
+<th>字段</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>PIDTYPE_PID</td>
+<td>pid</td>
+<td>进程的PID</td>
+</tr>
+<tr class="even">
+<td>PIDTYPE_TGID</td>
+<td>tgid</td>
+<td>进程组领头进程的PID</td>
+</tr>
+<tr class="odd">
+<td>PIDTYPE_PGID</td>
+<td>pgrp</td>
+<td>进程组领头进程的PID</td>
+</tr>
+<tr class="even">
+<td>PIDTYPE_SID</td>
+<td>session</td>
+<td>会话领头进程的PID</td>
+</tr>
+</tbody>
+</table>
+<p>4个散列表在内核初始化期间拿到空间，并把他们的地址存入pid_hash数组。</p>
+<p>Linux内核的哈希对于冲突的处理采用桶式链处理：</p>
+<p><img src="20170822_5.jpg" srcset="/img/loading.gif" lazyload /></p>
+<p>task_struct中struct
+pid成员pids数组即为四个散列表，看看struct结构：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-keyword">struct</span> <span class="hljs-title class_">pid</span><br>&#123;<br>	<span class="hljs-comment">/* Try to keep pid_chain in the same cacheline as nr for find_pid */</span><br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * PID值。</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-type">int</span> nr;<br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 链接散列表中下一个和前一个元素。</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-keyword">struct</span> <span class="hljs-title class_">hlist_node</span> pid_chain;<br>	<span class="hljs-comment">/* list of pids with the same nr, only one of them is in the hash */</span><br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 每个PID的进程链表头。</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-keyword">struct</span> <span class="hljs-title class_">list_head</span> pid_list;<br>&#125;;<br></code></pre></td></tr></table></figure>
+<p>所以，哈希的效果实现来看即如此：</p>
+<p><img src="20170822_6.jpg" srcset="/img/loading.gif" lazyload /></p>
+<h3 id="非task_running态进程">非TASK_RUNNING态进程</h3>
+<p>除了TASK_RUNNING态的进程组织成了链表，其他状态也有分别的处理： -
+TASK_STOPPED,EXIT_ZOMBIE,EXIT_DEAD都是散户，没有组织成链表，这几种状态的进程访问或者通过PID散列，或者通过父进程的子进程链表。
+-
+TASK_INTERRUPTIBLE，TASK_UNINTERRUPTIBLE状态被再细分成多个类，每一个对应一个特定的事件(event)。在这种情况下，进程状态不提供足够的信息来快速的追溯进程，所以有必要引入额外的进程链表。这被称作等待队列。</p>
+<h3 id="等待队列">等待队列</h3>
+<p>进程必须经常等待某些事件的发生，例如，等待一个磁盘操作的终止，系统资源的释放，等待固定的间隔。等待队列实现了在事件上的条件等待：希望等待特定事件的进程把自己放入合适的等待队列，并放弃控制权（阻塞）。因此，等待队列表示的是一组睡眠的进程，当其对应的事件置True时，内核唤醒它们。</p>
+<p>等待队列也是双向链表，使用list_head子结构，每个队列都有一个等待队列头，结构如下：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * 等待队列的头</span><br><span class="hljs-comment"> */</span><br><span class="hljs-keyword">struct</span> <span class="hljs-title class_">__wait_queue_head</span> &#123;<br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 由于等待队列可能由中断处理程序和内核函数修改，所以必须对双向链表进行保护，以免对其进行同时访问。</span><br><span class="hljs-comment">	 * 其同步是由lock自旋锁达到的。</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-type">spinlock_t</span> lock;<br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 等待进程链表的头。</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-keyword">struct</span> <span class="hljs-title class_">list_head</span> task_list;<br>&#125;;<br><span class="hljs-keyword">typedef</span> <span class="hljs-keyword">struct</span> <span class="hljs-title class_">__wait_queue_head</span> <span class="hljs-type">wait_queue_head_t</span>;<br></code></pre></td></tr></table></figure>
+<p>lock为同步所用自旋锁。</p>
+<p>等待队列链表中元素类型为wait_queue_t:</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-keyword">typedef</span> <span class="hljs-keyword">struct</span> <span class="hljs-title class_">__wait_queue</span> <span class="hljs-type">wait_queue_t</span>;<br><br><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * 等待队列中的元素，每个元素代表一个睡眠的进程。</span><br><span class="hljs-comment"> * 该进程等待某一个事件的发生。</span><br><span class="hljs-comment"> */</span><br><span class="hljs-keyword">struct</span> <span class="hljs-title class_">__wait_queue</span> &#123;<br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 如果flags为1,表示等待进程是互斥的。等待访问临界资源的进程就是典型的互斥进程。</span><br><span class="hljs-comment">	 * 如果flags为0，表示等待进程是非互斥的。等待相关事件的进程是非互斥的。</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-type">unsigned</span> <span class="hljs-type">int</span> flags;<br><span class="hljs-meta">#<span class="hljs-keyword">define</span> WQ_FLAG_EXCLUSIVE	0x01</span><br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 睡眠在队列上的进程描述符。</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-keyword">struct</span> <span class="hljs-title class_">task_struct</span> * task;<br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 等待队列中的睡眠进程以何种方式唤醒。</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-type">wait_queue_func_t</span> func;<br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 通过此指针将睡眠进程链接起来。</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-keyword">struct</span> <span class="hljs-title class_">list_head</span> task_list;<br>&#125;;<br></code></pre></td></tr></table></figure>
+<p>每个元素都是一个睡眠进程，等待某一事件发生；描述符地址在task字段，task_list包含的是指针，链接前后的等待相同事件的进程成员。</p>
+<p>显然如果每次唤醒都是唤醒所有进程，则当多个进程申请互斥资源时，存在着废操作（雷鸣般兽群问题），此时仅唤醒一个即可。于是，互斥进程（等待队列元素的flags字段为1）由内核选择地唤醒，非互斥进程(flags为0)由内核在事件发生时唤醒。</p>
+<h2 id="参考文献">参考文献</h2>
+<ul>
+<li>《深入理解Linux内核》</li>
+<li>《Linux内核源代码情景分析(上)》</li>
+<li>《Windows核心编程》</li>
+<li><a
+target="_blank" rel="noopener" href="http://www.nowamagic.net/academy/detail/3008086">Linux内核中的hash与bucket</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/sohu2000000/ULK">ULK Chinese
+comments</a></li>
+</ul>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/Linux/" class="category-chain-item">Linux</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/linux-kernel/" class="print-no-link">#linux-kernel</a>
+      
+        <a href="/tags/ulk/" class="print-no-link">#ulk</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>Linux内核学习——Linux进程概述</div>
+      <div>https://r00tk1ts.github.io/2017/08/22/Linux进程概述/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>r00tk1t</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2017年8月22日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2017/08/26/Linux%E8%BF%9B%E7%A8%8B%E5%88%87%E6%8D%A2/" title="Linux内核学习——Linux进程切换">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">Linux内核学习——Linux进程切换</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2017/08/18/Linux%E5%86%85%E5%AD%98%E5%AF%BB%E5%9D%80/" title="Linux内核学习——内存寻址">
+                        <span class="hidden-mobile">Linux内核学习——内存寻址</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+  
+<script src="/js/diy/yinghua.js"></script>
+<script src="/js/diy/love.js"></script>
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

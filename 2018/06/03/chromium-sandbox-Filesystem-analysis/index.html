@@ -1,0 +1,766 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/favicon.png">
+  <link rel="icon" href="/img/favicon.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="r00tk1t">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="本篇是sandbox源码剖析的第十四篇，主要分析了子系统Filesystem的三大组件。 Target在执行5个文件系统相关的API时，会因为Interceptions的部署（该子系统由broker远程部署(service call)）而调用hook函数，hook函数通过SharedMem IPC与broker通信，将调用参数传给broker，broker此后通过dispatcher分发找到对应子">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Chromium-sandbox-Filesystem-analysis">
+<meta property="og:url" content="https://r00tk1ts.github.io/2018/06/03/chromium-sandbox-Filesystem-analysis/index.html">
+<meta property="og:site_name" content="玉涵的技能书">
+<meta property="og:description" content="本篇是sandbox源码剖析的第十四篇，主要分析了子系统Filesystem的三大组件。 Target在执行5个文件系统相关的API时，会因为Interceptions的部署（该子系统由broker远程部署(service call)）而调用hook函数，hook函数通过SharedMem IPC与broker通信，将调用参数传给broker，broker此后通过dispatcher分发找到对应子">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2018-06-03T03:36:11.000Z">
+<meta property="article:modified_time" content="2024-04-22T03:34:00.165Z">
+<meta property="article:author" content="r00tk1t">
+<meta property="article:tag" content="chromium">
+<meta property="article:tag" content="chromium-sandbox">
+<meta name="twitter:card" content="summary_large_image">
+  
+  
+  
+  <title>Chromium-sandbox-Filesystem-analysis - 玉涵的技能书</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"r00tk1ts.github.io","root":"/","version":"1.9.5","typing":{"enable":true,"typeSpeed":80,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<!-- hexo injector head_end start --><link rel="stylesheet" href="https://cdn.staticfile.org/lxgw-wenkai-screen-webfont/1.7.0/style.min.css" /><!-- hexo injector head_end end --><meta name="generator" content="Hexo 6.1.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>玉涵的技能书</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/doc/">
+                <i class="iconfont icon-books"></i>
+                <span>藏经阁</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="Chromium-sandbox-Filesystem-analysis"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2018-06-03 11:36" pubdate>
+          2018年6月3日 中午
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          31k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          257 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">Chromium-sandbox-Filesystem-analysis</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <p>本篇是sandbox源码剖析的第十四篇，主要分析了子系统Filesystem的三大组件。</p>
+<p>Target在执行5个文件系统相关的API时，会因为Interceptions的部署（该子系统由broker远程部署(service
+call)）而调用hook函数，hook函数通过SharedMem
+IPC与broker通信，将调用参数传给broker，broker此后通过dispatcher分发找到对应子系统的dispatcher，子系统dispatcher会匹配调用参数并调用一早便注册好的callback，callback会进行Low-level
+policy的Evaluate鉴权，并进一步调用low-level
+policy的业务处理函数，根据鉴权结果来执行API，并在CrossCallResult回执结果。</p>
+<p>阅读本篇前，请先阅读前面所有章节。</p>
+<p>想要流程的阅读本系列你需要以下几个条件： 1.
+较高水平的C++编码能力（至少通读C++ Primer
+5th，刷过课后题，有一定编码量）。 2. 熟悉Windows
+API编程，尤其是安全相关的内容。 3.
+对二进制安全有一定了解，熟悉各类型安全漏洞成因、漏洞缓解措施及bypass手法。</p>
+<span id="more"></span>
+<h1
+id="chromium-sandbox-filesystem-analysis">chromium-sandbox-Filesystem-analysis</h1>
+<p>Low-level
+policy、Dispatcher、Interceptions作为三个基本组件，目前都已经分析完了。sandbox中对每个子系统使用了这三大组件。</p>
+<h2 id="low-level-policy">low-level policy</h2>
+<p>类头定义：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-comment">// This class centralizes most of the knowledge related to file system policy</span><br><span class="hljs-keyword">class</span> <span class="hljs-title class_">FileSystemPolicy</span> &#123;<br> <span class="hljs-keyword">public</span>:<br>  <span class="hljs-comment">// Creates the required low-level policy rules to evaluate a high-level</span><br>  <span class="hljs-comment">// policy rule for File IO, in particular open or create actions.</span><br>  <span class="hljs-comment">// &#x27;name&#x27; is the file or directory name.</span><br>  <span class="hljs-comment">// &#x27;semantics&#x27; is the desired semantics for the open or create.</span><br>  <span class="hljs-comment">// &#x27;policy&#x27; is the policy generator to which the rules are going to be added.</span><br>  <span class="hljs-comment">// 使用low-level policy来evaluate一个high-level FILE IO policy rule</span><br>  <span class="hljs-function"><span class="hljs-type">static</span> <span class="hljs-type">bool</span> <span class="hljs-title">GenerateRules</span><span class="hljs-params">(<span class="hljs-type">const</span> <span class="hljs-type">wchar_t</span>* name,</span></span><br><span class="hljs-params"><span class="hljs-function">                            TargetPolicy::Semantics semantics,</span></span><br><span class="hljs-params"><span class="hljs-function">                            LowLevelPolicy* policy)</span></span>;	<br><br>  <span class="hljs-comment">// Add basic file system rules.</span><br>  <span class="hljs-comment">// 基础的文件系统rule添加接口</span><br>  <span class="hljs-function"><span class="hljs-type">static</span> <span class="hljs-type">bool</span> <span class="hljs-title">SetInitialRules</span><span class="hljs-params">(LowLevelPolicy* policy)</span></span>;<br><br>  <span class="hljs-comment">// Performs the desired policy action on a create request with an</span><br>  <span class="hljs-comment">// API that is compatible with the IPC-received parameters.</span><br>  <span class="hljs-comment">// &#x27;client_info&#x27; : the target process that is making the request.</span><br>  <span class="hljs-comment">// &#x27;eval_result&#x27; : The desired policy action to accomplish.</span><br>  <span class="hljs-comment">// &#x27;file&#x27; : The target file or directory.</span><br>  <span class="hljs-comment">// 通过IPC收到的create request</span><br>  <span class="hljs-function"><span class="hljs-type">static</span> <span class="hljs-type">bool</span> <span class="hljs-title">CreateFileAction</span><span class="hljs-params">(EvalResult eval_result,</span></span><br><span class="hljs-params"><span class="hljs-function">                               <span class="hljs-type">const</span> ClientInfo&amp; client_info,</span></span><br><span class="hljs-params"><span class="hljs-function">                               <span class="hljs-type">const</span> base::string16&amp; file,</span></span><br><span class="hljs-params"><span class="hljs-function">                               <span class="hljs-type">uint32_t</span> attributes,</span></span><br><span class="hljs-params"><span class="hljs-function">                               <span class="hljs-type">uint32_t</span> desired_access,</span></span><br><span class="hljs-params"><span class="hljs-function">                               <span class="hljs-type">uint32_t</span> file_attributes,</span></span><br><span class="hljs-params"><span class="hljs-function">                               <span class="hljs-type">uint32_t</span> share_access,</span></span><br><span class="hljs-params"><span class="hljs-function">                               <span class="hljs-type">uint32_t</span> create_disposition,</span></span><br><span class="hljs-params"><span class="hljs-function">                               <span class="hljs-type">uint32_t</span> create_options,</span></span><br><span class="hljs-params"><span class="hljs-function">                               HANDLE* handle,</span></span><br><span class="hljs-params"><span class="hljs-function">                               NTSTATUS* nt_status,</span></span><br><span class="hljs-params"><span class="hljs-function">                               ULONG_PTR* io_information)</span></span>;<br><br>  <span class="hljs-comment">// Performs the desired policy action on an open request with an</span><br>  <span class="hljs-comment">// API that is compatible with the IPC-received parameters.</span><br>  <span class="hljs-comment">// &#x27;client_info&#x27; : the target process that is making the request.</span><br>  <span class="hljs-comment">// &#x27;eval_result&#x27; : The desired policy action to accomplish.</span><br>  <span class="hljs-comment">// &#x27;file&#x27; : The target file or directory.</span><br>  <span class="hljs-comment">// IPC收到的open request</span><br>  <span class="hljs-function"><span class="hljs-type">static</span> <span class="hljs-type">bool</span> <span class="hljs-title">OpenFileAction</span><span class="hljs-params">(EvalResult eval_result,</span></span><br><span class="hljs-params"><span class="hljs-function">                             <span class="hljs-type">const</span> ClientInfo&amp; client_info,</span></span><br><span class="hljs-params"><span class="hljs-function">                             <span class="hljs-type">const</span> base::string16&amp; file,</span></span><br><span class="hljs-params"><span class="hljs-function">                             <span class="hljs-type">uint32_t</span> attributes,</span></span><br><span class="hljs-params"><span class="hljs-function">                             <span class="hljs-type">uint32_t</span> desired_access,</span></span><br><span class="hljs-params"><span class="hljs-function">                             <span class="hljs-type">uint32_t</span> share_access,</span></span><br><span class="hljs-params"><span class="hljs-function">                             <span class="hljs-type">uint32_t</span> open_options,</span></span><br><span class="hljs-params"><span class="hljs-function">                             HANDLE* handle,</span></span><br><span class="hljs-params"><span class="hljs-function">                             NTSTATUS* nt_status,</span></span><br><span class="hljs-params"><span class="hljs-function">                             ULONG_PTR* io_information)</span></span>;<br><br>  <span class="hljs-comment">// Performs the desired policy action on a query request with an</span><br>  <span class="hljs-comment">// API that is compatible with the IPC-received parameters.</span><br>  <span class="hljs-comment">// IPC收到的query request</span><br>  <span class="hljs-function"><span class="hljs-type">static</span> <span class="hljs-type">bool</span> <span class="hljs-title">QueryAttributesFileAction</span><span class="hljs-params">(EvalResult eval_result,</span></span><br><span class="hljs-params"><span class="hljs-function">                                        <span class="hljs-type">const</span> ClientInfo&amp; client_info,</span></span><br><span class="hljs-params"><span class="hljs-function">                                        <span class="hljs-type">const</span> base::string16&amp; file,</span></span><br><span class="hljs-params"><span class="hljs-function">                                        <span class="hljs-type">uint32_t</span> attributes,</span></span><br><span class="hljs-params"><span class="hljs-function">                                        FILE_BASIC_INFORMATION* file_info,</span></span><br><span class="hljs-params"><span class="hljs-function">                                        NTSTATUS* nt_status)</span></span>;<br><br>  <span class="hljs-comment">// Performs the desired policy action on a query request with an</span><br>  <span class="hljs-comment">// API that is compatible with the IPC-received parameters.</span><br>  <span class="hljs-comment">// IPC收到的query full request</span><br>  <span class="hljs-function"><span class="hljs-type">static</span> <span class="hljs-type">bool</span> <span class="hljs-title">QueryFullAttributesFileAction</span><span class="hljs-params">(</span></span><br><span class="hljs-params"><span class="hljs-function">      EvalResult eval_result,</span></span><br><span class="hljs-params"><span class="hljs-function">      <span class="hljs-type">const</span> ClientInfo&amp; client_info,</span></span><br><span class="hljs-params"><span class="hljs-function">      <span class="hljs-type">const</span> base::string16&amp; file,</span></span><br><span class="hljs-params"><span class="hljs-function">      <span class="hljs-type">uint32_t</span> attributes,</span></span><br><span class="hljs-params"><span class="hljs-function">      FILE_NETWORK_OPEN_INFORMATION* file_info,</span></span><br><span class="hljs-params"><span class="hljs-function">      NTSTATUS* nt_status)</span></span>;<br><br>  <span class="hljs-comment">// Performs the desired policy action on a set_info request with an</span><br>  <span class="hljs-comment">// API that is compatible with the IPC-received parameters.</span><br>  <span class="hljs-comment">// IPC收到的set_info request</span><br>  <span class="hljs-function"><span class="hljs-type">static</span> <span class="hljs-type">bool</span> <span class="hljs-title">SetInformationFileAction</span><span class="hljs-params">(EvalResult eval_result,</span></span><br><span class="hljs-params"><span class="hljs-function">                                       <span class="hljs-type">const</span> ClientInfo&amp; client_info,</span></span><br><span class="hljs-params"><span class="hljs-function">                                       HANDLE target_file_handle,</span></span><br><span class="hljs-params"><span class="hljs-function">                                       <span class="hljs-type">void</span>* file_info,</span></span><br><span class="hljs-params"><span class="hljs-function">                                       <span class="hljs-type">uint32_t</span> length,</span></span><br><span class="hljs-params"><span class="hljs-function">                                       <span class="hljs-type">uint32_t</span> info_class,</span></span><br><span class="hljs-params"><span class="hljs-function">                                       IO_STATUS_BLOCK* io_block,</span></span><br><span class="hljs-params"><span class="hljs-function">                                       NTSTATUS* nt_status)</span></span>;<br>&#125;;<br></code></pre></td></tr></table></figure>
+<p>实际上就是文件系统中，几种对文件操作的broker端审判，而请求由target发起。二者通过IPC通信。</p>
+<p>注意到所有的成员都是static函数，类的定义仅仅是为了结构上的封装。这些函数全部由外部对象调用。</p>
+<h3 id="generaterules"><code>GenerateRules</code></h3>
+<p>在分析该函数前，我们先看看这个函数在哪里被调用，通过交叉引用，我们发现，在<code>PolicyBase::AddRuleInternal</code>中存在调用关系。而这个函数实际上是<code>PolicyBase::AddRule</code>的helper函数。而<code>AddRule</code>这个函数我们清楚，它是<code>PolicyBase</code>对broker提供的调用接口，用于添加一个规则。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-function">ResultCode <span class="hljs-title">PolicyBase::AddRule</span><span class="hljs-params">(SubSystem subsystem,	<span class="hljs-comment">// 哪个子系统的规则</span></span></span><br><span class="hljs-params"><span class="hljs-function">                               Semantics semantics,	<span class="hljs-comment">// rule匹配时允许的语义</span></span></span><br><span class="hljs-params"><span class="hljs-function">                               <span class="hljs-type">const</span> <span class="hljs-type">wchar_t</span>* pattern)</span> </span>&#123;<br>  ResultCode result = <span class="hljs-built_in">AddRuleInternal</span>(subsystem, semantics, pattern);<br>  <span class="hljs-built_in">LOG_IF</span>(ERROR, result != SBOX_ALL_OK)<br>      &lt;&lt; <span class="hljs-string">&quot;Failed to add sandbox rule.&quot;</span><br>      &lt;&lt; <span class="hljs-string">&quot; error = &quot;</span> &lt;&lt; result &lt;&lt; <span class="hljs-string">&quot;, subsystem = &quot;</span> &lt;&lt; subsystem<br>      &lt;&lt; <span class="hljs-string">&quot;, semantics = &quot;</span> &lt;&lt; semantics &lt;&lt; <span class="hljs-string">&quot;, pattern = &#x27;&quot;</span> &lt;&lt; pattern &lt;&lt; <span class="hljs-string">&quot;&#x27;&quot;</span>;<br>  <span class="hljs-keyword">return</span> result;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>对于我们本次分析的filesystem子系统来说，<code>SubSystem</code>就是<code>SUBSYS_FILES</code>，而<code>Semantics</code>有这几个值：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs cpp">FILES_ALLOW_ANY,       <span class="hljs-comment">// Allows open or create for any kind of access that</span><br>					 <span class="hljs-comment">// the file system supports.</span><br>FILES_ALLOW_READONLY,  <span class="hljs-comment">// Allows open or create with read access only.</span><br>FILES_ALLOW_QUERY,     <span class="hljs-comment">// Allows access to query the attributes of a file.</span><br>FILES_ALLOW_DIR_ANY,   <span class="hljs-comment">// Allows open or create with directory semantics</span><br>					 <span class="hljs-comment">// only.</span><br></code></pre></td></tr></table></figure>
+<p>再看helper函数：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-function">ResultCode <span class="hljs-title">PolicyBase::AddRuleInternal</span><span class="hljs-params">(SubSystem subsystem,</span></span><br><span class="hljs-params"><span class="hljs-function">                                       Semantics semantics,</span></span><br><span class="hljs-params"><span class="hljs-function">                                       <span class="hljs-type">const</span> <span class="hljs-type">wchar_t</span>* pattern)</span> </span>&#123;<br>  <span class="hljs-comment">// policy_是PolicyGlobal成员，我们现在知道了它是存放所有PolicyBuffer的buffer</span><br>  <span class="hljs-keyword">if</span> (!policy_) &#123;<br>    <span class="hljs-comment">// 如果还没准备，就先make一个4096*14尺寸的PolicyGlobal</span><br>    policy_ = <span class="hljs-built_in">MakeBrokerPolicyMemory</span>();<br>    <span class="hljs-built_in">DCHECK</span>(policy_);<br>    <span class="hljs-comment">// 使用该PolicyGlobal new出一个LowLevelPolicy</span><br>    policy_maker_ = <span class="hljs-keyword">new</span> <span class="hljs-built_in">LowLevelPolicy</span>(policy_);<br>    <span class="hljs-built_in">DCHECK</span>(policy_maker_);<br>  &#125;<br><br>  <span class="hljs-keyword">switch</span> (subsystem) &#123;<br>    <span class="hljs-keyword">case</span> SUBSYS_FILES: &#123;<br>      <span class="hljs-comment">// 文件子系统会进到这里，一开始file_system_init_是false</span><br>      <span class="hljs-keyword">if</span> (!file_system_init_) &#123;<br>        <span class="hljs-comment">// 执行完SetInitialRules后，file_system_init_置true，即SetInitialRules只执行一次</span><br>        <span class="hljs-keyword">if</span> (!FileSystemPolicy::<span class="hljs-built_in">SetInitialRules</span>(policy_maker_))<br>          <span class="hljs-keyword">return</span> SBOX_ERROR_BAD_PARAMS;<br>        file_system_init_ = <span class="hljs-literal">true</span>;<br>      &#125;<br>      <span class="hljs-comment">// 根据传入的pattern,semantics，用LowLevelPolicy生成一个rule</span><br>      <span class="hljs-keyword">if</span> (!FileSystemPolicy::<span class="hljs-built_in">GenerateRules</span>(pattern, semantics, policy_maker_)) &#123;<br>        <span class="hljs-built_in">NOTREACHED</span>();<br>        <span class="hljs-keyword">return</span> SBOX_ERROR_BAD_PARAMS;<br>      &#125;<br>      <span class="hljs-keyword">break</span>;<br>    &#125;<br>    <span class="hljs-keyword">case</span> SUBSYS_SYNC: &#123;<br>      <span class="hljs-keyword">if</span> (!SyncPolicy::<span class="hljs-built_in">GenerateRules</span>(pattern, semantics, policy_maker_)) &#123;<br>        <span class="hljs-built_in">NOTREACHED</span>();<br>        <span class="hljs-keyword">return</span> SBOX_ERROR_BAD_PARAMS;<br>      &#125;<br>      <span class="hljs-keyword">break</span>;<br>    &#125;<br>    <span class="hljs-keyword">case</span> SUBSYS_PROCESS: &#123;<br>      <span class="hljs-keyword">if</span> (lockdown_level_ &lt; USER_INTERACTIVE &amp;&amp;<br>          TargetPolicy::PROCESS_ALL_EXEC == semantics) &#123;<br>        <span class="hljs-comment">// This is unsupported. This is a huge security risk to give full access</span><br>        <span class="hljs-comment">// to a process handle.</span><br>        <span class="hljs-keyword">return</span> SBOX_ERROR_UNSUPPORTED;<br>      &#125;<br>      <span class="hljs-keyword">if</span> (!ProcessPolicy::<span class="hljs-built_in">GenerateRules</span>(pattern, semantics, policy_maker_)) &#123;<br>        <span class="hljs-built_in">NOTREACHED</span>();<br>        <span class="hljs-keyword">return</span> SBOX_ERROR_BAD_PARAMS;<br>      &#125;<br>      <span class="hljs-keyword">break</span>;<br>    &#125;<br>    <span class="hljs-keyword">case</span> SUBSYS_NAMED_PIPES: &#123;<br>      <span class="hljs-keyword">if</span> (!NamedPipePolicy::<span class="hljs-built_in">GenerateRules</span>(pattern, semantics, policy_maker_)) &#123;<br>        <span class="hljs-built_in">NOTREACHED</span>();<br>        <span class="hljs-keyword">return</span> SBOX_ERROR_BAD_PARAMS;<br>      &#125;<br>      <span class="hljs-keyword">break</span>;<br>    &#125;<br>    <span class="hljs-keyword">case</span> SUBSYS_REGISTRY: &#123;<br>      <span class="hljs-keyword">if</span> (!RegistryPolicy::<span class="hljs-built_in">GenerateRules</span>(pattern, semantics, policy_maker_)) &#123;<br>        <span class="hljs-built_in">NOTREACHED</span>();<br>        <span class="hljs-keyword">return</span> SBOX_ERROR_BAD_PARAMS;<br>      &#125;<br>      <span class="hljs-keyword">break</span>;<br>    &#125;<br>    <span class="hljs-keyword">case</span> SUBSYS_WIN32K_LOCKDOWN: &#123;<br>      <span class="hljs-keyword">if</span> (!ProcessMitigationsWin32KLockdownPolicy::<span class="hljs-built_in">GenerateRules</span>(<br>              pattern, semantics, policy_maker_)) &#123;<br>        <span class="hljs-built_in">NOTREACHED</span>();<br>        <span class="hljs-keyword">return</span> SBOX_ERROR_BAD_PARAMS;<br>      &#125;<br>      <span class="hljs-keyword">break</span>;<br>    &#125;<br><br>    <span class="hljs-keyword">default</span>: &#123; <span class="hljs-keyword">return</span> SBOX_ERROR_UNSUPPORTED; &#125;<br>  &#125;<br><br>  <span class="hljs-keyword">return</span> SBOX_ALL_OK;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>不仅可以看到<code>GenerateRules</code>，还可以看到<code>SetInitialRules</code>调用的时机，我们先分析前者：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-function"><span class="hljs-type">bool</span> <span class="hljs-title">FileSystemPolicy::GenerateRules</span><span class="hljs-params">(<span class="hljs-type">const</span> <span class="hljs-type">wchar_t</span>* name,</span></span><br><span class="hljs-params"><span class="hljs-function">                                     TargetPolicy::Semantics semantics,</span></span><br><span class="hljs-params"><span class="hljs-function">                                     LowLevelPolicy* policy)</span> </span>&#123;<br>  <span class="hljs-comment">// 对文件子系统来说，传过来的pattern也就是name实际上是文件名称</span><br>  <span class="hljs-function">base::string16 <span class="hljs-title">mod_name</span><span class="hljs-params">(name)</span></span>;<br>  <span class="hljs-keyword">if</span> (mod_name.<span class="hljs-built_in">empty</span>()) &#123;<br>    <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;<br>  &#125;<br><br>  <span class="hljs-comment">// 处理reparse(..)，就是把当前路径&#x27;.&#x27;，上一路径&#x27;..&#x27;这些先处理一下</span><br>  <span class="hljs-comment">// 内部调用的是ConvertToLongPath接IsReparsePoint，我们此前见过</span><br>  <span class="hljs-keyword">if</span> (!<span class="hljs-built_in">PreProcessName</span>(&amp;mod_name)) &#123;<br>    <span class="hljs-comment">// The path to be added might contain a reparse point.</span><br>    <span class="hljs-built_in">NOTREACHED</span>();<br>    <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;<br>  &#125;<br><br>  <span class="hljs-comment">// TODO(cpu) bug 32224: This prefix add is a hack because we don&#x27;t have the</span><br>  <span class="hljs-comment">// infrastructure to normalize names. In any case we need to escape the</span><br>  <span class="hljs-comment">// question marks.</span><br>  <span class="hljs-comment">// 对&quot;\\Device\\&quot;前缀的一个patch，具体原因得参考bug 32224，这里不是我们研究的主题，先pass</span><br>  <span class="hljs-keyword">if</span> (_wcsnicmp(mod_name.<span class="hljs-built_in">c_str</span>(), kNTDevicePrefix, kNTDevicePrefixLen)) &#123;<br>    mod_name = <span class="hljs-built_in">FixNTPrefixForMatch</span>(mod_name);<br>    name = mod_name.<span class="hljs-built_in">c_str</span>();<br>  &#125;<br><br>  <span class="hljs-comment">// 生成的rule的action opcode是ASK_BROKER</span><br>  EvalResult result = ASK_BROKER;<br><br>  <span class="hljs-comment">// List of supported calls for the filesystem.</span><br>  <span class="hljs-type">const</span> <span class="hljs-type">unsigned</span> kCallNtCreateFile = <span class="hljs-number">0x1</span>;<br>  <span class="hljs-type">const</span> <span class="hljs-type">unsigned</span> kCallNtOpenFile = <span class="hljs-number">0x2</span>;<br>  <span class="hljs-type">const</span> <span class="hljs-type">unsigned</span> kCallNtQueryAttributesFile = <span class="hljs-number">0x4</span>;<br>  <span class="hljs-type">const</span> <span class="hljs-type">unsigned</span> kCallNtQueryFullAttributesFile = <span class="hljs-number">0x8</span>;<br>  <span class="hljs-type">const</span> <span class="hljs-type">unsigned</span> kCallNtSetInfoRename = <span class="hljs-number">0x10</span>;<br><br>  DWORD rule_to_add = kCallNtOpenFile | kCallNtCreateFile |<br>                      kCallNtQueryAttributesFile |<br>                      kCallNtQueryFullAttributesFile | kCallNtSetInfoRename;<br><br>  <span class="hljs-comment">// 新建了5个PolicyRule，分别管制5种请求，action为ASK_BROKER</span><br>  <span class="hljs-function">PolicyRule <span class="hljs-title">create</span><span class="hljs-params">(result)</span></span>;<br>  <span class="hljs-function">PolicyRule <span class="hljs-title">open</span><span class="hljs-params">(result)</span></span>;<br>  <span class="hljs-function">PolicyRule <span class="hljs-title">query</span><span class="hljs-params">(result)</span></span>;<br>  <span class="hljs-function">PolicyRule <span class="hljs-title">query_full</span><span class="hljs-params">(result)</span></span>;<br>  <span class="hljs-function">PolicyRule <span class="hljs-title">rename</span><span class="hljs-params">(result)</span></span>;<br><br>  <span class="hljs-comment">//根据semantics处理分支</span><br>  <span class="hljs-keyword">switch</span> (semantics) &#123;<br>    <span class="hljs-keyword">case</span> TargetPolicy::FILES_ALLOW_DIR_ANY: &#123;<br>      <span class="hljs-comment">// 只能打开目录，这种情况就对open和create两套规则的OpenFile::OPTIONS parameter_</span><br>      <span class="hljs-comment">// 设置值为FILE_DIRECTORY_FILE的按位与匹配</span><br>      open.<span class="hljs-built_in">AddNumberMatch</span>(IF, OpenFile::OPTIONS, FILE_DIRECTORY_FILE, AND);<br>      create.<span class="hljs-built_in">AddNumberMatch</span>(IF, OpenFile::OPTIONS, FILE_DIRECTORY_FILE, AND);<br>      <span class="hljs-keyword">break</span>;<br>    &#125;<br>    <span class="hljs-keyword">case</span> TargetPolicy::FILES_ALLOW_READONLY: &#123;<br>      <span class="hljs-comment">// We consider all flags that are not known to be readonly as potentially</span><br>      <span class="hljs-comment">// used for write.</span><br>      <span class="hljs-comment">// 只读方式打开，所以对OpenFile::ACCESS来说，allowed_flags以外的任何flag都不能设置</span><br>      <span class="hljs-comment">// 而OpenFile::DISPOSITION则必须得是FILE_OPEN</span><br>      DWORD allowed_flags = FILE_READ_DATA | FILE_READ_ATTRIBUTES |<br>                            FILE_READ_EA | SYNCHRONIZE | FILE_EXECUTE |<br>                            GENERIC_READ | GENERIC_EXECUTE | READ_CONTROL;<br>      DWORD restricted_flags = ~allowed_flags;<br>      open.<span class="hljs-built_in">AddNumberMatch</span>(IF_NOT, OpenFile::ACCESS, restricted_flags, AND);<br>      open.<span class="hljs-built_in">AddNumberMatch</span>(IF, OpenFile::DISPOSITION, FILE_OPEN, EQUAL);<br>      create.<span class="hljs-built_in">AddNumberMatch</span>(IF_NOT, OpenFile::ACCESS, restricted_flags, AND);<br>      create.<span class="hljs-built_in">AddNumberMatch</span>(IF, OpenFile::DISPOSITION, FILE_OPEN, EQUAL);<br><br>      <span class="hljs-comment">// Read only access don&#x27;t work for rename.</span><br>      <span class="hljs-comment">// 移除Rename的rule，本次不设置</span><br>      rule_to_add &amp;= ~kCallNtSetInfoRename;<br>      <span class="hljs-keyword">break</span>;<br>    &#125;<br>    <span class="hljs-keyword">case</span> TargetPolicy::FILES_ALLOW_QUERY: &#123;<br>      <span class="hljs-comment">// Here we don&#x27;t want to add policy for the open or the create.</span><br>      <span class="hljs-comment">// 允许对某个文件属性的query，本次open/create/rename也就无需设置了</span><br>      rule_to_add &amp;=<br>          ~(kCallNtOpenFile | kCallNtCreateFile | kCallNtSetInfoRename);<br>      <span class="hljs-keyword">break</span>;<br>    &#125;<br>    <span class="hljs-keyword">case</span> TargetPolicy::FILES_ALLOW_ANY: &#123;<br>      <span class="hljs-keyword">break</span>;<br>    &#125;<br>    <span class="hljs-keyword">default</span>: &#123;<br>      <span class="hljs-built_in">NOTREACHED</span>();<br>      <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;<br>    &#125;<br>  &#125;<br><br>  <span class="hljs-comment">// 根据当前rule_to_add的状态，把OpenFile::NAME这一参数进行设置</span><br>  <span class="hljs-comment">// PolicyRule add好以后，就通过policy-&gt;AddRule添加到LowLevelPolicy中</span><br>  <span class="hljs-comment">// 注意AddRule时会绑定service id和PolicyRule</span><br>  <span class="hljs-comment">// filesystem子系统占用了5个service id，分别对应open, create, rename, query, queryFull</span><br>  <span class="hljs-keyword">if</span> ((rule_to_add &amp; kCallNtCreateFile) &amp;&amp;<br>      (!create.<span class="hljs-built_in">AddStringMatch</span>(IF, OpenFile::NAME, name, CASE_INSENSITIVE) ||<br>       !policy-&gt;<span class="hljs-built_in">AddRule</span>(IPC_NTCREATEFILE_TAG, &amp;create))) &#123;<br>    <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;<br>  &#125;<br><br>  <span class="hljs-keyword">if</span> ((rule_to_add &amp; kCallNtOpenFile) &amp;&amp;<br>      (!open.<span class="hljs-built_in">AddStringMatch</span>(IF, OpenFile::NAME, name, CASE_INSENSITIVE) ||<br>       !policy-&gt;<span class="hljs-built_in">AddRule</span>(IPC_NTOPENFILE_TAG, &amp;open))) &#123;<br>    <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;<br>  &#125;<br><br>  <span class="hljs-keyword">if</span> ((rule_to_add &amp; kCallNtQueryAttributesFile) &amp;&amp;<br>      (!query.<span class="hljs-built_in">AddStringMatch</span>(IF, FileName::NAME, name, CASE_INSENSITIVE) ||<br>       !policy-&gt;<span class="hljs-built_in">AddRule</span>(IPC_NTQUERYATTRIBUTESFILE_TAG, &amp;query))) &#123;<br>    <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;<br>  &#125;<br><br>  <span class="hljs-keyword">if</span> ((rule_to_add &amp; kCallNtQueryFullAttributesFile) &amp;&amp;<br>      (!query_full.<span class="hljs-built_in">AddStringMatch</span>(IF, FileName::NAME, name, CASE_INSENSITIVE) ||<br>       !policy-&gt;<span class="hljs-built_in">AddRule</span>(IPC_NTQUERYFULLATTRIBUTESFILE_TAG, &amp;query_full))) &#123;<br>    <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;<br>  &#125;<br><br>  <span class="hljs-keyword">if</span> ((rule_to_add &amp; kCallNtSetInfoRename) &amp;&amp;<br>      (!rename.<span class="hljs-built_in">AddStringMatch</span>(IF, FileName::NAME, name, CASE_INSENSITIVE) ||<br>       !policy-&gt;<span class="hljs-built_in">AddRule</span>(IPC_NTSETINFO_RENAME_TAG, &amp;rename))) &#123;<br>    <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;<br>  &#125;<br><br>  <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+<h3 id="setinitialrules"><code>SetInitialRules</code></h3>
+<p>初始化基本Rule的<code>SetInitialRules</code>在第一次<code>PolicyBase::AddRuleInternal</code>时处理filesystem类别时调用。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-comment">// Right now we insert two rules, to be evaluated before any user supplied rule:</span><br><span class="hljs-comment">// - go to the broker if the path doesn&#x27;t look like the paths that we push on</span><br><span class="hljs-comment">//    the policy (namely \??\something).</span><br><span class="hljs-comment">// - go to the broker if it looks like this is a short-name path.</span><br><span class="hljs-comment">//</span><br><span class="hljs-comment">// It is possible to add a rule to go to the broker in any case; it would look</span><br><span class="hljs-comment">// something like:</span><br><span class="hljs-comment">//    rule = new PolicyRule(ASK_BROKER);</span><br><span class="hljs-comment">//    rule-&gt;AddNumberMatch(IF_NOT, FileName::BROKER, true, AND);</span><br><span class="hljs-comment">//    policy-&gt;AddRule(service, rule);</span><br><span class="hljs-function"><span class="hljs-type">bool</span> <span class="hljs-title">FileSystemPolicy::SetInitialRules</span><span class="hljs-params">(LowLevelPolicy* policy)</span> </span>&#123;<br>  <span class="hljs-comment">// 两个ASK_BROKER的action rule</span><br>  <span class="hljs-function">PolicyRule <span class="hljs-title">format</span><span class="hljs-params">(ASK_BROKER)</span></span>;<br>  <span class="hljs-function">PolicyRule <span class="hljs-title">short_name</span><span class="hljs-params">(ASK_BROKER)</span></span>;<br><br>  <span class="hljs-comment">// format按位与匹配FileName::BROKER没有BROKER_TRUE标志位</span><br>  <span class="hljs-type">bool</span> rv = format.<span class="hljs-built_in">AddNumberMatch</span>(IF_NOT, FileName::BROKER, BROKER_TRUE, AND);<br>  <span class="hljs-comment">// 匹配FileName::NAME不能为L&quot;\\/?/?\\*&quot;</span><br>  rv &amp;= format.<span class="hljs-built_in">AddStringMatch</span>(IF_NOT, FileName::NAME, <span class="hljs-string">L&quot;\\/?/?\\*&quot;</span>,<br>                              CASE_SENSITIVE);<br><br>  <span class="hljs-comment">// shortname按位与匹配FileName::BROKER没有BROKER_TRUE标志位</span><br>  rv &amp;= short_name.<span class="hljs-built_in">AddNumberMatch</span>(IF_NOT, FileName::BROKER, BROKER_TRUE, AND);<br>  <span class="hljs-comment">// 匹配FileName::NAME为L&quot;*~*&quot;</span><br>  rv &amp;= short_name.<span class="hljs-built_in">AddStringMatch</span>(IF, FileName::NAME, <span class="hljs-string">L&quot;*~*&quot;</span>, CASE_SENSITIVE);<br><br>  <span class="hljs-comment">// 为5个service id，各添加这两个rule到LowLevelPolicy</span><br>  <span class="hljs-keyword">if</span> (!rv || !policy-&gt;<span class="hljs-built_in">AddRule</span>(IPC_NTCREATEFILE_TAG, &amp;format))<br>    <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;<br><br>  <span class="hljs-keyword">if</span> (!policy-&gt;<span class="hljs-built_in">AddRule</span>(IPC_NTCREATEFILE_TAG, &amp;short_name))<br>    <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;<br><br>  <span class="hljs-keyword">if</span> (!policy-&gt;<span class="hljs-built_in">AddRule</span>(IPC_NTOPENFILE_TAG, &amp;format))<br>    <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;<br><br>  <span class="hljs-keyword">if</span> (!policy-&gt;<span class="hljs-built_in">AddRule</span>(IPC_NTOPENFILE_TAG, &amp;short_name))<br>    <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;<br><br>  <span class="hljs-keyword">if</span> (!policy-&gt;<span class="hljs-built_in">AddRule</span>(IPC_NTQUERYATTRIBUTESFILE_TAG, &amp;format))<br>    <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;<br><br>  <span class="hljs-keyword">if</span> (!policy-&gt;<span class="hljs-built_in">AddRule</span>(IPC_NTQUERYATTRIBUTESFILE_TAG, &amp;short_name))<br>    <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;<br><br>  <span class="hljs-keyword">if</span> (!policy-&gt;<span class="hljs-built_in">AddRule</span>(IPC_NTQUERYFULLATTRIBUTESFILE_TAG, &amp;format))<br>    <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;<br><br>  <span class="hljs-keyword">if</span> (!policy-&gt;<span class="hljs-built_in">AddRule</span>(IPC_NTQUERYFULLATTRIBUTESFILE_TAG, &amp;short_name))<br>    <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;<br><br>  <span class="hljs-keyword">if</span> (!policy-&gt;<span class="hljs-built_in">AddRule</span>(IPC_NTSETINFO_RENAME_TAG, &amp;format))<br>    <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;<br><br>  <span class="hljs-keyword">if</span> (!policy-&gt;<span class="hljs-built_in">AddRule</span>(IPC_NTSETINFO_RENAME_TAG, &amp;short_name))<br>    <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;<br><br>  <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>实际上是对<code>L"\\/?/?\\*</code>"和<code>L"*~*"</code>的额外处理，这两个在windows下都是特殊地址标识符。</p>
+<p>###5个请求处理函数</p>
+<p>剩下的5个对应create, open, rename, query,
+queryFull五种请求的处理函数，展开看看：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-function"><span class="hljs-type">bool</span> <span class="hljs-title">FileSystemPolicy::CreateFileAction</span><span class="hljs-params">(EvalResult eval_result,</span></span><br><span class="hljs-params"><span class="hljs-function">                                        <span class="hljs-type">const</span> ClientInfo&amp; client_info,</span></span><br><span class="hljs-params"><span class="hljs-function">                                        <span class="hljs-type">const</span> base::string16&amp; file,</span></span><br><span class="hljs-params"><span class="hljs-function">                                        <span class="hljs-type">uint32_t</span> attributes,</span></span><br><span class="hljs-params"><span class="hljs-function">                                        <span class="hljs-type">uint32_t</span> desired_access,</span></span><br><span class="hljs-params"><span class="hljs-function">                                        <span class="hljs-type">uint32_t</span> file_attributes,</span></span><br><span class="hljs-params"><span class="hljs-function">                                        <span class="hljs-type">uint32_t</span> share_access,</span></span><br><span class="hljs-params"><span class="hljs-function">                                        <span class="hljs-type">uint32_t</span> create_disposition,</span></span><br><span class="hljs-params"><span class="hljs-function">                                        <span class="hljs-type">uint32_t</span> create_options,</span></span><br><span class="hljs-params"><span class="hljs-function">                                        HANDLE* handle,</span></span><br><span class="hljs-params"><span class="hljs-function">                                        NTSTATUS* nt_status,</span></span><br><span class="hljs-params"><span class="hljs-function">                                        ULONG_PTR* io_information)</span> </span>&#123;<br>  *handle = <span class="hljs-literal">nullptr</span>;<br>  <span class="hljs-comment">// The only action supported is ASK_BROKER which means create the requested</span><br>  <span class="hljs-comment">// file as specified.</span><br>  <span class="hljs-comment">// 对open来说，eval_result只可能是ASK_BROKER</span><br>  <span class="hljs-keyword">if</span> (ASK_BROKER != eval_result) &#123;<br>    *nt_status = STATUS_ACCESS_DENIED;<br>    <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;<br>  &#125;<br>  IO_STATUS_BLOCK io_block = &#123;&#125;;<br>  UNICODE_STRING uni_name = &#123;&#125;;<br>  OBJECT_ATTRIBUTES obj_attributes = &#123;&#125;;<br>  SECURITY_QUALITY_OF_SERVICE security_qos = <span class="hljs-built_in">GetAnonymousQOS</span>();<br><br>  <span class="hljs-comment">// 填充obj_attributes</span><br>  <span class="hljs-built_in">InitObjectAttribs</span>(file, attributes, <span class="hljs-literal">nullptr</span>, &amp;obj_attributes, &amp;uni_name,<br>                    <span class="hljs-built_in">IsPipe</span>(file) ? &amp;security_qos : <span class="hljs-literal">nullptr</span>);<br>  *nt_status =<br>      <span class="hljs-built_in">NtCreateFileInTarget</span>(handle, desired_access, &amp;obj_attributes, &amp;io_block,<br>                           file_attributes, share_access, create_disposition,<br>                           create_options, <span class="hljs-literal">nullptr</span>, <span class="hljs-number">0</span>, client_info.process);<br><br>  *io_information = io_block.Information;<br>  <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>展开NtCreateFileInTarget看看吧：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-function">NTSTATUS <span class="hljs-title">NtCreateFileInTarget</span><span class="hljs-params">(HANDLE* target_file_handle,</span></span><br><span class="hljs-params"><span class="hljs-function">                              ACCESS_MASK desired_access,</span></span><br><span class="hljs-params"><span class="hljs-function">                              OBJECT_ATTRIBUTES* obj_attributes,</span></span><br><span class="hljs-params"><span class="hljs-function">                              IO_STATUS_BLOCK* io_status_block,</span></span><br><span class="hljs-params"><span class="hljs-function">                              ULONG file_attributes,</span></span><br><span class="hljs-params"><span class="hljs-function">                              ULONG share_access,</span></span><br><span class="hljs-params"><span class="hljs-function">                              ULONG create_disposition,</span></span><br><span class="hljs-params"><span class="hljs-function">                              ULONG create_options,</span></span><br><span class="hljs-params"><span class="hljs-function">                              PVOID ea_buffer,</span></span><br><span class="hljs-params"><span class="hljs-function">                              ULONG ea_length,</span></span><br><span class="hljs-params"><span class="hljs-function">                              HANDLE target_process)</span> </span>&#123;<br>  <span class="hljs-comment">// 获取到NtCreateFile函数地址</span><br>  NtCreateFileFunction NtCreateFile = <span class="hljs-literal">nullptr</span>;<br>  <span class="hljs-built_in">ResolveNTFunctionPtr</span>(<span class="hljs-string">&quot;NtCreateFile&quot;</span>, &amp;NtCreateFile);<span class="hljs-comment">// 实际上是GetProcAddress</span><br><br>  <span class="hljs-comment">// 调用NtCreateFile</span><br>  HANDLE local_handle = INVALID_HANDLE_VALUE;<br>  NTSTATUS status =<br>      <span class="hljs-built_in">NtCreateFile</span>(&amp;local_handle, desired_access, obj_attributes,<br>                   io_status_block, <span class="hljs-literal">nullptr</span>, file_attributes, share_access,<br>                   create_disposition, create_options, ea_buffer, ea_length);<br>  <span class="hljs-keyword">if</span> (!<span class="hljs-built_in">NT_SUCCESS</span>(status)) &#123;<br>    <span class="hljs-keyword">return</span> status;<br>  &#125;<br><br>  <span class="hljs-keyword">if</span> (!sandbox::<span class="hljs-built_in">SameObject</span>(local_handle, obj_attributes-&gt;ObjectName-&gt;Buffer)) &#123;<br>    <span class="hljs-comment">// The handle points somewhere else. Fail the operation.</span><br>    ::<span class="hljs-built_in">CloseHandle</span>(local_handle);<br>    <span class="hljs-keyword">return</span> STATUS_ACCESS_DENIED;<br>  &#125;<br><br>  <span class="hljs-comment">// 拷贝handle给target_process的target_file_handle</span><br>  <span class="hljs-comment">// 这个target_file_handle的值在返回到FilesystemDispatcher::NtCreateFile时</span><br>  <span class="hljs-comment">// 会拷贝到ipc的CrossCallReturn中，传递给target进程，我们下面分析dispatcher时会看到</span><br>  <span class="hljs-keyword">if</span> (!::<span class="hljs-built_in">DuplicateHandle</span>(::<span class="hljs-built_in">GetCurrentProcess</span>(), local_handle, target_process,<br>                         target_file_handle, <span class="hljs-number">0</span>, <span class="hljs-literal">false</span>,<br>                         DUPLICATE_CLOSE_SOURCE | DUPLICATE_SAME_ACCESS)) &#123;<br>    <span class="hljs-keyword">return</span> STATUS_ACCESS_DENIED;<br>  &#125;<br>  <span class="hljs-keyword">return</span> STATUS_SUCCESS;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>实际上create的操作是在broker端得到了执行，而将返回的句柄复制给了target进程传过来的target_file_handle。</p>
+<p>其他的action函数也类似，都是对API的一层封装，它们并没有做检查处理，因为policy
+rule对请求的检查要优先于此（实际上是<code>EvalPolicy</code>操作）。这些请求处理函数的调用位置在<code>FilesystemDispatcher</code>中。</p>
+<p>其他的就不一一枚举了。</p>
+<p><strong>小结</strong></p>
+<p><strong>FileSystem的low-level policy部分做了两件事：</strong></p>
+<ol type="1">
+<li><strong>为<code>PolicyBase::AddRule</code>提供了该子系统5个service或者叫action的Rule制定接口。</strong></li>
+<li><strong>编写了broker端5个请求的处理，在broker端调用了对应的API函数。</strong></li>
+</ol>
+<h2 id="dispatcher">Dispatcher</h2>
+<p>Dispatcher处理的是target发起的IPC请求。我们此前分析<code>Dispatcher</code>类时就发现，它是个基类，而对应每一个子系统，都有一个具体的派生类。对于filesystem来说，这个派生类就是<code>FilesystemDispatcher</code>。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-comment">// This class handles file system-related IPC calls.</span><br><span class="hljs-keyword">class</span> <span class="hljs-title class_">FilesystemDispatcher</span> : <span class="hljs-keyword">public</span> Dispatcher &#123;<br> <span class="hljs-keyword">public</span>:<br>  <span class="hljs-comment">// 构造器关联PolicyBase对象</span><br>  <span class="hljs-function"><span class="hljs-keyword">explicit</span> <span class="hljs-title">FilesystemDispatcher</span><span class="hljs-params">(PolicyBase* policy_base)</span></span>;<br>  ~<span class="hljs-built_in">FilesystemDispatcher</span>() <span class="hljs-keyword">override</span> &#123;&#125;<br><br>  <span class="hljs-comment">// Dispatcher interface.</span><br>  <span class="hljs-comment">// 与InterceptionManager对接之处</span><br>  <span class="hljs-function"><span class="hljs-type">bool</span> <span class="hljs-title">SetupService</span><span class="hljs-params">(InterceptionManager* manager, <span class="hljs-type">int</span> service)</span> <span class="hljs-keyword">override</span></span>;<br><br> <span class="hljs-keyword">private</span>:<br>  <span class="hljs-comment">// target的各种IPC请求，target在call这5个API时会发起IPC请求</span><br>  <span class="hljs-comment">// Processes IPC requests coming from calls to NtCreateFile in the target.</span><br>  <span class="hljs-function"><span class="hljs-type">bool</span> <span class="hljs-title">NtCreateFile</span><span class="hljs-params">(IPCInfo* ipc,</span></span><br><span class="hljs-params"><span class="hljs-function">                    base::string16* name,</span></span><br><span class="hljs-params"><span class="hljs-function">                    <span class="hljs-type">uint32_t</span> attributes,</span></span><br><span class="hljs-params"><span class="hljs-function">                    <span class="hljs-type">uint32_t</span> desired_access,</span></span><br><span class="hljs-params"><span class="hljs-function">                    <span class="hljs-type">uint32_t</span> file_attributes,</span></span><br><span class="hljs-params"><span class="hljs-function">                    <span class="hljs-type">uint32_t</span> share_access,</span></span><br><span class="hljs-params"><span class="hljs-function">                    <span class="hljs-type">uint32_t</span> create_disposition,</span></span><br><span class="hljs-params"><span class="hljs-function">                    <span class="hljs-type">uint32_t</span> create_options)</span></span>;<br><br>  <span class="hljs-comment">// Processes IPC requests coming from calls to NtOpenFile in the target.</span><br>  <span class="hljs-function"><span class="hljs-type">bool</span> <span class="hljs-title">NtOpenFile</span><span class="hljs-params">(IPCInfo* ipc,</span></span><br><span class="hljs-params"><span class="hljs-function">                  base::string16* name,</span></span><br><span class="hljs-params"><span class="hljs-function">                  <span class="hljs-type">uint32_t</span> attributes,</span></span><br><span class="hljs-params"><span class="hljs-function">                  <span class="hljs-type">uint32_t</span> desired_access,</span></span><br><span class="hljs-params"><span class="hljs-function">                  <span class="hljs-type">uint32_t</span> share_access,</span></span><br><span class="hljs-params"><span class="hljs-function">                  <span class="hljs-type">uint32_t</span> create_options)</span></span>;<br><br>  <span class="hljs-comment">// Processes IPC requests coming from calls to NtQueryAttributesFile in the</span><br>  <span class="hljs-comment">// target.</span><br>  <span class="hljs-function"><span class="hljs-type">bool</span> <span class="hljs-title">NtQueryAttributesFile</span><span class="hljs-params">(IPCInfo* ipc,</span></span><br><span class="hljs-params"><span class="hljs-function">                             base::string16* name,</span></span><br><span class="hljs-params"><span class="hljs-function">                             <span class="hljs-type">uint32_t</span> attributes,</span></span><br><span class="hljs-params"><span class="hljs-function">                             CountedBuffer* info)</span></span>;<br><br>  <span class="hljs-comment">// Processes IPC requests coming from calls to NtQueryFullAttributesFile in</span><br>  <span class="hljs-comment">// the target.</span><br>  <span class="hljs-function"><span class="hljs-type">bool</span> <span class="hljs-title">NtQueryFullAttributesFile</span><span class="hljs-params">(IPCInfo* ipc,</span></span><br><span class="hljs-params"><span class="hljs-function">                                 base::string16* name,</span></span><br><span class="hljs-params"><span class="hljs-function">                                 <span class="hljs-type">uint32_t</span> attributes,</span></span><br><span class="hljs-params"><span class="hljs-function">                                 CountedBuffer* info)</span></span>;<br><br>  <span class="hljs-comment">// Processes IPC requests coming from calls to NtSetInformationFile with the</span><br>  <span class="hljs-comment">// rename information class.</span><br>  <span class="hljs-function"><span class="hljs-type">bool</span> <span class="hljs-title">NtSetInformationFile</span><span class="hljs-params">(IPCInfo* ipc,</span></span><br><span class="hljs-params"><span class="hljs-function">                            HANDLE handle,</span></span><br><span class="hljs-params"><span class="hljs-function">                            CountedBuffer* status,</span></span><br><span class="hljs-params"><span class="hljs-function">                            CountedBuffer* info,</span></span><br><span class="hljs-params"><span class="hljs-function">                            <span class="hljs-type">uint32_t</span> length,</span></span><br><span class="hljs-params"><span class="hljs-function">                            <span class="hljs-type">uint32_t</span> info_class)</span></span>;<br><br>  PolicyBase* policy_base_;<br>  <span class="hljs-built_in">DISALLOW_COPY_AND_ASSIGN</span>(FilesystemDispatcher);<br>&#125;;<br></code></pre></td></tr></table></figure>
+<p>###构造器</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><code class="hljs cpp">FilesystemDispatcher::<span class="hljs-built_in">FilesystemDispatcher</span>(PolicyBase* policy_base)<br>    : <span class="hljs-built_in">policy_base_</span>(policy_base) &#123;<br>  <span class="hljs-comment">// 把相关的几个IPCCall全部实体化，这里完成各个service id与callback的绑定</span><br>  <span class="hljs-comment">// 绑定的函数就是类内部定义的几个接口处理函数</span><br>  <span class="hljs-type">static</span> <span class="hljs-type">const</span> IPCCall create_params = &#123;<br>      &#123;IPC_NTCREATEFILE_TAG,<br>       &#123;WCHAR_TYPE, UINT32_TYPE, UINT32_TYPE, UINT32_TYPE, UINT32_TYPE,<br>        UINT32_TYPE, UINT32_TYPE&#125;&#125;,<br>      <span class="hljs-built_in">reinterpret_cast</span>&lt;CallbackGeneric&gt;(&amp;FilesystemDispatcher::NtCreateFile)&#125;;<br><br>  <span class="hljs-type">static</span> <span class="hljs-type">const</span> IPCCall open_file = &#123;<br>      &#123;IPC_NTOPENFILE_TAG,<br>       &#123;WCHAR_TYPE, UINT32_TYPE, UINT32_TYPE, UINT32_TYPE, UINT32_TYPE&#125;&#125;,<br>      <span class="hljs-built_in">reinterpret_cast</span>&lt;CallbackGeneric&gt;(&amp;FilesystemDispatcher::NtOpenFile)&#125;;<br><br>  <span class="hljs-type">static</span> <span class="hljs-type">const</span> IPCCall attribs = &#123;<br>      &#123;IPC_NTQUERYATTRIBUTESFILE_TAG, &#123;WCHAR_TYPE, UINT32_TYPE, INOUTPTR_TYPE&#125;&#125;,<br>      <span class="hljs-built_in">reinterpret_cast</span>&lt;CallbackGeneric&gt;(<br>          &amp;FilesystemDispatcher::NtQueryAttributesFile)&#125;;<br><br>  <span class="hljs-type">static</span> <span class="hljs-type">const</span> IPCCall full_attribs = &#123;<br>      &#123;IPC_NTQUERYFULLATTRIBUTESFILE_TAG,<br>       &#123;WCHAR_TYPE, UINT32_TYPE, INOUTPTR_TYPE&#125;&#125;,<br>      <span class="hljs-built_in">reinterpret_cast</span>&lt;CallbackGeneric&gt;(<br>          &amp;FilesystemDispatcher::NtQueryFullAttributesFile)&#125;;<br><br>  <span class="hljs-type">static</span> <span class="hljs-type">const</span> IPCCall set_info = &#123;<br>      &#123;IPC_NTSETINFO_RENAME_TAG,<br>       &#123;VOIDPTR_TYPE, INOUTPTR_TYPE, INOUTPTR_TYPE, UINT32_TYPE, UINT32_TYPE&#125;&#125;,<br>      <span class="hljs-built_in">reinterpret_cast</span>&lt;CallbackGeneric&gt;(<br>          &amp;FilesystemDispatcher::NtSetInformationFile)&#125;;<br><br>  <span class="hljs-comment">// 全部置入ipc_calls_中维护</span><br>  ipc_calls_.<span class="hljs-built_in">push_back</span>(create_params);<br>  ipc_calls_.<span class="hljs-built_in">push_back</span>(open_file);<br>  ipc_calls_.<span class="hljs-built_in">push_back</span>(attribs);<br>  ipc_calls_.<span class="hljs-built_in">push_back</span>(full_attribs);<br>  ipc_calls_.<span class="hljs-built_in">push_back</span>(set_info);<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>而SetupService则是该对象的灵魂了：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-function"><span class="hljs-type">bool</span> <span class="hljs-title">FilesystemDispatcher::SetupService</span><span class="hljs-params">(InterceptionManager* manager,</span></span><br><span class="hljs-params"><span class="hljs-function">                                        <span class="hljs-type">int</span> service)</span> </span>&#123;<br>  <span class="hljs-comment">// 根据service id，找到是哪个IPCCall</span><br>  <span class="hljs-keyword">switch</span> (service) &#123;<br>    <span class="hljs-keyword">case</span> IPC_NTCREATEFILE_TAG:<br>      <span class="hljs-keyword">return</span> <span class="hljs-built_in">INTERCEPT_NT</span>(manager, NtCreateFile, CREATE_FILE_ID, <span class="hljs-number">48</span>);<br><br>    <span class="hljs-keyword">case</span> IPC_NTOPENFILE_TAG:<br>      <span class="hljs-keyword">return</span> <span class="hljs-built_in">INTERCEPT_NT</span>(manager, NtOpenFile, OPEN_FILE_ID, <span class="hljs-number">28</span>);<br><br>    <span class="hljs-keyword">case</span> IPC_NTQUERYATTRIBUTESFILE_TAG:<br>      <span class="hljs-keyword">return</span> <span class="hljs-built_in">INTERCEPT_NT</span>(manager, NtQueryAttributesFile, QUERY_ATTRIB_FILE_ID,<br>                          <span class="hljs-number">12</span>);<br><br>    <span class="hljs-keyword">case</span> IPC_NTQUERYFULLATTRIBUTESFILE_TAG:<br>      <span class="hljs-keyword">return</span> <span class="hljs-built_in">INTERCEPT_NT</span>(manager, NtQueryFullAttributesFile,<br>                          QUERY_FULL_ATTRIB_FILE_ID, <span class="hljs-number">12</span>);<br><br>    <span class="hljs-keyword">case</span> IPC_NTSETINFO_RENAME_TAG:<br>      <span class="hljs-keyword">return</span> <span class="hljs-built_in">INTERCEPT_NT</span>(manager, NtSetInformationFile, SET_INFO_FILE_ID, <span class="hljs-number">24</span>);<br><br>    <span class="hljs-keyword">default</span>:<br>      <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;<br>  &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>将宏展开：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-meta">#<span class="hljs-keyword">define</span> INTERCEPT_NT(manager, service, id, num_params) \</span><br><span class="hljs-meta">  manager-&gt;ADD_NT_INTERCEPTION(service, id, num_params)</span><br><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> ADD_NT_INTERCEPTION(service, id, num_params)            \</span><br><span class="hljs-meta">  AddToPatchedFunctions(                                        \</span><br><span class="hljs-meta">      kNtdllName, #service, sandbox::INTERCEPTION_SERVICE_CALL, \</span><br><span class="hljs-meta">      reinterpret_cast<span class="hljs-string">&lt;void*&gt;</span>(MAKE_SERVICE_NAME(service)), id)</span><br><br><span class="hljs-meta">#<span class="hljs-keyword">if</span> defined(_WIN64)</span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> MAKE_SERVICE_NAME(service) &amp;Target##service##64</span><br><span class="hljs-meta">#<span class="hljs-keyword">else</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> MAKE_SERVICE_NAME(service) &amp;Target##service</span><br><span class="hljs-meta">#<span class="hljs-keyword">endif</span></span><br></code></pre></td></tr></table></figure>
+<p>以<code>NtCreateFile</code>为例，实际上最终使用<code>AddToPatchedFunctions</code>将<code>NtCreateFile</code>替换成了<code>TargetNtCreateFile</code>（32位），<code>SetupService</code>这一操作，完成了这5个系统调用的Interception的部署。</p>
+<p>另外，系统调用类型的函数是在broker端处理的。</p>
+<p>那么Target开头的函数从哪儿来，总不能凭空捏造吧，其实他们在filesystem的Interceptions中定义。</p>
+<blockquote>
+<p>我只找到了32位的几个Target函数，64位的没有找到，貌似对这几个service
+call的Interceptions并没有在x64上实现，尽管service
+call的Interceptions提供了这种机制。</p>
+</blockquote>
+<p>还记得此前resolver的处理流程吗，<code>TopLevelDispatcher</code>中有一个<code>Dispatcher*</code>数组，每个IPC请求对应一个成员，其中有5个和filesystem子系统相关的成员指向了同一个构造器new出来的<code>FilesystemDispatcher</code>。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs cpp">Dispatcher* dispatcher;<br><br>dispatcher = <span class="hljs-keyword">new</span> <span class="hljs-built_in">FilesystemDispatcher</span>(policy_);<br>ipc_targets_[IPC_NTCREATEFILE_TAG] = dispatcher;<br>ipc_targets_[IPC_NTOPENFILE_TAG] = dispatcher;<br>ipc_targets_[IPC_NTSETINFO_RENAME_TAG] = dispatcher;<br>ipc_targets_[IPC_NTQUERYATTRIBUTESFILE_TAG] = dispatcher;<br>ipc_targets_[IPC_NTQUERYFULLATTRIBUTESFILE_TAG] = dispatcher;<br><span class="hljs-comment">// filesystem_dispatcher是TopLevelDispatcher的成员，从此就有了FilesystemDispatcher对象</span><br>filesystem_dispatcher_.<span class="hljs-built_in">reset</span>(dispatcher);<br></code></pre></td></tr></table></figure>
+<p>而broker作为IPC的server端，处理IPC请求的过程是这样的：</p>
+<ol type="1">
+<li><code>SharedMemIPCServer::Init</code>中会用<code>ThreadProvider</code>注册一个等待ping事件的<code>ThreadPingEventReady</code>，注册时使用的参数的<code>dispatcher</code>绑定了构造器中关联的<code>call_dispatcher_</code>。</li>
+<li>client发起IPC请求时，会signaled
+ping，此后broker进入<code>ThreadPingEventReady</code></li>
+<li><code>ThreadPingEventReady</code>中会调用<code>InvokeCallback</code>匹配callback</li>
+<li><code>InvokeCallback</code>内部调用dispatcher的<code>OnMessageReady</code>。遍历该dispatcher中的<code>IPCParam</code>来找到绑定的callback。</li>
+</ol>
+<p>到此，我们就把filesystem的整个过程联系了起来，对于<code>IPC_NTCREATEFILE_TAG</code>等5种IPC请求，最终会找到<code>filesystem_dispatcher</code>这个具体的dispatcher，而它早在构造器中将<code>IPCParam</code>和5个callback函数绑定了。</p>
+<p>所以下一步，就会调用某个callback，比如<code>NtCreateFile</code>。我们就展开看看这个callback
+<code>NtCreateFile</code>干了什么：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-function"><span class="hljs-type">bool</span> <span class="hljs-title">FilesystemDispatcher::NtCreateFile</span><span class="hljs-params">(IPCInfo* ipc,</span></span><br><span class="hljs-params"><span class="hljs-function">                                        base::string16* name,</span></span><br><span class="hljs-params"><span class="hljs-function">                                        <span class="hljs-type">uint32_t</span> attributes,</span></span><br><span class="hljs-params"><span class="hljs-function">                                        <span class="hljs-type">uint32_t</span> desired_access,</span></span><br><span class="hljs-params"><span class="hljs-function">                                        <span class="hljs-type">uint32_t</span> file_attributes,</span></span><br><span class="hljs-params"><span class="hljs-function">                                        <span class="hljs-type">uint32_t</span> share_access,</span></span><br><span class="hljs-params"><span class="hljs-function">                                        <span class="hljs-type">uint32_t</span> create_disposition,</span></span><br><span class="hljs-params"><span class="hljs-function">                                        <span class="hljs-type">uint32_t</span> create_options)</span> </span>&#123;<br>  <span class="hljs-keyword">if</span> (!<span class="hljs-built_in">PreProcessName</span>(name)) &#123;<br>    <span class="hljs-comment">// The path requested might contain a reparse point.</span><br>    ipc-&gt;return_info.nt_status = STATUS_ACCESS_DENIED;<br>    <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;<br>  &#125;<br><br>  <span class="hljs-type">const</span> <span class="hljs-type">wchar_t</span>* filename = name-&gt;<span class="hljs-built_in">c_str</span>();<br><br>  <span class="hljs-comment">// 把target传过来的参数值全部置入到CountedParameterSet中</span><br>  <span class="hljs-type">uint32_t</span> broker = BROKER_TRUE;<br>  CountedParameterSet&lt;OpenFile&gt; params;<br>  params[OpenFile::NAME] = <span class="hljs-built_in">ParamPickerMake</span>(filename);<br>  params[OpenFile::ACCESS] = <span class="hljs-built_in">ParamPickerMake</span>(desired_access);<br>  params[OpenFile::DISPOSITION] = <span class="hljs-built_in">ParamPickerMake</span>(create_disposition);<br>  params[OpenFile::OPTIONS] = <span class="hljs-built_in">ParamPickerMake</span>(create_options);<br>  params[OpenFile::BROKER] = <span class="hljs-built_in">ParamPickerMake</span>(broker);<br><br>  <span class="hljs-comment">// To evaluate the policy we need to call back to the policy object. We</span><br>  <span class="hljs-comment">// are just middlemen in the operation since is the FileSystemPolicy which</span><br>  <span class="hljs-comment">// knows what to do.</span><br>  <span class="hljs-comment">// EvalPolicy检查各种rules是否通过，这些rules此前已通过PolicyBase::AddRules设置好了</span><br>  <span class="hljs-comment">// 然后去找Policy模块的CreateFileAction来干实事，也就是前面分析的</span><br>  <span class="hljs-comment">// FileSystemPolicy::CreateFileAction</span><br>  EvalResult result =<br>      policy_base_-&gt;<span class="hljs-built_in">EvalPolicy</span>(IPC_NTCREATEFILE_TAG, params.<span class="hljs-built_in">GetBase</span>());<br>  HANDLE handle;<br>  ULONG_PTR io_information = <span class="hljs-number">0</span>;<br>  NTSTATUS nt_status;<br>  <span class="hljs-comment">// 在这内部，会判断result是否是ASK_BROKER，如果是说明匹配到了rule，那就执行API</span><br>  <span class="hljs-comment">// 如果不是说明凉凉</span><br>  <span class="hljs-keyword">if</span> (!FileSystemPolicy::<span class="hljs-built_in">CreateFileAction</span>(<br>          result, *ipc-&gt;client_info, *name, attributes, desired_access,<br>          file_attributes, share_access, create_disposition, create_options,<br>          &amp;handle, &amp;nt_status, &amp;io_information)) &#123;<br>    ipc-&gt;return_info.nt_status = STATUS_ACCESS_DENIED;<br>    <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;<br>  &#125;<br>  <span class="hljs-comment">// 把返回的结果给IPC调用的CrossCallReturn结构，用于指示target client端</span><br>  <span class="hljs-comment">// Return operation status on the IPC.</span><br>  ipc-&gt;return_info.extended[<span class="hljs-number">0</span>].ulong_ptr = io_information;<br>  ipc-&gt;return_info.nt_status = nt_status;<br>  ipc-&gt;return_info.handle = handle;<br>  <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>到此，filesystem相关的5个IPC请求在broker端处理的整个链条就清楚了。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-function">EvalResult <span class="hljs-title">PolicyBase::EvalPolicy</span><span class="hljs-params">(<span class="hljs-type">int</span> service,</span></span><br><span class="hljs-params"><span class="hljs-function">                                  CountedParameterSetBase* params)</span> </span>&#123;<br>  <span class="hljs-keyword">if</span> (policy_) &#123;<br>    <span class="hljs-comment">// 找到PolicyGlobal中对应的entry[service]一项</span><br>    <span class="hljs-keyword">if</span> (!policy_-&gt;entry[service]) &#123;<br>      <span class="hljs-comment">// There is no policy for this particular service. This is not a big</span><br>      <span class="hljs-comment">// deal.</span><br>      <span class="hljs-keyword">return</span> DENY_ACCESS;<br>    &#125;<br>    <span class="hljs-keyword">for</span> (<span class="hljs-type">size_t</span> i = <span class="hljs-number">0</span>; i &lt; params-&gt;count; i++) &#123;<br>      <span class="hljs-keyword">if</span> (!params-&gt;parameters[i].<span class="hljs-built_in">IsValid</span>()) &#123;<br>        <span class="hljs-built_in">NOTREACHED</span>();<br>        <span class="hljs-keyword">return</span> SIGNAL_ALARM;<br>      &#125;<br>    &#125;<br>    <span class="hljs-comment">// 基于policy_-&gt;entry[service]这个PolicyBuffer建一个PolicyProcessor</span><br>    <span class="hljs-function">PolicyProcessor <span class="hljs-title">pol_evaluator</span><span class="hljs-params">(policy_-&gt;entry[service])</span></span>;<br>    <span class="hljs-comment">// 逐group进行evaluate</span><br>    PolicyResult result =<br>        pol_evaluator.<span class="hljs-built_in">Evaluate</span>(kShortEval, params-&gt;parameters, params-&gt;count);<br>    <span class="hljs-comment">// 如果匹配到了，就获取这一group的action</span><br>    <span class="hljs-keyword">if</span> (POLICY_MATCH == result) &#123;<br>      <span class="hljs-keyword">return</span> pol_evaluator.<span class="hljs-built_in">GetAction</span>();<br>    &#125;<br>    <span class="hljs-built_in">DCHECK</span>(POLICY_ERROR != result);<br>  &#125;<br><br>  <span class="hljs-keyword">return</span> DENY_ACCESS;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p><strong>小结</strong></p>
+<p><strong>filesystem的<code>FilesystemDispatcher</code>负责三件事：</strong></p>
+<ol type="1">
+<li><strong>受<code>TopLevelDispatcher</code>的驱使，处理5个filesystem相关的IPC请求</strong></li>
+<li><strong>绑定5个callback函数，每个函数内部执行<code>EvalPolicy</code>审判，然后将参数和结果通通丢给policy的5个处理函数。</strong></li>
+<li><strong>负责5个ntdll.dll中对应的系统调用的拦截器安装。</strong></li>
+</ol>
+<h2 id="interception">Interception</h2>
+<p>那么这个拦截函数就有点意思了，实际上这5个API函数在target端都不能直接调用，target想要调用<code>CreateFile</code>时，要先起一个对应id的IPC请求给broker，broker通过前面的重重处理，最终在<code>FileSystemDispatcher::NtCreateFile</code>中执行<code>EvalPolicy</code>审判，然后调用<code>FileSystemPolicy::CreateFileAction</code>。</p>
+<p>而在具体的action处理内部，审判结果需要是<code>ASK_BROKER</code>才会调用<code>NtCreateFile</code>这个系统调用。</p>
+<p>而对target端，broker已经通过<code>FilesystemDispatcher::SetupService</code>为target部署好了5个系统调用的拦截器，当target进程调用<code>NtCreateFile</code>时，实际上调用到的是<code>TargetNtCreateFile</code>函数：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-function">NTSTATUS WINAPI <span class="hljs-title">TargetNtCreateFile</span><span class="hljs-params">(NtCreateFileFunction orig_CreateFile,</span></span><br><span class="hljs-params"><span class="hljs-function">                                   PHANDLE file,</span></span><br><span class="hljs-params"><span class="hljs-function">                                   ACCESS_MASK desired_access,</span></span><br><span class="hljs-params"><span class="hljs-function">                                   POBJECT_ATTRIBUTES object_attributes,</span></span><br><span class="hljs-params"><span class="hljs-function">                                   PIO_STATUS_BLOCK io_status,</span></span><br><span class="hljs-params"><span class="hljs-function">                                   PLARGE_INTEGER allocation_size,</span></span><br><span class="hljs-params"><span class="hljs-function">                                   ULONG file_attributes,</span></span><br><span class="hljs-params"><span class="hljs-function">                                   ULONG sharing,</span></span><br><span class="hljs-params"><span class="hljs-function">                                   ULONG disposition,</span></span><br><span class="hljs-params"><span class="hljs-function">                                   ULONG options,</span></span><br><span class="hljs-params"><span class="hljs-function">                                   PVOID ea_buffer,</span></span><br><span class="hljs-params"><span class="hljs-function">                                   ULONG ea_length)</span> </span>&#123;<br>  <span class="hljs-comment">// Check if the process can open it first.</span><br>  <span class="hljs-comment">// x86的第一个参数是original function地址，先试试能不能打开这个文件，如果不是STATUS_ACCESS_DENIED</span><br>  <span class="hljs-comment">// 就直接调用返回status就行了，无需请求IPC</span><br>  NTSTATUS status = <span class="hljs-built_in">orig_CreateFile</span>(<br>      file, desired_access, object_attributes, io_status, allocation_size,<br>      file_attributes, sharing, disposition, options, ea_buffer, ea_length);<br>  <span class="hljs-keyword">if</span> (STATUS_ACCESS_DENIED != status)<br>    <span class="hljs-keyword">return</span> status;<br><br>  <span class="hljs-comment">// 确保IPC已经可用</span><br>  <span class="hljs-comment">// We don&#x27;t trust that the IPC can work this early.</span><br>  <span class="hljs-keyword">if</span> (!SandboxFactory::<span class="hljs-built_in">GetTargetServices</span>()-&gt;<span class="hljs-built_in">GetState</span>()-&gt;<span class="hljs-built_in">InitCalled</span>())<br>    <span class="hljs-keyword">return</span> status;<br><br>  <span class="hljs-type">wchar_t</span>* name = <span class="hljs-literal">nullptr</span>;<br>  <span class="hljs-keyword">do</span> &#123;<br>    <span class="hljs-keyword">if</span> (!<span class="hljs-built_in">ValidParameter</span>(file, <span class="hljs-built_in">sizeof</span>(HANDLE), WRITE))<br>      <span class="hljs-keyword">break</span>;<br>    <span class="hljs-keyword">if</span> (!<span class="hljs-built_in">ValidParameter</span>(io_status, <span class="hljs-built_in">sizeof</span>(IO_STATUS_BLOCK), WRITE))<br>      <span class="hljs-keyword">break</span>;<br><br>    <span class="hljs-comment">// 获取SharedMemory IPC的全局内存空间指针g_shared_IPC_memory</span><br>    <span class="hljs-type">void</span>* memory = <span class="hljs-built_in">GetGlobalIPCMemory</span>();<br>    <span class="hljs-keyword">if</span> (!memory)<br>      <span class="hljs-keyword">break</span>;<br><br>    <span class="hljs-comment">// 设置文件属性</span><br>    <span class="hljs-type">uint32_t</span> attributes = <span class="hljs-number">0</span>;<br>    NTSTATUS ret =<br>        <span class="hljs-built_in">AllocAndCopyName</span>(object_attributes, &amp;name, &amp;attributes, <span class="hljs-literal">nullptr</span>);<br>    <span class="hljs-keyword">if</span> (!<span class="hljs-built_in">NT_SUCCESS</span>(ret) || !name)<br>      <span class="hljs-keyword">break</span>;<br><br>    <span class="hljs-comment">// 设置其他参数</span><br>    <span class="hljs-type">uint32_t</span> desired_access_uint32 = desired_access;<br>    <span class="hljs-type">uint32_t</span> options_uint32 = options;<br>    <span class="hljs-type">uint32_t</span> disposition_uint32 = disposition;<br>    <span class="hljs-type">uint32_t</span> broker = BROKER_FALSE;<br><br>    <span class="hljs-comment">// 做出一个CountedParameterSet&lt;OpenFile&gt;，按索引调用ParamPickerMake填充参数</span><br>    CountedParameterSet&lt;OpenFile&gt; params;<br>    params[OpenFile::NAME] = <span class="hljs-built_in">ParamPickerMake</span>(name);<br>    params[OpenFile::ACCESS] = <span class="hljs-built_in">ParamPickerMake</span>(desired_access_uint32);<br>    params[OpenFile::DISPOSITION] = <span class="hljs-built_in">ParamPickerMake</span>(disposition_uint32);<br>    params[OpenFile::OPTIONS] = <span class="hljs-built_in">ParamPickerMake</span>(options_uint32);<br>    params[OpenFile::BROKER] = <span class="hljs-built_in">ParamPickerMake</span>(broker);<br><br>    <span class="hljs-comment">// 内部会获取承载PolicyBuffer的g_shared_policy_memory</span><br>    <span class="hljs-comment">// 找到PolicyBuffer并架设一个PolicyProcessor来对CountedParameterSet&lt;OpenFile&gt;进行Evaluate</span><br>    <span class="hljs-comment">// 如果匹配rule且action为ASK_BROKER，才继续发起IPC请求</span><br>    <span class="hljs-keyword">if</span> (!<span class="hljs-built_in">QueryBroker</span>(IPC_NTCREATEFILE_TAG, params.<span class="hljs-built_in">GetBase</span>()))<br>      <span class="hljs-keyword">break</span>;<br><br>    <span class="hljs-function">SharedMemIPCClient <span class="hljs-title">ipc</span><span class="hljs-params">(memory)</span></span>;<br>    CrossCallReturn answer = &#123;<span class="hljs-number">0</span>&#125;;<br>    <span class="hljs-comment">// The following call must match in the parameters with</span><br>    <span class="hljs-comment">// FilesystemDispatcher::ProcessNtCreateFile.</span><br>    <span class="hljs-comment">// 发起IPC请求，填充这些参数</span><br>    ResultCode code = <span class="hljs-built_in">CrossCall</span>(ipc, IPC_NTCREATEFILE_TAG, name, attributes,<br>                                desired_access_uint32, file_attributes, sharing,<br>                                disposition, options_uint32, &amp;answer);<br>    <span class="hljs-keyword">if</span> (SBOX_ALL_OK != code)<br>      <span class="hljs-keyword">break</span>;<br><br>    status = answer.nt_status;<br><br>    <span class="hljs-keyword">if</span> (!<span class="hljs-built_in">NT_SUCCESS</span>(answer.nt_status))<br>      <span class="hljs-keyword">break</span>;<br><br>    __try &#123;<br>      *file = answer.handle;<br>      io_status-&gt;Status = answer.nt_status;<br>      io_status-&gt;Information = answer.extended[<span class="hljs-number">0</span>].ulong_ptr;<br>    &#125; __except (EXCEPTION_EXECUTE_HANDLER) &#123;<br>      <span class="hljs-keyword">break</span>;<br>    &#125;<br>  &#125; <span class="hljs-keyword">while</span> (<span class="hljs-literal">false</span>);<br><br>  <span class="hljs-keyword">if</span> (name)<br>    <span class="hljs-function"><span class="hljs-keyword">operator</span> <span class="hljs-title">delete</span><span class="hljs-params">(name, NT_ALLOC)</span></span>;<br><br>  <span class="hljs-keyword">return</span> status;<br>&#125;<br><br><span class="hljs-function"><span class="hljs-type">bool</span> <span class="hljs-title">QueryBroker</span><span class="hljs-params">(<span class="hljs-type">int</span> ipc_id, CountedParameterSetBase* params)</span> </span>&#123;<br>  <span class="hljs-built_in">DCHECK_NT</span>(<span class="hljs-built_in">static_cast</span>&lt;<span class="hljs-type">size_t</span>&gt;(ipc_id) &lt; kMaxServiceCount);<br>  <span class="hljs-built_in">DCHECK_NT</span>(g_shared_policy_memory);<br>  <span class="hljs-built_in">DCHECK_NT</span>(g_shared_policy_size &gt; <span class="hljs-number">0</span>);<br><br>  <span class="hljs-keyword">if</span> (<span class="hljs-built_in">static_cast</span>&lt;<span class="hljs-type">size_t</span>&gt;(ipc_id) &gt;= kMaxServiceCount)<br>    <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;<br><br>  <span class="hljs-comment">// g_shared_policy_memory我们知道是怎么设置共享的</span><br>  <span class="hljs-comment">// 但是broker的PolicyGlobal是内部在堆上new的，和这里的PolicyGlobal应该不是一片内存空间</span><br>  <span class="hljs-comment">// 那么应该有某种同步的机制</span><br>  PolicyGlobal* global_policy =<br>      <span class="hljs-built_in">reinterpret_cast</span>&lt;PolicyGlobal*&gt;(g_shared_policy_memory);<br><br>  <span class="hljs-keyword">if</span> (!global_policy-&gt;entry[ipc_id])<br>    <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;<br><br>  PolicyBuffer* policy = <span class="hljs-built_in">reinterpret_cast</span>&lt;PolicyBuffer*&gt;(<br>      <span class="hljs-built_in">reinterpret_cast</span>&lt;<span class="hljs-type">char</span>*&gt;(g_shared_policy_memory) +<br>      <span class="hljs-built_in">reinterpret_cast</span>&lt;<span class="hljs-type">size_t</span>&gt;(global_policy-&gt;entry[ipc_id]));<br><br>  <span class="hljs-keyword">if</span> ((<span class="hljs-built_in">reinterpret_cast</span>&lt;<span class="hljs-type">size_t</span>&gt;(global_policy-&gt;entry[ipc_id]) &gt;<br>       global_policy-&gt;data_size) ||<br>      (g_shared_policy_size &lt; global_policy-&gt;data_size)) &#123;<br>    <span class="hljs-built_in">NOTREACHED_NT</span>();<br>    <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;<br>  &#125;<br><br>  <span class="hljs-keyword">for</span> (<span class="hljs-type">size_t</span> i = <span class="hljs-number">0</span>; i &lt; params-&gt;count; i++) &#123;<br>    <span class="hljs-keyword">if</span> (!params-&gt;parameters[i].<span class="hljs-built_in">IsValid</span>()) &#123;<br>      <span class="hljs-built_in">NOTREACHED_NT</span>();<br>      <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;<br>    &#125;<br>  &#125;<br><br>  <span class="hljs-function">PolicyProcessor <span class="hljs-title">processor</span><span class="hljs-params">(policy)</span></span>;<br>  PolicyResult result =<br>      processor.<span class="hljs-built_in">Evaluate</span>(kShortEval, params-&gt;parameters, params-&gt;count);<br>  <span class="hljs-built_in">DCHECK_NT</span>(POLICY_ERROR != result);<br><br>  <span class="hljs-keyword">return</span> POLICY_MATCH == result &amp;&amp; ASK_BROKER == processor.<span class="hljs-built_in">GetAction</span>();<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>搜索<code>g_shared_policy_memory</code>相关，在<code>CopyPolicyToTarget</code>中发现端倪：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-function"><span class="hljs-type">void</span> <span class="hljs-title">CopyPolicyToTarget</span><span class="hljs-params">(<span class="hljs-type">const</span> <span class="hljs-type">void</span>* source, <span class="hljs-type">size_t</span> size, <span class="hljs-type">void</span>* dest)</span> </span>&#123;<br>  <span class="hljs-keyword">if</span> (!source || !size)<br>    <span class="hljs-keyword">return</span>;<br>  <span class="hljs-built_in">memcpy</span>(dest, source, size);<br>  sandbox::PolicyGlobal* policy =<br>      <span class="hljs-built_in">reinterpret_cast</span>&lt;sandbox::PolicyGlobal*&gt;(dest);<br><br>  <span class="hljs-type">size_t</span> offset = <span class="hljs-built_in">reinterpret_cast</span>&lt;<span class="hljs-type">size_t</span>&gt;(source);<br><br>  <span class="hljs-keyword">for</span> (<span class="hljs-type">size_t</span> i = <span class="hljs-number">0</span>; i &lt; sandbox::kMaxServiceCount; i++) &#123;<br>    <span class="hljs-comment">// PolicyBuffer要修正offset</span><br>    <span class="hljs-type">size_t</span> buffer = <span class="hljs-built_in">reinterpret_cast</span>&lt;<span class="hljs-type">size_t</span>&gt;(policy-&gt;entry[i]);<br>    <span class="hljs-keyword">if</span> (buffer) &#123;<br>      buffer -= offset;<br>      policy-&gt;entry[i] = <span class="hljs-built_in">reinterpret_cast</span>&lt;sandbox::PolicyBuffer*&gt;(buffer);<br>    &#125;<br>  &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>该函数由<code>IPC_Leak</code>调用:</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-function">SBOX_TESTS_COMMAND <span class="hljs-type">int</span> <span class="hljs-title">IPC_Leak</span><span class="hljs-params">(<span class="hljs-type">int</span> argc, <span class="hljs-type">wchar_t</span>** argv)</span> </span>&#123;<br>  <span class="hljs-keyword">if</span> (argc != <span class="hljs-number">1</span>)<br>    <span class="hljs-keyword">return</span> SBOX_TEST_FAILED;<br><br>  <span class="hljs-comment">// Replace current target policy with one that forwards all interceptions to</span><br>  <span class="hljs-comment">// broker.</span><br>  PolicyGlobal* policy = <span class="hljs-built_in">GenerateBlankPolicy</span>();<br>  PolicyGlobal* current_policy =<br>      (PolicyGlobal*)sandbox::<span class="hljs-built_in">GetGlobalPolicyMemory</span>();<br>  <span class="hljs-built_in">CopyPolicyToTarget</span>(policy, policy-&gt;data_size + <span class="hljs-built_in">sizeof</span>(PolicyGlobal),<br>                     current_policy);<br>  ...<br></code></pre></td></tr></table></figure>
+<p>回到target发起IPC请求的地方，这里可以看到target自身也进行了一次对参数的审判。如果不过审干脆不回发起IPC调用。而broker端的审判是必须的，因为它不能依赖target的自审，无论target是否自审，broker端都需要进行一次审判，这也是一种合乎安全性的设计。</p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90/" class="category-chain-item">源码剖析</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/chromium/" class="print-no-link">#chromium</a>
+      
+        <a href="/tags/chromium-sandbox/" class="print-no-link">#chromium-sandbox</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>Chromium-sandbox-Filesystem-analysis</div>
+      <div>https://r00tk1ts.github.io/2018/06/03/chromium-sandbox-Filesystem-analysis/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>r00tk1t</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2018年6月3日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2018/06/03/chromium-sandbox-ThreadProcess-analysis/" title="Chromium-sandbox-ThreadProcess-analysis">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">Chromium-sandbox-ThreadProcess-analysis</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2018/06/03/chromium-sandbox-LowLevelPolicy-analysis/" title="Chromium-sandbox-LowLevelPolicy-analysis">
+                        <span class="hidden-mobile">Chromium-sandbox-LowLevelPolicy-analysis</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+  
+<script src="/js/diy/yinghua.js"></script>
+<script src="/js/diy/love.js"></script>
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

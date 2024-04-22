@@ -1,0 +1,744 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/favicon.png">
+  <link rel="icon" href="/img/favicon.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="r00tk1t">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="最近一个半月一直在研究浏览器安全，在通读了浏览器安全白皮书，研读了各种优质相关资源后，将第一个目标锁定了chromium的sandbox。起初是对沙盒逃逸感兴趣，但深入到sandbox源码并分析了一些escape的writeup后，发现实际上沙盒逃逸的攻击面是不一而论的，仅仅搞懂了sandbox的原理依旧不够，sandbox的上下层接口往往才是安全焦点。 然而我一直信奉“知其所以然”这一信条，研读">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Chromium-sandbox-BrokerServices-analysis">
+<meta property="og:url" content="https://r00tk1ts.github.io/2018/05/13/chromium-sandbox-BrokerServices/index.html">
+<meta property="og:site_name" content="玉涵的技能书">
+<meta property="og:description" content="最近一个半月一直在研究浏览器安全，在通读了浏览器安全白皮书，研读了各种优质相关资源后，将第一个目标锁定了chromium的sandbox。起初是对沙盒逃逸感兴趣，但深入到sandbox源码并分析了一些escape的writeup后，发现实际上沙盒逃逸的攻击面是不一而论的，仅仅搞懂了sandbox的原理依旧不够，sandbox的上下层接口往往才是安全焦点。 然而我一直信奉“知其所以然”这一信条，研读">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2018-05-13T10:28:11.000Z">
+<meta property="article:modified_time" content="2024-04-22T03:34:00.164Z">
+<meta property="article:author" content="r00tk1t">
+<meta property="article:tag" content="chromium">
+<meta property="article:tag" content="chromium-sandbox">
+<meta name="twitter:card" content="summary_large_image">
+  
+  
+  
+  <title>Chromium-sandbox-BrokerServices-analysis - 玉涵的技能书</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"r00tk1ts.github.io","root":"/","version":"1.9.5","typing":{"enable":true,"typeSpeed":80,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<!-- hexo injector head_end start --><link rel="stylesheet" href="https://cdn.staticfile.org/lxgw-wenkai-screen-webfont/1.7.0/style.min.css" /><!-- hexo injector head_end end --><meta name="generator" content="Hexo 6.1.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>玉涵的技能书</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/doc/">
+                <i class="iconfont icon-books"></i>
+                <span>藏经阁</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="Chromium-sandbox-BrokerServices-analysis"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2018-05-13 18:28" pubdate>
+          2018年5月13日 晚上
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          39k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          322 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">Chromium-sandbox-BrokerServices-analysis</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <p>最近一个半月一直在研究浏览器安全，在通读了浏览器安全白皮书，研读了各种优质相关资源后，将第一个目标锁定了chromium的sandbox。起初是对沙盒逃逸感兴趣，但深入到sandbox源码并分析了一些escape的writeup后，发现实际上沙盒逃逸的攻击面是不一而论的，仅仅搞懂了sandbox的原理依旧不够，sandbox的上下层接口往往才是安全焦点。
+然而我一直信奉“知其所以然”这一信条，研读chrome源码一方面可以提高对C++编码的理解，另一方面也更有机会揪出隐藏较深的bug乃至安全漏洞，这是庞大的google
+fuzzer大军所做不到的。
+本篇是sandbox源码剖析的第一篇，主要分析了windows平台下，chrome的broker进程API
+Interface类BrokerServices。</p>
+<p>想要流程的阅读本系列你需要以下几个条件： 1.
+较高水平的C++编码能力（至少通读C++ Primer
+5th，刷过课后题，有一定编码量）。 2. 熟悉Windows
+API编程，尤其是安全相关的内容。 3.
+对二进制安全有一定了解，熟悉各类型安全漏洞成因、漏洞缓解措施及bypass手法。</p>
+<span id="more"></span>
+<h1
+id="chromium-sandbox-brokerservices-analysis">Chromium-sandbox-BrokerServices-analysis</h1>
+<p>Chrome的browser进程也就是主进程叫做broker。</p>
+<p>在研读<code>BrokerServices</code>和<code>TargetServices</code>之前，一定要先阅读chrome的一些文档：</p>
+<ul>
+<li>多进程架构</li>
+<li>Chromium是如何展示网页的</li>
+<li>沙盒</li>
+<li>沙盒_FAQ</li>
+</ul>
+<h2 id="sandbox.brokerservices"><code>sandbox.BrokerServices</code></h2>
+<p>显然应该在sandbox namespace中，直接看类头定义：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-comment">// BrokerServices exposes all the broker API.</span><br><span class="hljs-comment">// The basic use is to start the target(s) and wait for them to end.</span><br><span class="hljs-comment">//</span><br><span class="hljs-comment">// This API is intended to be called in the following order</span><br><span class="hljs-comment">// (error checking omitted):</span><br><span class="hljs-comment">//  BrokerServices* broker = SandboxFactory::GetBrokerServices();</span><br><span class="hljs-comment">//  broker-&gt;Init();</span><br><span class="hljs-comment">//  PROCESS_INFORMATION target;</span><br><span class="hljs-comment">//  broker-&gt;SpawnTarget(target_exe_path, target_args, &amp;target);</span><br><span class="hljs-comment">//  ::ResumeThread(target-&gt;hThread);</span><br><span class="hljs-comment">//  // -- later you can call:</span><br><span class="hljs-comment">//  broker-&gt;WaitForAllTargets(option);</span><br><span class="hljs-comment">//</span><br><span class="hljs-comment">// 彻头彻尾的抽象基类，只提供了4个纯虚函数接口</span><br><span class="hljs-keyword">class</span> <span class="hljs-title class_">BrokerServices</span> &#123;<br> <span class="hljs-keyword">public</span>:<br>  <span class="hljs-comment">// Initializes the broker. Must be called before any other on this class.</span><br>  <span class="hljs-comment">// returns ALL_OK if successful. All other return values imply failure.</span><br>  <span class="hljs-comment">// If the return is ERROR_GENERIC, you can call ::GetLastError() to get</span><br>  <span class="hljs-comment">// more information.</span><br>  <span class="hljs-function"><span class="hljs-keyword">virtual</span> ResultCode <span class="hljs-title">Init</span><span class="hljs-params">()</span> </span>= <span class="hljs-number">0</span>;<span class="hljs-comment">//chrome经典的Init</span><br><br>  <span class="hljs-comment">// Returns the interface pointer to a new, empty policy object. Use this</span><br>  <span class="hljs-comment">// interface to specify the sandbox policy for new processes created by</span><br>  <span class="hljs-comment">// SpawnTarget()</span><br>  <span class="hljs-comment">// 对生成的target进程所应用的沙盒策略，这是标准的职能分离</span><br>  <span class="hljs-comment">// scoped_refptr是个类模板，实现了智能指针机制，指向TargetPolicy对象</span><br>  <span class="hljs-comment">// TargetPolicy是个管理target进程Policy的对象，policy相当复杂，暂不关心</span><br>  <span class="hljs-function"><span class="hljs-keyword">virtual</span> scoped_refptr&lt;TargetPolicy&gt; <span class="hljs-title">CreatePolicy</span><span class="hljs-params">()</span> </span>= <span class="hljs-number">0</span>;<br><br>  <span class="hljs-comment">// Creates a new target (child process) in a suspended state.</span><br>  <span class="hljs-comment">// Parameters:</span><br>  <span class="hljs-comment">//   exe_path: This is the full path to the target binary. This parameter</span><br>  <span class="hljs-comment">//   can be null and in this case the exe path must be the first argument</span><br>  <span class="hljs-comment">//   of the command_line.</span><br>  <span class="hljs-comment">//   command_line: The arguments to be passed as command line to the new</span><br>  <span class="hljs-comment">//   process. This can be null if the exe_path parameter is not null.</span><br>  <span class="hljs-comment">//   policy: This is the pointer to the policy object for the sandbox to</span><br>  <span class="hljs-comment">//   be created.</span><br>  <span class="hljs-comment">//   last_warning: The argument will contain an indication on whether</span><br>  <span class="hljs-comment">//   the process security was initialized completely, Only set if the</span><br>  <span class="hljs-comment">//   process can be used without a serious compromise in security.</span><br>  <span class="hljs-comment">//   last_error: If an error or warning is returned from this method this</span><br>  <span class="hljs-comment">//   parameter will hold the last Win32 error value.</span><br>  <span class="hljs-comment">//   target: returns the resulting target process information such as process</span><br>  <span class="hljs-comment">//   handle and PID just as if CreateProcess() had been called. The caller is</span><br>  <span class="hljs-comment">//   responsible for closing the handles returned in this structure.</span><br>  <span class="hljs-comment">// Returns:</span><br>  <span class="hljs-comment">//   ALL_OK if successful. All other return values imply failure.</span><br>  <span class="hljs-comment">// 实际上就是CreateProcess的封装了</span><br>  <span class="hljs-function"><span class="hljs-keyword">virtual</span> ResultCode <span class="hljs-title">SpawnTarget</span><span class="hljs-params">(<span class="hljs-type">const</span> <span class="hljs-type">wchar_t</span>* exe_path,</span></span><br><span class="hljs-params"><span class="hljs-function">                                 <span class="hljs-type">const</span> <span class="hljs-type">wchar_t</span>* command_line,</span></span><br><span class="hljs-params"><span class="hljs-function">                                 scoped_refptr&lt;TargetPolicy&gt; policy,</span></span><br><span class="hljs-params"><span class="hljs-function">                                 ResultCode* last_warning,</span></span><br><span class="hljs-params"><span class="hljs-function">                                 DWORD* last_error,</span></span><br><span class="hljs-params"><span class="hljs-function">                                 PROCESS_INFORMATION* target)</span> </span>= <span class="hljs-number">0</span>;<br><br>  <span class="hljs-comment">// This call blocks (waits) for all the targets to terminate.</span><br>  <span class="hljs-comment">// Returns:</span><br>  <span class="hljs-comment">//   ALL_OK if successful. All other return values imply failure.</span><br>  <span class="hljs-comment">//   If the return is ERROR_GENERIC, you can call ::GetLastError() to get</span><br>  <span class="hljs-comment">//   more information.</span><br>  <span class="hljs-comment">// 实际上就是WaitForSingleObject的封装</span><br>  <span class="hljs-function"><span class="hljs-keyword">virtual</span> ResultCode <span class="hljs-title">WaitForAllTargets</span><span class="hljs-params">()</span> </span>= <span class="hljs-number">0</span>;<br><br> <span class="hljs-keyword">protected</span>:<br>  <span class="hljs-comment">//因为是虚基类，所以析构是protected，除了子类析构时会递归调用到，其他地方不该被调用到，这种提权可以在编译器发现一些语法错误</span><br>  ~<span class="hljs-built_in">BrokerServices</span>() &#123;&#125;<br>&#125;;<br></code></pre></td></tr></table></figure>
+<p>软件设计层面实际上broker就是多个target的monitor进程，通过IPC通信。<code>BrokerServices</code>类实际上并不是broker进程，而是为broker进程提供的一个API调用面。broker可以通过它的API来完成创建policy、创建target进程等工作。头起始也给出了broker进程中使用它来创建target的用法范例，尽管相对于<code>SpawnTarget</code>来说，有些过时了。</p>
+<h3
+id="sandboxfactorygetbrokerservices"><code>SandboxFactory::GetBrokerServices()</code></h3>
+<p>值得一提的是，范例中的broker对象创建使用的是<code>SandboxFactory::GetBrokerServices()</code>工厂方法，展开来看一下：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-comment">// sandbox的工厂类</span><br><span class="hljs-keyword">class</span> <span class="hljs-title class_">SandboxFactory</span> &#123;<br> <span class="hljs-keyword">public</span>:<br>  <span class="hljs-comment">// Returns the Broker API interface, returns nullptr if this process is the</span><br>  <span class="hljs-comment">// target.</span><br>  <span class="hljs-function"><span class="hljs-type">static</span> BrokerServices* <span class="hljs-title">GetBrokerServices</span><span class="hljs-params">()</span></span>;<span class="hljs-comment">//生产broker</span><br><br>  <span class="hljs-comment">// Returns the Target API interface, returns nullptr if this process is the</span><br>  <span class="hljs-comment">// broker.</span><br>  <span class="hljs-function"><span class="hljs-type">static</span> TargetServices* <span class="hljs-title">GetTargetServices</span><span class="hljs-params">()</span></span>;<span class="hljs-comment">//生产target</span><br><br> <span class="hljs-keyword">private</span>:<br>  <span class="hljs-built_in">DISALLOW_IMPLICIT_CONSTRUCTORS</span>(SandboxFactory);<br>  <span class="hljs-comment">//禁用了隐式构造器，当然也包括默认赋值和默认复制构造</span><br>  <span class="hljs-comment">//这是因为SandboxFactory类提供的两个public方法都是static，所以SandboxFactory无需实例化，这一操作同样可以在编译器发现问题。</span><br>&#125;;<br></code></pre></td></tr></table></figure>
+<p>我们暂时只关心<code>GetBrokerServices()</code>：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-comment">// GetBrokerServices: the current implementation relies on a shared section</span><br><span class="hljs-comment">// that is created by the broker and opened by the target.</span><br><span class="hljs-function">BrokerServices* <span class="hljs-title">SandboxFactory::GetBrokerServices</span><span class="hljs-params">()</span> </span>&#123;<br>  <span class="hljs-comment">// Can&#x27;t be the broker if the shared section is open.</span><br>  <span class="hljs-comment">// 看起来这个HANDLE有效时，其调用进程不是broker，而是target</span><br>  <span class="hljs-comment">// 根据g_shared_section的注释来看，它作为target/broker间IPC和policy交互的共享内存的句柄，所以我猜测它的初始化应该在broker进程调用该函数之后。</span><br>  <span class="hljs-keyword">if</span> (g_shared_section)	<br>    <span class="hljs-keyword">return</span> <span class="hljs-literal">nullptr</span>;<br>  <span class="hljs-comment">// If the shared section does not exist we are the broker, then create</span><br>  <span class="hljs-comment">// the broker object.</span><br>  <span class="hljs-comment">// s_is_broker是个static全局量，看起来也只在两个工厂方法里用到，分别表示是否是broker进程，但因为是个static的全局变量，该文件的其他位置也没有用到这货，可能是个reserved备胎吧。</span><br>  s_is_broker = <span class="hljs-literal">true</span>;<br>  <span class="hljs-comment">//这里就是关键的对象生成了，BrokerServices是抽象基类显然不干实业，BrokerServices的派生类是BrokerServicesBase，负责干活。</span><br>  <span class="hljs-keyword">return</span> BrokerServicesBase::<span class="hljs-built_in">GetInstance</span>();<br>&#125;<br></code></pre></td></tr></table></figure>
+<h2
+id="sandbox.brokerservicesbase"><code>sandbox.BrokerServicesBase</code></h2>
+<p>抽象基类没什么好深入的，行至<code>BrokerServicesBase::GetInstance()</code>也就山穷水尽了，这波看派生类操作就行了：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-comment">// BrokerServicesBase ---------------------------------------------------------</span><br><span class="hljs-comment">// Broker implementation version 0</span><br><span class="hljs-comment">//</span><br><span class="hljs-comment">// This is an implementation of the interface BrokerServices and</span><br><span class="hljs-comment">// of the associated TargetProcess interface. In this implementation</span><br><span class="hljs-comment">// TargetProcess is a friend of BrokerServices where the later manages a</span><br><span class="hljs-comment">// collection of the former.</span><br><span class="hljs-comment">// 公有多继承BrokerServices和SingletonBase&lt;BrokerServicesBase&gt;类</span><br><span class="hljs-comment">// SingletonBase是个类模板，这里是对BrokerServicesBase应用了单例模式</span><br><span class="hljs-comment">// final表示不可被派生，也就表示这是最终实现体。</span><br><span class="hljs-keyword">class</span> <span class="hljs-title class_">BrokerServicesBase</span> <span class="hljs-keyword">final</span> : <span class="hljs-keyword">public</span> BrokerServices,<br>                                 <span class="hljs-keyword">public</span> SingletonBase&lt;BrokerServicesBase&gt; &#123;<br> <span class="hljs-keyword">public</span>:<br>  <span class="hljs-built_in">BrokerServicesBase</span>();<br><br>  ~<span class="hljs-built_in">BrokerServicesBase</span>();<br><br>  <span class="hljs-comment">// BrokerServices interface.</span><br>  <span class="hljs-comment">// 4个纯虚函数的override</span><br>  <span class="hljs-function">ResultCode <span class="hljs-title">Init</span><span class="hljs-params">()</span> <span class="hljs-keyword">override</span></span>;<br>  <span class="hljs-function">scoped_refptr&lt;TargetPolicy&gt; <span class="hljs-title">CreatePolicy</span><span class="hljs-params">()</span> <span class="hljs-keyword">override</span></span>;<br>  <span class="hljs-function">ResultCode <span class="hljs-title">SpawnTarget</span><span class="hljs-params">(<span class="hljs-type">const</span> <span class="hljs-type">wchar_t</span>* exe_path,</span></span><br><span class="hljs-params"><span class="hljs-function">                         <span class="hljs-type">const</span> <span class="hljs-type">wchar_t</span>* command_line,</span></span><br><span class="hljs-params"><span class="hljs-function">                         scoped_refptr&lt;TargetPolicy&gt; policy,</span></span><br><span class="hljs-params"><span class="hljs-function">                         ResultCode* last_warning,</span></span><br><span class="hljs-params"><span class="hljs-function">                         DWORD* last_error,</span></span><br><span class="hljs-params"><span class="hljs-function">                         PROCESS_INFORMATION* target)</span> <span class="hljs-keyword">override</span></span>;<br>  <span class="hljs-function">ResultCode <span class="hljs-title">WaitForAllTargets</span><span class="hljs-params">()</span> <span class="hljs-keyword">override</span></span>;<br><br>  <span class="hljs-comment">// Checks if the supplied process ID matches one of the broker&#x27;s active</span><br>  <span class="hljs-comment">// target processes</span><br>  <span class="hljs-comment">// Returns:</span><br>  <span class="hljs-comment">//   true if there is an active target process for this ID, otherwise false.</span><br>  <span class="hljs-comment">// 检查指定进程ID是否在broker的活跃目标进程集中                             </span><br>  <span class="hljs-function"><span class="hljs-type">bool</span> <span class="hljs-title">IsActiveTarget</span><span class="hljs-params">(DWORD process_id)</span></span>;<br><br> <span class="hljs-keyword">private</span>:<br>  <span class="hljs-comment">// The routine that the worker thread executes. It is in charge of</span><br>  <span class="hljs-comment">// notifications and cleanup-related tasks.</span><br>  <span class="hljs-comment">// 工作线程routine，负责通知和清理相关的任务。</span><br>  <span class="hljs-comment">// 应该是有谁用该static函数作为一个独立运行的线程，但既然是private，就应该源于内部</span><br>  <span class="hljs-function"><span class="hljs-type">static</span> DWORD WINAPI <span class="hljs-title">TargetEventsThread</span><span class="hljs-params">(PVOID param)</span></span>;<br><br>  <span class="hljs-comment">// The completion port used by the job objects to communicate events to</span><br>  <span class="hljs-comment">// the worker thread.</span><br>  <span class="hljs-comment">// base::win::ScopedHandle是对Windows句柄HANDLE的一个封装，暂不理</span><br>  base::win::ScopedHandle job_port_;	<span class="hljs-comment">//Job对象用此I/O完成端口与工作线程进行事件通信</span><br><br>  <span class="hljs-comment">// Handle to a manual-reset event that is signaled when the total target</span><br>  <span class="hljs-comment">// process count reaches zero.</span><br>  base::win::ScopedHandle no_targets_;	<span class="hljs-comment">//这是个手动重置event，当全部target进程计数降到0时，signaled置信</span><br><br>  <span class="hljs-comment">// Handle to the worker thread that reacts to job notifications.</span><br>  base::win::ScopedHandle job_thread_;	<span class="hljs-comment">//响应job通知的工作线程句柄</span><br><br>  <span class="hljs-comment">// Lock used to protect the list of targets from being modified by 2</span><br>  <span class="hljs-comment">// threads at the same time.</span><br>  CRITICAL_SECTION lock_;	<span class="hljs-comment">//锁，防止target链同时被两个线程修改</span><br><br>  <span class="hljs-comment">// Provides a pool of threads that are used to wait on the IPC calls.</span><br>  std::unique_ptr&lt;ThreadProvider&gt; thread_pool_;	<span class="hljs-comment">//线程池，用于等待IPC调用</span><br><br>  <span class="hljs-comment">// List of the trackers for closing and cleanup purposes.</span><br>  std::list&lt;std::unique_ptr&lt;JobTracker&gt;&gt; tracker_list_;	<span class="hljs-comment">//关闭和清理的tracker list</span><br><br>  <span class="hljs-comment">// Provides a fast lookup to identify sandboxed processes that belong to a</span><br>  <span class="hljs-comment">// job. Consult |jobless_process_handles_| for handles of processes without</span><br>  <span class="hljs-comment">// jobs.</span><br>  std::set&lt;DWORD&gt; child_process_ids_;<span class="hljs-comment">//属于job对象的沙盒进程id集，可用于快速检索</span><br><br>  <span class="hljs-built_in">DISALLOW_COPY_AND_ASSIGN</span>(BrokerServicesBase);<span class="hljs-comment">//禁用默认复制构造和默认赋值操作，这是因为BrokerServicesBase是单例模式，只应该有构造和析构</span><br>&#125;;<br></code></pre></td></tr></table></figure>
+<h3 id="构造和析构">构造和析构</h3>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><code class="hljs cpp">BrokerServicesBase::<span class="hljs-built_in">BrokerServicesBase</span>() &#123;&#125;	<span class="hljs-comment">// 纯粹是好习惯</span><br><br><span class="hljs-comment">// The destructor should only be called when the Broker process is terminating.</span><br><span class="hljs-comment">// Since BrokerServicesBase is a singleton, this is called from the CRT</span><br><span class="hljs-comment">// termination handlers, if this code lives on a DLL it is called during</span><br><span class="hljs-comment">// DLL_PROCESS_DETACH in other words, holding the loader lock, so we cannot</span><br><span class="hljs-comment">// wait for threads here.</span><br>BrokerServicesBase::~<span class="hljs-built_in">BrokerServicesBase</span>() &#123;<br>  <span class="hljs-comment">// If there is no port Init() was never called successfully.</span><br>  <span class="hljs-keyword">if</span> (!job_port_.<span class="hljs-built_in">IsValid</span>())	<br>    <span class="hljs-keyword">return</span>;<br><br>  <span class="hljs-comment">// Closing the port causes, that no more Job notifications are delivered to</span><br>  <span class="hljs-comment">// the worker thread and also causes the thread to exit. This is what we</span><br>  <span class="hljs-comment">// want to do since we are going to close all outstanding Jobs and notifying</span><br>  <span class="hljs-comment">// the policy objects ourselves.</span><br>  <span class="hljs-comment">// 关闭I/O完成端口，Job通知不再转给工作线程，工作线程也会退出</span><br>  ::<span class="hljs-built_in">PostQueuedCompletionStatus</span>(job_port_.<span class="hljs-built_in">Get</span>(), <span class="hljs-number">0</span>, THREAD_CTRL_QUIT, <span class="hljs-literal">nullptr</span>);<br><br>  <span class="hljs-comment">// 等待工作线程退出</span><br>  <span class="hljs-keyword">if</span> (job_thread_.<span class="hljs-built_in">IsValid</span>() &amp;&amp;<br>      WAIT_TIMEOUT == ::<span class="hljs-built_in">WaitForSingleObject</span>(job_thread_.<span class="hljs-built_in">Get</span>(), <span class="hljs-number">1000</span>)) &#123;<br>    <span class="hljs-comment">// Cannot clean broker services.</span><br>    <span class="hljs-built_in">NOTREACHED</span>();<br>    <span class="hljs-keyword">return</span>;<br>  &#125;<br><br>  <span class="hljs-comment">//资源清理</span><br>  tracker_list_.<span class="hljs-built_in">clear</span>();<br>  thread_pool_.<span class="hljs-built_in">reset</span>();<br><br>  ::<span class="hljs-built_in">DeleteCriticalSection</span>(&amp;lock_);<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>析构函数的调用时机仅仅在Broker进程被终止时。</p>
+<p>Broker是单例，终止时要么由CRT的termination
+handler调用，要么在DLL_PROCESS_DETACH时机调用（这说明代码在DLL上）。</p>
+<p>实际上直接看析构还是有点懵逼的，先看<code>Init</code>更好些。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-comment">// The broker uses a dedicated worker thread that services the job completion</span><br><span class="hljs-comment">// port to perform policy notifications and associated cleanup tasks.</span><br><span class="hljs-function">ResultCode <span class="hljs-title">BrokerServicesBase::Init</span><span class="hljs-params">()</span> </span>&#123;<br>  <span class="hljs-keyword">if</span> (job_port_.<span class="hljs-built_in">IsValid</span>() || thread_pool_)	<span class="hljs-comment">//防止二次Init</span><br>    <span class="hljs-keyword">return</span> SBOX_ERROR_UNEXPECTED_CALL;<br><br>  <span class="hljs-comment">//初始化用户态临界区锁</span><br>  ::<span class="hljs-built_in">InitializeCriticalSection</span>(&amp;lock_);<br><br>  <span class="hljs-comment">//创建IO完成端口，job_port是个封装的windows HANDLE类，Set方法关联</span><br>  job_port_.<span class="hljs-built_in">Set</span>(::<span class="hljs-built_in">CreateIoCompletionPort</span>(INVALID_HANDLE_VALUE, <span class="hljs-literal">nullptr</span>, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>));<br>  <span class="hljs-keyword">if</span> (!job_port_.<span class="hljs-built_in">IsValid</span>())<br>    <span class="hljs-keyword">return</span> SBOX_ERROR_GENERIC;<br><br>  <span class="hljs-comment">//同样的套路创建Event和Thread对象，都没有设置安全属性</span><br>  <span class="hljs-comment">//event匿名，设置为手动reset，nonsignaled态</span><br>  no_targets_.<span class="hljs-built_in">Set</span>(::<span class="hljs-built_in">CreateEventW</span>(<span class="hljs-literal">nullptr</span>, <span class="hljs-literal">true</span>, <span class="hljs-literal">false</span>, <span class="hljs-literal">nullptr</span>));<br><br>  <span class="hljs-comment">//创建的线程入口就是static成员TargetEventsThread，传入的参数是对象broker本身</span><br>  job_thread_.<span class="hljs-built_in">Set</span>(::<span class="hljs-built_in">CreateThread</span>(<span class="hljs-literal">nullptr</span>, <span class="hljs-number">0</span>,  <span class="hljs-comment">// Default security and stack.</span><br>                                 TargetEventsThread, <span class="hljs-keyword">this</span>, <span class="hljs-number">0</span>, <span class="hljs-literal">nullptr</span>));<br>  <span class="hljs-keyword">if</span> (!job_thread_.<span class="hljs-built_in">IsValid</span>())<br>    <span class="hljs-keyword">return</span> SBOX_ERROR_GENERIC;<br><br>  <span class="hljs-keyword">return</span> SBOX_ALL_OK;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>可以看到<code>Init</code>函数就是对资源的初始化以及<code>TargetEventsThread</code>线程的启动。</p>
+<blockquote>
+<p><code>ResultCode</code>作为sandbox中泛用的返回值，是个枚举类型，可参考sandbox_types.h文件定义。</p>
+</blockquote>
+<h3 id="spawntarget"><code>SpawnTarget</code></h3>
+<p>暂且先不管这个线程做什么，先看看Target进程是如何由broker生成的：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br><span class="line">158</span><br><span class="line">159</span><br><span class="line">160</span><br><span class="line">161</span><br><span class="line">162</span><br><span class="line">163</span><br><span class="line">164</span><br><span class="line">165</span><br><span class="line">166</span><br><span class="line">167</span><br><span class="line">168</span><br><span class="line">169</span><br><span class="line">170</span><br><span class="line">171</span><br><span class="line">172</span><br><span class="line">173</span><br><span class="line">174</span><br><span class="line">175</span><br><span class="line">176</span><br><span class="line">177</span><br><span class="line">178</span><br><span class="line">179</span><br><span class="line">180</span><br><span class="line">181</span><br><span class="line">182</span><br><span class="line">183</span><br><span class="line">184</span><br><span class="line">185</span><br><span class="line">186</span><br><span class="line">187</span><br><span class="line">188</span><br><span class="line">189</span><br><span class="line">190</span><br><span class="line">191</span><br><span class="line">192</span><br><span class="line">193</span><br><span class="line">194</span><br><span class="line">195</span><br><span class="line">196</span><br><span class="line">197</span><br><span class="line">198</span><br><span class="line">199</span><br><span class="line">200</span><br><span class="line">201</span><br><span class="line">202</span><br><span class="line">203</span><br><span class="line">204</span><br><span class="line">205</span><br><span class="line">206</span><br><span class="line">207</span><br><span class="line">208</span><br><span class="line">209</span><br><span class="line">210</span><br><span class="line">211</span><br><span class="line">212</span><br><span class="line">213</span><br><span class="line">214</span><br><span class="line">215</span><br><span class="line">216</span><br><span class="line">217</span><br><span class="line">218</span><br><span class="line">219</span><br><span class="line">220</span><br><span class="line">221</span><br><span class="line">222</span><br><span class="line">223</span><br><span class="line">224</span><br><span class="line">225</span><br><span class="line">226</span><br><span class="line">227</span><br><span class="line">228</span><br><span class="line">229</span><br><span class="line">230</span><br><span class="line">231</span><br><span class="line">232</span><br><span class="line">233</span><br><span class="line">234</span><br><span class="line">235</span><br><span class="line">236</span><br><span class="line">237</span><br><span class="line">238</span><br><span class="line">239</span><br><span class="line">240</span><br><span class="line">241</span><br><span class="line">242</span><br><span class="line">243</span><br><span class="line">244</span><br><span class="line">245</span><br><span class="line">246</span><br><span class="line">247</span><br><span class="line">248</span><br><span class="line">249</span><br><span class="line">250</span><br><span class="line">251</span><br><span class="line">252</span><br><span class="line">253</span><br><span class="line">254</span><br><span class="line">255</span><br><span class="line">256</span><br><span class="line">257</span><br><span class="line">258</span><br><span class="line">259</span><br><span class="line">260</span><br><span class="line">261</span><br><span class="line">262</span><br><span class="line">263</span><br><span class="line">264</span><br><span class="line">265</span><br><span class="line">266</span><br><span class="line">267</span><br><span class="line">268</span><br><span class="line">269</span><br><span class="line">270</span><br><span class="line">271</span><br><span class="line">272</span><br><span class="line">273</span><br><span class="line">274</span><br><span class="line">275</span><br><span class="line">276</span><br><span class="line">277</span><br><span class="line">278</span><br><span class="line">279</span><br><span class="line">280</span><br><span class="line">281</span><br><span class="line">282</span><br><span class="line">283</span><br><span class="line">284</span><br><span class="line">285</span><br><span class="line">286</span><br><span class="line">287</span><br><span class="line">288</span><br><span class="line">289</span><br><span class="line">290</span><br><span class="line">291</span><br><span class="line">292</span><br><span class="line">293</span><br><span class="line">294</span><br><span class="line">295</span><br><span class="line">296</span><br><span class="line">297</span><br><span class="line">298</span><br><span class="line">299</span><br><span class="line">300</span><br><span class="line">301</span><br><span class="line">302</span><br><span class="line">303</span><br><span class="line">304</span><br><span class="line">305</span><br><span class="line">306</span><br><span class="line">307</span><br><span class="line">308</span><br><span class="line">309</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-comment">// SpawnTarget does all the interesting sandbox setup and creates the target</span><br><span class="hljs-comment">// process inside the sandbox.</span><br><span class="hljs-comment">// 负责沙盒的安装、target进程的创建，是个相当复杂的函数</span><br><span class="hljs-function">ResultCode <span class="hljs-title">BrokerServicesBase::SpawnTarget</span><span class="hljs-params">(<span class="hljs-type">const</span> <span class="hljs-type">wchar_t</span>* exe_path,</span></span><br><span class="hljs-params"><span class="hljs-function">                                           <span class="hljs-type">const</span> <span class="hljs-type">wchar_t</span>* command_line,</span></span><br><span class="hljs-params"><span class="hljs-function">                                           scoped_refptr&lt;TargetPolicy&gt; policy,</span></span><br><span class="hljs-params"><span class="hljs-function">                                           ResultCode* last_warning,</span></span><br><span class="hljs-params"><span class="hljs-function">                                           DWORD* last_error,</span></span><br><span class="hljs-params"><span class="hljs-function">                                           PROCESS_INFORMATION* target_info)</span> </span>&#123;<br>  <span class="hljs-comment">//target process二进制全路径，这里不能为NULL</span><br>  <span class="hljs-comment">//实际上这里的实现体和虚基类的说法不太一致，虚基类的纯虚接口允许exe_path为NULL，但此时command_line的第一元必须为exe_path</span><br>  <span class="hljs-keyword">if</span> (!exe_path)	<br>    <span class="hljs-keyword">return</span> SBOX_ERROR_BAD_PARAMS;<br><br>  <span class="hljs-comment">//应用于target进程的policy也不能为空，必须要提前通过CreatePolicy创建好，传入参数在该函数内关联，暂且先不管CreatePolicy做了什么。</span><br>  <span class="hljs-keyword">if</span> (!policy)<br>    <span class="hljs-keyword">return</span> SBOX_ERROR_BAD_PARAMS;<br><br>  <span class="hljs-comment">// Even though the resources touched by SpawnTarget can be accessed in</span><br>  <span class="hljs-comment">// multiple threads, the method itself cannot be called from more than</span><br>  <span class="hljs-comment">// 1 thread. This is to protect the global variables used while setting up</span><br>  <span class="hljs-comment">// the child process.</span><br>  <span class="hljs-comment">// 这里的static局部变量以及锁是对线程重入做的限制，尽管SpawnTarget中资源可以被多个线程访问，但该方法本身一次只能有1个线程调用</span><br>  <span class="hljs-type">static</span> DWORD thread_id = ::<span class="hljs-built_in">GetCurrentThreadId</span>();<br>  <span class="hljs-comment">// 到这里如果两次id不一致，说明是A-&gt;B-&gt;A，B改变了A设置的static thread_id</span><br>  <span class="hljs-comment">// 这个时候A就应该终止，由B继续进行</span><br>  <span class="hljs-built_in">DCHECK</span>(thread_id == ::<span class="hljs-built_in">GetCurrentThreadId</span>());<br>  *last_warning = SBOX_ALL_OK;<br><br>  <span class="hljs-comment">// 其实我不是很懂为什么要搞个static的thread_id，直接上锁不就行了吗，是为了记录thread_id吗？</span><br>  <span class="hljs-comment">// 上锁，AutoLock是个自动获取和释放CRITICAL_SECTION锁的类</span><br>  <span class="hljs-comment">// lock是个栈局部变量，函数返回后对象会析构，析构会release锁</span><br>  <span class="hljs-function">AutoLock <span class="hljs-title">lock</span><span class="hljs-params">(&amp;lock_)</span></span>;<br><br>  <span class="hljs-comment">// This downcast is safe as long as we control CreatePolicy()</span><br>  <span class="hljs-comment">// policy尽管是 scoped_refptr&lt;TargetPolicy&gt;对象，但实际上CreatePolicy()时父类引用调用的是子类PolicyBase对象成员函数，标准的多态</span><br>  <span class="hljs-comment">// 之所以做了向下转型，是因为虚基类TargetPolicy并没有定义要如何实现安全策略，使用了token、job等策略的PolicyBase只是一种实现体罢了。这就是OO的魅力，扩展性极强。</span><br>  <span class="hljs-comment">// 当然，向下转型的使用前提是，必须已知父类引用指向的是某个具体的派生类，且只能是该派生类。</span><br>  <span class="hljs-function">scoped_refptr&lt;PolicyBase&gt; <span class="hljs-title">policy_base</span><span class="hljs-params">(<span class="hljs-keyword">static_cast</span>&lt;PolicyBase*&gt;(policy.get()))</span></span>;<br><br>  <span class="hljs-comment">// Construct the tokens and the job object that we are going to associate</span><br>  <span class="hljs-comment">// with the soon to be created target process.</span><br>  <span class="hljs-comment">// 构造三个信令token以及job对象，与即将创建的target进程相关联</span><br>  base::win::ScopedHandle initial_token;<br>  base::win::ScopedHandle lockdown_token;<br>  base::win::ScopedHandle lowbox_token;<br>  ResultCode result = SBOX_ALL_OK;<br><br>  <span class="hljs-comment">// 可以看到三个信令token的部署是policy_base执行的，token是policy的三大核心之一（另外两个是job和alternative desktop）</span><br>  <span class="hljs-comment">// 至于token是如何部署的，这个疑问留到解剖TargetPolicy时再探索</span><br>  result =<br>      policy_base-&gt;<span class="hljs-built_in">MakeTokens</span>(&amp;initial_token, &amp;lockdown_token, &amp;lowbox_token);<br>  <span class="hljs-keyword">if</span> (SBOX_ALL_OK != result)<br>    <span class="hljs-keyword">return</span> result;<br>  <span class="hljs-comment">// lowbox_token必须要Win8以上才可用</span><br>  <span class="hljs-comment">// 我觉着把这个逻辑放在MakeTokens后面挺奇怪的</span><br>  <span class="hljs-keyword">if</span> (lowbox_token.<span class="hljs-built_in">IsValid</span>() &amp;&amp;<br>      base::win::<span class="hljs-built_in">GetVersion</span>() &lt; base::win::VERSION_WIN8) &#123;<br>    <span class="hljs-comment">// We don&#x27;t allow lowbox_token below Windows 8.</span><br>    <span class="hljs-keyword">return</span> SBOX_ERROR_BAD_PARAMS;<br>  &#125;<br><br>  <span class="hljs-comment">// policy的三大核心之job部署，依然是依赖policy_base</span><br>  base::win::ScopedHandle job;<br>  result = policy_base-&gt;<span class="hljs-built_in">MakeJobObject</span>(&amp;job);<br>  <span class="hljs-keyword">if</span> (SBOX_ALL_OK != result)<br>    <span class="hljs-keyword">return</span> result;<br><br>  <span class="hljs-comment">// StartupInformation是windows的STARTUPINFOEX的封装</span><br>  <span class="hljs-comment">// spawn进程的时候会用到，这个结构理应耳熟能详</span><br>  <span class="hljs-comment">// Initialize the startup information from the policy.</span><br>  base::win::StartupInformation startup_info;<br>  <span class="hljs-comment">// The liftime of |mitigations|, |inherit_handle_list| and</span><br>  <span class="hljs-comment">// |child_process_creation| have to be at least as long as</span><br>  <span class="hljs-comment">// |startup_info| because |UpdateProcThreadAttribute| requires that</span><br>  <span class="hljs-comment">// its |lpValue| parameter persist until |DeleteProcThreadAttributeList| is</span><br>  <span class="hljs-comment">// called; StartupInformation&#x27;s destructor makes such a call.</span><br>  DWORD64 mitigations[<span class="hljs-number">2</span>];<br>  std::vector&lt;HANDLE&gt; inherited_handle_list;<br>  DWORD child_process_creation = PROCESS_CREATION_CHILD_PROCESS_RESTRICTED;<br><br>  <span class="hljs-comment">//sandbox的进程还需要使用额外的AlternateDesktop，而非User的Desktop</span><br>  <span class="hljs-comment">// alternate desktop就是policy三大核心的第三个</span><br>  base::string16 desktop = policy_base-&gt;<span class="hljs-built_in">GetAlternateDesktop</span>();<br>  <span class="hljs-keyword">if</span> (!desktop.<span class="hljs-built_in">empty</span>()) &#123;<br>    startup_info.<span class="hljs-built_in">startup_info</span>()-&gt;lpDesktop =<br>        <span class="hljs-built_in">const_cast</span>&lt;<span class="hljs-type">wchar_t</span>*&gt;(desktop.<span class="hljs-built_in">c_str</span>());<span class="hljs-comment">//statup_info指定拿到的alternate desktop</span><br>  &#125;<br><br>  <span class="hljs-type">bool</span> inherit_handles = <span class="hljs-literal">false</span>;<br><br>  <span class="hljs-type">int</span> attribute_count = <span class="hljs-number">0</span>;<span class="hljs-comment">//这货记录policy三大核心之外的其他feature的个数，比如mitigation、target是否可生产子进程等</span><br><br>  <span class="hljs-type">size_t</span> mitigations_size;<br>  <span class="hljs-comment">//将sandbox flags转换成PROC_THREAD_ATTRIBUTE_SECURITY_CAPABILITIES policy flags，为UpdateProcThreadAttribute()所用</span><br>  <span class="hljs-comment">// mitigation实际上也由policy掌控，但policy掌控的毕竟只是抽象的flag</span><br>  <span class="hljs-comment">// 这里需要把他做一个转换，转换成windows API可以直接使用的结构</span><br>  <span class="hljs-comment">// 而UpdateProcThreadAttribute不过是对API的一层封装</span><br>  <span class="hljs-built_in">ConvertProcessMitigationsToPolicy</span>(policy_base-&gt;<span class="hljs-built_in">GetProcessMitigations</span>(),<br>                                    &amp;mitigations[<span class="hljs-number">0</span>], &amp;mitigations_size);<br>  <span class="hljs-keyword">if</span> (mitigations[<span class="hljs-number">0</span>] || mitigations[<span class="hljs-number">1</span>])<br>    ++attribute_count;<br><br>  <span class="hljs-type">bool</span> restrict_child_process_creation = <span class="hljs-literal">false</span>;<br>  <span class="hljs-comment">//Win10_TH2以上，policy的Job权限低于JOB_LIMITED_USER则不允许target创建子进程</span><br>  <span class="hljs-keyword">if</span> (base::win::<span class="hljs-built_in">GetVersion</span>() &gt;= base::win::VERSION_WIN10_TH2 &amp;&amp;<br>      policy_base-&gt;<span class="hljs-built_in">GetJobLevel</span>() &lt;= JOB_LIMITED_USER) &#123;<br>    restrict_child_process_creation = <span class="hljs-literal">true</span>;<br>    ++attribute_count;<br>  &#125;<br><br>  <span class="hljs-comment">// 看起来policy的标准输出和错误句柄需要作为继承句柄</span><br>  HANDLE stdout_handle = policy_base-&gt;<span class="hljs-built_in">GetStdoutHandle</span>();<br>  HANDLE stderr_handle = policy_base-&gt;<span class="hljs-built_in">GetStderrHandle</span>();<br><br>  <span class="hljs-keyword">if</span> (stdout_handle != INVALID_HANDLE_VALUE)<br>    inherited_handle_list.<span class="hljs-built_in">push_back</span>(stdout_handle);<br><br>  <span class="hljs-comment">// Handles in the list must be unique.</span><br>  <span class="hljs-keyword">if</span> (stderr_handle != stdout_handle &amp;&amp; stderr_handle != INVALID_HANDLE_VALUE)<br>    inherited_handle_list.<span class="hljs-built_in">push_back</span>(stderr_handle);<br><br>  <span class="hljs-type">const</span> <span class="hljs-keyword">auto</span>&amp; policy_handle_list = policy_base-&gt;<span class="hljs-built_in">GetHandlesBeingShared</span>();<br><br>  <span class="hljs-comment">//标准输出，标准错误和policy的所有共享句柄全部放入inherited_handle_list</span><br>  <span class="hljs-keyword">for</span> (HANDLE handle : policy_handle_list)<br>    inherited_handle_list.<span class="hljs-built_in">push_back</span>(handle);<br><br>  <span class="hljs-keyword">if</span> (inherited_handle_list.<span class="hljs-built_in">size</span>())<br>    ++attribute_count;<br><br>  <span class="hljs-comment">//AppContainer可以在Win8以上使用</span><br>  scoped_refptr&lt;AppContainerProfileBase&gt; profile =<br>      policy_base-&gt;<span class="hljs-built_in">GetAppContainerProfileBase</span>();<br>  <span class="hljs-keyword">if</span> (profile) &#123;<br>    <span class="hljs-keyword">if</span> (base::win::<span class="hljs-built_in">GetVersion</span>() &lt; base::win::VERSION_WIN8)<br>      <span class="hljs-keyword">return</span> SBOX_ERROR_BAD_PARAMS;<br>    ++attribute_count;<br>    <span class="hljs-keyword">if</span> (profile-&gt;<span class="hljs-built_in">GetEnableLowPrivilegeAppContainer</span>()) &#123;<br>      <span class="hljs-comment">// LPAC first supported in RS1.</span><br>      <span class="hljs-comment">// Win10_RS1以上可以应用LPAC</span><br>      <span class="hljs-keyword">if</span> (base::win::<span class="hljs-built_in">GetVersion</span>() &lt; base::win::VERSION_WIN10_RS1)<br>        <span class="hljs-keyword">return</span> SBOX_ERROR_BAD_PARAMS;<br>      ++attribute_count;<span class="hljs-comment">// LPAC与AC各算一次计数</span><br>    &#125;<br>  &#125;<br>	<br>  <span class="hljs-comment">//初始化startup_info的线程属性列表，attribute_count记录了属性的个数</span><br>  <span class="hljs-keyword">if</span> (!startup_info.<span class="hljs-built_in">InitializeProcThreadAttributeList</span>(attribute_count))<br>    <span class="hljs-keyword">return</span> SBOX_ERROR_PROC_THREAD_ATTRIBUTES;<br><br>  <span class="hljs-comment">//UpdateProcThreadAttribute用以更新线程属性PROC_THREAD_ATTRIBUTE_MITIGATION_POLICY</span><br>  <span class="hljs-keyword">if</span> (mitigations[<span class="hljs-number">0</span>] || mitigations[<span class="hljs-number">1</span>]) &#123;<br>    <span class="hljs-keyword">if</span> (!startup_info.<span class="hljs-built_in">UpdateProcThreadAttribute</span>(<br>            PROC_THREAD_ATTRIBUTE_MITIGATION_POLICY, &amp;mitigations[<span class="hljs-number">0</span>],<br>            mitigations_size)) &#123;<br>      <span class="hljs-keyword">return</span> SBOX_ERROR_PROC_THREAD_ATTRIBUTES;<br>    &#125;<br>  &#125;<br><br>  <span class="hljs-comment">//如果有子进程不允许创建的限制，那么还要更新PROC_THREAD_ATTRIBUTE_CHILD_PROCESS_POLICY这一属性</span><br>  <span class="hljs-keyword">if</span> (restrict_child_process_creation) &#123;<br>    <span class="hljs-keyword">if</span> (!startup_info.<span class="hljs-built_in">UpdateProcThreadAttribute</span>(<br>            PROC_THREAD_ATTRIBUTE_CHILD_PROCESS_POLICY, &amp;child_process_creation,<br>            <span class="hljs-built_in">sizeof</span>(child_process_creation))) &#123;<br>      <span class="hljs-keyword">return</span> SBOX_ERROR_PROC_THREAD_ATTRIBUTES;<br>    &#125;<br>  &#125;<br><br>  <span class="hljs-comment">//更新PROC_THREAD_ATTRIBUTE_HANDLE_LIST属性</span><br>  <span class="hljs-keyword">if</span> (inherited_handle_list.<span class="hljs-built_in">size</span>()) &#123;<br>    <span class="hljs-keyword">if</span> (!startup_info.<span class="hljs-built_in">UpdateProcThreadAttribute</span>(<br>            PROC_THREAD_ATTRIBUTE_HANDLE_LIST, &amp;inherited_handle_list[<span class="hljs-number">0</span>],<br>            <span class="hljs-built_in">sizeof</span>(HANDLE) * inherited_handle_list.<span class="hljs-built_in">size</span>())) &#123;<br>      <span class="hljs-keyword">return</span> SBOX_ERROR_PROC_THREAD_ATTRIBUTES;<br>    &#125;<br>    startup_info.<span class="hljs-built_in">startup_info</span>()-&gt;dwFlags |= STARTF_USESTDHANDLES;<br>    startup_info.<span class="hljs-built_in">startup_info</span>()-&gt;hStdInput = INVALID_HANDLE_VALUE;<br>    <span class="hljs-comment">// policy的标准输出和错误句柄为新进程使用，同时也在可继承句柄列表中</span><br>    startup_info.<span class="hljs-built_in">startup_info</span>()-&gt;hStdOutput = stdout_handle;<br>    startup_info.<span class="hljs-built_in">startup_info</span>()-&gt;hStdError = stderr_handle;<br>    <span class="hljs-comment">// Allowing inheritance of handles is only secure now that we</span><br>    <span class="hljs-comment">// have limited which handles will be inherited.</span><br>    inherit_handles = <span class="hljs-literal">true</span>;<span class="hljs-comment">//仅在控制了哪些句柄可以被继承的情况下，允许继承句柄才是安全的</span><br>  &#125;<br><br>  <span class="hljs-comment">// Declared here to ensure they stay in scope until after process creation.</span><br>  std::unique_ptr&lt;SecurityCapabilities&gt; security_capabilities;<br>  DWORD all_applications_package_policy =<br>      PROCESS_CREATION_ALL_APPLICATION_PACKAGES_OPT_OUT;<br><br>  <span class="hljs-comment">//如果应用了AppContainer，还要更新PROC_THREAD_ATTRIBUTE_SECURITY_CAPABILITIES</span><br>  <span class="hljs-comment">// SecurityCapabilities对象源于profile，AC相关的部分我还没有看，暂时不清楚技术内幕</span><br>  <span class="hljs-keyword">if</span> (profile) &#123;<br>    security_capabilities = profile-&gt;<span class="hljs-built_in">GetSecurityCapabilities</span>();<br>    <span class="hljs-keyword">if</span> (!startup_info.<span class="hljs-built_in">UpdateProcThreadAttribute</span>(<br>            PROC_THREAD_ATTRIBUTE_SECURITY_CAPABILITIES,<br>            security_capabilities.<span class="hljs-built_in">get</span>(), <span class="hljs-built_in">sizeof</span>(SECURITY_CAPABILITIES))) &#123;<br>      <span class="hljs-keyword">return</span> SBOX_ERROR_PROC_THREAD_ATTRIBUTES;<br>    &#125;<br>    <span class="hljs-comment">//如果应用了LPAC，还要更新PROC_THREAD_ATTRIBUTE_ALL_APPLICATION_PACKAGES_POLICY</span><br>    <span class="hljs-keyword">if</span> (profile-&gt;<span class="hljs-built_in">GetEnableLowPrivilegeAppContainer</span>()) &#123;<br>      <span class="hljs-keyword">if</span> (!startup_info.<span class="hljs-built_in">UpdateProcThreadAttribute</span>(<br>              PROC_THREAD_ATTRIBUTE_ALL_APPLICATION_PACKAGES_POLICY,<br>              &amp;all_applications_package_policy,<br>              <span class="hljs-built_in">sizeof</span>(all_applications_package_policy))) &#123;<br>        <span class="hljs-keyword">return</span> SBOX_ERROR_PROC_THREAD_ATTRIBUTES;<br>      &#125;<br>    &#125;<br>  &#125;<br><br>  <span class="hljs-comment">// Construct the thread pool here in case it is expensive.</span><br>  <span class="hljs-comment">// The thread pool is shared by all the targets</span><br>  <span class="hljs-comment">// 首次创建target时，初始化线程池</span><br>  <span class="hljs-comment">// Win2kThreadPool是Win2k线程池API的实现</span><br>  <span class="hljs-comment">// 这里使用的是个std::unique_ptr，防止其他指针指向该对象</span><br>  <span class="hljs-keyword">if</span> (!thread_pool_)<br>    thread_pool_ = std::<span class="hljs-built_in">make_unique</span>&lt;Win2kThreadPool&gt;();<br><br>  <span class="hljs-comment">// Create the TargetProcess object and spawn the target suspended. Note that</span><br>  <span class="hljs-comment">// Brokerservices does not own the target object. It is owned by the Policy.</span><br>  <span class="hljs-comment">// 创建TargetProcess对象，生成挂起的target进程。</span><br>  <span class="hljs-comment">// target不属于BrokerServices，它实际上属于Policy。</span><br>  <span class="hljs-comment">// base::win::ScopedProcessInformation是对PROCESS_INFORMATION的封装</span><br>  base::win::ScopedProcessInformation process_info;<br>  <span class="hljs-comment">// 创建TargetProcess对象</span><br>  <span class="hljs-comment">// 传递各种policy相关资源，注意如果没有用AppContainer就使用Sid机制</span><br>  TargetProcess* target = <span class="hljs-keyword">new</span> <span class="hljs-built_in">TargetProcess</span>(<br>      std::<span class="hljs-built_in">move</span>(initial_token), std::<span class="hljs-built_in">move</span>(lockdown_token), job.<span class="hljs-built_in">Get</span>(),<br>      thread_pool_.<span class="hljs-built_in">get</span>(),<br>      profile ? profile-&gt;<span class="hljs-built_in">GetImpersonationCapabilities</span>() : std::<span class="hljs-built_in">vector</span>&lt;Sid&gt;());<br><br>  <span class="hljs-comment">// 创建target进程，传递命令行参数、继承句柄、启动信息、进程信息</span><br>  <span class="hljs-comment">// 尽管此时还不了解TargetProcess的Create实现，但已经能嗅到CreateProcess的气息了。这些参数传的太堂而皇之了。</span><br>  result = target-&gt;<span class="hljs-built_in">Create</span>(exe_path, command_line, inherit_handles, startup_info,<br>                          &amp;process_info, last_error);<br><br>  <span class="hljs-keyword">if</span> (result != SBOX_ALL_OK) &#123;<br>    <span class="hljs-built_in">SpawnCleanup</span>(target);<br>    <span class="hljs-keyword">return</span> result;<br>  &#125;<br><br>  <span class="hljs-comment">// lowbox_token是win8以上独有的，单独处理，TargetProcess特意给了个接口</span><br>  <span class="hljs-keyword">if</span> (lowbox_token.<span class="hljs-built_in">IsValid</span>()) &#123;<br>    *last_warning = target-&gt;<span class="hljs-built_in">AssignLowBoxToken</span>(lowbox_token);<br>    <span class="hljs-comment">// If this fails we continue, but report the error as a warning.</span><br>    <span class="hljs-comment">// This is due to certain configurations causing the setting of the</span><br>    <span class="hljs-comment">// token to fail post creation, and we&#x27;d rather continue if possible.</span><br>    <span class="hljs-comment">// lowbox_token的失败是可以接受的，仅仅记录错误继续前行</span><br>    <span class="hljs-keyword">if</span> (*last_warning != SBOX_ALL_OK)<br>      *last_error = ::<span class="hljs-built_in">GetLastError</span>();<br>  &#125;<br><br>  <span class="hljs-comment">// Now the policy is the owner of the target.</span><br>  <span class="hljs-comment">// policy正式接管target</span><br>  result = policy_base-&gt;<span class="hljs-built_in">AddTarget</span>(target);<br><br>  <span class="hljs-keyword">if</span> (result != SBOX_ALL_OK) &#123;<br>    *last_error = ::<span class="hljs-built_in">GetLastError</span>();<br>    <span class="hljs-built_in">SpawnCleanup</span>(target);<br>    <span class="hljs-keyword">return</span> result;<br>  &#125;<br><br>  <span class="hljs-comment">// We are going to keep a pointer to the policy because we&#x27;ll call it when</span><br>  <span class="hljs-comment">// the job object generates notifications using the completion port.</span><br>  <span class="hljs-comment">// policy和target关联起来了，但broker生成的policy目前却没法找到</span><br>  <span class="hljs-comment">// broker通过tracker_list_成员维护tracker，而tracker维护job和policy</span><br>  <span class="hljs-comment">// 注意局部变量对象job通过std::move转移了owner</span><br>  <span class="hljs-comment">// 通过JobTracker将job通知与job和policy对象联系起来</span><br>  <span class="hljs-keyword">if</span> (job.<span class="hljs-built_in">IsValid</span>()) &#123;<br>    std::unique_ptr&lt;JobTracker&gt; tracker =<br>        std::<span class="hljs-built_in">make_unique</span>&lt;JobTracker&gt;(std::<span class="hljs-built_in">move</span>(job), policy_base);<br><br>    <span class="hljs-comment">// There is no obvious recovery after failure here. Previous version with</span><br>    <span class="hljs-comment">// SpawnCleanup() caused deletion of TargetProcess twice. crbug.com/480639</span><br>    <span class="hljs-comment">// 将IO完成端口句柄job_port_与job对象相关联</span><br>    <span class="hljs-comment">// tracker指针做key,IO完成端口句柄做value</span><br>    <span class="hljs-built_in">CHECK</span>(<span class="hljs-built_in">AssociateCompletionPort</span>(tracker-&gt;job.<span class="hljs-built_in">Get</span>(), job_port_.<span class="hljs-built_in">Get</span>(),<br>                                  tracker.<span class="hljs-built_in">get</span>()));<br><br>    <span class="hljs-comment">// Save the tracker because in cleanup we might need to force closing</span><br>    <span class="hljs-comment">// the Jobs.</span><br>    <span class="hljs-comment">// tracker是unique_ptr，所以不能直接复制，需要std::move右值引用来转换owner为tracker_list_成员</span><br>    tracker_list_.<span class="hljs-built_in">push_back</span>(std::<span class="hljs-built_in">move</span>(tracker));<br>    <span class="hljs-comment">// 维护target进程的id</span><br>    child_process_ids_.<span class="hljs-built_in">insert</span>(process_info.<span class="hljs-built_in">process_id</span>());<br>  &#125; <span class="hljs-keyword">else</span> &#123;<br>    <span class="hljs-comment">// Leak policy_base. This needs to outlive the child process, but there&#x27;s</span><br>    <span class="hljs-comment">// nothing that tracks that lifetime properly if there&#x27;s no job object.</span><br>    <span class="hljs-comment">// TODO(wfh): Find a way to make this have the correct lifetime.</span><br>    policy_base-&gt;<span class="hljs-built_in">AddRef</span>();<br><br>    <span class="hljs-comment">// We have to signal the event once here because the completion port will</span><br>    <span class="hljs-comment">// never get a message that this target is being terminated thus we should</span><br>    <span class="hljs-comment">// not block WaitForAllTargets until we have at least one target with job.</span><br>    <span class="hljs-comment">// 大概的意思就是，这个target没有job对象，所以终止时也没办法通知IO完成端口</span><br>    <span class="hljs-comment">// 这就可能导致在当前没有任何一个其他拥有job对象的target时，一旦调用WaitForAllTargets</span><br>    <span class="hljs-comment">// 就会因为收不到该进程终止的消息而永久阻塞，所以这里在没有其他拥有job对象的target进程存在的情况下启动这样一个进程时</span><br>    <span class="hljs-comment">// 就手工置信no_targets_信号量，防止WaitForAllTargets的阻塞</span><br>    <span class="hljs-comment">// 但这也意味着这种游离于IO完成端口管理之外的target，lifetime不受控制</span><br>    <span class="hljs-comment">// 我暂时也不清楚什么样的target会落入到这里</span><br>    <span class="hljs-keyword">if</span> (child_process_ids_.<span class="hljs-built_in">empty</span>())<br>      ::<span class="hljs-built_in">SetEvent</span>(no_targets_.<span class="hljs-built_in">Get</span>());<br>  &#125;<br><br>  <span class="hljs-comment">//process_info转交给OUT型参数target_info（owner）</span><br>  *target_info = process_info.<span class="hljs-built_in">Take</span>();<br>  <span class="hljs-keyword">return</span> result;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>因为涉及了大量的外部对象，所以在没有拆解耦合对象的情况下，很多细节暂时不纠结，看到了再说。</p>
+<h3 id="waitforalltargets"><code>WaitForAllTargets()</code></h3>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-function">ResultCode <span class="hljs-title">BrokerServicesBase::WaitForAllTargets</span><span class="hljs-params">()</span> </span>&#123;<br>  ::<span class="hljs-built_in">WaitForSingleObject</span>(no_targets_.<span class="hljs-built_in">Get</span>(), INFINITE);<br>  <span class="hljs-keyword">return</span> SBOX_ALL_OK;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>这个就很简单了，<code>no_targets_</code>置信时<code>WaitForSingleObject</code>会返回，这就表示所有target都退出了。</p>
+<h3 id="isactivetarget"><code>IsActiveTarget()</code></h3>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-function"><span class="hljs-type">bool</span> <span class="hljs-title">BrokerServicesBase::IsActiveTarget</span><span class="hljs-params">(DWORD process_id)</span> </span>&#123;<br>  <span class="hljs-comment">// 上锁是为了在迭代child_process_ids_时，不受其他线程修改的影响</span><br>  <span class="hljs-function">AutoLock <span class="hljs-title">lock</span><span class="hljs-params">(&amp;lock_)</span></span>;<br>  <span class="hljs-keyword">return</span> child_process_ids_.<span class="hljs-built_in">find</span>(process_id) != child_process_ids_.<span class="hljs-built_in">end</span>();<br>&#125;<br></code></pre></td></tr></table></figure>
+<h3 id="createpolicy"><code>CreatePolicy()</code></h3>
+<p>作为<code>BrokerServicesBase</code>中非常重要的组成部分，对target进程的管理、安全策略都由policy控制。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-function">scoped_refptr&lt;TargetPolicy&gt; <span class="hljs-title">BrokerServicesBase::CreatePolicy</span><span class="hljs-params">()</span> </span>&#123;<br>  <span class="hljs-comment">// If you change the type of the object being created here you must also</span><br>  <span class="hljs-comment">// change the downcast to it in SpawnTarget().</span><br>  <span class="hljs-comment">// 父类指针引用子类对象，标准的多态</span><br>  <span class="hljs-function">scoped_refptr&lt;TargetPolicy&gt; <span class="hljs-title">policy</span><span class="hljs-params">(<span class="hljs-keyword">new</span> PolicyBase)</span></span>;<br>  <span class="hljs-comment">// PolicyBase starts with refcount 1.</span><br>  policy-&gt;<span class="hljs-built_in">Release</span>();<br>  <span class="hljs-keyword">return</span> policy;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>实际上也没做什么，单纯的new出一个<code>PolicyBase</code>对象并返回其智能指针罢了。</p>
+<p>而在<code>SpawnTarget</code>中也确实看到了使用的是<code>PolicyBase</code>对象的指针引用了这个对象，并做了各种安全设定、target绑定。</p>
+<p>具体的安全设定是如何实现的，限于篇幅，这里就不展开了，本次分析旨在缕清Broker和Target的关系，以及各结构是如何编制在一起，形成了哪些效果等。具体的TargetProcess，TargetPolicy以及派生类PolicyBase等日后单独分析。</p>
+<h3 id="targeteventsthread"><code>TargetEventsThread</code></h3>
+<p>最后的重中之重，需要弄清楚target事件的处理线程都做了些什么。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-comment">// The worker thread stays in a loop waiting for asynchronous notifications</span><br><span class="hljs-comment">// from the job objects. Right now we only care about knowing when the last</span><br><span class="hljs-comment">// process on a job terminates, but in general this is the place to tell</span><br><span class="hljs-comment">// the policy about events.</span><br><span class="hljs-comment">// 循环等待各个target的job对象的异步通知</span><br><span class="hljs-comment">// 当前仅关心最后一个进程何时退出，实际上它可以用来通知policy event的发生</span><br><span class="hljs-comment">// （这是因为绑定IO完成端口与job对象时，tracker指针做了key，而tracker维护了job和policy）</span><br><span class="hljs-function">DWORD WINAPI <span class="hljs-title">BrokerServicesBase::TargetEventsThread</span><span class="hljs-params">(PVOID param)</span> </span>&#123;<br>  <span class="hljs-keyword">if</span> (!param)<br>    <span class="hljs-keyword">return</span> <span class="hljs-number">1</span>;<br><br>  <span class="hljs-comment">//broker中这个线程名叫BrokerEvent</span><br>  base::PlatformThread::<span class="hljs-built_in">SetName</span>(<span class="hljs-string">&quot;BrokerEvent&quot;</span>);<br><br>  <span class="hljs-comment">//param实际上就是BrokerServicesBase对象，以this传入</span><br>  BrokerServicesBase* broker = <span class="hljs-built_in">reinterpret_cast</span>&lt;BrokerServicesBase*&gt;(param);<br>  HANDLE port = broker-&gt;job_port_.<span class="hljs-built_in">Get</span>();<span class="hljs-comment">//IO完成端口句柄</span><br>  HANDLE no_targets = broker-&gt;no_targets_.<span class="hljs-built_in">Get</span>();<span class="hljs-comment">//no_targets_事件句柄</span><br><br>  <span class="hljs-type">int</span> target_counter = <span class="hljs-number">0</span>;<br>  <span class="hljs-type">int</span> untracked_target_counter = <span class="hljs-number">0</span>;<br>  ::<span class="hljs-built_in">ResetEvent</span>(no_targets);<br><br>  <span class="hljs-keyword">while</span> (<span class="hljs-literal">true</span>) &#123;<br>    DWORD events = <span class="hljs-number">0</span>;<br>    ULONG_PTR key = <span class="hljs-number">0</span>;<br>    LPOVERLAPPED ovl = <span class="hljs-literal">nullptr</span>;<br><br>    <span class="hljs-comment">// IO完成端口获取事件</span><br>    <span class="hljs-keyword">if</span> (!::<span class="hljs-built_in">GetQueuedCompletionStatus</span>(port, &amp;events, &amp;key, &amp;ovl, INFINITE)) &#123;<br>      <span class="hljs-comment">// this call fails if the port has been closed before we have a</span><br>      <span class="hljs-comment">// chance to service the last packet which is &#x27;exit&#x27; anyway so</span><br>      <span class="hljs-comment">// this is not an error.</span><br>      <span class="hljs-keyword">return</span> <span class="hljs-number">1</span>;<br>    &#125;<br><br>    <span class="hljs-comment">// 具体key代表什么现在不得而知，得拆解IO完成端口的信源才行</span><br>    <span class="hljs-keyword">if</span> (key &gt; THREAD_CTRL_LAST) &#123;<br>      <span class="hljs-comment">// The notification comes from a job object. There are nine notifications</span><br>      <span class="hljs-comment">// that jobs can send and some of them depend on the job attributes set.</span><br>      <span class="hljs-comment">// 看起来key大于THREAD_CTRL_LAST时表示通知是从job对象发过来的，一共有9种通知</span><br>      <span class="hljs-comment">// 原来这个key就是JobTracker指针，在前面SpawnTarget中创建JobTracker时，曾用此作为JOBOBJECT_ASSOCIATE_COMPLETION_PORT的第一元素，port作为第二元素</span><br>      <span class="hljs-comment">// 而JobTracker本身是job和policy的关联</span><br>      JobTracker* tracker = <span class="hljs-built_in">reinterpret_cast</span>&lt;JobTracker*&gt;(key);<br><br>      <span class="hljs-comment">// events指定哪种通知</span><br>      <span class="hljs-keyword">switch</span> (events) &#123;<br>        <span class="hljs-keyword">case</span> JOB_OBJECT_MSG_ACTIVE_PROCESS_ZERO: &#123;<br>          <span class="hljs-comment">// The job object has signaled that the last process associated</span><br>          <span class="hljs-comment">// with it has terminated. Assuming there is no way for a process</span><br>          <span class="hljs-comment">// to appear out of thin air in this job, it safe to assume that</span><br>          <span class="hljs-comment">// we can tell the policy to destroy the target object, and for</span><br>          <span class="hljs-comment">// us to release our reference to the policy object.</span><br>          <span class="hljs-comment">// job对象告知最后一个进程已终止，通过tracker来释放所有相关资源。</span><br>          tracker-&gt;<span class="hljs-built_in">FreeResources</span>();<br>          <span class="hljs-keyword">break</span>;<br>        &#125;<br><br>        <span class="hljs-keyword">case</span> JOB_OBJECT_MSG_NEW_PROCESS: &#123;<br>          DWORD handle = <span class="hljs-built_in">static_cast</span>&lt;DWORD&gt;(<span class="hljs-built_in">reinterpret_cast</span>&lt;<span class="hljs-type">uintptr_t</span>&gt;(ovl));<br>          &#123;<br>            <span class="hljs-function">AutoLock <span class="hljs-title">lock</span><span class="hljs-params">(&amp;broker-&gt;lock_)</span></span>;<br>            <span class="hljs-type">size_t</span> count = broker-&gt;child_process_ids_.<span class="hljs-built_in">count</span>(handle);<br>            <span class="hljs-comment">// Child process created from sandboxed process.</span><br>            <span class="hljs-comment">// 如果新创建的进程不在broker的child_process_ids中，说明是沙盒中某个target进程创建的子进程，此时要untracked_target_counter递增以维护计数</span><br>            <span class="hljs-keyword">if</span> (count == <span class="hljs-number">0</span>)<br>              untracked_target_counter++;<br>          &#125;<br>          <span class="hljs-comment">// 无论是target进程还是某个target创建的子进程，都要递增计数</span><br>          ++target_counter;<br>          <span class="hljs-comment">// 当从0到1时，no_targets event也需要手工nonsignaled</span><br>          <span class="hljs-keyword">if</span> (<span class="hljs-number">1</span> == target_counter) &#123;<br>            ::<span class="hljs-built_in">ResetEvent</span>(no_targets);<br>          &#125;<br>          <span class="hljs-keyword">break</span>;<br>        &#125;<br><br>        <span class="hljs-keyword">case</span> JOB_OBJECT_MSG_EXIT_PROCESS:<br>        <span class="hljs-keyword">case</span> JOB_OBJECT_MSG_ABNORMAL_EXIT_PROCESS: &#123;<br>          <span class="hljs-type">size_t</span> erase_result = <span class="hljs-number">0</span>;<br>          &#123;<br>            <span class="hljs-function">AutoLock <span class="hljs-title">lock</span><span class="hljs-params">(&amp;broker-&gt;lock_)</span></span>;<br>            <span class="hljs-comment">// 删除对应的process id</span><br>            erase_result = broker-&gt;child_process_ids_.<span class="hljs-built_in">erase</span>(<br>                <span class="hljs-built_in">static_cast</span>&lt;DWORD&gt;(<span class="hljs-built_in">reinterpret_cast</span>&lt;<span class="hljs-type">uintptr_t</span>&gt;(ovl)));<br>          &#125;<br>          <span class="hljs-keyword">if</span> (erase_result != <span class="hljs-number">1U</span>) &#123;<br>            <span class="hljs-comment">// The process was untracked e.g. a child process of the target.</span><br>            <span class="hljs-comment">// 不在child_process_ids_中，说明是target生成的子进程</span><br>            --untracked_target_counter;<br>            <span class="hljs-built_in">DCHECK</span>(untracked_target_counter &gt;= <span class="hljs-number">0</span>);<br>          &#125;<br>          --target_counter;<br>          <span class="hljs-comment">// 和楼上相反的操作</span><br>          <span class="hljs-keyword">if</span> (<span class="hljs-number">0</span> == target_counter)<br>            ::<span class="hljs-built_in">SetEvent</span>(no_targets);<br><br>          <span class="hljs-built_in">DCHECK</span>(target_counter &gt;= <span class="hljs-number">0</span>);<br>          <span class="hljs-keyword">break</span>;<br>        &#125;<br><br>          <span class="hljs-comment">// 这种情况为什么还要递增计数，我不太懂</span><br>          <span class="hljs-comment">// 会不会有某种手法一直发这个消息，让int型的untracked_target_counter和target_counter溢出？</span><br>        <span class="hljs-keyword">case</span> JOB_OBJECT_MSG_ACTIVE_PROCESS_LIMIT: &#123;<br>          <span class="hljs-comment">// A child process attempted and failed to create a child process.</span><br>          <span class="hljs-comment">// Windows does not reveal the process id.</span><br>          untracked_target_counter++;<br>          target_counter++;<br>          <span class="hljs-keyword">break</span>;<br>        &#125;<br><br>          <span class="hljs-comment">// 一旦超过了内存限制，直接终止job</span><br>        <span class="hljs-keyword">case</span> JOB_OBJECT_MSG_PROCESS_MEMORY_LIMIT: &#123;<br>          <span class="hljs-type">bool</span> res = ::<span class="hljs-built_in">TerminateJobObject</span>(tracker-&gt;job.<span class="hljs-built_in">Get</span>(),<br>                                          SBOX_FATAL_MEMORY_EXCEEDED);<br>          <span class="hljs-built_in">DCHECK</span>(res);<br>          <span class="hljs-keyword">break</span>;<br>        &#125;<br><br>        <span class="hljs-keyword">default</span>: &#123;<br>          <span class="hljs-built_in">NOTREACHED</span>();<br>          <span class="hljs-keyword">break</span>;<br>        &#125;<br>      &#125;<br>    &#125; <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (THREAD_CTRL_QUIT == key) &#123;<br>      <span class="hljs-comment">// The broker object is being destroyed so the thread needs to exit.</span><br>      <span class="hljs-comment">// 如果key是THREAD_CTRL_QUIT，那么broker对象就已经被销毁了，这个线程也就没有存在的必要了。（该线程是static成员，和broker实例的lifetime没关系）</span><br>      <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>    &#125; <span class="hljs-keyword">else</span> &#123;<br>      <span class="hljs-comment">// We have not implemented more commands.</span><br>      <span class="hljs-built_in">NOTREACHED</span>();<br>    &#125;<br>  &#125;<br><br>  <span class="hljs-built_in">NOTREACHED</span>();<br>  <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>到此，对<code>BrokerServices</code>有了一个大体的认识。</p>
+<h2 id="appendix">Appendix</h2>
+<h3 id="singletonbase"><code>SingletonBase</code></h3>
+<p>broker的工厂方法<code>SandboxFactory::GetBrokerServices()</code>最终是调用<code>BrokerServicesBase::GetInstance()</code>，这是继承单例类模板<code>SingletonBase</code>的方法。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-comment">// Basic implementation of a singleton which calls the destructor</span><br><span class="hljs-comment">// when the exe is shutting down or the DLL is being unloaded.</span><br><span class="hljs-keyword">template</span> &lt;<span class="hljs-keyword">typename</span> Derived&gt;<br><span class="hljs-keyword">class</span> <span class="hljs-title class_">SingletonBase</span> &#123;<br> <span class="hljs-keyword">public</span>:<br> <span class="hljs-comment">//相当标准的饿汉单例模式实现，SingletonBase没必要产生实例，所以直接将GetInstance作为static public方法公开即可</span><br>  <span class="hljs-function"><span class="hljs-type">static</span> Derived* <span class="hljs-title">GetInstance</span><span class="hljs-params">()</span> </span>&#123;<br>  	<span class="hljs-comment">//这里如果没有static，问题就大了:)</span><br>    <span class="hljs-type">static</span> Derived* instance = <span class="hljs-literal">nullptr</span>;<br>    <span class="hljs-keyword">if</span> (!instance) &#123;<br>      instance = <span class="hljs-keyword">new</span> <span class="hljs-built_in">Derived</span>();<br>      <span class="hljs-comment">// Microsoft CRT extension. In an exe this this called after</span><br>      <span class="hljs-comment">// winmain returns, in a dll is called in DLL_PROCESS_DETACH</span><br>      <span class="hljs-comment">// 这个是MS的特权，在winmain返回或DLL_PROCESS_DETACH触发时调用注册的函数</span><br>      _onexit(OnExit);<br>    &#125;<br>    <span class="hljs-keyword">return</span> instance;<br>  &#125;<br><br> <span class="hljs-keyword">private</span>:<br>  <span class="hljs-comment">// this is the function that gets called by the CRT when the</span><br>  <span class="hljs-comment">// process is shutting down.</span><br>  <span class="hljs-function"><span class="hljs-type">static</span> <span class="hljs-type">int</span> __cdecl <span class="hljs-title">OnExit</span><span class="hljs-params">()</span> </span>&#123;<br>  	<span class="hljs-comment">// 防止退出后继续使用GetInstance？这个不是太懂</span><br>    <span class="hljs-function"><span class="hljs-keyword">delete</span> <span class="hljs-title">GetInstance</span><span class="hljs-params">()</span></span>;<br>    <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>  &#125;<br>&#125;;<br></code></pre></td></tr></table></figure>
+<h3 id="autolock"><code>AutoLock</code></h3>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-comment">// Automatically acquires and releases a lock when the object is</span><br><span class="hljs-comment">// is destroyed.</span><br><span class="hljs-keyword">class</span> <span class="hljs-title class_">AutoLock</span> &#123;<br> <span class="hljs-keyword">public</span>:<br>  <span class="hljs-comment">// Acquires the lock.</span><br>  <span class="hljs-comment">// 这个构造器是显式的，防止了某些情况下编译器自作聪明的CRITICAL_SECTION对象到AutoLock的转换。</span><br>  <span class="hljs-function"><span class="hljs-keyword">explicit</span> <span class="hljs-title">AutoLock</span><span class="hljs-params">(CRITICAL_SECTION* lock)</span> : lock_(lock) &#123;</span><br>    ::<span class="hljs-built_in">EnterCriticalSection</span>(lock);<span class="hljs-comment">//上锁</span><br>  &#125;<br><br>  <span class="hljs-comment">// Releases the lock;</span><br>  ~<span class="hljs-built_in">AutoLock</span>() &#123; ::<span class="hljs-built_in">LeaveCriticalSection</span>(lock_); <span class="hljs-comment">//释放锁&#125;</span><br><br> <span class="hljs-keyword">private</span>:<br>  CRITICAL_SECTION* lock_;<br>  <span class="hljs-built_in">DISALLOW_IMPLICIT_CONSTRUCTORS</span>(AutoLock);<span class="hljs-comment">//禁用了默认构造器、复制构造、赋值操作</span><br>&#125;;<br></code></pre></td></tr></table></figure>
+<p><code>AutoLock</code>简化了编码工作，也防止了编码时忘记release而编译不会报错的尴尬。实际上就是利用栈上对象会在函数返回后自动析构的特性来实现自动release，另一方面，构造函数中直接上锁也省去了调用enter的麻烦。</p>
+<h3 id="scopedhandle"><code>ScopedHandle</code></h3>
+<p>实际上它是<code>GenericScopedHandle&lt;HandleTraits, VerifierTraits&gt;</code>的typedef。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-comment">// The traits class for Win32 handles that can be closed via CloseHandle() API.</span><br><span class="hljs-comment">// 该类仅有3个public static函数，所以不会用于实例化</span><br><span class="hljs-keyword">class</span> <span class="hljs-title class_">HandleTraits</span> &#123;<br> <span class="hljs-keyword">public</span>:<br>  <span class="hljs-keyword">typedef</span> HANDLE Handle;<br><br>  <span class="hljs-comment">// 用于关闭句柄的static public成员</span><br>  <span class="hljs-comment">// Closes the handle.</span><br>  <span class="hljs-function"><span class="hljs-type">static</span> <span class="hljs-type">bool</span> BASE_EXPORT <span class="hljs-title">CloseHandle</span><span class="hljs-params">(HANDLE handle)</span></span>;<br><br>  <span class="hljs-comment">// 判断句柄是否有效，NULL或INVALID_HANDLE_VALUE均表示无效</span><br>  <span class="hljs-comment">// Returns true if the handle value is valid.</span><br>  <span class="hljs-function"><span class="hljs-type">static</span> <span class="hljs-type">bool</span> <span class="hljs-title">IsHandleValid</span><span class="hljs-params">(HANDLE handle)</span> </span>&#123;<br>    <span class="hljs-keyword">return</span> handle != <span class="hljs-literal">NULL</span> &amp;&amp; handle != INVALID_HANDLE_VALUE;<br>  &#125;<br><br>  <span class="hljs-comment">// 返回NULL</span><br>  <span class="hljs-comment">// Returns NULL handle value.</span><br>  <span class="hljs-function"><span class="hljs-type">static</span> HANDLE <span class="hljs-title">NullHandle</span><span class="hljs-params">()</span> </span>&#123;<br>    <span class="hljs-keyword">return</span> <span class="hljs-literal">NULL</span>;<br>  &#125;<br><br> <span class="hljs-keyword">private</span>:<br>  <span class="hljs-built_in">DISALLOW_IMPLICIT_CONSTRUCTORS</span>(HandleTraits);<span class="hljs-comment">//拒绝所有隐式构造器</span><br>&#125;;<br><br><span class="hljs-comment">// Performs actual run-time tracking.</span><br><span class="hljs-keyword">class</span> <span class="hljs-title class_">BASE_EXPORT</span> VerifierTraits &#123;<br> <span class="hljs-keyword">public</span>:<br>  <span class="hljs-keyword">typedef</span> HANDLE Handle;<br>	<br>  <span class="hljs-comment">//同样只有两个static public方法，不用于实例化</span><br>  <span class="hljs-function"><span class="hljs-type">static</span> <span class="hljs-type">void</span> <span class="hljs-title">StartTracking</span><span class="hljs-params">(HANDLE handle, <span class="hljs-type">const</span> <span class="hljs-type">void</span>* owner,</span></span><br><span class="hljs-params"><span class="hljs-function">                            <span class="hljs-type">const</span> <span class="hljs-type">void</span>* pc1, <span class="hljs-type">const</span> <span class="hljs-type">void</span>* pc2)</span></span>;<br>  <span class="hljs-function"><span class="hljs-type">static</span> <span class="hljs-type">void</span> <span class="hljs-title">StopTracking</span><span class="hljs-params">(HANDLE handle, <span class="hljs-type">const</span> <span class="hljs-type">void</span>* owner,</span></span><br><span class="hljs-params"><span class="hljs-function">                           <span class="hljs-type">const</span> <span class="hljs-type">void</span>* pc1, <span class="hljs-type">const</span> <span class="hljs-type">void</span>* pc2)</span></span>;<br><br> <span class="hljs-keyword">private</span>:<br>  <span class="hljs-built_in">DISALLOW_IMPLICIT_CONSTRUCTORS</span>(VerifierTraits);<br>&#125;;<br><br><span class="hljs-comment">// 几个static函数的实现体，全都用到了ScopedHandleVerifier::Get()</span><br><span class="hljs-comment">// 看起来ScopedHandleVerifier做了各种功能的抽离，这几个static仅仅只是壳子</span><br><span class="hljs-comment">// Static.</span><br><span class="hljs-function"><span class="hljs-type">bool</span> <span class="hljs-title">HandleTraits::CloseHandle</span><span class="hljs-params">(HANDLE handle)</span> </span>&#123;<br>  <span class="hljs-keyword">return</span> ScopedHandleVerifier::<span class="hljs-built_in">Get</span>()-&gt;<span class="hljs-built_in">CloseHandle</span>(handle);<br>&#125;<br><br><span class="hljs-comment">// Static.</span><br><span class="hljs-function"><span class="hljs-type">void</span> <span class="hljs-title">VerifierTraits::StartTracking</span><span class="hljs-params">(HANDLE handle, <span class="hljs-type">const</span> <span class="hljs-type">void</span>* owner,</span></span><br><span class="hljs-params"><span class="hljs-function">                                   <span class="hljs-type">const</span> <span class="hljs-type">void</span>* pc1, <span class="hljs-type">const</span> <span class="hljs-type">void</span>* pc2)</span> </span>&#123;<br>  <span class="hljs-keyword">return</span> ScopedHandleVerifier::<span class="hljs-built_in">Get</span>()-&gt;<span class="hljs-built_in">StartTracking</span>(handle, owner, pc1, pc2);<br>&#125;<br><br><span class="hljs-comment">// Static.</span><br><span class="hljs-function"><span class="hljs-type">void</span> <span class="hljs-title">VerifierTraits::StopTracking</span><span class="hljs-params">(HANDLE handle, <span class="hljs-type">const</span> <span class="hljs-type">void</span>* owner,</span></span><br><span class="hljs-params"><span class="hljs-function">                                  <span class="hljs-type">const</span> <span class="hljs-type">void</span>* pc1, <span class="hljs-type">const</span> <span class="hljs-type">void</span>* pc2)</span> </span>&#123;<br>  <span class="hljs-keyword">return</span> ScopedHandleVerifier::<span class="hljs-built_in">Get</span>()-&gt;<span class="hljs-built_in">StopTracking</span>(handle, owner, pc1, pc2);<br>&#125;<br><span class="hljs-comment">// ScopedHandleVerifier相当复杂，这里就不展开了</span><br><br><span class="hljs-comment">// Generic wrapper for raw handles that takes care of closing handles</span><br><span class="hljs-comment">// automatically. The class interface follows the style of</span><br><span class="hljs-comment">// the ScopedFILE class with two additions:</span><br><span class="hljs-comment">//   - IsValid() method can tolerate multiple invalid handle values such as NULL</span><br><span class="hljs-comment">//     and INVALID_HANDLE_VALUE (-1) for Win32 handles.</span><br><span class="hljs-comment">//   - Set() (and the constructors and assignment operators that call it)</span><br><span class="hljs-comment">//     preserve the Windows LastError code. This ensures that GetLastError() can</span><br><span class="hljs-comment">//     be called after stashing a handle in a GenericScopedHandle object. Doing</span><br><span class="hljs-comment">//     this explicitly is necessary because of bug 528394 and VC++ 2015.</span><br><span class="hljs-comment">// windows原生HANDLE的包裹，它会负责自动关闭句柄。</span><br><span class="hljs-keyword">template</span> &lt;<span class="hljs-keyword">class</span> <span class="hljs-title class_">Traits</span>, <span class="hljs-keyword">class</span> <span class="hljs-title class_">Verifier</span>&gt;<br><span class="hljs-keyword">class</span> <span class="hljs-title class_">GenericScopedHandle</span> &#123;<br> <span class="hljs-keyword">public</span>:<br>  <span class="hljs-keyword">typedef</span> <span class="hljs-keyword">typename</span> Traits::Handle Handle;<br><br>  <span class="hljs-comment">// 各种构造器</span><br>  <span class="hljs-built_in">GenericScopedHandle</span>() : <span class="hljs-built_in">handle_</span>(Traits::<span class="hljs-built_in">NullHandle</span>()) &#123;&#125;<br><br>  <span class="hljs-function"><span class="hljs-keyword">explicit</span> <span class="hljs-title">GenericScopedHandle</span><span class="hljs-params">(Handle handle)</span> : handle_(Traits::NullHandle()) &#123;</span><br>    <span class="hljs-built_in">Set</span>(handle);<br>  &#125;<br><br>  <span class="hljs-comment">// 移动构造函数，other得是右值引用</span><br>  <span class="hljs-built_in">GenericScopedHandle</span>(GenericScopedHandle&amp;&amp; other)<br>      : <span class="hljs-built_in">handle_</span>(Traits::<span class="hljs-built_in">NullHandle</span>()) &#123;<br>    <span class="hljs-built_in">Set</span>(other.<span class="hljs-built_in">Take</span>());<br>  &#125;<br><br>  ~<span class="hljs-built_in">GenericScopedHandle</span>() &#123;<br>    <span class="hljs-built_in">Close</span>();<br>  &#125;<br><br>  <span class="hljs-function"><span class="hljs-type">bool</span> <span class="hljs-title">IsValid</span><span class="hljs-params">()</span> <span class="hljs-type">const</span> </span>&#123;<br>    <span class="hljs-keyword">return</span> Traits::<span class="hljs-built_in">IsHandleValid</span>(handle_);<br>  &#125;<br><br>  <span class="hljs-comment">// 移动赋值操作，other得是右值引用</span><br>  GenericScopedHandle&amp; <span class="hljs-keyword">operator</span>=(GenericScopedHandle&amp;&amp; other) &#123;<br>    <span class="hljs-built_in">DCHECK_NE</span>(<span class="hljs-keyword">this</span>, &amp;other);<br>    <span class="hljs-built_in">Set</span>(other.<span class="hljs-built_in">Take</span>());<br>    <span class="hljs-keyword">return</span> *<span class="hljs-keyword">this</span>;<br>  &#125;<br><br>  <span class="hljs-function"><span class="hljs-type">void</span> <span class="hljs-title">Set</span><span class="hljs-params">(Handle handle)</span> </span>&#123;<br>    <span class="hljs-keyword">if</span> (handle_ != handle) &#123;<br>      <span class="hljs-comment">// Preserve old LastError to avoid bug 528394.</span><br>      <span class="hljs-keyword">auto</span> last_error = ::<span class="hljs-built_in">GetLastError</span>();<br>      <span class="hljs-built_in">Close</span>();<br><br>      <span class="hljs-keyword">if</span> (Traits::<span class="hljs-built_in">IsHandleValid</span>(handle)) &#123;<br>        handle_ = handle;<br>        Verifier::<span class="hljs-built_in">StartTracking</span>(handle, <span class="hljs-keyword">this</span>, BASE_WIN_GET_CALLER,<br>                                <span class="hljs-built_in">GetProgramCounter</span>());<br>      &#125;<br>      ::<span class="hljs-built_in">SetLastError</span>(last_error);<br>    &#125;<br>  &#125;<br><br>  <span class="hljs-function">Handle <span class="hljs-title">Get</span><span class="hljs-params">()</span> <span class="hljs-type">const</span> </span>&#123;<br>    <span class="hljs-keyword">return</span> handle_;<br>  &#125;<br><br>  <span class="hljs-comment">// Transfers ownership away from this object.</span><br>  <span class="hljs-function">Handle <span class="hljs-title">Take</span><span class="hljs-params">()</span> </span>&#123;<br>    Handle temp = handle_;<br>    handle_ = Traits::<span class="hljs-built_in">NullHandle</span>();<br>    <span class="hljs-keyword">if</span> (Traits::<span class="hljs-built_in">IsHandleValid</span>(temp)) &#123;<br>      Verifier::<span class="hljs-built_in">StopTracking</span>(temp, <span class="hljs-keyword">this</span>, BASE_WIN_GET_CALLER,<br>                             <span class="hljs-built_in">GetProgramCounter</span>());<br>    &#125;<br>    <span class="hljs-keyword">return</span> temp;<br>  &#125;<br><br>  <span class="hljs-comment">// Explicitly closes the owned handle.</span><br>  <span class="hljs-function"><span class="hljs-type">void</span> <span class="hljs-title">Close</span><span class="hljs-params">()</span> </span>&#123;<br>    <span class="hljs-keyword">if</span> (Traits::<span class="hljs-built_in">IsHandleValid</span>(handle_)) &#123;<br>      Verifier::<span class="hljs-built_in">StopTracking</span>(handle_, <span class="hljs-keyword">this</span>, BASE_WIN_GET_CALLER,<br>                             <span class="hljs-built_in">GetProgramCounter</span>());<br><br>      Traits::<span class="hljs-built_in">CloseHandle</span>(handle_);<br>      handle_ = Traits::<span class="hljs-built_in">NullHandle</span>();<br>    &#125;<br>  &#125;<br><br> <span class="hljs-keyword">private</span>:<br>  <span class="hljs-built_in">FRIEND_TEST_ALL_PREFIXES</span>(ScopedHandleTest, ActiveVerifierWrongOwner);<br>  <span class="hljs-built_in">FRIEND_TEST_ALL_PREFIXES</span>(ScopedHandleTest, ActiveVerifierUntrackedHandle);<br>  Handle handle_;<br><br>  <span class="hljs-built_in">DISALLOW_COPY_AND_ASSIGN</span>(GenericScopedHandle);<span class="hljs-comment">//默认赋值操作和复制构造被禁</span><br>&#125;;<br></code></pre></td></tr></table></figure>
+<p>每个包裹HANDLE的对象都应该是唯一的，可以转换所有者，但不能复制，所以才有了移动复制构造和移动赋值，但却禁用默认赋值和默认赋值构造。</p>
+<h3 id="scoped_refptr"><code>scoped_refptr</code></h3>
+<p>一个封装好的智能(smart)指针类，用于那些需要引用计数的对象，自动的对象计数可以防止内存泄露（忘记release）：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br><span class="line">158</span><br><span class="line">159</span><br><span class="line">160</span><br><span class="line">161</span><br><span class="line">162</span><br><span class="line">163</span><br><span class="line">164</span><br><span class="line">165</span><br><span class="line">166</span><br><span class="line">167</span><br><span class="line">168</span><br><span class="line">169</span><br><span class="line">170</span><br><span class="line">171</span><br><span class="line">172</span><br><span class="line">173</span><br><span class="line">174</span><br><span class="line">175</span><br><span class="line">176</span><br><span class="line">177</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-comment">//</span><br><span class="hljs-comment">// A smart pointer class for reference counted objects.  Use this class instead</span><br><span class="hljs-comment">// of calling AddRef and Release manually on a reference counted object to</span><br><span class="hljs-comment">// avoid common memory leaks caused by forgetting to Release an object</span><br><span class="hljs-comment">// reference.  Sample usage:</span><br><span class="hljs-comment">//</span><br><span class="hljs-comment">//   class MyFoo : public RefCounted&lt;MyFoo&gt; &#123;</span><br><span class="hljs-comment">//    ...</span><br><span class="hljs-comment">//    private:</span><br><span class="hljs-comment">//     friend class RefCounted&lt;MyFoo&gt;;  // Allow destruction by RefCounted&lt;&gt;.</span><br><span class="hljs-comment">//     ~MyFoo();                        // Destructor must be private/protected.</span><br><span class="hljs-comment">//   &#125;;</span><br><span class="hljs-comment">//</span><br><span class="hljs-comment">//   void some_function() &#123;</span><br><span class="hljs-comment">//     scoped_refptr&lt;MyFoo&gt; foo = MakeRefCounted&lt;MyFoo&gt;();</span><br><span class="hljs-comment">//     foo-&gt;Method(param);</span><br><span class="hljs-comment">//     // |foo| is released when this function returns</span><br><span class="hljs-comment">//   &#125;</span><br><span class="hljs-comment">//</span><br><span class="hljs-comment">//   void some_other_function() &#123;</span><br><span class="hljs-comment">//     scoped_refptr&lt;MyFoo&gt; foo = MakeRefCounted&lt;MyFoo&gt;();</span><br><span class="hljs-comment">//     ...</span><br><span class="hljs-comment">//     foo = nullptr;  // explicitly releases |foo|</span><br><span class="hljs-comment">//     ...</span><br><span class="hljs-comment">//     if (foo)</span><br><span class="hljs-comment">//       foo-&gt;Method(param);</span><br><span class="hljs-comment">//   &#125;</span><br><span class="hljs-comment">//</span><br><span class="hljs-comment">// The above examples show how scoped_refptr&lt;T&gt; acts like a pointer to T.</span><br><span class="hljs-comment">// Given two scoped_refptr&lt;T&gt; classes, it is also possible to exchange</span><br><span class="hljs-comment">// references between the two objects, like so:</span><br><span class="hljs-comment">//</span><br><span class="hljs-comment">//   &#123;</span><br><span class="hljs-comment">//     scoped_refptr&lt;MyFoo&gt; a = MakeRefCounted&lt;MyFoo&gt;();</span><br><span class="hljs-comment">//     scoped_refptr&lt;MyFoo&gt; b;</span><br><span class="hljs-comment">//</span><br><span class="hljs-comment">//     b.swap(a);</span><br><span class="hljs-comment">//     // now, |b| references the MyFoo object, and |a| references nullptr.</span><br><span class="hljs-comment">//   &#125;</span><br><span class="hljs-comment">//</span><br><span class="hljs-comment">// To make both |a| and |b| in the above example reference the same MyFoo</span><br><span class="hljs-comment">// object, simply use the assignment operator:</span><br><span class="hljs-comment">//</span><br><span class="hljs-comment">//   &#123;</span><br><span class="hljs-comment">//     scoped_refptr&lt;MyFoo&gt; a = MakeRefCounted&lt;MyFoo&gt;();</span><br><span class="hljs-comment">//     scoped_refptr&lt;MyFoo&gt; b;</span><br><span class="hljs-comment">//</span><br><span class="hljs-comment">//     b = a;</span><br><span class="hljs-comment">//     // now, |a| and |b| each own a reference to the same MyFoo object.</span><br><span class="hljs-comment">//   &#125;</span><br><span class="hljs-comment">//</span><br><span class="hljs-comment">// Also see Chromium&#x27;s ownership and calling conventions:</span><br><span class="hljs-comment">// https://chromium.googlesource.com/chromium/src/+/lkgr/styleguide/c++/c++.md#object-ownership-and-calling-conventions</span><br><span class="hljs-comment">// Specifically:</span><br><span class="hljs-comment">//   If the function (at least sometimes) takes a ref on a refcounted object,</span><br><span class="hljs-comment">//   declare the param as scoped_refptr&lt;T&gt;. The caller can decide whether it</span><br><span class="hljs-comment">//   wishes to transfer ownership (by calling std::move(t) when passing t) or</span><br><span class="hljs-comment">//   retain its ref (by simply passing t directly).</span><br><span class="hljs-comment">//   In other words, use scoped_refptr like you would a std::unique_ptr except</span><br><span class="hljs-comment">//   in the odd case where it&#x27;s required to hold on to a ref while handing one</span><br><span class="hljs-comment">//   to another component (if a component merely needs to use t on the stack</span><br><span class="hljs-comment">//   without keeping a ref: pass t as a raw T*).</span><br><span class="hljs-keyword">template</span> &lt;<span class="hljs-keyword">class</span> <span class="hljs-title class_">T</span>&gt;<br><span class="hljs-keyword">class</span> <span class="hljs-title class_">scoped_refptr</span> &#123;<br> <span class="hljs-keyword">public</span>:<br>  <span class="hljs-keyword">typedef</span> T element_type;<br><br>  <span class="hljs-comment">//下面都是封装指针的常规操作，可以参考STL中iterator对指针的封装</span><br>  <span class="hljs-function"><span class="hljs-keyword">constexpr</span> <span class="hljs-title">scoped_refptr</span><span class="hljs-params">()</span> </span>= <span class="hljs-keyword">default</span>;<br><br>  <span class="hljs-comment">// Constructs from raw pointer. constexpr if |p| is null.</span><br>  <span class="hljs-comment">// 原生指针做参数的构造器</span><br>  <span class="hljs-function"><span class="hljs-keyword">constexpr</span> <span class="hljs-title">scoped_refptr</span><span class="hljs-params">(T* p)</span> : ptr_(p) &#123;</span><br>    <span class="hljs-keyword">if</span> (ptr_)<br>      <span class="hljs-built_in">AddRef</span>(ptr_);<br>  &#125;<br><br>  <span class="hljs-comment">// Copy constructor. This is required in addition to the copy conversion</span><br>  <span class="hljs-comment">// constructor below.</span><br>  <span class="hljs-comment">// 拷贝构造，直接中继原生指针构造</span><br>  <span class="hljs-built_in">scoped_refptr</span>(<span class="hljs-type">const</span> scoped_refptr&amp; r) : <span class="hljs-built_in">scoped_refptr</span>(r.ptr_) &#123;&#125;<br><br>  <span class="hljs-comment">// Copy conversion constructor.</span><br>  <span class="hljs-comment">// 拷贝转换构造，因为指针可能类型不同，这需要引入另一个类模板，且需要判断U到T是否允许转换</span><br>  <span class="hljs-comment">// 依然中继原生指针构造</span><br>  <span class="hljs-keyword">template</span> &lt;<span class="hljs-keyword">typename</span> U,<br>            <span class="hljs-keyword">typename</span> = <span class="hljs-keyword">typename</span> std::enable_if&lt;<br>                std::is_convertible&lt;U*, T*&gt;::value&gt;::type&gt;<br>  <span class="hljs-built_in">scoped_refptr</span>(<span class="hljs-type">const</span> scoped_refptr&lt;U&gt;&amp; r) : <span class="hljs-built_in">scoped_refptr</span>(r.ptr_) &#123;&#125;<br><br>  <span class="hljs-comment">// Move constructor. This is required in addition to the move conversion</span><br>  <span class="hljs-comment">// constructor below.</span><br>  <span class="hljs-comment">// 移动构造</span><br>  <span class="hljs-built_in">scoped_refptr</span>(scoped_refptr&amp;&amp; r) <span class="hljs-keyword">noexcept</span> : <span class="hljs-built_in">ptr_</span>(r.ptr_) &#123; r.ptr_ = <span class="hljs-literal">nullptr</span>;<span class="hljs-comment">//注意要清空右值引用r本体 &#125;</span><br><br>  <span class="hljs-comment">// Move conversion constructor.</span><br>  <span class="hljs-comment">// 移动转换构造</span><br>  <span class="hljs-keyword">template</span> &lt;<span class="hljs-keyword">typename</span> U,<br>            <span class="hljs-keyword">typename</span> = <span class="hljs-keyword">typename</span> std::enable_if&lt;<br>                std::is_convertible&lt;U*, T*&gt;::value&gt;::type&gt;<br>  <span class="hljs-built_in">scoped_refptr</span>(scoped_refptr&lt;U&gt;&amp;&amp; r) <span class="hljs-keyword">noexcept</span> : <span class="hljs-built_in">ptr_</span>(r.ptr_) &#123;<br>    r.ptr_ = <span class="hljs-literal">nullptr</span>;<br>  &#125;<br><br>  <span class="hljs-comment">//析构</span><br>  ~<span class="hljs-built_in">scoped_refptr</span>() &#123;<br>    <span class="hljs-built_in">static_assert</span>(!base::subtle::<span class="hljs-built_in">IsRefCountPreferenceOverridden</span>(<br>                      <span class="hljs-built_in">static_cast</span>&lt;T*&gt;(<span class="hljs-literal">nullptr</span>), <span class="hljs-built_in">static_cast</span>&lt;T*&gt;(<span class="hljs-literal">nullptr</span>)),<br>                  <span class="hljs-string">&quot;It&#x27;s unsafe to override the ref count preference.&quot;</span><br>                  <span class="hljs-string">&quot; Please remove REQUIRE_ADOPTION_FOR_REFCOUNTED_TYPE&quot;</span><br>                  <span class="hljs-string">&quot; from subclasses.&quot;</span>);<br>    <span class="hljs-keyword">if</span> (ptr_)<br>      <span class="hljs-built_in">Release</span>(ptr_);<br>  &#125;<br><br>  <span class="hljs-function">T* <span class="hljs-title">get</span><span class="hljs-params">()</span> <span class="hljs-type">const</span> </span>&#123; <span class="hljs-keyword">return</span> ptr_; &#125;<br><br>  <span class="hljs-comment">// 解引用</span><br>  T&amp; <span class="hljs-keyword">operator</span>*() <span class="hljs-type">const</span> &#123;<br>    <span class="hljs-built_in">DCHECK</span>(ptr_);<br>    <span class="hljs-keyword">return</span> *ptr_;<br>  &#125;<br><br>  <span class="hljs-comment">// 解引用</span><br>  T* <span class="hljs-keyword">operator</span>-&gt;() <span class="hljs-type">const</span> &#123;<br>    <span class="hljs-built_in">DCHECK</span>(ptr_);<br>    <span class="hljs-keyword">return</span> ptr_;<br>  &#125;<br><br>  <span class="hljs-comment">// 赋值操作</span><br>  scoped_refptr&amp; <span class="hljs-keyword">operator</span>=(T* p) &#123; <span class="hljs-keyword">return</span> *<span class="hljs-keyword">this</span> = <span class="hljs-built_in">scoped_refptr</span>(p); &#125;<br><br>  <span class="hljs-comment">// Unified assignment operator.</span><br>  <span class="hljs-comment">// 指针直接赋值也可以，给了特权，实际上内部做了交换</span><br>  scoped_refptr&amp; <span class="hljs-keyword">operator</span>=(scoped_refptr r) <span class="hljs-keyword">noexcept</span> &#123;<br>    <span class="hljs-built_in">swap</span>(r);<br>    <span class="hljs-keyword">return</span> *<span class="hljs-keyword">this</span>;<br>  &#125;<br><br>  <span class="hljs-function"><span class="hljs-type">void</span> <span class="hljs-title">swap</span><span class="hljs-params">(scoped_refptr&amp; r)</span> <span class="hljs-keyword">noexcept</span> </span>&#123; std::<span class="hljs-built_in">swap</span>(ptr_, r.ptr_); &#125;<br><br>  <span class="hljs-function"><span class="hljs-keyword">explicit</span> <span class="hljs-keyword">operator</span> <span class="hljs-title">bool</span><span class="hljs-params">()</span> <span class="hljs-type">const</span> </span>&#123; <span class="hljs-keyword">return</span> ptr_ != <span class="hljs-literal">nullptr</span>; &#125;<br><br>  <span class="hljs-keyword">template</span> &lt;<span class="hljs-keyword">typename</span> U&gt;<br>  <span class="hljs-type">bool</span> <span class="hljs-keyword">operator</span>==(<span class="hljs-type">const</span> scoped_refptr&lt;U&gt;&amp; rhs) <span class="hljs-type">const</span> &#123;<br>    <span class="hljs-keyword">return</span> ptr_ == rhs.<span class="hljs-built_in">get</span>();<br>  &#125;<br><br>  <span class="hljs-keyword">template</span> &lt;<span class="hljs-keyword">typename</span> U&gt;<br>  <span class="hljs-type">bool</span> <span class="hljs-keyword">operator</span>!=(<span class="hljs-type">const</span> scoped_refptr&lt;U&gt;&amp; rhs) <span class="hljs-type">const</span> &#123;<br>    <span class="hljs-keyword">return</span> !<span class="hljs-keyword">operator</span>==(rhs);<br>  &#125;<br><br>  <span class="hljs-keyword">template</span> &lt;<span class="hljs-keyword">typename</span> U&gt;<br>  <span class="hljs-type">bool</span> <span class="hljs-keyword">operator</span>&lt;(<span class="hljs-type">const</span> scoped_refptr&lt;U&gt;&amp; rhs) <span class="hljs-type">const</span> &#123;<br>    <span class="hljs-keyword">return</span> ptr_ &lt; rhs.<span class="hljs-built_in">get</span>();<br>  &#125;<br><br> <span class="hljs-keyword">protected</span>:<br>  T* ptr_ = <span class="hljs-literal">nullptr</span>;<br><br> <span class="hljs-keyword">private</span>:<br>  <span class="hljs-keyword">template</span> &lt;<span class="hljs-keyword">typename</span> U&gt;<br>  <span class="hljs-function"><span class="hljs-keyword">friend</span> scoped_refptr&lt;U&gt; <span class="hljs-title">base::AdoptRef</span><span class="hljs-params">(U*)</span></span>;<span class="hljs-comment">//通过原生指针创建scoped_refptr而不增加引用计数</span><br>  <span class="hljs-built_in">scoped_refptr</span>(T* p, base::subtle::AdoptRefTag) : <span class="hljs-built_in">ptr_</span>(p) &#123;&#125;<br><br>  <span class="hljs-comment">// Friend required for move constructors that set r.ptr_ to null.</span><br>  <span class="hljs-keyword">template</span> &lt;<span class="hljs-keyword">typename</span> U&gt;<br>  <span class="hljs-keyword">friend</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">scoped_refptr</span>;	<span class="hljs-comment">//移动构造器中对r.ptr置空，需要声明friend</span><br><br>  <span class="hljs-comment">// Non-inline helpers to allow:</span><br>  <span class="hljs-comment">//     class Opaque;</span><br>  <span class="hljs-comment">//     extern template class scoped_refptr&lt;Opaque&gt;;</span><br>  <span class="hljs-comment">// Otherwise the compiler will complain that Opaque is an incomplete type.</span><br>  <span class="hljs-function"><span class="hljs-type">static</span> <span class="hljs-type">void</span> <span class="hljs-title">AddRef</span><span class="hljs-params">(T* ptr)</span></span>;<br>  <span class="hljs-function"><span class="hljs-type">static</span> <span class="hljs-type">void</span> <span class="hljs-title">Release</span><span class="hljs-params">(T* ptr)</span></span>;<br>&#125;;<br></code></pre></td></tr></table></figure>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90/" class="category-chain-item">源码剖析</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/chromium/" class="print-no-link">#chromium</a>
+      
+        <a href="/tags/chromium-sandbox/" class="print-no-link">#chromium-sandbox</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>Chromium-sandbox-BrokerServices-analysis</div>
+      <div>https://r00tk1ts.github.io/2018/05/13/chromium-sandbox-BrokerServices/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>r00tk1t</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2018年5月13日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2018/05/13/chromium-sandbox-TargetServices-analysis/" title="Chromium-sandbox-TargetServices-analysis">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">Chromium-sandbox-TargetServices-analysis</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2017/12/21/Linux%E4%B8%AD%E6%96%AD%E5%86%85%E5%B9%95/" title="Linux中断内幕">
+                        <span class="hidden-mobile">Linux中断内幕</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+  
+<script src="/js/diy/yinghua.js"></script>
+<script src="/js/diy/love.js"></script>
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

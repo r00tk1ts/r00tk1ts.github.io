@@ -1,0 +1,770 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/favicon.png">
+  <link rel="icon" href="/img/favicon.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="r00tk1t">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="Linux的进程除了PID为0的第一个进程以外，所有的其他进程都是复制出来的，这和Windows凭空捏造不太一样。另一方面，Linux进程在复制时也有很多细节处理的设计，旨在更高效、更简洁。近来在研究Linux进程活动的整个生命周期，而本文仅仅对进程的出生与死亡进行了概略性描述，毕竟一个进程的前世今生绝不是一两篇文章可以hold住的。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Linux内核学习——Linux进程的创建与撤销">
+<meta property="og:url" content="https://r00tk1ts.github.io/2017/08/27/Linux%E8%BF%9B%E7%A8%8B%E7%9A%84%E5%88%9B%E5%BB%BA%E4%B8%8E%E6%92%A4%E9%94%80/index.html">
+<meta property="og:site_name" content="玉涵的技能书">
+<meta property="og:description" content="Linux的进程除了PID为0的第一个进程以外，所有的其他进程都是复制出来的，这和Windows凭空捏造不太一样。另一方面，Linux进程在复制时也有很多细节处理的设计，旨在更高效、更简洁。近来在研究Linux进程活动的整个生命周期，而本文仅仅对进程的出生与死亡进行了概略性描述，毕竟一个进程的前世今生绝不是一两篇文章可以hold住的。">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2017-08-27T04:05:11.000Z">
+<meta property="article:modified_time" content="2024-04-22T03:34:00.164Z">
+<meta property="article:author" content="r00tk1t">
+<meta property="article:tag" content="linux-kernel">
+<meta property="article:tag" content="ulk">
+<meta name="twitter:card" content="summary_large_image">
+  
+  
+  
+  <title>Linux内核学习——Linux进程的创建与撤销 - 玉涵的技能书</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"r00tk1ts.github.io","root":"/","version":"1.9.5","typing":{"enable":true,"typeSpeed":80,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<!-- hexo injector head_end start --><link rel="stylesheet" href="https://cdn.staticfile.org/lxgw-wenkai-screen-webfont/1.7.0/style.min.css" /><!-- hexo injector head_end end --><meta name="generator" content="Hexo 6.1.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>玉涵的技能书</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/doc/">
+                <i class="iconfont icon-books"></i>
+                <span>藏经阁</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="Linux内核学习——Linux进程的创建与撤销"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2017-08-27 12:05" pubdate>
+          2017年8月27日 中午
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          30k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          252 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">Linux内核学习——Linux进程的创建与撤销</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <p>Linux的进程除了PID为0的第一个进程以外，所有的其他进程都是复制出来的，这和Windows凭空捏造不太一样。另一方面，Linux进程在复制时也有很多细节处理的设计，旨在更高效、更简洁。近来在研究Linux进程活动的整个生命周期，而本文仅仅对进程的出生与死亡进行了概略性描述，毕竟一个进程的前世今生绝不是一两篇文章可以hold住的。</p>
+<span id="more"></span>
+<h1 id="linux进程的创建与撤销">Linux进程的创建与撤销</h1>
+<p>Linux进程的创建有三个函数。fork,vfork和clone。不要把exec系列的函数和这三个函数混为一谈，exec系列函数常用于三者之后，用于创建一个新的程序运行环境。</p>
+<h2 id="clone-fork-vfork">clone(), fork(), vfork()</h2>
+<p>Linux既然有各种各样的机制，那么复制也有着多种手法。这也就对应了这三种创建进程的系统调用。</p>
+<p>这三个函数实际上都是C库的封装，内部分别调用了sys_clone, sys_fork,
+sys_vfork三个系统调用。这三个系统调用又统一调用了do_fork函数，只是携带的参数和标志不同，从而在do_fork中有选择的完成某些任务。</p>
+<p>便于理解，先大体来谈谈三者的区别： - fork -
+子进程复制父进程的所有资源 - clone - 轻量级进程使用clone - vfork -
+子进程和父进程共享数据段，子进程每次都优先于父进程执行(这很有意义，后面你会看到)</p>
+<h3 id="fork">fork()</h3>
+<p>既然Linux的进程是复制的，那么大多数人的第一想法一定是子进程复制整个父进程的资源。诸如最简单的fork，是否只要在调用时完全的深度拷贝即可？实际上深度拷贝所有的资源是没有必要的，Linux指定了3个机制，用于提升性能：
+-
+COW，即写时复制。这一技术的引用就使得父子进程可以在一开始的时候共享物理页（一开始是相同的），当二者其一想要写该物理页时，再真正的copy出页的内容到新分配的物理页，然后进行修改。
+-
+轻量级进程允许父子进程共享内核的大部分数据结构（页表（用户态地址空间）、打开文件表和信号处理），所以如同在《Linux进程概述》中所说，它更像一个线程。
+-
+vfork()系统调用创建的进程能共享父进程的内存地址空间。为了防止父进程重写子进程所需要的数据，阻塞父进程的执行，直到子进程推出或执行一个新的程序为止。</p>
+<p><font color="red">无论是哪一种机制，其根本的思想是一致的：能省则省，延迟拷贝。</font></p>
+<p>对于fork来说，进程A调用fork创建一个子进程B时，B和A拥有相同的物理页面，为了节约内存和提速，fork()会把A和B的物理页面设置成只读。此后，A或B想要执行写操作时，都会产生页面出错异常(page_fault
+int14)中断，此时CPU执行异常处理函数do_wp_page()解决该异常。do_wp_page()实际上非常简单，无非就是取消共享，为写进程复制一个新的物理页面（此时才真正进行了开辟和复制），设置权限。异常返回后，继续执行写操作。</p>
+<h3 id="vfork">vfork()</h3>
+<p>比起fork()的延迟懒惰处理，vfork()更加粗暴。内核在复制子进程时，连子进程自身的虚拟地址空间都不创建了，干脆使用了父进程的虚拟空间。既然虚拟空间都霸占了，物理页面也当然共享了（这意味着修改子进程的变量值也会影响父进程）。
+于是，vfork为了防止父进程overwrite，设计上会把父进程先挂起，子进程exit或execve时父进程才会被唤起。vfork创建的子进程不应该用return或exit()，但可以用_exit()退出（参考man
+vfork，exit是_exit()或_exitgroup()的封装，结束子进程，他不会修改函数栈，所以我在测试中exit()没有出错，这应该是一种严格的说法，当然vfork不接exec，要么脑子有坑，要么想干坏事。至于exit()封装的额外操作还有待研究）。</p>
+<blockquote>
+<p>vfork的子进程如果return就意味着父进程return（共享内存、栈），这看起来没问题，但是接下来父进程再次return就崩了，系统表示很困惑。（return后会自动接exit()，而此时栈已经被破坏了，有些系统会无限循环，再次调用main()，有些直接就segmentation
+fault）。</p>
+</blockquote>
+<p>那么问题来了，我要这vfork有何用？实际上，vfork只是一个中间步骤，vfork的存在是为了exec的调用。exec是重新开辟空间，那么如果没有vfork，就只得用笨重的fork，而因为下一步想要exec，所以fork的复制过程就毫无意义。</p>
+<h3 id="clone">clone()</h3>
+<p>clone是给轻量级进程的，但clone本身的设计很强大，他可以有选择性的让子进程继承资源。</p>
+<p>clone结构：<code>int clone(int (fn)(void ), void *child_stack, int flags, void *arg, ...);</code></p>
+<p>fn是函数指针，指向程序的指针，函数返回时子进程终止并返回一个退出码；child_stack是子进程堆栈；flags表示从父进程继承哪些资源；arg为传递给子进程的参数。</p>
+<p>flags取值是一组宏，几个常见的标志： - CLONE_VM -
+共享内存描述符和所有的页表 - CLONE_FS -
+共享根目录和当前工作目录所在的表，以及用于屏蔽新文件初始许可权的位掩码值
+- CLONE_FILES - 共享打开文件表 - CLONE_SIGHAND -
+共享信号处理程序的表、阻塞信号表和挂起信号表。如果标记为true，必须设置CLONE_VM
+- CLONE_PTRACE - 如果父进程被跟踪，那么子进程也被跟踪。 - CLONE_VFORK -
+vfork()系统调用时设置 - CLONE_PARENT -
+设置子进程的父进程为调用进程的父进程 - CLONE_THREAD -
+把子进程插入到父进程的同一线程组中，使子进程共享父进程信号描述符。因此子进程的tgid和group_leader字段也被设置。如果该标记为true，必须设置CLONE_SIGHAND
+- CLONE_NEWNS -
+当clone需要自己的命名空间时设置这个标志。CLONE_NEWNS和CLONE_FS互斥。 -
+CLONE_PID - 子进程创建时PID和父进程一致</p>
+<p>clone()是libc定义的封装函数，clone()系统调用的服务例程是sys_clone()，它没有fn和arg参数（clone()把fn指针放在了子进程堆栈的某个位置，arg在fn下面），clone()返回后，取出的地址就是fn，参数就是arg，顺理成章执行fn(arg)。</p>
+<h3 id="系统调用服务例程">系统调用服务例程</h3>
+<p>实际上我在看glibc
+2.19时发现整个流程非常的复杂，有兴趣的可以自己跟一下。但无论如何，我只需要知道，最终的系统调用对应的服务例程是sys_fork等函数就够了。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-function">asmlinkage <span class="hljs-type">int</span> <span class="hljs-title">sys_fork</span><span class="hljs-params">(<span class="hljs-keyword">struct</span> pt_regs regs)</span></span><br><span class="hljs-function"></span>&#123;<br>	<span class="hljs-keyword">return</span> <span class="hljs-built_in">do_fork</span>(SIGCHLD, regs.esp, &amp;regs, <span class="hljs-number">0</span>, <span class="hljs-literal">NULL</span>, <span class="hljs-literal">NULL</span>);<br>&#125;<br><br><span class="hljs-function">asmlinkage <span class="hljs-type">int</span> <span class="hljs-title">sys_clone</span><span class="hljs-params">(<span class="hljs-keyword">struct</span> pt_regs regs)</span></span><br><span class="hljs-function"></span>&#123;<br>	<span class="hljs-type">unsigned</span> <span class="hljs-type">long</span> clone_flags;<br>	<span class="hljs-type">unsigned</span> <span class="hljs-type">long</span> newsp;<br>	<span class="hljs-type">int</span> __user *parent_tidptr, *child_tidptr;<br><br>	clone_flags = regs.ebx;<br>	newsp = regs.ecx;<br>	parent_tidptr = (<span class="hljs-type">int</span> __user *)regs.edx;<br>	child_tidptr = (<span class="hljs-type">int</span> __user *)regs.edi;<br>	<span class="hljs-keyword">if</span> (!newsp)<br>		newsp = regs.esp;<br>	<span class="hljs-keyword">return</span> <span class="hljs-built_in">do_fork</span>(clone_flags, newsp, &amp;regs, <span class="hljs-number">0</span>, parent_tidptr, child_tidptr);<br>&#125;<br><br><span class="hljs-comment">/*</span><br><span class="hljs-comment"> * This is trivial, and on the face of it looks like it</span><br><span class="hljs-comment"> * could equally well be done in user mode.</span><br><span class="hljs-comment"> *</span><br><span class="hljs-comment"> * Not so, for quite unobvious reasons - register pressure.</span><br><span class="hljs-comment"> * In user mode vfork() cannot have a stack frame, and if</span><br><span class="hljs-comment"> * done by calling the &quot;clone()&quot; system call directly, you</span><br><span class="hljs-comment"> * do not have enough call-clobbered registers to hold all</span><br><span class="hljs-comment"> * the information you need.</span><br><span class="hljs-comment"> */</span><br><span class="hljs-function">asmlinkage <span class="hljs-type">int</span> <span class="hljs-title">sys_vfork</span><span class="hljs-params">(<span class="hljs-keyword">struct</span> pt_regs regs)</span></span><br><span class="hljs-function"></span>&#123;<br>	<span class="hljs-keyword">return</span> <span class="hljs-built_in">do_fork</span>(CLONE_VFORK | CLONE_VM | SIGCHLD, regs.esp, &amp;regs, <span class="hljs-number">0</span>, <span class="hljs-literal">NULL</span>, <span class="hljs-literal">NULL</span>);<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>可以看到vfork和fork最终也都是通过do_fork()进行的，只是提前给定了clone_flags。
+do_fork()处理的事情： <figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * 负责处理clone,fork,vfork系统调用。</span><br><span class="hljs-comment"> * clone_flags-与clone的flag参数相同</span><br><span class="hljs-comment"> * stack_start-与clone的child_stack相同</span><br><span class="hljs-comment"> * regs-指向通用寄存器的值。是在从用户态切换到内核态时被保存到内核态堆栈中的。</span><br><span class="hljs-comment"> * stack_size-未使用,总是为0</span><br><span class="hljs-comment"> * parent_tidptr,child_tidptr-clone中对应参数ptid,ctid相同</span><br><span class="hljs-comment"> */</span><br><span class="hljs-function"><span class="hljs-type">long</span> <span class="hljs-title">do_fork</span><span class="hljs-params">(<span class="hljs-type">unsigned</span> <span class="hljs-type">long</span> clone_flags,</span></span><br><span class="hljs-params"><span class="hljs-function">	      <span class="hljs-type">unsigned</span> <span class="hljs-type">long</span> stack_start,</span></span><br><span class="hljs-params"><span class="hljs-function">	      <span class="hljs-keyword">struct</span> pt_regs *regs,</span></span><br><span class="hljs-params"><span class="hljs-function">	      <span class="hljs-type">unsigned</span> <span class="hljs-type">long</span> stack_size,</span></span><br><span class="hljs-params"><span class="hljs-function">	      <span class="hljs-type">int</span> __user *parent_tidptr,</span></span><br><span class="hljs-params"><span class="hljs-function">	      <span class="hljs-type">int</span> __user *child_tidptr)</span></span><br><span class="hljs-function"></span>&#123;<br>	<span class="hljs-keyword">struct</span> <span class="hljs-title class_">task_struct</span> *p;<br>	<span class="hljs-type">int</span> trace = <span class="hljs-number">0</span>;<br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 通过查找pidmap_array位图,为子进程分配新的pid参数.</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-type">long</span> pid = <span class="hljs-built_in">alloc_pidmap</span>();<br><br>	<span class="hljs-keyword">if</span> (pid &lt; <span class="hljs-number">0</span>)<br>		<span class="hljs-keyword">return</span> -EAGAIN;<br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 如果父进程正在被跟踪,就检查debugger程序是否想跟踪子进程.并且子进程不是内核进程(CLONE_UNTRACED未设置)</span><br><span class="hljs-comment">	 * 那么就设置CLONE_PTRACE标志.</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-keyword">if</span> (<span class="hljs-built_in">unlikely</span>(current-&gt;ptrace)) &#123;<br>		trace = fork_traceflag (clone_flags);<br>		<span class="hljs-keyword">if</span> (trace)<br>			clone_flags |= CLONE_PTRACE;<br>	&#125;<br><br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * copy_process复制进程描述符.如果所有必须的资源都是可用的,该函数返回刚创建的task_struct描述符的地址.</span><br><span class="hljs-comment">	 * 这是创建进程的关键步骤.</span><br><span class="hljs-comment">	 */</span><br>	p = <span class="hljs-built_in">copy_process</span>(clone_flags, stack_start, regs, stack_size, parent_tidptr, child_tidptr, pid);<br>	<span class="hljs-comment">/*</span><br><span class="hljs-comment">	 * Do this prior waking up the new thread - the thread pointer</span><br><span class="hljs-comment">	 * might get invalid after that point, if the thread exits quickly.</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-keyword">if</span> (!<span class="hljs-built_in">IS_ERR</span>(p)) &#123;<br>		<span class="hljs-keyword">struct</span> <span class="hljs-title class_">completion</span> vfork;<br><br>		<span class="hljs-keyword">if</span> (clone_flags &amp; CLONE_VFORK) &#123;<br>			p-&gt;vfork_done = &amp;vfork;<br>			<span class="hljs-built_in">init_completion</span>(&amp;vfork);<br>		&#125;<br><br>		<span class="hljs-comment">/**</span><br><span class="hljs-comment">		 * 如果设置了CLONE_STOPPED,或者必须跟踪子进程.</span><br><span class="hljs-comment">		 * 就设置子进程为TASK_STOPPED状态,并发送SIGSTOP信号挂起它.</span><br><span class="hljs-comment">		 */</span><br>		<span class="hljs-keyword">if</span> ((p-&gt;ptrace &amp; PT_PTRACED) || (clone_flags &amp; CLONE_STOPPED)) &#123;<br>			<span class="hljs-comment">/*</span><br><span class="hljs-comment">			 * We&#x27;ll start up with an immediate SIGSTOP.</span><br><span class="hljs-comment">			 */</span><br>			<span class="hljs-built_in">sigaddset</span>(&amp;p-&gt;pending.signal, SIGSTOP);<br>			<span class="hljs-built_in">set_tsk_thread_flag</span>(p, TIF_SIGPENDING);<br>		&#125;<br><br>		<span class="hljs-comment">/**</span><br><span class="hljs-comment">		 * 没有设置CLONE_STOPPED,就调用wake_up_new_task</span><br><span class="hljs-comment">		 * 它调整父进程和子进程的调度参数.</span><br><span class="hljs-comment">		 * 如果父子进程运行在同一个CPU上,并且不能共享同一组页表(CLONE_VM标志被清0).那么,就把子进程插入父进程运行队列.</span><br><span class="hljs-comment">		 * 并且子进程插在父进程之前.这样做的目的是:如果子进程在创建之后执行新程序,就可以避免写时复制机制执行不必要时页面复制.</span><br><span class="hljs-comment">		 * 否则,如果运行在不同的CPU上,或者父子进程共享同一组页表.就把子进程插入父进程运行队列的队尾.</span><br><span class="hljs-comment">		 */</span><br>		<span class="hljs-keyword">if</span> (!(clone_flags &amp; CLONE_STOPPED))<br>			<span class="hljs-built_in">wake_up_new_task</span>(p, clone_flags);<br>		<span class="hljs-keyword">else</span><span class="hljs-comment">/*如果CLONE_STOPPED标志被设置，就把子进程设置为TASK_STOPPED状态。*/</span><br>			p-&gt;state = TASK_STOPPED;<br><br>		<span class="hljs-comment">/**</span><br><span class="hljs-comment">		 * 如果进程正被跟踪,则把子进程的PID插入到父进程的ptrace_message,并调用ptrace_notify</span><br><span class="hljs-comment">		 * ptrace_notify使当前进程停止运行,并向当前进程的父进程发送SIGCHLD信号.子进程的祖父进程是跟踪父进程的debugger进程.</span><br><span class="hljs-comment">		 * dubugger进程可以通过ptrace_message获得被创建子进程的PID.</span><br><span class="hljs-comment">		 */</span><br>		<span class="hljs-keyword">if</span> (<span class="hljs-built_in">unlikely</span> (trace)) &#123;<br>			current-&gt;ptrace_message = pid;<br>			<span class="hljs-built_in">ptrace_notify</span> ((trace &lt;&lt; <span class="hljs-number">8</span>) | SIGTRAP);<br>		&#125;<br><br>		<span class="hljs-comment">/**</span><br><span class="hljs-comment">		 * 如果设置了CLONE_VFORK,就把父进程插入等待队列,并挂起父进程直到子进程结束或者执行了新的程序.</span><br><span class="hljs-comment">		 */</span><br>		<span class="hljs-keyword">if</span> (clone_flags &amp; CLONE_VFORK) &#123;<br>			<span class="hljs-built_in">wait_for_completion</span>(&amp;vfork);<br>			<span class="hljs-keyword">if</span> (<span class="hljs-built_in">unlikely</span> (current-&gt;ptrace &amp; PT_TRACE_VFORK_DONE))<br>				<span class="hljs-built_in">ptrace_notify</span> ((PTRACE_EVENT_VFORK_DONE &lt;&lt; <span class="hljs-number">8</span>) | SIGTRAP);<br>		&#125;<br>	&#125; <span class="hljs-keyword">else</span> &#123;<br>		<span class="hljs-built_in">free_pidmap</span>(pid);<br>		pid = <span class="hljs-built_in">PTR_ERR</span>(p);<br>	&#125;<br>	<span class="hljs-keyword">return</span> pid;<br>&#125;<br></code></pre></td></tr></table></figure>
+可以看到，实际上fork，clone和vfork的区别，仅仅是在do_fork中根据clone_flags来筛选的。对应不同的flags，实现效果和此前谈到的机制相同。</p>
+<h3 id="copy_process">copy_process()</h3>
+<p>这个函数创建了进程描述符以及子进程执行所要的所有其他数据结构。它的参数与do_fork()相同，外加子进程的PID。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br><span class="line">158</span><br><span class="line">159</span><br><span class="line">160</span><br><span class="line">161</span><br><span class="line">162</span><br><span class="line">163</span><br><span class="line">164</span><br><span class="line">165</span><br><span class="line">166</span><br><span class="line">167</span><br><span class="line">168</span><br><span class="line">169</span><br><span class="line">170</span><br><span class="line">171</span><br><span class="line">172</span><br><span class="line">173</span><br><span class="line">174</span><br><span class="line">175</span><br><span class="line">176</span><br><span class="line">177</span><br><span class="line">178</span><br><span class="line">179</span><br><span class="line">180</span><br><span class="line">181</span><br><span class="line">182</span><br><span class="line">183</span><br><span class="line">184</span><br><span class="line">185</span><br><span class="line">186</span><br><span class="line">187</span><br><span class="line">188</span><br><span class="line">189</span><br><span class="line">190</span><br><span class="line">191</span><br><span class="line">192</span><br><span class="line">193</span><br><span class="line">194</span><br><span class="line">195</span><br><span class="line">196</span><br><span class="line">197</span><br><span class="line">198</span><br><span class="line">199</span><br><span class="line">200</span><br><span class="line">201</span><br><span class="line">202</span><br><span class="line">203</span><br><span class="line">204</span><br><span class="line">205</span><br><span class="line">206</span><br><span class="line">207</span><br><span class="line">208</span><br><span class="line">209</span><br><span class="line">210</span><br><span class="line">211</span><br><span class="line">212</span><br><span class="line">213</span><br><span class="line">214</span><br><span class="line">215</span><br><span class="line">216</span><br><span class="line">217</span><br><span class="line">218</span><br><span class="line">219</span><br><span class="line">220</span><br><span class="line">221</span><br><span class="line">222</span><br><span class="line">223</span><br><span class="line">224</span><br><span class="line">225</span><br><span class="line">226</span><br><span class="line">227</span><br><span class="line">228</span><br><span class="line">229</span><br><span class="line">230</span><br><span class="line">231</span><br><span class="line">232</span><br><span class="line">233</span><br><span class="line">234</span><br><span class="line">235</span><br><span class="line">236</span><br><span class="line">237</span><br><span class="line">238</span><br><span class="line">239</span><br><span class="line">240</span><br><span class="line">241</span><br><span class="line">242</span><br><span class="line">243</span><br><span class="line">244</span><br><span class="line">245</span><br><span class="line">246</span><br><span class="line">247</span><br><span class="line">248</span><br><span class="line">249</span><br><span class="line">250</span><br><span class="line">251</span><br><span class="line">252</span><br><span class="line">253</span><br><span class="line">254</span><br><span class="line">255</span><br><span class="line">256</span><br><span class="line">257</span><br><span class="line">258</span><br><span class="line">259</span><br><span class="line">260</span><br><span class="line">261</span><br><span class="line">262</span><br><span class="line">263</span><br><span class="line">264</span><br><span class="line">265</span><br><span class="line">266</span><br><span class="line">267</span><br><span class="line">268</span><br><span class="line">269</span><br><span class="line">270</span><br><span class="line">271</span><br><span class="line">272</span><br><span class="line">273</span><br><span class="line">274</span><br><span class="line">275</span><br><span class="line">276</span><br><span class="line">277</span><br><span class="line">278</span><br><span class="line">279</span><br><span class="line">280</span><br><span class="line">281</span><br><span class="line">282</span><br><span class="line">283</span><br><span class="line">284</span><br><span class="line">285</span><br><span class="line">286</span><br><span class="line">287</span><br><span class="line">288</span><br><span class="line">289</span><br><span class="line">290</span><br><span class="line">291</span><br><span class="line">292</span><br><span class="line">293</span><br><span class="line">294</span><br><span class="line">295</span><br><span class="line">296</span><br><span class="line">297</span><br><span class="line">298</span><br><span class="line">299</span><br><span class="line">300</span><br><span class="line">301</span><br><span class="line">302</span><br><span class="line">303</span><br><span class="line">304</span><br><span class="line">305</span><br><span class="line">306</span><br><span class="line">307</span><br><span class="line">308</span><br><span class="line">309</span><br><span class="line">310</span><br><span class="line">311</span><br><span class="line">312</span><br><span class="line">313</span><br><span class="line">314</span><br><span class="line">315</span><br><span class="line">316</span><br><span class="line">317</span><br><span class="line">318</span><br><span class="line">319</span><br><span class="line">320</span><br><span class="line">321</span><br><span class="line">322</span><br><span class="line">323</span><br><span class="line">324</span><br><span class="line">325</span><br><span class="line">326</span><br><span class="line">327</span><br><span class="line">328</span><br><span class="line">329</span><br><span class="line">330</span><br><span class="line">331</span><br><span class="line">332</span><br><span class="line">333</span><br><span class="line">334</span><br><span class="line">335</span><br><span class="line">336</span><br><span class="line">337</span><br><span class="line">338</span><br><span class="line">339</span><br><span class="line">340</span><br><span class="line">341</span><br><span class="line">342</span><br><span class="line">343</span><br><span class="line">344</span><br><span class="line">345</span><br><span class="line">346</span><br><span class="line">347</span><br><span class="line">348</span><br><span class="line">349</span><br><span class="line">350</span><br><span class="line">351</span><br><span class="line">352</span><br><span class="line">353</span><br><span class="line">354</span><br><span class="line">355</span><br><span class="line">356</span><br><span class="line">357</span><br><span class="line">358</span><br><span class="line">359</span><br><span class="line">360</span><br><span class="line">361</span><br><span class="line">362</span><br><span class="line">363</span><br><span class="line">364</span><br><span class="line">365</span><br><span class="line">366</span><br><span class="line">367</span><br><span class="line">368</span><br><span class="line">369</span><br><span class="line">370</span><br><span class="line">371</span><br><span class="line">372</span><br><span class="line">373</span><br><span class="line">374</span><br><span class="line">375</span><br><span class="line">376</span><br><span class="line">377</span><br><span class="line">378</span><br><span class="line">379</span><br><span class="line">380</span><br><span class="line">381</span><br><span class="line">382</span><br><span class="line">383</span><br><span class="line">384</span><br><span class="line">385</span><br><span class="line">386</span><br><span class="line">387</span><br><span class="line">388</span><br><span class="line">389</span><br><span class="line">390</span><br><span class="line">391</span><br><span class="line">392</span><br><span class="line">393</span><br><span class="line">394</span><br><span class="line">395</span><br><span class="line">396</span><br><span class="line">397</span><br><span class="line">398</span><br><span class="line">399</span><br><span class="line">400</span><br><span class="line">401</span><br><span class="line">402</span><br><span class="line">403</span><br><span class="line">404</span><br><span class="line">405</span><br><span class="line">406</span><br><span class="line">407</span><br><span class="line">408</span><br><span class="line">409</span><br><span class="line">410</span><br><span class="line">411</span><br><span class="line">412</span><br><span class="line">413</span><br><span class="line">414</span><br><span class="line">415</span><br><span class="line">416</span><br><span class="line">417</span><br><span class="line">418</span><br><span class="line">419</span><br><span class="line">420</span><br><span class="line">421</span><br><span class="line">422</span><br><span class="line">423</span><br><span class="line">424</span><br><span class="line">425</span><br><span class="line">426</span><br><span class="line">427</span><br><span class="line">428</span><br><span class="line">429</span><br><span class="line">430</span><br><span class="line">431</span><br><span class="line">432</span><br><span class="line">433</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * 创建进程描述符以及子进程执行所需要的所有其他数据结构</span><br><span class="hljs-comment"> * 它的参数与do_fork相同。外加子进程的PID。</span><br><span class="hljs-comment"> */</span><br><span class="hljs-function"><span class="hljs-type">static</span> <span class="hljs-type">task_t</span> *<span class="hljs-title">copy_process</span><span class="hljs-params">(<span class="hljs-type">unsigned</span> <span class="hljs-type">long</span> clone_flags,</span></span><br><span class="hljs-params"><span class="hljs-function">				 <span class="hljs-type">unsigned</span> <span class="hljs-type">long</span> stack_start,</span></span><br><span class="hljs-params"><span class="hljs-function">				 <span class="hljs-keyword">struct</span> pt_regs *regs,</span></span><br><span class="hljs-params"><span class="hljs-function">				 <span class="hljs-type">unsigned</span> <span class="hljs-type">long</span> stack_size,</span></span><br><span class="hljs-params"><span class="hljs-function">				 <span class="hljs-type">int</span> __user *parent_tidptr,</span></span><br><span class="hljs-params"><span class="hljs-function">				 <span class="hljs-type">int</span> __user *child_tidptr,</span></span><br><span class="hljs-params"><span class="hljs-function">				 <span class="hljs-type">int</span> pid)</span></span><br><span class="hljs-function"></span>&#123;<br>	<span class="hljs-type">int</span> retval;<br>	<span class="hljs-keyword">struct</span> <span class="hljs-title class_">task_struct</span> *p = <span class="hljs-literal">NULL</span>;<br><br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 检查clone_flags所传标志的一致性。</span><br><span class="hljs-comment">	 */</span><br><br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 如果CLONE_NEWNS和CLONE_FS标志都被设置，返回错误</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-keyword">if</span> ((clone_flags &amp; (CLONE_NEWNS|CLONE_FS)) == (CLONE_NEWNS|CLONE_FS))<br>		<span class="hljs-keyword">return</span> <span class="hljs-built_in">ERR_PTR</span>(-EINVAL);<br><br>	<span class="hljs-comment">/*</span><br><span class="hljs-comment">	 * Thread groups must share signals as well, and detached threads</span><br><span class="hljs-comment">	 * can only be started up within the thread group.</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * CLONE_THREAD标志被设置，并且CLONE_SIGHAND没有设置。</span><br><span class="hljs-comment">	 * (同一线程组中的轻量级进程必须共享信号)</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-keyword">if</span> ((clone_flags &amp; CLONE_THREAD) &amp;&amp; !(clone_flags &amp; CLONE_SIGHAND))<br>		<span class="hljs-keyword">return</span> <span class="hljs-built_in">ERR_PTR</span>(-EINVAL);<br><br>	<span class="hljs-comment">/*</span><br><span class="hljs-comment">	 * Shared signal handlers imply shared VM. By way of the above,</span><br><span class="hljs-comment">	 * thread groups also imply shared VM. Blocking this case allows</span><br><span class="hljs-comment">	 * for various simplifications in other code.</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * CLONE_SIGHAND被设置，但是CLONE_VM没有设置。</span><br><span class="hljs-comment">	 * (共享信号处理程序的轻量级进程也必须共享内存描述符)</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-keyword">if</span> ((clone_flags &amp; CLONE_SIGHAND) &amp;&amp; !(clone_flags &amp; CLONE_VM))<br>		<span class="hljs-keyword">return</span> <span class="hljs-built_in">ERR_PTR</span>(-EINVAL);<br><br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 通过调用security_task_create以及稍后调用security_task_alloc执行所有附加的安全检查。</span><br><span class="hljs-comment">	 * LINUX2.6提供扩展安全性的钩子函数，与传统unix相比，它具有更加强壮的安全模型。</span><br><span class="hljs-comment">	 */</span><br>	retval = <span class="hljs-built_in">security_task_create</span>(clone_flags);<br>	<span class="hljs-keyword">if</span> (retval)<br>		<span class="hljs-keyword">goto</span> fork_out;<br><br>	retval = -ENOMEM;<br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 调用dup_task_struct为子进程获取进程描述符。</span><br><span class="hljs-comment">	 */</span><br>	p = <span class="hljs-built_in">dup_task_struct</span>(current);<br>	<span class="hljs-keyword">if</span> (!p)<br>		<span class="hljs-keyword">goto</span> fork_out;<br><br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 检查存放在current-&gt;sigal-&gt;rlim[RLIMIT_NPROC].rlim_cur中的限制值，是否小于或者等于用户所拥有的进程数。</span><br><span class="hljs-comment">	 * 如果是，则返回错误码。当然，有root权限除外。</span><br><span class="hljs-comment">	 * p-&gt;user表示进程的拥有者，p-&gt;user-&gt;processes表示进程拥有者当前进程数</span><br><span class="hljs-comment">	 * xie.baoyou注：此处比较是用&gt;=而不是&gt;</span><br><span class="hljs-comment">	 */</span><br>	retval = -EAGAIN;<br>	<span class="hljs-keyword">if</span> (<span class="hljs-built_in">atomic_read</span>(&amp;p-&gt;user-&gt;processes) &gt;=<br>			p-&gt;signal-&gt;rlim[RLIMIT_NPROC].rlim_cur) &#123;<br>		<span class="hljs-comment">/**</span><br><span class="hljs-comment">		 * 当然，用户有root权限就另当别论了</span><br><span class="hljs-comment">		 */</span><br>		<span class="hljs-keyword">if</span> (!<span class="hljs-built_in">capable</span>(CAP_SYS_ADMIN) &amp;&amp; !<span class="hljs-built_in">capable</span>(CAP_SYS_RESOURCE) &amp;&amp;<br>				p-&gt;user != &amp;root_user)<br>			<span class="hljs-keyword">goto</span> bad_fork_free;<br>	&#125;<br><br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 递增user结构的使用计数器</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-built_in">atomic_inc</span>(&amp;p-&gt;user-&gt;__count);<br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 增加用户拥有的进程计数。</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-built_in">atomic_inc</span>(&amp;p-&gt;user-&gt;processes);<br>	<span class="hljs-built_in">get_group_info</span>(p-&gt;group_info);<br><br>	<span class="hljs-comment">/*</span><br><span class="hljs-comment">	 * If multiple threads are within copy_process(), then this check</span><br><span class="hljs-comment">	 * triggers too late. This doesn&#x27;t hurt, the check is only there</span><br><span class="hljs-comment">	 * to stop root fork bombs.</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 检查系统中的进程数量（nr_threads）是否超过max_threads</span><br><span class="hljs-comment">	 * max_threads的缺省值是由系统内存容量决定的。总的原则是：所有的thread_info描述符和内核栈所占用的空间</span><br><span class="hljs-comment">	 * 不能超过物理内存的1/8。不过，系统管理可以通过写/proc/sys/kernel/thread-max文件来改变这个值。</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-keyword">if</span> (nr_threads &gt;= max_threads)<br>		<span class="hljs-keyword">goto</span> bad_fork_cleanup_count;<br><br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 如果新进程的执行域和可招待格式的内核函数都包含在内核中模块中，</span><br><span class="hljs-comment">	 * 就递增它们的使用计数器。</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-keyword">if</span> (!<span class="hljs-built_in">try_module_get</span>(p-&gt;thread_info-&gt;exec_domain-&gt;<span class="hljs-keyword">module</span>))<br>		<span class="hljs-keyword">goto</span> bad_fork_cleanup_count;<br><br>	<span class="hljs-keyword">if</span> (p-&gt;binfmt &amp;&amp; !<span class="hljs-built_in">try_module_get</span>(p-&gt;binfmt-&gt;<span class="hljs-keyword">module</span>))<br>		<span class="hljs-keyword">goto</span> bad_fork_cleanup_put_domain;<br><br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 设置几个与进程状态相关的关键字段。</span><br><span class="hljs-comment">	 */</span><br><br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * did_exec是进程发出的execve系统调用的次数，初始为0</span><br><span class="hljs-comment">	 */</span><br>	p-&gt;did_exec = <span class="hljs-number">0</span>;<br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 更新从父进程复制到tsk_flags字段中的一些标志。</span><br><span class="hljs-comment">	 * 首先清除PF_SUPERPRIV。该标志表示进程是否使用了某种超级用户权限。</span><br><span class="hljs-comment">	 * 然后设置PF_FORKNOEXEC标志。它表示子进程还没有发出execve系统调用。</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-built_in">copy_flags</span>(clone_flags, p);<br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 保存新进程的pid值。</span><br><span class="hljs-comment">	 */</span><br>	p-&gt;pid = pid;<br>	retval = -EFAULT;<br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 如果CLONE_PARENT_SETTID标志被设置，就将子进程的PID复制到参数parent_tidptr指向的用户态变量中。</span><br><span class="hljs-comment">	 * xie.baoyou:想想我们常常调用的pid = fork()语句吧。</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-keyword">if</span> (clone_flags &amp; CLONE_PARENT_SETTID)<br>		<span class="hljs-keyword">if</span> (<span class="hljs-built_in">put_user</span>(p-&gt;pid, parent_tidptr))<br>			<span class="hljs-keyword">goto</span> bad_fork_cleanup;<br><br>	p-&gt;proc_dentry = <span class="hljs-literal">NULL</span>;<br><br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 初始化子进程描述符中的list_head数据结构和自旋锁。</span><br><span class="hljs-comment">	 * 并为挂起信号，定时器及时间统计表相关的几个字段赋初值。</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-built_in">INIT_LIST_HEAD</span>(&amp;p-&gt;children);<br>	<span class="hljs-built_in">INIT_LIST_HEAD</span>(&amp;p-&gt;sibling);<br>	p-&gt;vfork_done = <span class="hljs-literal">NULL</span>;<br>	<span class="hljs-built_in">spin_lock_init</span>(&amp;p-&gt;alloc_lock);<br>	<span class="hljs-built_in">spin_lock_init</span>(&amp;p-&gt;proc_lock);<br><br>	<span class="hljs-built_in">clear_tsk_thread_flag</span>(p, TIF_SIGPENDING);<br>	<span class="hljs-built_in">init_sigpending</span>(&amp;p-&gt;pending);<br><br>	p-&gt;it_real_value = <span class="hljs-number">0</span>;<br>	p-&gt;it_real_incr = <span class="hljs-number">0</span>;<br>	p-&gt;it_virt_value = cputime_zero;<br>	p-&gt;it_virt_incr = cputime_zero;<br>	p-&gt;it_prof_value = cputime_zero;<br>	p-&gt;it_prof_incr = cputime_zero;<br>	<span class="hljs-built_in">init_timer</span>(&amp;p-&gt;real_timer);<br>	p-&gt;real_timer.data = (<span class="hljs-type">unsigned</span> <span class="hljs-type">long</span>) p;<br><br>	p-&gt;utime = cputime_zero;<br>	p-&gt;stime = cputime_zero;<br>	p-&gt;rchar = <span class="hljs-number">0</span>;		<span class="hljs-comment">/* I/O counter: bytes read */</span><br>	p-&gt;wchar = <span class="hljs-number">0</span>;		<span class="hljs-comment">/* I/O counter: bytes written */</span><br>	p-&gt;syscr = <span class="hljs-number">0</span>;		<span class="hljs-comment">/* I/O counter: read syscalls */</span><br>	p-&gt;syscw = <span class="hljs-number">0</span>;		<span class="hljs-comment">/* I/O counter: write syscalls */</span><br>	<span class="hljs-built_in">acct_clear_integrals</span>(p);<br><br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 把大内核锁计数器初始化为-1</span><br><span class="hljs-comment">	 */</span><br>	p-&gt;lock_depth = <span class="hljs-number">-1</span>;		<span class="hljs-comment">/* -1 = no lock */</span><br>	<span class="hljs-built_in">do_posix_clock_monotonic_gettime</span>(&amp;p-&gt;start_time);<br>	p-&gt;security = <span class="hljs-literal">NULL</span>;<br>	p-&gt;io_context = <span class="hljs-literal">NULL</span>;<br>	p-&gt;io_wait = <span class="hljs-literal">NULL</span>;<br>	p-&gt;audit_context = <span class="hljs-literal">NULL</span>;<br><span class="hljs-meta">#<span class="hljs-keyword">ifdef</span> CONFIG_NUMA</span><br> 	p-&gt;mempolicy = <span class="hljs-built_in">mpol_copy</span>(p-&gt;mempolicy);<br> 	<span class="hljs-keyword">if</span> (<span class="hljs-built_in">IS_ERR</span>(p-&gt;mempolicy)) &#123;<br> 		retval = <span class="hljs-built_in">PTR_ERR</span>(p-&gt;mempolicy);<br> 		p-&gt;mempolicy = <span class="hljs-literal">NULL</span>;<br> 		<span class="hljs-keyword">goto</span> bad_fork_cleanup;<br> 	&#125;<br><span class="hljs-meta">#<span class="hljs-keyword">endif</span></span><br><br>	p-&gt;tgid = p-&gt;pid;<br>	<span class="hljs-keyword">if</span> (clone_flags &amp; CLONE_THREAD)<br>		p-&gt;tgid = current-&gt;tgid;<br><br>	<span class="hljs-keyword">if</span> ((retval = <span class="hljs-built_in">security_task_alloc</span>(p)))<br>		<span class="hljs-keyword">goto</span> bad_fork_cleanup_policy;<br>	<span class="hljs-keyword">if</span> ((retval = <span class="hljs-built_in">audit_alloc</span>(p)))<br>		<span class="hljs-keyword">goto</span> bad_fork_cleanup_security;<br>	<span class="hljs-comment">/* copy all the process information */</span><br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * copy_semundo，copy_files，copy_fs，copy_sighand，copy_signal</span><br><span class="hljs-comment">	 * copy_mm，copy_keys，copy_namespace创建新的数据结构，并把父进程相应数据结构的值复制到新数据结构中。</span><br><span class="hljs-comment">	 * 除非clone_flags参数指出它们有不同的值。</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-keyword">if</span> ((retval = <span class="hljs-built_in">copy_semundo</span>(clone_flags, p)))<br>		<span class="hljs-keyword">goto</span> bad_fork_cleanup_audit;<br>	<span class="hljs-keyword">if</span> ((retval = <span class="hljs-built_in">copy_files</span>(clone_flags, p)))<br>		<span class="hljs-keyword">goto</span> bad_fork_cleanup_semundo;<br>	<span class="hljs-keyword">if</span> ((retval = <span class="hljs-built_in">copy_fs</span>(clone_flags, p)))<br>		<span class="hljs-keyword">goto</span> bad_fork_cleanup_files;<br>	<span class="hljs-keyword">if</span> ((retval = <span class="hljs-built_in">copy_sighand</span>(clone_flags, p)))<br>		<span class="hljs-keyword">goto</span> bad_fork_cleanup_fs;<br>	<span class="hljs-keyword">if</span> ((retval = <span class="hljs-built_in">copy_signal</span>(clone_flags, p)))<br>		<span class="hljs-keyword">goto</span> bad_fork_cleanup_sighand;<br>	<span class="hljs-keyword">if</span> ((retval = <span class="hljs-built_in">copy_mm</span>(clone_flags, p)))<br>		<span class="hljs-keyword">goto</span> bad_fork_cleanup_signal;<br>	<span class="hljs-keyword">if</span> ((retval = <span class="hljs-built_in">copy_keys</span>(clone_flags, p)))<br>		<span class="hljs-keyword">goto</span> bad_fork_cleanup_mm;<br>	<span class="hljs-keyword">if</span> ((retval = <span class="hljs-built_in">copy_namespace</span>(clone_flags, p)))<br>		<span class="hljs-keyword">goto</span> bad_fork_cleanup_keys;<br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 调用copy_thread，用发出clone系统调用时CPU寄存器的值（它们保存在父进程的内核栈中）</span><br><span class="hljs-comment">	 * 来初始化子进程的内核栈。不过，copy_thread把eax寄存器对应字段的值（这是fork和clone系统调用在子进程中的返回值）</span><br><span class="hljs-comment">	 * 强行置为0。子进程描述符的thread.esp字段初始化为子进程内核栈的基地址。ret_from_fork的地址存放在thread.eip中。</span><br><span class="hljs-comment">	 * 如果父进程使用IO权限位图。则子进程获取该位图的一个拷贝。</span><br><span class="hljs-comment">	 * 最后，如果CLONE_SETTLS标志被置位，则子进程获取由CLONE系统调用的参数tls指向的用户态数据结构所表示的TLS段。</span><br><span class="hljs-comment">	 */</span><br>	retval = <span class="hljs-built_in">copy_thread</span>(<span class="hljs-number">0</span>, clone_flags, stack_start, stack_size, p, regs);<br>	<span class="hljs-keyword">if</span> (retval)<br>		<span class="hljs-keyword">goto</span> bad_fork_cleanup_namespace;<br><br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 如果clone_flags参数的值被置为CLONE_CHILD_SETTID或CLONE_CHILD_CLEARTID</span><br><span class="hljs-comment">	 * 就把child_tidptr参数的值分别复制到set_child_tid或clear_child_tid字段。</span><br><span class="hljs-comment">	 * 这些标志说明：必须改变子进程用户态地址空间的dhild_tidptr所指向的变量的值</span><br><span class="hljs-comment">	 * 不过实际的写操作要稍后再执行。</span><br><span class="hljs-comment">	 */</span><br>	p-&gt;set_child_tid = (clone_flags &amp; CLONE_CHILD_SETTID) ? child_tidptr : <span class="hljs-literal">NULL</span>;<br>	<span class="hljs-comment">/*</span><br><span class="hljs-comment">	 * Clear TID on mm_release()?</span><br><span class="hljs-comment">	 */</span><br>	p-&gt;clear_child_tid = (clone_flags &amp; CLONE_CHILD_CLEARTID) ? child_tidptr: <span class="hljs-literal">NULL</span>;<br><br>	<span class="hljs-comment">/*</span><br><span class="hljs-comment">	 * Syscall tracing should be turned off in the child regardless</span><br><span class="hljs-comment">	 * of CLONE_PTRACE.</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 清除TIF_SYSCALL_TRACE标志。使ret_from_fork函数不会把系统调用结束的消息通知给调试进程。</span><br><span class="hljs-comment">	 * 也不应该通知给调试进程，因为子进程并没有调用fork.</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-built_in">clear_tsk_thread_flag</span>(p, TIF_SYSCALL_TRACE);<br><br>	<span class="hljs-comment">/* Our parent execution domain becomes current domain</span><br><span class="hljs-comment">	   These must match for thread signalling to apply */</span><br>	   <br>	p-&gt;parent_exec_id = p-&gt;self_exec_id;<br><br>	<span class="hljs-comment">/* ok, now we should be set up.. */</span><br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 用clone_flags参数低位的信号数据编码统建始化tsk_exit_signal字段。</span><br><span class="hljs-comment">	 * 如CLONE_THREAD标志被置位，就把exit_signal字段初始化为-1。</span><br><span class="hljs-comment">	 * 这样做是因为：当创建线程时，即使被创建的线程死亡，都不应该给领头进程的父进程发送信号。</span><br><span class="hljs-comment">	 * 而应该是领头进程死亡后，才向其领头进程的父进程发送信号。</span><br><span class="hljs-comment">	 */</span><br>	p-&gt;exit_signal = (clone_flags &amp; CLONE_THREAD) ? <span class="hljs-number">-1</span> : (clone_flags &amp; CSIGNAL);<br>	p-&gt;pdeath_signal = <span class="hljs-number">0</span>;<br>	p-&gt;exit_state = <span class="hljs-number">0</span>;<br><br>	<span class="hljs-comment">/* Perform scheduler related setup */</span><br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 调用sched_fork完成对新进程调度程序数据结构的初始化。</span><br><span class="hljs-comment">	 * 该函数把新进程的状态置为TASK_RUNNING，并把thread_info结构的preempt_count字段设置为1，</span><br><span class="hljs-comment">	 * 从而禁止抢占。</span><br><span class="hljs-comment">	 * 此外，为了保证公平调度，父子进程共享父进程的时间片。</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-built_in">sched_fork</span>(p);<br><br>	<span class="hljs-comment">/*</span><br><span class="hljs-comment">	 * Ok, make it visible to the rest of the system.</span><br><span class="hljs-comment">	 * We dont wake it up yet.</span><br><span class="hljs-comment">	 */</span><br>	p-&gt;group_leader = p;<br>	<span class="hljs-built_in">INIT_LIST_HEAD</span>(&amp;p-&gt;ptrace_children);<br>	<span class="hljs-built_in">INIT_LIST_HEAD</span>(&amp;p-&gt;ptrace_list);<br><br>	<span class="hljs-comment">/* Need tasklist lock for parent etc handling! */</span><br>	<span class="hljs-built_in">write_lock_irq</span>(&amp;tasklist_lock);<br><br>	<span class="hljs-comment">/*</span><br><span class="hljs-comment">	 * The task hasn&#x27;t been attached yet, so cpus_allowed mask cannot</span><br><span class="hljs-comment">	 * have changed. The cpus_allowed mask of the parent may have</span><br><span class="hljs-comment">	 * changed after it was copied first time, and it may then move to</span><br><span class="hljs-comment">	 * another CPU - so we re-copy it here and set the child&#x27;s CPU to</span><br><span class="hljs-comment">	 * the parent&#x27;s CPU. This avoids alot of nasty races.</span><br><span class="hljs-comment">	 */</span><br>	p-&gt;cpus_allowed = current-&gt;cpus_allowed;<br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 初始化子线程的cpu字段。</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-built_in">set_task_cpu</span>(p, <span class="hljs-built_in">smp_processor_id</span>());<br><br>	<span class="hljs-comment">/*</span><br><span class="hljs-comment">	 * Check for pending SIGKILL! The new thread should not be allowed</span><br><span class="hljs-comment">	 * to slip out of an OOM kill. (or normal SIGKILL.)</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-keyword">if</span> (<span class="hljs-built_in">sigismember</span>(&amp;current-&gt;pending.signal, SIGKILL)) &#123;<br>		<span class="hljs-built_in">write_unlock_irq</span>(&amp;tasklist_lock);<br>		retval = -EINTR;<br>		<span class="hljs-keyword">goto</span> bad_fork_cleanup_namespace;<br>	&#125;<br><br>	<span class="hljs-comment">/* CLONE_PARENT re-uses the old parent */</span><br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 初始化表示亲子关系的字段，如果CLONE_PARENT或者CLONE_THREAD被设置了</span><br><span class="hljs-comment">	 * 就用current-&gt;real_parent初始化，否则，当前进程就是初创建进程的父进程。</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-keyword">if</span> (clone_flags &amp; (CLONE_PARENT|CLONE_THREAD))<br>		p-&gt;real_parent = current-&gt;real_parent;<br>	<span class="hljs-keyword">else</span><br>		p-&gt;real_parent = current;<br>	p-&gt;parent = p-&gt;real_parent;<br><br>	<span class="hljs-keyword">if</span> (clone_flags &amp; CLONE_THREAD) &#123;<br>		<span class="hljs-built_in">spin_lock</span>(&amp;current-&gt;sighand-&gt;siglock);<br>		<span class="hljs-comment">/*</span><br><span class="hljs-comment">		 * Important: if an exit-all has been started then</span><br><span class="hljs-comment">		 * do not create this new thread - the whole thread</span><br><span class="hljs-comment">		 * group is supposed to exit anyway.</span><br><span class="hljs-comment">		 */</span><br>		<span class="hljs-keyword">if</span> (current-&gt;signal-&gt;flags &amp; SIGNAL_GROUP_EXIT) &#123;<br>			<span class="hljs-built_in">spin_unlock</span>(&amp;current-&gt;sighand-&gt;siglock);<br>			<span class="hljs-built_in">write_unlock_irq</span>(&amp;tasklist_lock);<br>			retval = -EAGAIN;<br>			<span class="hljs-keyword">goto</span> bad_fork_cleanup_namespace;<br>		&#125;<br>		p-&gt;group_leader = current-&gt;group_leader;<br><br>		<span class="hljs-keyword">if</span> (current-&gt;signal-&gt;group_stop_count &gt; <span class="hljs-number">0</span>) &#123;<br>			<span class="hljs-comment">/*</span><br><span class="hljs-comment">			 * There is an all-stop in progress for the group.</span><br><span class="hljs-comment">			 * We ourselves will stop as soon as we check signals.</span><br><span class="hljs-comment">			 * Make the new thread part of that group stop too.</span><br><span class="hljs-comment">			 */</span><br>			current-&gt;signal-&gt;group_stop_count++;<br>			<span class="hljs-built_in">set_tsk_thread_flag</span>(p, TIF_SIGPENDING);<br>		&#125;<br><br>		<span class="hljs-built_in">spin_unlock</span>(&amp;current-&gt;sighand-&gt;siglock);<br>	&#125;<br><br>	<span class="hljs-comment">/** </span><br><span class="hljs-comment">	 * 把新进程加入到进程链表</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-built_in">SET_LINKS</span>(p);<br><br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * PT_PTRACED表示子进程必须被跟踪，就把current-&gt;parent赋给tsk-&gt;parent，并将子进程插入调试程序的跟踪链表中。</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-keyword">if</span> (<span class="hljs-built_in">unlikely</span>(p-&gt;ptrace &amp; PT_PTRACED))<br>		__ptrace_link(p, current-&gt;parent);<br><br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 把新进程描述符的PID插入pidhash散列表中。</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-built_in">attach_pid</span>(p, PIDTYPE_PID, p-&gt;pid);<br>	<span class="hljs-built_in">attach_pid</span>(p, PIDTYPE_TGID, p-&gt;tgid);<br><br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 如果子进程是线程组的领头进程(CLONE_THREAD标志被清0)</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-keyword">if</span> (<span class="hljs-built_in">thread_group_leader</span>(p)) &#123;<br>		<span class="hljs-comment">/**</span><br><span class="hljs-comment">		 * 将进程插入相应的散列表。</span><br><span class="hljs-comment">		 */</span><br>		<span class="hljs-built_in">attach_pid</span>(p, PIDTYPE_PGID, <span class="hljs-built_in">process_group</span>(p));<br>		<span class="hljs-built_in">attach_pid</span>(p, PIDTYPE_SID, p-&gt;signal-&gt;session);<br>		<span class="hljs-keyword">if</span> (p-&gt;pid)<br>			__get_cpu_var(process_counts)++;<br>	&#125;<br><br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 计数</span><br><span class="hljs-comment">	 */</span><br>	nr_threads++;<br>	total_forks++;<br>	<span class="hljs-built_in">write_unlock_irq</span>(&amp;tasklist_lock);<br>	retval = <span class="hljs-number">0</span>;<br><br>fork_out:<br>	<span class="hljs-keyword">if</span> (retval)<br>		<span class="hljs-keyword">return</span> <span class="hljs-built_in">ERR_PTR</span>(retval);<br>	<span class="hljs-keyword">return</span> p;<br><br>bad_fork_cleanup_namespace:<br>	<span class="hljs-built_in">exit_namespace</span>(p);<br>bad_fork_cleanup_keys:<br>	<span class="hljs-built_in">exit_keys</span>(p);<br>bad_fork_cleanup_mm:<br>	<span class="hljs-keyword">if</span> (p-&gt;mm)<br>		<span class="hljs-built_in">mmput</span>(p-&gt;mm);<br>bad_fork_cleanup_signal:<br>	<span class="hljs-built_in">exit_signal</span>(p);<br>bad_fork_cleanup_sighand:<br>	<span class="hljs-built_in">exit_sighand</span>(p);<br>bad_fork_cleanup_fs:<br>	<span class="hljs-built_in">exit_fs</span>(p); <span class="hljs-comment">/* blocking */</span><br>bad_fork_cleanup_files:<br>	<span class="hljs-built_in">exit_files</span>(p); <span class="hljs-comment">/* blocking */</span><br>bad_fork_cleanup_semundo:<br>	<span class="hljs-built_in">exit_sem</span>(p);<br>bad_fork_cleanup_audit:<br>	<span class="hljs-built_in">audit_free</span>(p);<br>bad_fork_cleanup_security:<br>	<span class="hljs-built_in">security_task_free</span>(p);<br>bad_fork_cleanup_policy:<br><span class="hljs-meta">#<span class="hljs-keyword">ifdef</span> CONFIG_NUMA</span><br>	<span class="hljs-built_in">mpol_free</span>(p-&gt;mempolicy);<br><span class="hljs-meta">#<span class="hljs-keyword">endif</span></span><br>bad_fork_cleanup:<br>	<span class="hljs-keyword">if</span> (p-&gt;binfmt)<br>		<span class="hljs-built_in">module_put</span>(p-&gt;binfmt-&gt;<span class="hljs-keyword">module</span>);<br>bad_fork_cleanup_put_domain:<br>	<span class="hljs-built_in">module_put</span>(p-&gt;thread_info-&gt;exec_domain-&gt;<span class="hljs-keyword">module</span>);<br>bad_fork_cleanup_count:<br>	<span class="hljs-built_in">put_group_info</span>(p-&gt;group_info);<br>	<span class="hljs-built_in">atomic_dec</span>(&amp;p-&gt;user-&gt;processes);<br>	<span class="hljs-built_in">free_uid</span>(p-&gt;user);<br>bad_fork_free:<br>	<span class="hljs-built_in">free_task</span>(p);<br>	<span class="hljs-keyword">goto</span> fork_out;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>做完do_fork后，我们的子进程整装待发，等待CPU调度。后续进程调度时，调度程序会把进程描述符thread字段的值装入几个CPU寄存器（thread.esp装入esp寄存器，ret_from_fork()地址装入eip寄存器）。关于此，可以参考《Linux进程切换》一文，这一处理刚好和_switch_to的设计一致。</p>
+<h2 id="内核线程">内核线程</h2>
+<p>Linux还有一组内核线程，它们只运行在内核态，因此也就不必受用户态上下文的拖累。内核线程只使用大于PAGE_OFFSET的内核地址空间。</p>
+<p>创建内核线程使用kernel_thread()，实际上本质依然是do_fork():
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * 创建一个新的内核线程</span><br><span class="hljs-comment"> * fn-要执行的内核函数的地址。</span><br><span class="hljs-comment"> * arg-要传递给函数的参数</span><br><span class="hljs-comment"> * flags-一组clone标志</span><br><span class="hljs-comment"> */</span><br><span class="hljs-function"><span class="hljs-type">int</span> <span class="hljs-title">kernel_thread</span><span class="hljs-params">(<span class="hljs-type">int</span> (*fn)(<span class="hljs-type">void</span> *), <span class="hljs-type">void</span> * arg, <span class="hljs-type">unsigned</span> <span class="hljs-type">long</span> flags)</span></span><br><span class="hljs-function"></span>&#123;<br>	<span class="hljs-keyword">struct</span> <span class="hljs-title class_">pt_regs</span> regs;<br><br>	<span class="hljs-built_in">memset</span>(&amp;regs, <span class="hljs-number">0</span>, <span class="hljs-built_in">sizeof</span>(regs));<br><br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 内核栈地址，为其赋初值。</span><br><span class="hljs-comment">	 * do_fork将从这里取值来为新线程初始化CPU。</span><br><span class="hljs-comment">	 */</span><br>	regs.ebx = (<span class="hljs-type">unsigned</span> <span class="hljs-type">long</span>) fn;<br>	regs.edx = (<span class="hljs-type">unsigned</span> <span class="hljs-type">long</span>) arg;<br><br>	regs.xds = __USER_DS;<br>	regs.xes = __USER_DS;<br>	regs.orig_eax = <span class="hljs-number">-1</span>;<br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 把eip设置成kernel_thread_helper，这样，新线程将执行fn函数。如果函数结束，将执行do_exit</span><br><span class="hljs-comment">	 * fn的返回值作为do_exit的参数。</span><br><span class="hljs-comment">	 */</span><br>	regs.eip = (<span class="hljs-type">unsigned</span> <span class="hljs-type">long</span>) kernel_thread_helper;<br>	regs.xcs = __KERNEL_CS;<br>	regs.eflags = X86_EFLAGS_IF | X86_EFLAGS_SF | X86_EFLAGS_PF | <span class="hljs-number">0x2</span>;<br><br>	<span class="hljs-comment">/* Ok, create the new process.. */</span><br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * CLONE_VM避免复制调用进程的页表。由于新的内核线程无论如何都不会访问用户态地址空间。</span><br><span class="hljs-comment">	 * 所以复制只会造成时间和空间的浪费。</span><br><span class="hljs-comment">	 * CLONE_UNTRACED标志保证内核线程不会被跟踪，即使调用进程被跟踪。</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-keyword">return</span> <span class="hljs-built_in">do_fork</span>(flags | CLONE_VM | CLONE_UNTRACED, <span class="hljs-number">0</span>, &amp;regs, <span class="hljs-number">0</span>, <span class="hljs-literal">NULL</span>, <span class="hljs-literal">NULL</span>);<br>&#125;<br></code></pre></td></tr></table></figure>
+不管你怎么折腾，说白了还是进程，是进程就得do_fork，设计用途不一致罢了。</p>
+<h2 id="进程0">进程0</h2>
+<p>一直在折腾clone，但总归有第一个进程，那就是进程0——idle或叫swapper。这是个Linux开天辟地时捏出来的内核线程。他使用的数据结构是静态分配的，换句话说，其他所有进程的数据结构都是动态分配的。
+- init_task变量中存放进程描述符，INIT_TASK宏初始化。 <figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * 进程0的描述符, 也是进程链表的头</span><br><span class="hljs-comment"> */</span><br><span class="hljs-keyword">struct</span> <span class="hljs-title class_">task_struct</span> init_task = <span class="hljs-built_in">INIT_TASK</span>(init_task);<br><br><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * 初始化进程0的任务描述符。</span><br><span class="hljs-comment"> */</span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> INIT_TASK(tsk)	\</span><br><span class="hljs-meta">&#123;									\</span><br><span class="hljs-meta">	.state		= 0,						\</span><br><span class="hljs-meta">	.thread_info	= &amp;init_thread_info,				\</span><br><span class="hljs-meta">	.usage		= ATOMIC_INIT(2),				\</span><br><span class="hljs-meta">	.flags		= 0,						\</span><br><span class="hljs-meta">	.lock_depth	= -1,						\</span><br><span class="hljs-meta">	.prio		= MAX_PRIO-20,					\</span><br><span class="hljs-meta">	.static_prio	= MAX_PRIO-20,					\</span><br><span class="hljs-meta">	.policy		= SCHED_NORMAL,					\</span><br><span class="hljs-meta">	.cpus_allowed	= CPU_MASK_ALL,					\</span><br><span class="hljs-meta">	.mm		= NULL,						\</span><br><span class="hljs-meta">	.active_mm	= &amp;init_mm,					\</span><br><span class="hljs-meta">	.run_list	= LIST_HEAD_INIT(tsk.run_list),			\</span><br><span class="hljs-meta">	.time_slice	= HZ,						\</span><br><span class="hljs-meta">	.tasks		= LIST_HEAD_INIT(tsk.tasks),			\</span><br><span class="hljs-meta">	.ptrace_children= LIST_HEAD_INIT(tsk.ptrace_children),		\</span><br><span class="hljs-meta">	.ptrace_list	= LIST_HEAD_INIT(tsk.ptrace_list),		\</span><br><span class="hljs-meta">	.real_parent	= &amp;tsk,						\</span><br><span class="hljs-meta">	.parent		= &amp;tsk,						\</span><br><span class="hljs-meta">	.children	= LIST_HEAD_INIT(tsk.children),			\</span><br><span class="hljs-meta">	.sibling	= LIST_HEAD_INIT(tsk.sibling),			\</span><br><span class="hljs-meta">	.group_leader	= &amp;tsk,						\</span><br><span class="hljs-meta">	.real_timer	= &#123;						\</span><br><span class="hljs-meta">		.function	= it_real_fn				\</span><br><span class="hljs-meta">	&#125;,								\</span><br><span class="hljs-meta">	.group_info	= &amp;init_groups,					\</span><br><span class="hljs-meta">	.cap_effective	= CAP_INIT_EFF_SET,				\</span><br><span class="hljs-meta">	.cap_inheritable = CAP_INIT_INH_SET,				\</span><br><span class="hljs-meta">	.cap_permitted	= CAP_FULL_SET,					\</span><br><span class="hljs-meta">	.keep_capabilities = 0,						\</span><br><span class="hljs-meta">	.user		= INIT_USER,					\</span><br><span class="hljs-meta">	.comm		= <span class="hljs-string">&quot;swapper&quot;</span>,					\</span><br><span class="hljs-meta">	.thread		= INIT_THREAD,					\</span><br><span class="hljs-meta">	.fs		= &amp;init_fs,					\</span><br><span class="hljs-meta">	.files		= &amp;init_files,					\</span><br><span class="hljs-meta">	.signal		= &amp;init_signals,				\</span><br><span class="hljs-meta">	.sighand	= &amp;init_sighand,				\</span><br><span class="hljs-meta">	.pending	= &#123;						\</span><br><span class="hljs-meta">		.list = LIST_HEAD_INIT(tsk.pending.list),		\</span><br><span class="hljs-meta">		.signal = &#123;&#123;0&#125;&#125;&#125;,					\</span><br><span class="hljs-meta">	.blocked	= &#123;&#123;0&#125;&#125;,					\</span><br><span class="hljs-meta">	.alloc_lock	= SPIN_LOCK_UNLOCKED,				\</span><br><span class="hljs-meta">	.proc_lock	= SPIN_LOCK_UNLOCKED,				\</span><br><span class="hljs-meta">	.switch_lock	= SPIN_LOCK_UNLOCKED,				\</span><br><span class="hljs-meta">	.journal_info	= NULL,						\</span><br><span class="hljs-meta">&#125;</span><br></code></pre></td></tr></table></figure> -
+init_thread_union中存放thread_info描述符和内核堆栈，INIT_THREAD_INFO宏完成初始化。
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-meta">#<span class="hljs-keyword">define</span> init_thread_info	(init_thread_union.thread_info)</span><br><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> INIT_THREAD_INFO(tsk)			\</span><br><span class="hljs-meta">&#123;						\</span><br><span class="hljs-meta">	.task		= &amp;tsk,			\</span><br><span class="hljs-meta">	.exec_domain	= &amp;default_exec_domain,	\</span><br><span class="hljs-meta">	.flags		= 0,			\</span><br><span class="hljs-meta">	.cpu		= 0,			\</span><br><span class="hljs-meta">	.preempt_count	= 1,			\</span><br><span class="hljs-meta">	.addr_limit	= KERNEL_DS,		\</span><br><span class="hljs-meta">	.restart_block = &#123;			\</span><br><span class="hljs-meta">		.fn = do_no_restart_syscall,	\</span><br><span class="hljs-meta">	&#125;,					\</span><br><span class="hljs-meta">&#125;</span><br></code></pre></td></tr></table></figure> - 由进程描述符指向的下列表，也有对应宏初始化： - init_mm
+INIT_MM - init_fs INIT_FS - init_files INIT_FILES - init_signals
+INIT_SIGNALS - init_sighand INIT_SIGHAND -
+主内核页全局目录放在swapper_pg_dir中。</p>
+<p>start_kernel()初始化内核需要的所有数据结构，激活中断，创建另一个叫进程l的内核线程（一般叫init进程）：
+<code>kernel_thread(init, NULL, CLONE_FS|CLONE_SIGHAND);</code>
+新创建内核线程的PID为1，并与进程0共享每进程所有的内核数据结构。此外，当调度程序选择到它时，init进程开始执行init()函数。</p>
+<p>创建init进程后，进程0执行cpu_idle()函数，该函数本质上是在开中断的情况下重复执行hlt汇编语言指令。只有当没有其他进程处于TASK_RUNNING状态时，调度程序才选择进程0。</p>
+<h2 id="进程1">进程1</h2>
+<p>0创建的内核线程执行init()，init()完成内核初始化。init()调用execve()系统调用装入可执行程序init。然后init内核线程变为一个普通进程，且拥有自己的每进程内核数据结构。系统关闭之前，init进程一直存活，因为它创建和监控在OS外层执行的所有进程的活动。</p>
+<p>linux还有很多其他内核线程，到具体模块时再看。</p>
+<h2 id="撤销进程">撤销进程</h2>
+<p>进程终止时，必须通知内核释放进程的资源，包括内存、打开文件以及其他零碎的东西，比如信号量。进程终止一般通过调用exit()库函数，该函数释放C函数库所分配的资源，执行编程者所注册的每个函数，并结束从系统回收进程的那个系统调用。exit()可以显示的插入，C编译程序总是把exit()插入到main()的最后一条语句之后。</p>
+<p>exit_group()和exit()都可以终止进程，前者终止的是整个线程组。do_group_exit()内核函数实现了这个系统调用，它对应C库的exit()。后者终止某一个线程，而不管线程所属线程组中的所有其他线程。do_exit()是实现这个系统调用的内核函数，它对应Linux线程库的pthread_exit()。</p>
+<blockquote>
+<p>注意区分C库的exit()和系统调用exit()。</p>
+</blockquote>
+<p>exit()的处理： <figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-function">asmlinkage <span class="hljs-type">long</span> <span class="hljs-title">sys_exit</span><span class="hljs-params">(<span class="hljs-type">int</span> error_code)</span></span><br><span class="hljs-function"></span>&#123;<br>	<span class="hljs-built_in">do_exit</span>((error_code&amp;<span class="hljs-number">0xff</span>)&lt;&lt;<span class="hljs-number">8</span>);<br>&#125;<br><br><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * 所有进程的终止都是本函数处理的。</span><br><span class="hljs-comment"> * 它从内核数据结构中删除对终止进程的大部分引用（注：不是全部，进程描述符就不是）</span><br><span class="hljs-comment"> * 它接受进程的终止代码作为参数。</span><br><span class="hljs-comment"> */</span><br><span class="hljs-function">fastcall NORET_TYPE <span class="hljs-type">void</span> <span class="hljs-title">do_exit</span><span class="hljs-params">(<span class="hljs-type">long</span> code)</span></span><br><span class="hljs-function"></span>&#123;<br>	<span class="hljs-keyword">struct</span> <span class="hljs-title class_">task_struct</span> *tsk = current;<br>	<span class="hljs-type">int</span> group_dead;<br><br>	<span class="hljs-built_in">profile_task_exit</span>(tsk);<br><br>	<span class="hljs-keyword">if</span> (<span class="hljs-built_in">unlikely</span>(<span class="hljs-built_in">in_interrupt</span>()))<br>		<span class="hljs-built_in">panic</span>(<span class="hljs-string">&quot;Aiee, killing interrupt handler!&quot;</span>);<br>	<span class="hljs-keyword">if</span> (<span class="hljs-built_in">unlikely</span>(!tsk-&gt;pid))<br>		<span class="hljs-built_in">panic</span>(<span class="hljs-string">&quot;Attempted to kill the idle task!&quot;</span>);<br>	<span class="hljs-keyword">if</span> (<span class="hljs-built_in">unlikely</span>(tsk-&gt;pid == <span class="hljs-number">1</span>))<br>		<span class="hljs-built_in">panic</span>(<span class="hljs-string">&quot;Attempted to kill init!&quot;</span>);<br>	<span class="hljs-keyword">if</span> (tsk-&gt;io_context)<br>		<span class="hljs-built_in">exit_io_context</span>();<br><br>	<span class="hljs-keyword">if</span> (<span class="hljs-built_in">unlikely</span>(current-&gt;ptrace &amp; PT_TRACE_EXIT)) &#123;<br>		current-&gt;ptrace_message = code;<br>		<span class="hljs-built_in">ptrace_notify</span>((PTRACE_EVENT_EXIT &lt;&lt; <span class="hljs-number">8</span>) | SIGTRAP);<br>	&#125;<br><br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * PF_EXITING表示进程的状态：正在被删除。</span><br><span class="hljs-comment">	 */</span><br>	tsk-&gt;flags |= PF_EXITING;<br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 从动态定时器队列中删除进程描述符。</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-built_in">del_timer_sync</span>(&amp;tsk-&gt;real_timer);<br><br>	<span class="hljs-keyword">if</span> (<span class="hljs-built_in">unlikely</span>(<span class="hljs-built_in">in_atomic</span>()))<br>		<span class="hljs-built_in">printk</span>(KERN_INFO <span class="hljs-string">&quot;note: %s[%d] exited with preempt_count %d\n&quot;</span>,<br>				current-&gt;comm, current-&gt;pid,<br>				<span class="hljs-built_in">preempt_count</span>());<br><br>	<span class="hljs-built_in">acct_update_integrals</span>();<br>	<span class="hljs-built_in">update_mem_hiwater</span>();<br>	group_dead = <span class="hljs-built_in">atomic_dec_and_test</span>(&amp;tsk-&gt;signal-&gt;live);<br>	<span class="hljs-keyword">if</span> (group_dead)<br>		<span class="hljs-built_in">acct_process</span>(code);<br><br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * exit_mm从进程描述符中分离出分页相关的描述符。</span><br><span class="hljs-comment">	 * 如果没有其他进程共享这些数据结构，就删除这些数据结构。</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-built_in">exit_mm</span>(tsk);<br><br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * exit_sem从进程描述符中分离出信号量相关的描述符</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-built_in">exit_sem</span>(tsk);<br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * __exit_files从进程描述符中分离出文件系统相关的描述符</span><br><span class="hljs-comment">	 */</span><br>	__exit_files(tsk);<br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * __exit_fs从进程描述符中分离出打开文件描述符相关的描述符</span><br><span class="hljs-comment">	 */</span><br>	__exit_fs(tsk);<br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * exit_namespace从进程描述符中分离出命名空间相关的描述符</span><br><span class="hljs-comment">	 */</span>	<br>	<span class="hljs-built_in">exit_namespace</span>(tsk);<br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * exit_thread从进程描述符中分离出IO权限位图相关的描述符</span><br><span class="hljs-comment">	 */</span>		<br>	<span class="hljs-built_in">exit_thread</span>();<br>	<span class="hljs-built_in">exit_keys</span>(tsk);<br><br>	<span class="hljs-keyword">if</span> (group_dead &amp;&amp; tsk-&gt;signal-&gt;leader)<br>		<span class="hljs-built_in">disassociate_ctty</span>(<span class="hljs-number">1</span>);<br><br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 如果实现了被杀死进程的执行域和可执行格式的内核函数在内核模块中</span><br><span class="hljs-comment">	 * 就递减它们的值。</span><br><span class="hljs-comment">	 * 注：这应该是为了防止意外的卸载模块。</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-built_in">module_put</span>(tsk-&gt;thread_info-&gt;exec_domain-&gt;<span class="hljs-keyword">module</span>);<br>	<span class="hljs-keyword">if</span> (tsk-&gt;binfmt)<br>		<span class="hljs-built_in">module_put</span>(tsk-&gt;binfmt-&gt;<span class="hljs-keyword">module</span>);<br><br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 设置退出代码</span><br><span class="hljs-comment">	 */</span><br>	tsk-&gt;exit_code = code;<br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * exit_notify执行比较复杂的操作，更新了很多内核数据结构</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-built_in">exit_notify</span>(tsk);<br><span class="hljs-meta">#<span class="hljs-keyword">ifdef</span> CONFIG_NUMA</span><br>	<span class="hljs-built_in">mpol_free</span>(tsk-&gt;mempolicy);<br>	tsk-&gt;mempolicy = <span class="hljs-literal">NULL</span>;<br><span class="hljs-meta">#<span class="hljs-keyword">endif</span></span><br><br>	<span class="hljs-built_in">BUG_ON</span>(!(current-&gt;flags &amp; PF_DEAD));<br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 完了，让其他线程运行吧</span><br><span class="hljs-comment">	 * 因为schedule会忽略处于EXIT_ZOMBIE状态的进程，所以进程现在是不会再运行了。</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-built_in">schedule</span>();<br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 当然，谁还会让死掉的进程继续运行，说明内核一定是错了</span><br><span class="hljs-comment">	 * 注：难道schedule被谁改了，没有判断EXIT_ZOMBIE？？？</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-built_in">BUG</span>();<br>	<span class="hljs-comment">/* Avoid &quot;noreturn function does return&quot;.  */</span><br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 仅仅为了防止编译器报警告信息而已，仅此而已。</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-keyword">for</span> (;;) ;<br>&#125;<br></code></pre></td></tr></table></figure></p>
+<p>再看exit_group(): <figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-function">asmlinkage <span class="hljs-type">void</span> <span class="hljs-title">sys_exit_group</span><span class="hljs-params">(<span class="hljs-type">int</span> error_code)</span></span><br><span class="hljs-function"></span>&#123;<br>	<span class="hljs-built_in">do_group_exit</span>((error_code &amp; <span class="hljs-number">0xff</span>) &lt;&lt; <span class="hljs-number">8</span>);<br>&#125;<br><br><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * 杀死属于current线程组的所有进程.它接受进程终止代码作为参数.</span><br><span class="hljs-comment"> * 这个参数可能是系统调用exit_group()指定的一个值,也可能是内核提供的一个错误代号.</span><br><span class="hljs-comment"> */</span><br><span class="hljs-function">NORET_TYPE <span class="hljs-type">void</span></span><br><span class="hljs-function"><span class="hljs-title">do_group_exit</span><span class="hljs-params">(<span class="hljs-type">int</span> exit_code)</span></span><br><span class="hljs-function"></span>&#123;<br>	<span class="hljs-built_in">BUG_ON</span>(exit_code &amp; <span class="hljs-number">0x80</span>); <span class="hljs-comment">/* core dumps don&#x27;t get here */</span><br><br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 检查进程的SIGNAL_GROUP_EXIT,如果不为0,说明内核已经开始为线程组执行退出的过程.</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-keyword">if</span> (current-&gt;signal-&gt;flags &amp; SIGNAL_GROUP_EXIT)<br>		exit_code = current-&gt;signal-&gt;group_exit_code;<br>	<span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (!<span class="hljs-built_in">thread_group_empty</span>(current)) &#123;<br>		<span class="hljs-comment">/**</span><br><span class="hljs-comment">		 * 设置进程的SIGNAL_GROUP_EXIT标志,并把终止代号放在sig-&gt;group_exit_code</span><br><span class="hljs-comment">		 */</span><br>		<span class="hljs-keyword">struct</span> signal_struct *<span class="hljs-type">const</span> sig = current-&gt;signal;<br>		<span class="hljs-keyword">struct</span> <span class="hljs-title class_">sighand_struct</span> *<span class="hljs-type">const</span> sighand = current-&gt;sighand;<br>		<span class="hljs-built_in">read_lock</span>(&amp;tasklist_lock);<br>		<span class="hljs-built_in">spin_lock_irq</span>(&amp;sighand-&gt;siglock);<br>		<span class="hljs-keyword">if</span> (sig-&gt;flags &amp; SIGNAL_GROUP_EXIT)<br>			<span class="hljs-comment">/* Another thread got here before we took the lock.  */</span><br>			exit_code = sig-&gt;group_exit_code;<br>		<span class="hljs-keyword">else</span> &#123;<br>			sig-&gt;flags = SIGNAL_GROUP_EXIT;<br>			sig-&gt;group_exit_code = exit_code;<br>			<span class="hljs-comment">/**</span><br><span class="hljs-comment">			 * zap_other_threads杀死线程组中的其他线程.</span><br><span class="hljs-comment">			 * 它扫描PIDTYPE_TGID类型的散列表中的每个PID链表,向表中其他进程发送SIGKILL信号.</span><br><span class="hljs-comment">			 */</span><br>			<span class="hljs-built_in">zap_other_threads</span>(current);<br>		&#125;<br>		<span class="hljs-built_in">spin_unlock_irq</span>(&amp;sighand-&gt;siglock);<br>		<span class="hljs-built_in">read_unlock</span>(&amp;tasklist_lock);<br>	&#125;<br><br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 杀死当前进程,此过程不再返回.</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-built_in">do_exit</span>(exit_code);<br>	<span class="hljs-comment">/* NOTREACHED */</span><br>&#125;<br></code></pre></td></tr></table></figure></p>
+<h2 id="进程删除">进程删除</h2>
+<p>Linux的子进程可以通过查询内核获取父进程的PID，或者它的子进程的执行状态。考虑到这一设计的完整性，Linux不允许内核在进程终止后直接丢弃包含在进程描述符字段中的数据，而是当父进程发出了与被终止的进程相关的wait()系列系统调用后，才可以这样做。这就是引入僵死状态的原因（参考《Linux进程概述》）。</p>
+<p>如果父进程死在子进程前，那么所有孤儿都交给init。init在用wait()系列系统调用检查到其终止时，撤销僵死的进程。</p>
+<p>负责干活的是release_task()函数，他从僵死进程的描述符中分离出最后的数据结构；对僵死进程的处理有两种可能的方式：如果父进程不需要接收子进程的信号，就调用do_exit()；如果已经给父进程发了新号，就调用wait4()或waitpid()系统调用。后者中函数还会回收进程描述符所占用的内存空间，而前者中内存的回收由进程调度程序完成。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * 释放进程描述符。如果进程已经是僵死状态，就会回收它占用的RAM。</span><br><span class="hljs-comment"> */</span><br><span class="hljs-function"><span class="hljs-type">void</span> <span class="hljs-title">release_task</span><span class="hljs-params">(<span class="hljs-keyword">struct</span> task_struct * p)</span></span><br><span class="hljs-function"></span>&#123;<br>	<span class="hljs-type">int</span> zap_leader;<br>	<span class="hljs-type">task_t</span> *leader;<br>	<span class="hljs-keyword">struct</span> <span class="hljs-title class_">dentry</span> *proc_dentry;<br><br>repeat: <br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 递减进程拥有者的进程个数。</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-built_in">atomic_dec</span>(&amp;p-&gt;user-&gt;processes);<br>	<span class="hljs-built_in">spin_lock</span>(&amp;p-&gt;proc_lock);<br>	proc_dentry = <span class="hljs-built_in">proc_pid_unhash</span>(p);<br>	<span class="hljs-built_in">write_lock_irq</span>(&amp;tasklist_lock);<br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 如果进程正被跟踪，函数将它从调试程序的ptrace_children链表中删除，并让该进程重新属于初始的父进程。</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-keyword">if</span> (<span class="hljs-built_in">unlikely</span>(p-&gt;ptrace))<br>		__ptrace_unlink(p);<br>	<span class="hljs-built_in">BUG_ON</span>(!<span class="hljs-built_in">list_empty</span>(&amp;p-&gt;ptrace_list) || !<span class="hljs-built_in">list_empty</span>(&amp;p-&gt;ptrace_children));<br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 删除所有的挂起信号并释放进程的signal_struct描述符。</span><br><span class="hljs-comment">	 * 如果该描述符不再被其他的轻量级进程使用，函数进一步删除这个数据结构。</span><br><span class="hljs-comment">	 * 它还会调用exit_itimers，删除所有POSIX时间间隔定时器。</span><br><span class="hljs-comment">	 */</span><br>	__exit_signal(p);<br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 删除信号处理函数。</span><br><span class="hljs-comment">	 */</span><br>	__exit_sighand(p);<br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * __unhash_process将进程从各种hash表中摘除。它执行:</span><br><span class="hljs-comment">	 *    变量nr_threads减1</span><br><span class="hljs-comment">	 *    两次调用detach_pid，分别从PIDTYPE_PID和PIDTYPE_TGID类型的PID散列表中删除进程描述符。</span><br><span class="hljs-comment">	 *    如果进程是线程组的领头进程，那么再调用两次detach_pid，从PIDTYPE_PGID和PIDTYPE_SID类型的散列表中删除进程描述符。</span><br><span class="hljs-comment">	 *    用宏REMOVE_LINKS从进程链表中解除进程描述符的链接。</span><br><span class="hljs-comment">	 */</span><br>	__unhash_process(p);<br><br>	<span class="hljs-comment">/*</span><br><span class="hljs-comment">	 * If we are the last non-leader member of the thread</span><br><span class="hljs-comment">	 * group, and the leader is zombie, then notify the</span><br><span class="hljs-comment">	 * group leader&#x27;s parent process. (if it wants notification.)</span><br><span class="hljs-comment">	 */</span><br>	zap_leader = <span class="hljs-number">0</span>;<br>	leader = p-&gt;group_leader;<br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 如果进程不是线程组的领头进程，领头进程处于僵死状态，并且进程是线程组的最后一个成员。</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-keyword">if</span> (leader != p &amp;&amp; <span class="hljs-built_in">thread_group_empty</span>(leader) &amp;&amp; leader-&gt;exit_state == EXIT_ZOMBIE) &#123;<br>		<span class="hljs-built_in">BUG_ON</span>(leader-&gt;exit_signal == <span class="hljs-number">-1</span>);<br>		<span class="hljs-comment">/**</span><br><span class="hljs-comment">		 * 向领头进程的父进程发送一个信号，通知它:进程已经死亡。</span><br><span class="hljs-comment">		 */</span><br>		<span class="hljs-built_in">do_notify_parent</span>(leader, leader-&gt;exit_signal);<br>		<span class="hljs-comment">/*</span><br><span class="hljs-comment">		 * If we were the last child thread and the leader has</span><br><span class="hljs-comment">		 * exited already, and the leader&#x27;s parent ignores SIGCHLD,</span><br><span class="hljs-comment">		 * then we are the one who should release the leader.</span><br><span class="hljs-comment">		 *</span><br><span class="hljs-comment">		 * do_notify_parent() will have marked it self-reaping in</span><br><span class="hljs-comment">		 * that case.</span><br><span class="hljs-comment">		 */</span><br>		zap_leader = (leader-&gt;exit_signal == <span class="hljs-number">-1</span>);<br>	&#125;<br><br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * sched_exit函数调整父进程的时间片。</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-built_in">sched_exit</span>(p);<br>	<span class="hljs-built_in">write_unlock_irq</span>(&amp;tasklist_lock);<br>	<span class="hljs-built_in">spin_unlock</span>(&amp;p-&gt;proc_lock);<br>	<span class="hljs-built_in">proc_pid_flush</span>(proc_dentry);<br>	<span class="hljs-built_in">release_thread</span>(p);<br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 递减进程描述符的使用计数器。如果计数器变成0,则终止所有残留的对进程的引用。</span><br><span class="hljs-comment">	 *     递减进程所有者的user_struct数据结构的使用计数器。如果计数为0，就释放该结构。</span><br><span class="hljs-comment">	 *     释放进程描述符以及thread_info描述符和内核态堆栈所占用的内存区域。</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-built_in">put_task_struct</span>(p);<br><br>	p = leader;<br>	<span class="hljs-keyword">if</span> (<span class="hljs-built_in">unlikely</span>(zap_leader))<br>		<span class="hljs-keyword">goto</span> repeat;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>进程终止的处理函数： <figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * 所有进程的终止都是本函数处理的。</span><br><span class="hljs-comment"> * 它从内核数据结构中删除对终止进程的大部分引用（注：不是全部，进程描述符就不是）</span><br><span class="hljs-comment"> * 它接受进程的终止代码作为参数。</span><br><span class="hljs-comment"> */</span><br><span class="hljs-function">fastcall NORET_TYPE <span class="hljs-type">void</span> <span class="hljs-title">do_exit</span><span class="hljs-params">(<span class="hljs-type">long</span> code)</span></span><br><span class="hljs-function"></span>&#123;<br>	<span class="hljs-keyword">struct</span> <span class="hljs-title class_">task_struct</span> *tsk = current;<br>	<span class="hljs-type">int</span> group_dead;<br><br>	<span class="hljs-built_in">profile_task_exit</span>(tsk);<br><br>	<span class="hljs-keyword">if</span> (<span class="hljs-built_in">unlikely</span>(<span class="hljs-built_in">in_interrupt</span>()))<br>		<span class="hljs-built_in">panic</span>(<span class="hljs-string">&quot;Aiee, killing interrupt handler!&quot;</span>);<br>	<span class="hljs-keyword">if</span> (<span class="hljs-built_in">unlikely</span>(!tsk-&gt;pid))<br>		<span class="hljs-built_in">panic</span>(<span class="hljs-string">&quot;Attempted to kill the idle task!&quot;</span>);<br>	<span class="hljs-keyword">if</span> (<span class="hljs-built_in">unlikely</span>(tsk-&gt;pid == <span class="hljs-number">1</span>))<br>		<span class="hljs-built_in">panic</span>(<span class="hljs-string">&quot;Attempted to kill init!&quot;</span>);<br>	<span class="hljs-keyword">if</span> (tsk-&gt;io_context)<br>		<span class="hljs-built_in">exit_io_context</span>();<br><br>	<span class="hljs-keyword">if</span> (<span class="hljs-built_in">unlikely</span>(current-&gt;ptrace &amp; PT_TRACE_EXIT)) &#123;<br>		current-&gt;ptrace_message = code;<br>		<span class="hljs-built_in">ptrace_notify</span>((PTRACE_EVENT_EXIT &lt;&lt; <span class="hljs-number">8</span>) | SIGTRAP);<br>	&#125;<br><br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * PF_EXITING表示进程的状态：正在被删除。</span><br><span class="hljs-comment">	 */</span><br>	tsk-&gt;flags |= PF_EXITING;<br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 从动态定时器队列中删除进程描述符。</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-built_in">del_timer_sync</span>(&amp;tsk-&gt;real_timer);<br><br>	<span class="hljs-keyword">if</span> (<span class="hljs-built_in">unlikely</span>(<span class="hljs-built_in">in_atomic</span>()))<br>		<span class="hljs-built_in">printk</span>(KERN_INFO <span class="hljs-string">&quot;note: %s[%d] exited with preempt_count %d\n&quot;</span>,<br>				current-&gt;comm, current-&gt;pid,<br>				<span class="hljs-built_in">preempt_count</span>());<br><br>	<span class="hljs-built_in">acct_update_integrals</span>();<br>	<span class="hljs-built_in">update_mem_hiwater</span>();<br>	group_dead = <span class="hljs-built_in">atomic_dec_and_test</span>(&amp;tsk-&gt;signal-&gt;live);<br>	<span class="hljs-keyword">if</span> (group_dead)<br>		<span class="hljs-built_in">acct_process</span>(code);<br><br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * exit_mm从进程描述符中分离出分页相关的描述符。</span><br><span class="hljs-comment">	 * 如果没有其他进程共享这些数据结构，就删除这些数据结构。</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-built_in">exit_mm</span>(tsk);<br><br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * exit_sem从进程描述符中分离出信号量相关的描述符</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-built_in">exit_sem</span>(tsk);<br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * __exit_files从进程描述符中分离出文件系统相关的描述符</span><br><span class="hljs-comment">	 */</span><br>	__exit_files(tsk);<br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * __exit_fs从进程描述符中分离出打开文件描述符相关的描述符</span><br><span class="hljs-comment">	 */</span><br>	__exit_fs(tsk);<br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * exit_namespace从进程描述符中分离出命名空间相关的描述符</span><br><span class="hljs-comment">	 */</span>	<br>	<span class="hljs-built_in">exit_namespace</span>(tsk);<br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * exit_thread从进程描述符中分离出IO权限位图相关的描述符</span><br><span class="hljs-comment">	 */</span>		<br>	<span class="hljs-built_in">exit_thread</span>();<br>	<span class="hljs-built_in">exit_keys</span>(tsk);<br><br>	<span class="hljs-keyword">if</span> (group_dead &amp;&amp; tsk-&gt;signal-&gt;leader)<br>		<span class="hljs-built_in">disassociate_ctty</span>(<span class="hljs-number">1</span>);<br><br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 如果实现了被杀死进程的执行域和可执行格式的内核函数在内核模块中</span><br><span class="hljs-comment">	 * 就递减它们的值。</span><br><span class="hljs-comment">	 * 注：这应该是为了防止意外的卸载模块。</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-built_in">module_put</span>(tsk-&gt;thread_info-&gt;exec_domain-&gt;<span class="hljs-keyword">module</span>);<br>	<span class="hljs-keyword">if</span> (tsk-&gt;binfmt)<br>		<span class="hljs-built_in">module_put</span>(tsk-&gt;binfmt-&gt;<span class="hljs-keyword">module</span>);<br><br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 设置退出代码</span><br><span class="hljs-comment">	 */</span><br>	tsk-&gt;exit_code = code;<br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * exit_notify执行比较复杂的操作，更新了很多内核数据结构</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-built_in">exit_notify</span>(tsk);<br><span class="hljs-meta">#<span class="hljs-keyword">ifdef</span> CONFIG_NUMA</span><br>	<span class="hljs-built_in">mpol_free</span>(tsk-&gt;mempolicy);<br>	tsk-&gt;mempolicy = <span class="hljs-literal">NULL</span>;<br><span class="hljs-meta">#<span class="hljs-keyword">endif</span></span><br><br>	<span class="hljs-built_in">BUG_ON</span>(!(current-&gt;flags &amp; PF_DEAD));<br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 完了，让其他线程运行吧</span><br><span class="hljs-comment">	 * 因为schedule会忽略处于EXIT_ZOMBIE状态的进程，所以进程现在是不会再运行了。</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-built_in">schedule</span>();<br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 当然，谁还会让死掉的进程继续运行，说明内核一定是错了</span><br><span class="hljs-comment">	 * 注：难道schedule被谁改了，没有判断EXIT_ZOMBIE？？？</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-built_in">BUG</span>();<br>	<span class="hljs-comment">/* Avoid &quot;noreturn function does return&quot;.  */</span><br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 仅仅为了防止编译器报警告信息而已，仅此而已。</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-keyword">for</span> (;;) ;<br>&#125;<br></code></pre></td></tr></table></figure></p>
+<h2 id="参考文献">参考文献</h2>
+<ul>
+<li><a
+target="_blank" rel="noopener" href="http://www.lenky.info/archives/2013/01/2195">gcc中的weak和alias</a></li>
+<li><a
+target="_blank" rel="noopener" href="http://blog.csdn.net/gatieme/article/details/51417488">Linux中fork，vfork和clone详解</a></li>
+<li><a
+target="_blank" rel="noopener" href="http://blog.csdn.net/drdairen/article/details/51896141">Linux系统调用：exit()与_exit()函数详解</a></li>
+<li>《深入理解Linux内核》</li>
+<li><a target="_blank" rel="noopener" href="https://github.com/sohu2000000/ULK">ULK Chinese
+comments</a></li>
+</ul>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/Linux/" class="category-chain-item">Linux</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/linux-kernel/" class="print-no-link">#linux-kernel</a>
+      
+        <a href="/tags/ulk/" class="print-no-link">#ulk</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>Linux内核学习——Linux进程的创建与撤销</div>
+      <div>https://r00tk1ts.github.io/2017/08/27/Linux进程的创建与撤销/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>r00tk1t</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2017年8月27日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2017/10/20/Linux%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86-%E9%A1%B5%E6%A1%86%E7%AE%A1%E7%90%86/" title="Linux内核学习——内存管理之页框管理">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">Linux内核学习——内存管理之页框管理</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2017/08/26/Linux%E8%BF%9B%E7%A8%8B%E5%88%87%E6%8D%A2/" title="Linux内核学习——Linux进程切换">
+                        <span class="hidden-mobile">Linux内核学习——Linux进程切换</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+  
+<script src="/js/diy/yinghua.js"></script>
+<script src="/js/diy/love.js"></script>
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

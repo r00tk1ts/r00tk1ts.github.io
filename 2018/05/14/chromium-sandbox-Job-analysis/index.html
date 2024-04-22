@@ -1,0 +1,742 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/favicon.png">
+  <link rel="icon" href="/img/favicon.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="r00tk1t">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="本篇是sandbox源码剖析的第五篇，主要分析了windows平台下，Chromium包装的Job对象。阅读本篇前，最好阅读前四篇（本篇相对独立）。 想要流程的阅读本系列你需要以下几个条件： 1. 较高水平的C++编码能力（至少通读C++ Primer 5th，刷过课后题，有一定编码量）。 2. 熟悉Windows API编程，尤其是安全相关的内容。 3. 对二进制安全有一定了解，熟悉各类型安全漏">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Chromium-sandbox-Job-analysis">
+<meta property="og:url" content="https://r00tk1ts.github.io/2018/05/14/chromium-sandbox-Job-analysis/index.html">
+<meta property="og:site_name" content="玉涵的技能书">
+<meta property="og:description" content="本篇是sandbox源码剖析的第五篇，主要分析了windows平台下，Chromium包装的Job对象。阅读本篇前，最好阅读前四篇（本篇相对独立）。 想要流程的阅读本系列你需要以下几个条件： 1. 较高水平的C++编码能力（至少通读C++ Primer 5th，刷过课后题，有一定编码量）。 2. 熟悉Windows API编程，尤其是安全相关的内容。 3. 对二进制安全有一定了解，熟悉各类型安全漏">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2018-05-14T12:17:11.000Z">
+<meta property="article:modified_time" content="2024-04-22T03:34:00.165Z">
+<meta property="article:author" content="r00tk1t">
+<meta property="article:tag" content="chromium">
+<meta property="article:tag" content="chromium-sandbox">
+<meta name="twitter:card" content="summary_large_image">
+  
+  
+  
+  <title>Chromium-sandbox-Job-analysis - 玉涵的技能书</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"r00tk1ts.github.io","root":"/","version":"1.9.5","typing":{"enable":true,"typeSpeed":80,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<!-- hexo injector head_end start --><link rel="stylesheet" href="https://cdn.staticfile.org/lxgw-wenkai-screen-webfont/1.7.0/style.min.css" /><!-- hexo injector head_end end --><meta name="generator" content="Hexo 6.1.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>玉涵的技能书</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/doc/">
+                <i class="iconfont icon-books"></i>
+                <span>藏经阁</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="Chromium-sandbox-Job-analysis"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2018-05-14 20:17" pubdate>
+          2018年5月14日 晚上
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          14k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          118 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">Chromium-sandbox-Job-analysis</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <p>本篇是sandbox源码剖析的第五篇，主要分析了windows平台下，Chromium包装的Job对象。阅读本篇前，最好阅读前四篇（本篇相对独立）。</p>
+<p>想要流程的阅读本系列你需要以下几个条件： 1.
+较高水平的C++编码能力（至少通读C++ Primer
+5th，刷过课后题，有一定编码量）。 2. 熟悉Windows
+API编程，尤其是安全相关的内容。 3.
+对二进制安全有一定了解，熟悉各类型安全漏洞成因、漏洞缓解措施及bypass手法。</p>
+<span id="more"></span>
+<h1
+id="chromium-sandbox-job-analysis">chromium-sandbox-Job-analysis</h1>
+<p>Windows本身有一种称为Job的对象，用于管理多个进程，做资源限制、访问控制等。</p>
+<blockquote>
+<p>Jeffery的《Windows核心编程》专门用了一章的篇幅来讲述这个Job作业对象。</p>
+</blockquote>
+<p>在剖析<code>TargetPolicy</code>时，看到了3大组件+IL+Mitigation+other的组织结构。而target进程的job句柄是在<code>BrokerServicesBase::SpawnTarget</code>中通过<code>PolicyBase::MakeJobObject</code>
+new出来的。实际上这里new出来的对象并不是Windows原生的job对象，而是chrome的Job类，它封装了windows的job对象。</p>
+<h2 id="sandbox.job"><code>sandbox.Job</code></h2>
+<p>头文件中类定义可以看到很多有用的信息。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-comment">// Handles the creation of job objects based on a security profile.</span><br><span class="hljs-comment">// Sample usage:</span><br><span class="hljs-comment">//   Job job;</span><br><span class="hljs-comment">//   job.Init(JOB_LOCKDOWN, nullptr);  //no job name</span><br><span class="hljs-comment">//   job.AssignProcessToJob(process_handle);</span><br><span class="hljs-keyword">class</span> <span class="hljs-title class_">Job</span> &#123;<br> <span class="hljs-keyword">public</span>:<br>  <span class="hljs-built_in">Job</span>();<br><br>  ~<span class="hljs-built_in">Job</span>();<br><br>  <span class="hljs-comment">// Initializes and creates the job object. The security of the job is based</span><br>  <span class="hljs-comment">// on the security_level parameter.</span><br>  <span class="hljs-comment">// job_name can be nullptr if the job is unnamed.</span><br>  <span class="hljs-comment">// If the chosen profile has too many ui restrictions, you can disable some</span><br>  <span class="hljs-comment">// by specifying them in the ui_exceptions parameters.</span><br>  <span class="hljs-comment">// If the function succeeds, the return value is ERROR_SUCCESS. If the</span><br>  <span class="hljs-comment">// function fails, the return value is the win32 error code corresponding to</span><br>  <span class="hljs-comment">// the error.</span><br>  <span class="hljs-comment">// job也是经典的constructor + init</span><br>  <span class="hljs-function">DWORD <span class="hljs-title">Init</span><span class="hljs-params">(JobLevel security_level,	<span class="hljs-comment">//决定Job对象安全级别，还记得chrome设定的JobLevel枚举量吗？</span></span></span><br><span class="hljs-params"><span class="hljs-function">             <span class="hljs-type">const</span> <span class="hljs-type">wchar_t</span>* job_name,	<span class="hljs-comment">//名字可以没有，即匿名</span></span></span><br><span class="hljs-params"><span class="hljs-function">             DWORD ui_exceptions,		<span class="hljs-comment">//根据profile，个别UI限制可以开绿灯</span></span></span><br><span class="hljs-params"><span class="hljs-function">             <span class="hljs-type">size_t</span> memory_limit)</span></span>;		<span class="hljs-comment">//应该是限制最大内存</span><br><br>  <span class="hljs-comment">// Assigns the process referenced by process_handle to the job.</span><br>  <span class="hljs-comment">// If the function succeeds, the return value is ERROR_SUCCESS. If the</span><br>  <span class="hljs-comment">// function fails, the return value is the win32 error code corresponding to</span><br>  <span class="hljs-comment">// the error.</span><br>  <span class="hljs-comment">// 把进程归属到Job对象，使用句柄HANDLE操控进程</span><br>  <span class="hljs-comment">// 注意此前在TargetProcess::Create中调用的是WinAPI AssignProcessToJobObject</span><br>  <span class="hljs-comment">// 巧在该函数实际上也是对该API的封装，作为一个Job类的预留接口，我在跟踪代码时除了测试单元并没有发现其他地方对此接口引用</span><br>  <span class="hljs-function">DWORD <span class="hljs-title">AssignProcessToJob</span><span class="hljs-params">(HANDLE process_handle)</span></span>;<br><br>  <span class="hljs-comment">// Grants access to &quot;handle&quot; to the job. All processes in the job can</span><br>  <span class="hljs-comment">// subsequently recognize and use the handle.</span><br>  <span class="hljs-comment">// If the function succeeds, the return value is ERROR_SUCCESS. If the</span><br>  <span class="hljs-comment">// function fails, the return value is the win32 error code corresponding to</span><br>  <span class="hljs-comment">// the error.</span><br>  <span class="hljs-comment">//应该是调用之后，Job内的所有进程都可以访问传入的HANDLE</span><br>  <span class="hljs-function">DWORD <span class="hljs-title">UserHandleGrantAccess</span><span class="hljs-params">(HANDLE handle)</span></span>;<br><br>  <span class="hljs-comment">// Revokes ownership to the job handle and returns it.</span><br>  <span class="hljs-comment">// If the object is not yet initialized, it returns an invalid handle.</span><br>  <span class="hljs-comment">// 转移owner</span><br>  base::<span class="hljs-function">win::ScopedHandle <span class="hljs-title">Take</span><span class="hljs-params">()</span></span>;<br><br> <span class="hljs-keyword">private</span>:<br>  <span class="hljs-comment">// Handle to the job referenced by the object.</span><br>  base::win::ScopedHandle job_handle_;	<span class="hljs-comment">//看起来是引用Windows Job对象的成员</span><br><br>  <span class="hljs-built_in">DISALLOW_COPY_AND_ASSIGN</span>(Job);	<span class="hljs-comment">//禁用默认拷贝复制和默认赋值操作</span><br>&#125;;<br></code></pre></td></tr></table></figure>
+<p>Chrome的注释一贯很nice，对Job的使用给出了范例。</p>
+<blockquote>
+<ol type="1">
+<li><p><code>base::win::ScopedHandle</code>是个很复杂的类模板，日后写专门的文章再分析，暂时理解成Windows句柄的封装。</p></li>
+<li><p>DISALLOW_COPY_AND_ASSIGN是个C++很常见的技巧，展开实际上就是:</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-comment">// Put this in the declarations for a class to be uncopyable and unassignable.</span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> DISALLOW_COPY_AND_ASSIGN(TypeName) \</span><br><span class="hljs-meta">  DISALLOW_COPY(TypeName);                 \</span><br><span class="hljs-meta">  DISALLOW_ASSIGN(TypeName)</span><br><br><span class="hljs-comment">// Put this in the declarations for a class to be uncopyable.</span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> DISALLOW_COPY(TypeName) \</span><br><span class="hljs-meta">  TypeName(const TypeName&amp;) = delete</span><br><br><span class="hljs-comment">// Put this in the declarations for a class to be unassignable.</span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> DISALLOW_ASSIGN(TypeName) TypeName&amp; operator=(const TypeName&amp;) = delete</span><br></code></pre></td></tr></table></figure>
+<p>如此，相当于告知编译器不要产生默认赋值构造和默认赋值操作，对于不需要这两个成员的类来说，这种做法可以将一些语法或逻辑错误提到编译器来排解。</p></li>
+</ol>
+</blockquote>
+<h3 id="constructordestructor">Constructor/Destructor</h3>
+<p>public的成员不多，对Job来说，构造和析构都是public，是个比较单纯的类：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs cpp">Job::<span class="hljs-built_in">Job</span>() : <span class="hljs-built_in">job_handle_</span>(<span class="hljs-literal">nullptr</span>)&#123;&#125;;	<span class="hljs-comment">//只是简单的对私有成员变量零化</span><br>Job::~<span class="hljs-built_in">Job</span>()&#123;&#125;;	<span class="hljs-comment">//这种纯粹就是好习惯，对C++来说，我个人的理解就是一定要不厌其烦</span><br></code></pre></td></tr></table></figure>
+<h3 id="init"><code>Init()</code></h3>
+<p><code>JobLevel</code>此前已经见过了，再贴一下：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-comment">// The Job level specifies a set of decreasing security profiles for the</span><br><span class="hljs-comment">// Job object that the target process will be placed into.</span><br><span class="hljs-comment">// This table summarizes the security associated with each level:</span><br><span class="hljs-comment">//</span><br><span class="hljs-comment">//  JobLevel        |General                            |Quota               |</span><br><span class="hljs-comment">//                  |restrictions                       |restrictions        |</span><br><span class="hljs-comment">// -----------------|---------------------------------- |--------------------|</span><br><span class="hljs-comment">// JOB_NONE         | No job is assigned to the         | None               |</span><br><span class="hljs-comment">//                  | sandboxed process.                |                    |</span><br><span class="hljs-comment">// -----------------|---------------------------------- |--------------------|</span><br><span class="hljs-comment">// JOB_UNPROTECTED  | None                              | *Kill on Job close.|</span><br><span class="hljs-comment">// -----------------|---------------------------------- |--------------------|</span><br><span class="hljs-comment">// JOB_INTERACTIVE  | *Forbid system-wide changes using |                    |</span><br><span class="hljs-comment">//                  |  SystemParametersInfo().          | *Kill on Job close.|</span><br><span class="hljs-comment">//                  | *Forbid the creation/switch of    |                    |</span><br><span class="hljs-comment">//                  |  Desktops.                        |                    |</span><br><span class="hljs-comment">//                  | *Forbids calls to ExitWindows().  |                    |</span><br><span class="hljs-comment">// -----------------|---------------------------------- |--------------------|</span><br><span class="hljs-comment">// JOB_LIMITED_USER | Same as INTERACTIVE_USER plus:    | *One active process|</span><br><span class="hljs-comment">//                  | *Forbid changes to the display    |  limit.            |</span><br><span class="hljs-comment">//                  |  settings.                        | *Kill on Job close.|</span><br><span class="hljs-comment">// -----------------|---------------------------------- |--------------------|</span><br><span class="hljs-comment">// JOB_RESTRICTED   | Same as LIMITED_USER plus:        | *One active process|</span><br><span class="hljs-comment">//                  | * No read/write to the clipboard. |  limit.            |</span><br><span class="hljs-comment">//                  | * No access to User Handles that  | *Kill on Job close.|</span><br><span class="hljs-comment">//                  |   belong to other processes.      |                    |</span><br><span class="hljs-comment">//                  | * Forbid message broadcasts.      |                    |</span><br><span class="hljs-comment">//                  | * Forbid setting global hooks.    |                    |</span><br><span class="hljs-comment">//                  | * No access to the global atoms   |                    |</span><br><span class="hljs-comment">//                  |   table.                          |                    |</span><br><span class="hljs-comment">// -----------------|-----------------------------------|--------------------|</span><br><span class="hljs-comment">// JOB_LOCKDOWN     | Same as RESTRICTED                | *One active process|</span><br><span class="hljs-comment">//                  |                                   |  limit.            |</span><br><span class="hljs-comment">//                  |                                   | *Kill on Job close.|</span><br><span class="hljs-comment">//                  |                                   | *Kill on unhandled |</span><br><span class="hljs-comment">//                  |                                   |  exception.        |</span><br><span class="hljs-comment">//                  |                                   |                    |</span><br><span class="hljs-comment">// In the context of the above table, &#x27;user handles&#x27; refers to the handles of</span><br><span class="hljs-comment">// windows, bitmaps, menus, etc. Files, treads and registry handles are kernel</span><br><span class="hljs-comment">// handles and are not affected by the job level settings.</span><br><span class="hljs-keyword">enum</span> <span class="hljs-title class_">JobLevel</span> &#123;<br>  JOB_LOCKDOWN = <span class="hljs-number">0</span>,<br>  JOB_RESTRICTED,<br>  JOB_LIMITED_USER,<br>  JOB_INTERACTIVE,<br>  JOB_UNPROTECTED,<br>  JOB_NONE<br>&#125;;<br></code></pre></td></tr></table></figure>
+<p>枚举量的范围对应<code>Job</code>的权限高低，注释同样非常友好，不必多言。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-function">DWORD <span class="hljs-title">Job::Init</span><span class="hljs-params">(JobLevel security_level,</span></span><br><span class="hljs-params"><span class="hljs-function">                <span class="hljs-type">const</span> <span class="hljs-type">wchar_t</span>* job_name,</span></span><br><span class="hljs-params"><span class="hljs-function">                DWORD ui_exceptions,</span></span><br><span class="hljs-params"><span class="hljs-function">                <span class="hljs-type">size_t</span> memory_limit)</span> </span>&#123;<br>  <span class="hljs-keyword">if</span> (job_handle_.<span class="hljs-built_in">IsValid</span>())	<span class="hljs-comment">//防止二次初始化</span><br>    <span class="hljs-keyword">return</span> ERROR_ALREADY_INITIALIZED;<br><br>  <span class="hljs-comment">//这里果然用到了Windows API来创建Job对象，安全属性参数为nullptr实际上是表示使用默认安全属性，而非无</span><br>  <span class="hljs-comment">//base::win::ScopedHandle的Set操作建立了Windows Job对象和job_handle_的联系</span><br>  job_handle_.<span class="hljs-built_in">Set</span>(::<span class="hljs-built_in">CreateJobObject</span>(<span class="hljs-literal">nullptr</span>,  <span class="hljs-comment">// No security attribute</span><br>                                    job_name));<br>  <span class="hljs-keyword">if</span> (!job_handle_.<span class="hljs-built_in">IsValid</span>())<br>    <span class="hljs-keyword">return</span> ::<span class="hljs-built_in">GetLastError</span>();<br><br>  <span class="hljs-comment">//这就是Windows Job对象的日常了，扩展限制信息和基础UI限制</span><br>  JOBOBJECT_EXTENDED_LIMIT_INFORMATION jeli = &#123;&#125;;<br>  JOBOBJECT_BASIC_UI_RESTRICTIONS jbur = &#123;&#125;;<br><br>  <span class="hljs-comment">// Set the settings for the different security levels. Note: The higher levels</span><br>  <span class="hljs-comment">// inherit from the lower levels.</span><br>  <span class="hljs-comment">// 这里要根据传入的JobLevel，也就是第一个参数来分类</span><br>  <span class="hljs-keyword">switch</span> (security_level) &#123;<br>    <span class="hljs-keyword">case</span> JOB_LOCKDOWN: &#123;<br>      jeli.BasicLimitInformation.LimitFlags |=<br>          JOB_OBJECT_LIMIT_DIE_ON_UNHANDLED_EXCEPTION;	<span class="hljs-comment">//最严格的权限，这里的flag标志也确实符合上面enum定义的描述，UNHANDLED_EXCEPTION时直接go die</span><br>      FALLTHROUGH;	<span class="hljs-comment">//注意这里是穿透的，并非break，因为flag的设置从低到高有着子集的关系，所以这也算是一种编码时的小技巧。</span><br>    &#125;<br>    <span class="hljs-keyword">case</span> JOB_RESTRICTED: &#123;<br>      jbur.UIRestrictionsClass |= JOB_OBJECT_UILIMIT_WRITECLIPBOARD;<br>      jbur.UIRestrictionsClass |= JOB_OBJECT_UILIMIT_READCLIPBOARD;<span class="hljs-comment">//读写剪贴板</span><br>      jbur.UIRestrictionsClass |= JOB_OBJECT_UILIMIT_HANDLES;<span class="hljs-comment">//UI HANDLES</span><br>      jbur.UIRestrictionsClass |= JOB_OBJECT_UILIMIT_GLOBALATOMS;<span class="hljs-comment">//全局原子表</span><br>      FALLTHROUGH;<br>    &#125;<br>    <span class="hljs-keyword">case</span> JOB_LIMITED_USER: &#123;<br>      jbur.UIRestrictionsClass |= JOB_OBJECT_UILIMIT_DISPLAYSETTINGS;<br>      jeli.BasicLimitInformation.LimitFlags |= JOB_OBJECT_LIMIT_ACTIVE_PROCESS;<br>      jeli.BasicLimitInformation.ActiveProcessLimit = <span class="hljs-number">1</span>;<br>      FALLTHROUGH;<br>    &#125;<br>    <span class="hljs-keyword">case</span> JOB_INTERACTIVE: &#123;<br>      jbur.UIRestrictionsClass |= JOB_OBJECT_UILIMIT_SYSTEMPARAMETERS;<br>      jbur.UIRestrictionsClass |= JOB_OBJECT_UILIMIT_DESKTOP;<br>      jbur.UIRestrictionsClass |= JOB_OBJECT_UILIMIT_EXITWINDOWS;<br>      FALLTHROUGH;<br>    &#125;<br>    <span class="hljs-keyword">case</span> JOB_UNPROTECTED: &#123;<br>      <span class="hljs-keyword">if</span> (memory_limit) &#123;<br>        jeli.BasicLimitInformation.LimitFlags |=<br>            JOB_OBJECT_LIMIT_PROCESS_MEMORY;<br>        jeli.ProcessMemoryLimit = memory_limit;<span class="hljs-comment">//这一层面仅仅有着内存限制的设定</span><br>      &#125;<br><br>      jeli.BasicLimitInformation.LimitFlags |=<br>          JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE;<br>      <span class="hljs-keyword">break</span>;<br>    &#125;<br>    <span class="hljs-keyword">default</span>: &#123; <span class="hljs-keyword">return</span> ERROR_BAD_ARGUMENTS; &#125;<br>  &#125;<br><br>  <span class="hljs-comment">//权限限制设定下去 </span><br>  <span class="hljs-keyword">if</span> (!::<span class="hljs-built_in">SetInformationJobObject</span>(job_handle_.<span class="hljs-built_in">Get</span>(),<br>                                 JobObjectExtendedLimitInformation, &amp;jeli,<br>                                 <span class="hljs-built_in">sizeof</span>(jeli))) &#123;<br>    <span class="hljs-keyword">return</span> ::<span class="hljs-built_in">GetLastError</span>();<br>  &#125;<br><br>  <span class="hljs-comment">//开绿灯的UI限制要放行</span><br>  jbur.UIRestrictionsClass = jbur.UIRestrictionsClass &amp; (~ui_exceptions);<br>  <span class="hljs-keyword">if</span> (!::<span class="hljs-built_in">SetInformationJobObject</span>(job_handle_.<span class="hljs-built_in">Get</span>(),<br>                                 JobObjectBasicUIRestrictions, &amp;jbur,<br>                                 <span class="hljs-built_in">sizeof</span>(jbur))) &#123;<br>    <span class="hljs-keyword">return</span> ::<span class="hljs-built_in">GetLastError</span>();<br>  &#125;<br><br>  <span class="hljs-keyword">return</span> ERROR_SUCCESS;<br>&#125;<br></code></pre></td></tr></table></figure>
+<blockquote>
+<p>Init中Job对象的用法、权限的设置直接查MSDN吧。对这些Windows组合技定式的理解，没有什么捷径，多查MSDN+stackoverflow。</p>
+</blockquote>
+<h3 id="assignprocesstojob"><code>AssignProcessToJob()</code></h3>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-function">DWORD <span class="hljs-title">Job::AssignProcessToJob</span><span class="hljs-params">(HANDLE process_handle)</span> </span>&#123;<br>  <span class="hljs-keyword">if</span> (!job_handle_.<span class="hljs-built_in">IsValid</span>())	<span class="hljs-comment">//心智健全检查</span><br>    <span class="hljs-keyword">return</span> ERROR_NO_DATA;<br>	<br>  <span class="hljs-comment">// 封装了AssignProcessToJobObject WinAPI</span><br>  <span class="hljs-comment">// 实际上由于当前PolicyBase::MakeJobObject的实现返回的是HANDLE，而不是Job对象</span><br>  <span class="hljs-comment">// 所以这个接口函数并没有被PolicyBase这个Policy实现体用到，它是直接调用了WinAPI</span><br>  <span class="hljs-keyword">if</span> (!::<span class="hljs-built_in">AssignProcessToJobObject</span>(job_handle_.<span class="hljs-built_in">Get</span>(), process_handle))<br>    <span class="hljs-keyword">return</span> ::<span class="hljs-built_in">GetLastError</span>();<br><br>  <span class="hljs-keyword">return</span> ERROR_SUCCESS;<br>&#125;<br></code></pre></td></tr></table></figure>
+<h3 id="userhandlegrantaccess"><code>UserHandleGrantAccess()</code></h3>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-function">DWORD <span class="hljs-title">Job::UserHandleGrantAccess</span><span class="hljs-params">(HANDLE handle)</span> </span>&#123;<br>  <span class="hljs-keyword">if</span> (!job_handle_.<span class="hljs-built_in">IsValid</span>())	<span class="hljs-comment">//心智健全检查</span><br>    <span class="hljs-keyword">return</span> ERROR_NO_DATA;<br><br>  <span class="hljs-comment">//依然是WinAPI，第三个参数为true表示允许</span><br>  <span class="hljs-keyword">if</span> (!::<span class="hljs-built_in">UserHandleGrantAccess</span>(handle, job_handle_.<span class="hljs-built_in">Get</span>(),<br>                               <span class="hljs-literal">true</span>)) &#123;  <span class="hljs-comment">// Access allowed.</span><br>    <span class="hljs-keyword">return</span> ::<span class="hljs-built_in">GetLastError</span>();<br>  &#125;<br><br>  <span class="hljs-keyword">return</span> ERROR_SUCCESS;<br>&#125;<br></code></pre></td></tr></table></figure>
+<h3 id="take"><code>Take()</code></h3>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs cpp">base::<span class="hljs-function">win::ScopedHandle <span class="hljs-title">Job::Take</span><span class="hljs-params">()</span> </span>&#123;<br>  <span class="hljs-keyword">return</span> std::<span class="hljs-built_in">move</span>(job_handle_);	<br>  <span class="hljs-comment">//左值引用转右值引用，避免拷贝操作（对象没变化，只是转移了所有权），另一方面由于默认拷贝构造的禁用，直接return job_handle_会报错。</span><br>&#125;<br></code></pre></td></tr></table></figure>
+<p>一旦调用了Take之后，Job对象就失去了job_handle_这个Windows
+Job对象的所有权，当然也就不能再使用了。</p>
+<p>这个函数在<code>PolicyBase::MakeJobObject</code>结尾处调用。</p>
+<h2 id="brokerservicesbase-related"><code>BrokerServicesBase</code>
+related</h2>
+<p>尽管Job封装的人模狗样，但对于policy来说，policy是怎样使用的Job才是最关键的。</p>
+<p>我们从<code>BrokerServicesBase::SpawnTarget</code>开始探索Job的身世。</p>
+<p>首先步入<code>PolicyBase::MakeJobObject</code>：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><code class="hljs cpp">base::win::ScopedHandle job;<br>result = policy_base-&gt;<span class="hljs-built_in">MakeJobObject</span>(&amp;job);<br><span class="hljs-comment">/* ------------------------------------------------------------------ */</span><br><span class="hljs-function">ResultCode <span class="hljs-title">PolicyBase::MakeJobObject</span><span class="hljs-params">(base::win::ScopedHandle* job)</span> </span>&#123;<br>  <span class="hljs-keyword">if</span> (job_level_ != JOB_NONE) &#123;<br>    <span class="hljs-comment">// Create the windows job object.</span><br>    <span class="hljs-comment">// constructor + init在栈上部署Job对象</span><br>    Job job_obj;<br>    DWORD result =<br>        job_obj.<span class="hljs-built_in">Init</span>(job_level_, <span class="hljs-literal">nullptr</span>, ui_exceptions_, memory_limit_);<br>    <span class="hljs-keyword">if</span> (ERROR_SUCCESS != result)<br>      <span class="hljs-keyword">return</span> SBOX_ERROR_GENERIC;<br>	<span class="hljs-comment">// 立即剥离了HANDLE的所有权，作为OUT型参数返回</span><br>    *job = job_obj.<span class="hljs-built_in">Take</span>();<br>  &#125; <span class="hljs-keyword">else</span> &#123;<br>    <span class="hljs-comment">// 处理不需要job的情况，空的ScopedHandle对象实际上是INVALID_HANDLE</span><br>    *job = base::win::<span class="hljs-built_in">ScopedHandle</span>();<br>  &#125;<br>  <span class="hljs-keyword">return</span> SBOX_ALL_OK;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>此后在new TargetProcess对象时传入Job HANDLE，进入构造器：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><code class="hljs cpp"> TargetProcess* target = <span class="hljs-keyword">new</span> <span class="hljs-built_in">TargetProcess</span>(<br>      std::<span class="hljs-built_in">move</span>(initial_token), std::<span class="hljs-built_in">move</span>(lockdown_token), job.<span class="hljs-built_in">Get</span>(),<br>      thread_pool_.<span class="hljs-built_in">get</span>(),<br>      profile ? profile-&gt;<span class="hljs-built_in">GetImpersonationCapabilities</span>() : std::<span class="hljs-built_in">vector</span>&lt;Sid&gt;());<br><span class="hljs-comment">/* ------------------------------------------------------------------ */</span><br>TargetProcess::<span class="hljs-built_in">TargetProcess</span>(base::win::ScopedHandle initial_token,<br>                             base::win::ScopedHandle lockdown_token,<br>                             HANDLE job,<br>                             ThreadProvider* thread_pool,<br>                             <span class="hljs-type">const</span> std::vector&lt;Sid&gt;&amp; impersonation_capabilities)<br>    <span class="hljs-comment">// This object owns everything initialized here except thread_pool and</span><br>    <span class="hljs-comment">// the job_ handle. The Job handle is closed by BrokerServices and results</span><br>    <span class="hljs-comment">// eventually in a call to our dtor.</span><br>    : <span class="hljs-built_in">lockdown_token_</span>(std::<span class="hljs-built_in">move</span>(lockdown_token)),<br>      <span class="hljs-built_in">initial_token_</span>(std::<span class="hljs-built_in">move</span>(initial_token)),<br>      <span class="hljs-built_in">job_</span>(job),	<span class="hljs-comment">//所以这个HANDLE最终由TargetProcess的job_成员存储</span><br>      <span class="hljs-built_in">thread_pool_</span>(thread_pool),<br>      <span class="hljs-built_in">base_address_</span>(<span class="hljs-literal">nullptr</span>),<br>      <span class="hljs-built_in">impersonation_capabilities_</span>(impersonation_capabilities) &#123;&#125;<br></code></pre></td></tr></table></figure>
+<p>从设计的角度来看，job对象本身就是管理target进程的，target进程对象存储job
+HANDLE也是天经地义。Policy作为中间介入层，它控制了target对象最终拿到的job是个什么样的job，而是什么样的job又取决于policy设定的<code>JobLevel</code>。</p>
+<p>然而job的处理并没有结束，上面函数传参的时候，仅仅是复制了HANDLE值，<code>TargetProcess</code>存储的也仅仅是个值罢了。job的归属究竟在何处？</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><code class="hljs cpp"> <span class="hljs-keyword">if</span> (job.<span class="hljs-built_in">IsValid</span>()) &#123;<br>    std::unique_ptr&lt;JobTracker&gt; tracker =<br>        std::<span class="hljs-built_in">make_unique</span>&lt;JobTracker&gt;(std::<span class="hljs-built_in">move</span>(job), policy_base);<br><br>    <span class="hljs-comment">// There is no obvious recovery after failure here. Previous version with</span><br>    <span class="hljs-comment">// SpawnCleanup() caused deletion of TargetProcess twice. crbug.com/480639</span><br>    <span class="hljs-built_in">CHECK</span>(<span class="hljs-built_in">AssociateCompletionPort</span>(tracker-&gt;job.<span class="hljs-built_in">Get</span>(), job_port_.<span class="hljs-built_in">Get</span>(),<br>                                  tracker.<span class="hljs-built_in">get</span>()));<br> 	tracker_list_.<span class="hljs-built_in">push_back</span>(std::<span class="hljs-built_in">move</span>(tracker));<br><span class="hljs-comment">/* ------------------------------------------------------------------ */</span><br><span class="hljs-function"><span class="hljs-type">bool</span> <span class="hljs-title">AssociateCompletionPort</span><span class="hljs-params">(HANDLE job, HANDLE port, <span class="hljs-type">void</span>* key)</span> </span>&#123;<br>  JOBOBJECT_ASSOCIATE_COMPLETION_PORT job_acp = &#123;key, port&#125;;<br>  <span class="hljs-keyword">return</span> ::<span class="hljs-built_in">SetInformationJobObject</span>(job,<br>                                   JobObjectAssociateCompletionPortInformation,<br>                                   &amp;job_acp, <span class="hljs-built_in">sizeof</span>(job_acp))<br>             ? <span class="hljs-literal">true</span><br>             : <span class="hljs-literal">false</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>还记得<code>BrokerServices::tracker_list_</code>吗？它是个<code>std::list&lt;std::unique_ptr&lt;JobTracker&gt;&gt;</code>。这货将所有的<code>JobTracker</code>对象指针集成在一起管理。<code>std::move(job)</code>意味着局部对象job的所属正式移交给了tracker，而tracker本身又把job和policy_base对象关联在一起。</p>
+<p>进一步，<code>AssociateCompletionPort</code>把该job和IO完成端口联系起来。</p>
+<h3 id="jobtracker"><code>JobTracker</code></h3>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-comment">// Helper structure that allows the Broker to associate a job notification</span><br><span class="hljs-comment">// with a job object and with a policy.</span><br><span class="hljs-keyword">struct</span> <span class="hljs-title class_">JobTracker</span> &#123;<br>  <span class="hljs-built_in">JobTracker</span>(base::win::ScopedHandle job,<br>             scoped_refptr&lt;sandbox::PolicyBase&gt; policy)<br>      : <span class="hljs-built_in">job</span>(std::<span class="hljs-built_in">move</span>(job)), <span class="hljs-built_in">policy</span>(policy) &#123;&#125;<span class="hljs-comment">// job owner再次转移给内部成员job</span><br>  ~<span class="hljs-built_in">JobTracker</span>() &#123; <span class="hljs-built_in">FreeResources</span>(); &#125;<br><br>  <span class="hljs-comment">// Releases the Job and notifies the associated Policy object to release its</span><br>  <span class="hljs-comment">// resources as well.</span><br>  <span class="hljs-comment">// 这才是关联policy的真实目的，在BrokerServicesBase::TargetEventsThread中可以看到</span><br>  <span class="hljs-comment">// JOB_OBJECT_MSG_ACTIVE_PROCESS_ZERO发生时，就要释放它的policy的资源</span><br>  <span class="hljs-comment">// 因为policy此时不再管辖任何target进程了</span><br>  <span class="hljs-function"><span class="hljs-type">void</span> <span class="hljs-title">FreeResources</span><span class="hljs-params">()</span></span>;<br><br>  base::win::ScopedHandle job;<br>  scoped_refptr&lt;sandbox::PolicyBase&gt; policy;<br>&#125;;<br></code></pre></td></tr></table></figure>
+<p>封装这样一个东西，实际上是为了broker可以把job的通知事件同时与该job对象和制定job规格的policy联系起来。</p>
+<h4 id="freeresources"><code>FreeResources</code></h4>
+<p>那么，展开来看就很清晰了：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-function"><span class="hljs-type">void</span> <span class="hljs-title">JobTracker::FreeResources</span><span class="hljs-params">()</span> </span>&#123;<br>  <span class="hljs-keyword">if</span> (policy) &#123;<br>    <span class="hljs-comment">// 先终止Job对象</span><br>    <span class="hljs-type">bool</span> res = ::<span class="hljs-built_in">TerminateJobObject</span>(job.<span class="hljs-built_in">Get</span>(), sandbox::SBOX_ALL_OK);<br>    <span class="hljs-built_in">DCHECK</span>(res);<br>    <span class="hljs-comment">// Closing the job causes the target process to be destroyed so this needs</span><br>    <span class="hljs-comment">// to happen before calling OnJobEmpty().</span><br>    HANDLE stale_job_handle = job.<span class="hljs-built_in">Get</span>();<br>    job.<span class="hljs-built_in">Close</span>();<br><br>    <span class="hljs-comment">// In OnJobEmpty() we don&#x27;t actually use the job handle directly.</span><br>    <span class="hljs-comment">// 原来OnJobEmpty这个事件的驱动者在这儿</span><br>    policy-&gt;<span class="hljs-built_in">OnJobEmpty</span>(stale_job_handle);<br>    policy = <span class="hljs-literal">nullptr</span>;<br>  &#125;<br>&#125;<br><br><span class="hljs-comment">// 揪出policy管理的targets_中，已经GG的target并删除</span><br><span class="hljs-function"><span class="hljs-type">bool</span> <span class="hljs-title">PolicyBase::OnJobEmpty</span><span class="hljs-params">(HANDLE job)</span> </span>&#123;<br>  <span class="hljs-function">AutoLock <span class="hljs-title">lock</span><span class="hljs-params">(&amp;lock_)</span></span>;<br>  TargetSet::iterator it;<br>  <span class="hljs-keyword">for</span> (it = targets_.<span class="hljs-built_in">begin</span>(); it != targets_.<span class="hljs-built_in">end</span>(); ++it) &#123;<br>    <span class="hljs-keyword">if</span> ((*it)-&gt;<span class="hljs-built_in">Job</span>() == job)<br>      <span class="hljs-keyword">break</span>;<br>  &#125;<br>  <span class="hljs-keyword">if</span> (it == targets_.<span class="hljs-built_in">end</span>()) &#123;<br>    <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;<br>  &#125;<br>  TargetProcess* target = *it;<br>  targets_.<span class="hljs-built_in">erase</span>(it);<br>  <span class="hljs-keyword">delete</span> target;<br>  <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+<h2 id="targetpolicy-related"><code>TargetPolicy</code> related</h2>
+<p>Job最为policy的3大组件之一，在<code>PolicyBase</code>中也有丰富的接口函数，比如上面已经看到的<code>MakeJobObject</code>和<code>OnJobEmpty</code>。</p>
+<p>其他的几个set/get方法只是单纯的成员传递：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-function">ResultCode <span class="hljs-title">PolicyBase::SetJobLevel</span><span class="hljs-params">(JobLevel job_level, <span class="hljs-type">uint32_t</span> ui_exceptions)</span> </span>&#123;<br>  <span class="hljs-keyword">if</span> (memory_limit_ &amp;&amp; job_level == JOB_NONE) &#123;<br>    <span class="hljs-keyword">return</span> SBOX_ERROR_BAD_PARAMS;<br>  &#125;<br>  job_level_ = job_level;<br>  ui_exceptions_ = ui_exceptions;<br>  <span class="hljs-keyword">return</span> SBOX_ALL_OK;<br>&#125;<br><br><span class="hljs-function">JobLevel <span class="hljs-title">PolicyBase::GetJobLevel</span><span class="hljs-params">()</span> <span class="hljs-type">const</span> </span>&#123;<br>  <span class="hljs-keyword">return</span> job_level_;<br>&#125;<br><br><span class="hljs-function">ResultCode <span class="hljs-title">PolicyBase::SetJobMemoryLimit</span><span class="hljs-params">(<span class="hljs-type">size_t</span> memory_limit)</span> </span>&#123;<br>  memory_limit_ = memory_limit;<br>  <span class="hljs-keyword">return</span> SBOX_ALL_OK;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>这些已经在分析<code>TargetPolicy</code>一节中看到过了。</p>
+<h2 id="targetprocess-related"><code>TargetProcess</code> related</h2>
+<p>如上分析，<code>TargetProcess</code>仅仅保存了一个所属job对象的HANDLE。而该类中涉及到job的接口只有：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-comment">// Returns the handle to the job object that the target process belongs to.</span><br><span class="hljs-function">HANDLE <span class="hljs-title">Job</span><span class="hljs-params">()</span> <span class="hljs-type">const</span> </span>&#123; <span class="hljs-keyword">return</span> job_; &#125;<br></code></pre></td></tr></table></figure>
+<p>这个函数在<code>PolicyBase::OnJobEmpty</code>中用来迭代<code>PolicyBase::targets_</code>，以job匹配。</p>
+<p>到此，Job相关的内容目前都已经搞清楚了。</p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90/" class="category-chain-item">源码剖析</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/chromium/" class="print-no-link">#chromium</a>
+      
+        <a href="/tags/chromium-sandbox/" class="print-no-link">#chromium-sandbox</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>Chromium-sandbox-Job-analysis</div>
+      <div>https://r00tk1ts.github.io/2018/05/14/chromium-sandbox-Job-analysis/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>r00tk1t</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2018年5月14日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2018/05/19/chromium-sandbox-Tokens-analysis/" title="Chromium-sandbox-Tokens-analysis">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">Chromium-sandbox-Tokens-analysis</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2018/05/13/chromium-sandbox-TargetPolicy-analysis/" title="Chromium-sandbox-TargetPolicy-analysis">
+                        <span class="hidden-mobile">Chromium-sandbox-TargetPolicy-analysis</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+  
+<script src="/js/diy/yinghua.js"></script>
+<script src="/js/diy/love.js"></script>
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>
