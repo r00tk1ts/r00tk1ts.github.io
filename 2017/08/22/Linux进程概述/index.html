@@ -30,7 +30,7 @@
 <meta property="og:image" content="https://r00tk1ts.github.io/2017/08/22/Linux%E8%BF%9B%E7%A8%8B%E6%A6%82%E8%BF%B0/20170822_5.jpg">
 <meta property="og:image" content="https://r00tk1ts.github.io/2017/08/22/Linux%E8%BF%9B%E7%A8%8B%E6%A6%82%E8%BF%B0/20170822_6.jpg">
 <meta property="article:published_time" content="2017-08-22T13:51:11.000Z">
-<meta property="article:modified_time" content="2024-04-22T03:34:00.162Z">
+<meta property="article:modified_time" content="2024-06-06T12:17:23.343Z">
 <meta property="article:author" content="r00tk1t">
 <meta property="article:tag" content="linux-kernel">
 <meta property="article:tag" content="ulk">
@@ -298,12 +298,20 @@
 <h1 id="linux内核学习linux进程概述">Linux内核学习——Linux进程概述</h1>
 <h2 id="活在os理论中的进程与线程">活在OS理论中的进程与线程</h2>
 <p>进程与线程是OS理论中的基本概念。在理论中，进程通常被定义成一个正在运行的程序的实例。举个例子，你在Windows系统上运行一个notepad.exe，这个notepad.exe就会被拉到RAM中映射成一个应用程序，这个应用程序就是进程。同理，在Linux下，使用vim编辑某个文件，vim也被拉到了RAM中映射出一个进程。</p>
-<p>进程由两部分组成： - OS管理进程的内核对象。 - 自己的地址空间</p>
-<p>线程和进程很相似，同样由两部分组成： - 一个是线程的内核对象 -
-自己专有的资源（如线程堆栈地址空间）</p>
+<p>进程由两部分组成：</p>
+<ul>
+<li>OS管理进程的内核对象。</li>
+<li>自己的地址空间</li>
+</ul>
+<p>线程和进程很相似，同样由两部分组成：</p>
+<ul>
+<li>一个是线程的内核对象</li>
+<li>自己专有的资源（如线程堆栈地址空间）</li>
+</ul>
 <h2 id="linux的进程轻量级进程与线程">Linux的进程、轻量级进程与线程</h2>
 <p>然而，理论毕竟是理论，各种OS真正在实现时，其抽象体与具象体的设计往往并不一致。</p>
-<p>拿我比较熟悉的Windows来说，Windows中进程是一个相对抽象的概念，进程本身是不干活的，进程包含了一个(主线程)或多个线程，这些线程实际上才是干活的主体对象。一个进程只是定义了内核对象（用于管理，状态标志等）和一片自己的地址空间(每个程序都告诉自己有4G的线性地址，其中高2G内核领空共用)。每个线程也有他自己的内核对象，以及它所属进程的地址空间中的一部分（主要是线程堆栈）。用Windows话来说，进程是不活泼的，从不执行任何东西，只是线程的容器。线程是活泼的，同属于一个进程的所有线程共享这片地址空间，但每个线程又有它自己的一亩三分地，这就使得同组线程的交互极为简单，而不同组线程又被相对隔离。</p>
+<p>拿我比较熟悉的32位
+Windows来说，Windows中进程是一个相对抽象的概念，进程本身是不干活的，进程包含了一个(主线程)或多个线程，这些线程实际上才是干活的主体对象。一个进程只是定义了内核对象（用于管理，状态标志等）和一片自己的地址空间(每个程序都告诉自己有4G的线性地址，其中高2G内核地址共享)。每个线程也有他自己的内核对象，以及它所属进程的地址空间中的一部分（主要是线程堆栈）。用Windows话来说，进程是不活泼的，从不执行任何东西，只是线程的容器。线程是活泼的，同属于一个进程的所有线程共享这片地址空间，但每个线程又有它自己的一亩三分地，这就使得同组线程的交互极为简单，而不同组线程又被相对隔离。</p>
 <p>而Linux则大相径庭，Linux中进程和线程的概念有那么一点混淆不清，不似Windows般泾渭分明。纵观Linux源代码，各路Author常把进程称为task或thread（实际上叫Process更合适），各种结构的命名上可见一斑。</p>
 <p>但无论你如何命名，如何设计，从内核观点来看，进程的目的就在于担当分配系统资源（CPU分片、地址空间）的实体。Linux中除了第一个pid为0的进程，所有的进程都是复制出来的。父子进程虽然可以共享程序代码页，但有自己独立的数据拷贝。子进程自身内存单元的修改对父进程是不可见的，反之亦然。</p>
 <blockquote>
@@ -332,7 +340,7 @@ process)。用于对多线程提供更好的支持。两个轻量级进程基本
 <p>Linux的每个进程都有一个PID，这个PID放在task_struct的pid中。pid循环使用，内核通过一个pidmap-array位图来管理PID的分配。Linux把不同的PID与系统中每个进程相关联。这种方式十分灵活，因为系统中每个执行上下文都可以被唯一地识别。</p>
 <p>而因为考虑到多线程的支持，Linux引入线程组的表示。一个线程组中所有线程使用和该线程组领头线程相同的PID，也就是该组中第一个轻量级进程的PID，它放入task_struct的tgid字段。多线程应用程序的所有线程共享相同的PID。绝大多数进程都属于一个线程组，包含单一的成员；线程组的领头线程其tgid的值与pid的值相同。</p>
 <blockquote>
-<p>getpid()返回的是tgid值而不是gid值。某种视角来看，Linux多线程的支持概念中，线程和进程的地位刚好和Windows相反。</p>
+<p>getpid()返回的是tgid值而不是pid值。某种视角来看，Linux多线程的支持概念中，线程和进程的地位刚好和Windows相反。</p>
 </blockquote>
 <h3 id="进程-进程描述符">进程&lt;-&gt;进程描述符</h3>
 <p>进程是动态的，内核显然不能把进程描述符放在永久分配的静态内存区，而应该放在动态内存中。对每个进程来说，Linux把两个不同的数据结构紧凑地存放在一个单独为进程分配的存储区域内：内核态堆栈+thread_info。</p>
@@ -363,13 +371,25 @@ process)。用于对多线程提供更好的支持。两个轻量级进程基本
 <p>CPU调度时，只需要考虑可运行进程(TASK_RUNNING态)即可。Linux2.6为此优化了数据结构，设计了多个优先级不等的可运行进程链表，通过task_struct中另外一个list_head字段run_list链入对应优先权为k的链中。每个CPU都有自己的运行队列（可运行进程链表集）。</p>
 <figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * 进程优先级数组。每个CPU对应一个此结构。</span><br><span class="hljs-comment"> */</span><br><span class="hljs-keyword">struct</span> <span class="hljs-title class_">prio_array</span> &#123;<br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 链表中进程描述符的数量。</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-type">unsigned</span> <span class="hljs-type">int</span> nr_active;<br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 优先权数组。当且仅当某个优先权的进程链表不为空时设置相应的位标志。</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-type">unsigned</span> <span class="hljs-type">long</span> bitmap[BITMAP_SIZE];<br>	<span class="hljs-comment">/**</span><br><span class="hljs-comment">	 * 140个优先权队列的头结点。</span><br><span class="hljs-comment">	 */</span><br>	<span class="hljs-keyword">struct</span> <span class="hljs-title class_">list_head</span> queue[MAX_PRIO];<br>&#125;;<br><br><span class="hljs-keyword">typedef</span> <span class="hljs-keyword">struct</span> <span class="hljs-title class_">prio_array</span> <span class="hljs-type">prio_array_t</span>;<br></code></pre></td></tr></table></figure>
 <h3 id="进程间的关系">进程间的关系</h3>
-<p>进程描述符中有4个描述进程关系的字段： - real_parent<br />
--
-指向创建了P的进程的描述符，如果P父进程不再存在，则指向1的描述符(init进程)
-- parent -
-指向P的当前父进程（这种进程的子进程终止时，必须向父进程发信号）。它的值通常与real_parent一致，但偶尔也可以不同，例如，当另一个进程发出监控P的ptrace()系统调用请求时
-- children - 链表头，链表中的所有元素都是P创建的子进程 - sibling -
-指向兄弟进程链表中的下一个元素或前一个元素指针，这些兄弟进程的父进程都是P</p>
+<p>进程描述符中有4个描述进程关系的字段：</p>
+<ul>
+<li>real_parent
+<ul>
+<li>指向创建了P的进程的描述符，如果P父进程不再存在，则指向1的描述符(init进程)</li>
+</ul></li>
+<li>parent
+<ul>
+<li>指向P的当前父进程（这种进程的子进程终止时，必须向父进程发信号）。它的值通常与real_parent一致，但偶尔也可以不同，例如，当另一个进程发出监控P的ptrace()系统调用请求时</li>
+</ul></li>
+<li>children
+<ul>
+<li>链表头，链表中的所有元素都是P创建的子进程</li>
+</ul></li>
+<li>sibling
+<ul>
+<li>指向兄弟进程链表中的下一个元素或前一个元素指针，这些兄弟进程的父进程都是P</li>
+</ul></li>
+</ul>
 <p>进程关系的示意图(一图胜千言呐!)：</p>
 <p><img src="20170822_4.jpg" srcset="/img/loading.gif" lazyload /></p>
 <p>建立非亲属关系的进程描述符字段： - group_leader -
@@ -421,10 +441,11 @@ pid成员pids数组即为四个散列表，看看struct结构：</p>
 <p>所以，哈希的效果实现来看即如此：</p>
 <p><img src="20170822_6.jpg" srcset="/img/loading.gif" lazyload /></p>
 <h3 id="非task_running态进程">非TASK_RUNNING态进程</h3>
-<p>除了TASK_RUNNING态的进程组织成了链表，其他状态也有分别的处理： -
-TASK_STOPPED,EXIT_ZOMBIE,EXIT_DEAD都是散户，没有组织成链表，这几种状态的进程访问或者通过PID散列，或者通过父进程的子进程链表。
--
-TASK_INTERRUPTIBLE，TASK_UNINTERRUPTIBLE状态被再细分成多个类，每一个对应一个特定的事件(event)。在这种情况下，进程状态不提供足够的信息来快速的追溯进程，所以有必要引入额外的进程链表。这被称作等待队列。</p>
+<p>除了TASK_RUNNING态的进程组织成了链表，其他状态也有分别的处理：</p>
+<ul>
+<li>TASK_STOPPED,EXIT_ZOMBIE,EXIT_DEAD都是散户，没有组织成链表，这几种状态的进程访问或者通过PID散列，或者通过父进程的子进程链表。</li>
+<li>TASK_INTERRUPTIBLE，TASK_UNINTERRUPTIBLE状态被再细分成多个类，每一个对应一个特定的事件(event)。在这种情况下，进程状态不提供足够的信息来快速的追溯进程，所以有必要引入额外的进程链表。这被称作等待队列。</li>
+</ul>
 <h3 id="等待队列">等待队列</h3>
 <p>进程必须经常等待某些事件的发生，例如，等待一个磁盘操作的终止，系统资源的释放，等待固定的间隔。等待队列实现了在事件上的条件等待：希望等待特定事件的进程把自己放入合适的等待队列，并放弃控制权（阻塞）。因此，等待队列表示的是一组睡眠的进程，当其对应的事件置True时，内核唤醒它们。</p>
 <p>等待队列也是双向链表，使用list_head子结构，每个队列都有一个等待队列头，结构如下：</p>
